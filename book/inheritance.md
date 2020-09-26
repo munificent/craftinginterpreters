@@ -94,8 +94,8 @@ To work this into the grammar, we add a new optional clause in our existing
 `classDecl` rule:
 
 ```ebnf
-classDecl → "class" IDENTIFIER ( "<" IDENTIFIER )?
-            "{" function* "}" ;
+classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
+                 "{" function* "}" ;
 ```
 
 After the class name, you can have a `<` followed by the superclass's name. The
@@ -288,9 +288,9 @@ So the new clause we add to the `primary` rule in our grammar includes the
 property access as well:
 
 ```ebnf
-primary → "true" | "false" | "nil" | "this"
-        | NUMBER | STRING | IDENTIFIER | "(" expression ")"
-        | "super" "." IDENTIFIER ;
+primary        → "true" | "false" | "nil" | "this"
+               | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+               | "super" "." IDENTIFIER ;
 ```
 
 Typically, a super expression is used for a method call, but, as with regular

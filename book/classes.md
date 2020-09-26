@@ -97,12 +97,12 @@ Like we do, we're gonna start with syntax. A `class` statement introduces a new
 name, so it lives in the `declaration` grammar rule:
 
 ```ebnf
-declaration → classDecl
-            | funDecl
-            | varDecl
-            | statement ;
+declaration    → classDecl
+               | funDecl
+               | varDecl
+               | statement ;
 
-classDecl   → "class" IDENTIFIER "{" function* "}" ;
+classDecl      → "class" IDENTIFIER "{" function* "}" ;
 ```
 
 The new `classDecl` rule relies on the `function` rule we defined
@@ -111,8 +111,8 @@ The new `classDecl` rule relies on the `function` rule we defined
 [function rule]: functions.html#function-declarations
 
 ```ebnf
-function    → IDENTIFIER "(" parameters? ")" block ;
-parameters  → IDENTIFIER ( "," IDENTIFIER )* ;
+function       → IDENTIFIER "(" parameters? ")" block ;
+parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 ```
 
 In plain English, a class declaration is the `class` keyword, followed by the
@@ -330,7 +330,7 @@ as the parentheses in a function call expression, so we slot it into the grammar
 by replacing the existing `call` rule with:
 
 ```ebnf
-call → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 ```
 
 After a primary expression, we allow a series of any mixture of parenthesized
@@ -447,8 +447,8 @@ In grammar land, we extend the rule for assignment to allow dotted identifiers
 on the left-hand side:
 
 ```ebnf
-assignment → ( call "." )? IDENTIFIER "=" assignment
-           | logic_or ;
+assignment     → ( call "." )? IDENTIFIER "=" assignment
+               | logic_or ;
 ```
 
 Unlike getters, setters don't chain. The reference to `call` allows any high

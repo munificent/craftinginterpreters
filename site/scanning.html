@@ -274,7 +274,8 @@ add after <em>run</em>()</div>
     <span class="i">report</span>(<span class="i">line</span>, <span class="s">&quot;&quot;</span>, <span class="i">message</span>);
   }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">report</span>(<span class="t">int</span> <span class="i">line</span>, <span class="t">String</span> <span class="i">where</span>, <span class="t">String</span> <span class="i">message</span>) {
+  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">report</span>(<span class="t">int</span> <span class="i">line</span>, <span class="t">String</span> <span class="i">where</span>,
+                             <span class="t">String</span> <span class="i">message</span>) {
     <span class="t">System</span>.<span class="i">err</span>.<span class="i">println</span>(
         <span class="s">&quot;[line &quot;</span> + <span class="i">line</span> + <span class="s">&quot;] Error&quot;</span> + <span class="i">where</span> + <span class="s">&quot;: &quot;</span> + <span class="i">message</span>);
     <span class="i">hadError</span> = <span class="k">true</span>;
@@ -286,7 +287,7 @@ add after <em>run</em>()</div>
 error occurred on a given line. That is really the bare minimum to be able to
 claim you even <em>have</em> error reporting. Imagine if you accidentally left a
 dangling comma in some function call and the interpreter printed out:</p>
-<div class="codehilite"><pre>Error: Unexpected &quot;,&quot; *somewhere* in your program. Good luck finding it!
+<div class="codehilite"><pre>Error: Unexpected &quot;,&quot; somewhere in your code. Good luck finding it!
 </pre></div>
 <p>That&rsquo;s not very helpful. We need to at least point them to the right line. Even
 better would be the beginning and end column so they know <em>where</em> in the line.
@@ -705,10 +706,18 @@ operators.</p>
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="s">&#39;!&#39;</span>: <span class="i">addToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="i">BANG_EQUAL</span> : <span class="i">BANG</span>); <span class="k">break</span>;
-      <span class="k">case</span> <span class="s">&#39;=&#39;</span>: <span class="i">addToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="i">EQUAL_EQUAL</span> : <span class="i">EQUAL</span>); <span class="k">break</span>;
-      <span class="k">case</span> <span class="s">&#39;&lt;&#39;</span>: <span class="i">addToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="i">LESS_EQUAL</span> : <span class="i">LESS</span>); <span class="k">break</span>;
-      <span class="k">case</span> <span class="s">&#39;&gt;&#39;</span>: <span class="i">addToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="i">GREATER_EQUAL</span> : <span class="i">GREATER</span>); <span class="k">break</span>;
+      <span class="k">case</span> <span class="s">&#39;!&#39;</span>:
+        <span class="i">addToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="i">BANG_EQUAL</span> : <span class="i">BANG</span>);
+        <span class="k">break</span>;
+      <span class="k">case</span> <span class="s">&#39;=&#39;</span>:
+        <span class="i">addToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="i">EQUAL_EQUAL</span> : <span class="i">EQUAL</span>);
+        <span class="k">break</span>;
+      <span class="k">case</span> <span class="s">&#39;&lt;&#39;</span>:
+        <span class="i">addToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="i">LESS_EQUAL</span> : <span class="i">LESS</span>);
+        <span class="k">break</span>;
+      <span class="k">case</span> <span class="s">&#39;&gt;&#39;</span>:
+        <span class="i">addToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="i">GREATER_EQUAL</span> : <span class="i">GREATER</span>);
+        <span class="k">break</span>;
 </pre><pre class="insert-after">
 
       default:
@@ -739,7 +748,7 @@ merely a <code>!</code>.</p>
 <p>We&rsquo;re still missing one operator, <code>/</code> for division. That character needs a
 little special handling because comments begin with a slash too.</p>
 <div class="codehilite"><pre class="insert-before">
-      case '&gt;': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
+        break;
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">

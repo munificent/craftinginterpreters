@@ -316,25 +316,25 @@ collector soon to manage it for us.</p>
 macros. Maybe that would be a little too meta.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)
+#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)</span>
+<span class="a">#define IS_CLOSURE(value)      isObjType(value, OBJ_CLOSURE)</span>
 </pre><pre class="insert-after">
-#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
+#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>And to cast a value:</p>
 <div class="codehilite"><pre class="insert-before">
-#define IS_STRING(value)        isObjType(value, OBJ_STRING)
+#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))</span>
+<span class="a">#define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))</span>
 </pre><pre class="insert-after">
-#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
+#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
@@ -530,7 +530,7 @@ replace 1 line</div>
 accessed CallFrame&rsquo;s function needs to use a closure instead. First, the macro
 for reading a constant from the current function&rsquo;s constant table:</p>
 <div class="codehilite"><pre class="insert-before">
-    (frame-&gt;ip += 2, (uint16_t)((frame-&gt;ip[-2] &lt;&lt; 8) | frame-&gt;ip[-1]))
+    (uint16_t)((frame-&gt;ip[-2] &lt;&lt; 8) | frame-&gt;ip[-1]))
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 2 lines</div>
@@ -760,7 +760,8 @@ created here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>resolveLocal</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">int</span> <span class="i">addUpvalue</span>(<span class="t">Compiler</span>* <span class="i">compiler</span>, <span class="t">uint8_t</span> <span class="i">index</span>, <span class="t">bool</span> <span class="i">isLocal</span>) {
+<span class="k">static</span> <span class="t">int</span> <span class="i">addUpvalue</span>(<span class="t">Compiler</span>* <span class="i">compiler</span>, <span class="t">uint8_t</span> <span class="i">index</span>,
+                      <span class="t">bool</span> <span class="i">isLocal</span>) {
   <span class="t">int</span> <span class="i">upvalueCount</span> = <span class="i">compiler</span>-&gt;<span class="i">function</span>-&gt;<span class="i">upvalueCount</span>;
   <span class="i">compiler</span>-&gt;<span class="i">upvalues</span>[<span class="i">upvalueCount</span>].<span class="i">isLocal</span> = <span class="i">isLocal</span>;
   <span class="i">compiler</span>-&gt;<span class="i">upvalues</span>[<span class="i">upvalueCount</span>].<span class="i">index</span> = <span class="i">index</span>;
@@ -1281,7 +1282,8 @@ ObjClosure* newClosure(ObjFunction* function) {
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newClosure</em>()</div>
 <pre class="insert">
-  <span class="t">ObjUpvalue</span>** <span class="i">upvalues</span> = <span class="a">ALLOCATE</span>(<span class="t">ObjUpvalue</span>*, <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>);
+  <span class="t">ObjUpvalue</span>** <span class="i">upvalues</span> = <span class="a">ALLOCATE</span>(<span class="t">ObjUpvalue</span>*,
+                                   <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>);
   <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>; <span class="i">i</span>++) {
     <span class="i">upvalues</span>[<span class="i">i</span>] = <span class="a">NULL</span>;
   }
@@ -1316,7 +1318,8 @@ in <em>newClosure</em>()</div>
 in <em>freeObject</em>()</div>
 <pre class="insert">
       <span class="t">ObjClosure</span>* <span class="i">closure</span> = (<span class="t">ObjClosure</span>*)<span class="i">object</span>;
-      <span class="a">FREE_ARRAY</span>(<span class="t">ObjUpvalue</span>*, <span class="i">closure</span>-&gt;<span class="i">upvalues</span>, <span class="i">closure</span>-&gt;<span class="i">upvalueCount</span>);
+      <span class="a">FREE_ARRAY</span>(<span class="t">ObjUpvalue</span>*, <span class="i">closure</span>-&gt;<span class="i">upvalues</span>,
+                 <span class="i">closure</span>-&gt;<span class="i">upvalueCount</span>);
 </pre><pre class="insert-after">
       FREE(ObjClosure, object);
 </pre></div>
@@ -1336,7 +1339,8 @@ in <em>run</em>()</div>
           <span class="t">uint8_t</span> <span class="i">isLocal</span> = <span class="a">READ_BYTE</span>();
           <span class="t">uint8_t</span> <span class="i">index</span> = <span class="a">READ_BYTE</span>();
           <span class="k">if</span> (<span class="i">isLocal</span>) {
-            <span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">i</span>] = <span class="i">captureUpvalue</span>(<span class="i">frame</span>-&gt;<span class="i">slots</span> + <span class="i">index</span>);
+            <span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">i</span>] =
+                <span class="i">captureUpvalue</span>(<span class="i">frame</span>-&gt;<span class="i">slots</span> + <span class="i">index</span>);
           } <span class="k">else</span> {
             <span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">i</span>] = <span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">index</span>];
           }
@@ -1803,7 +1807,9 @@ in <em>captureUpvalue</em>()</div>
     <span class="i">upvalue</span> = <span class="i">upvalue</span>-&gt;<span class="i">next</span>;
   }
 
-  <span class="k">if</span> (<span class="i">upvalue</span> != <span class="a">NULL</span> &amp;&amp; <span class="i">upvalue</span>-&gt;<span class="i">location</span> == <span class="i">local</span>) <span class="k">return</span> <span class="i">upvalue</span>;
+  <span class="k">if</span> (<span class="i">upvalue</span> != <span class="a">NULL</span> &amp;&amp; <span class="i">upvalue</span>-&gt;<span class="i">location</span> == <span class="i">local</span>) {
+    <span class="k">return</span> <span class="i">upvalue</span>;
+  }
 
 </pre><pre class="insert-after">
   ObjUpvalue* createdUpvalue = newUpvalue(local);

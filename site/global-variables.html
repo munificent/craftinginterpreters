@@ -601,7 +601,8 @@ add after <em>expression</em>()</div>
   } <span class="k">else</span> {
     <span class="i">emitByte</span>(<span class="a">OP_NIL</span>);
   }
-  <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39; after variable declaration.&quot;</span>);
+  <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>,
+          <span class="s">&quot;Expect &#39;;&#39; after variable declaration.&quot;</span>);
 
   <span class="i">defineVariable</span>(<span class="i">global</span>);
 }
@@ -650,7 +651,8 @@ static void parsePrecedence(Precedence precedence);
 add after <em>parsePrecedence</em>()</div>
 <pre class="insert">
 <span class="k">static</span> <span class="t">uint8_t</span> <span class="i">identifierConstant</span>(<span class="t">Token</span>* <span class="i">name</span>) {
-  <span class="k">return</span> <span class="i">makeConstant</span>(<span class="a">OBJ_VAL</span>(<span class="i">copyString</span>(<span class="i">name</span>-&gt;<span class="i">start</span>, <span class="i">name</span>-&gt;<span class="i">length</span>)));
+  <span class="k">return</span> <span class="i">makeConstant</span>(<span class="a">OBJ_VAL</span>(<span class="i">copyString</span>(<span class="i">name</span>-&gt;<span class="i">start</span>,
+                                         <span class="i">name</span>-&gt;<span class="i">length</span>)));
 }
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>parsePrecedence</em>()</div>
@@ -812,7 +814,8 @@ in <em>freeVM</em>()</div>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OP_DEFINE_GLOBAL</span>:
-      <span class="k">return</span> <span class="i">constantInstruction</span>(<span class="s">&quot;OP_DEFINE_GLOBAL&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
+      <span class="k">return</span> <span class="i">constantInstruction</span>(<span class="s">&quot;OP_DEFINE_GLOBAL&quot;</span>, <span class="i">chunk</span>,
+                                 <span class="i">offset</span>);
 </pre><pre class="insert-after">
     case OP_EQUAL:
 </pre></div>
@@ -824,13 +827,13 @@ they&rsquo;ve done so, because they can&rsquo;t actually <em>use</em> them. So l
 <p>As in every programming language ever, we access a variable&rsquo;s value using its
 name. We hook up identifier tokens to the expression parser here:</p>
 <div class="codehilite"><pre class="insert-before">
-  [TOKEN_LESS_EQUAL]    = { NULL,     binary, PREC_COMPARISON },
+  [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  [<span class="a">TOKEN_IDENTIFIER</span>]    = { <span class="i">variable</span>, <span class="a">NULL</span>,   <span class="a">PREC_NONE</span> },
+  [<span class="a">TOKEN_IDENTIFIER</span>]    = {<span class="i">variable</span>, <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
 </pre><pre class="insert-after">
-  [TOKEN_STRING]        = { string,   NULL,   PREC_NONE },
+  [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
@@ -1027,7 +1030,7 @@ stack. Remember, assignment is an expression, so it needs to leave that value
 there in case the assignment is nested inside some larger expression.</p>
 <p>Add a dash of disassembly:</p>
 <div class="codehilite"><pre class="insert-before">
-      return constantInstruction(&quot;OP_DEFINE_GLOBAL&quot;, chunk, offset);
+                                 offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">

@@ -185,18 +185,18 @@ stamina.</p>
 <p>Like we do, we&rsquo;re gonna start with syntax. A <code>class</code> statement introduces a new
 name, so it lives in the <code>declaration</code> grammar rule:</p>
 <div class="codehilite"><pre>
-<span class="i">declaration</span> → <span class="i">classDecl</span>
-            | <span class="i">funDecl</span>
-            | <span class="i">varDecl</span>
-            | <span class="i">statement</span> ;
+<span class="i">declaration</span>    → <span class="i">classDecl</span>
+               | <span class="i">funDecl</span>
+               | <span class="i">varDecl</span>
+               | <span class="i">statement</span> ;
 
-<span class="i">classDecl</span>   → <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;{&quot;</span> <span class="i">function</span>* <span class="s">&quot;}&quot;</span> ;
+<span class="i">classDecl</span>      → <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;{&quot;</span> <span class="i">function</span>* <span class="s">&quot;}&quot;</span> ;
 </pre></div>
 <p>The new <code>classDecl</code> rule relies on the <code>function</code> rule we defined
 <a href="functions.html#function-declarations">earlier</a>. To refresh your memory:</p>
 <div class="codehilite"><pre>
-<span class="i">function</span>    → <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span>? <span class="s">&quot;)&quot;</span> <span class="i">block</span> ;
-<span class="i">parameters</span>  → <span class="t">IDENTIFIER</span> ( <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> )* ;
+<span class="i">function</span>       → <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span>? <span class="s">&quot;)&quot;</span> <span class="i">block</span> ;
+<span class="i">parameters</span>     → <span class="t">IDENTIFIER</span> ( <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> )* ;
 </pre></div>
 <p>In plain English, a class declaration is the <code>class</code> keyword, followed by the
 class&rsquo;s name, then a curly brace body. Inside that body is a list of method
@@ -407,7 +407,8 @@ replace 1 line</div>
 add after <em>toString</em>()</div>
 <pre>
   <span class="a">@Override</span>
-  <span class="k">public</span> <span class="t">Object</span> <span class="i">call</span>(<span class="t">Interpreter</span> <span class="i">interpreter</span>, <span class="t">List</span>&lt;<span class="t">Object</span>&gt; <span class="i">arguments</span>) {
+  <span class="k">public</span> <span class="t">Object</span> <span class="i">call</span>(<span class="t">Interpreter</span> <span class="i">interpreter</span>,
+                     <span class="t">List</span>&lt;<span class="t">Object</span>&gt; <span class="i">arguments</span>) {
     <span class="t">LoxInstance</span> <span class="i">instance</span> = <span class="k">new</span> <span class="t">LoxInstance</span>(<span class="k">this</span>);
     <span class="k">return</span> <span class="i">instance</span>;
   }
@@ -484,7 +485,7 @@ name from the object the expression evaluates to. That <code>.</code> is as high
 as the parentheses in a function call expression, so we slot it into the grammar
 by replacing the existing <code>call</code> rule with:</p>
 <div class="codehilite"><pre>
-<span class="i">call</span> → <span class="i">primary</span> ( <span class="s">&quot;(&quot;</span> <span class="i">arguments</span>? <span class="s">&quot;)&quot;</span> | <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> )* ;
+<span class="i">call</span>           → <span class="i">primary</span> ( <span class="s">&quot;(&quot;</span> <span class="i">arguments</span>? <span class="s">&quot;)&quot;</span> | <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> )* ;
 </pre></div>
 <p>After a primary expression, we allow a series of any mixture of parenthesized
 calls and dotted property accesses. &ldquo;Property access&rdquo; is a mouthful, so from
@@ -635,8 +636,8 @@ an assignment:</p>
 <p>In grammar land, we extend the rule for assignment to allow dotted identifiers
 on the left-hand side:</p>
 <div class="codehilite"><pre>
-<span class="i">assignment</span> → ( <span class="i">call</span> <span class="s">&quot;.&quot;</span> )? <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
-           | <span class="i">logic_or</span> ;
+<span class="i">assignment</span>     → ( <span class="i">call</span> <span class="s">&quot;.&quot;</span> )? <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
+               | <span class="i">logic_or</span> ;
 </pre></div>
 <p>Unlike getters, setters don&rsquo;t chain. The reference to <code>call</code> allows any high
 precedence expression before the last <code>.</code>, including a series of property
@@ -712,7 +713,8 @@ add after <em>visitLogicalExpr</em>()</div>
     <span class="t">Object</span> <span class="i">object</span> = <span class="i">evaluate</span>(<span class="i">expr</span>.<span class="i">object</span>);
 
     <span class="k">if</span> (!(<span class="i">object</span> <span class="k">instanceof</span> <span class="t">LoxInstance</span>)) {<span name="order"> </span>
-      <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span>(<span class="i">expr</span>.<span class="i">name</span>, <span class="s">&quot;Only instances have fields.&quot;</span>);
+      <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span>(<span class="i">expr</span>.<span class="i">name</span>,
+                             <span class="s">&quot;Only instances have fields.&quot;</span>);
     }
 
     <span class="t">Object</span> <span class="i">value</span> = <span class="i">evaluate</span>(<span class="i">expr</span>.<span class="i">value</span>);
@@ -1332,7 +1334,7 @@ in <em>visitThisExpr</em>()</div>
 <pre class="insert">
     <span class="k">if</span> (<span class="i">currentClass</span> == <span class="t">ClassType</span>.<span class="i">NONE</span>) {
       <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">expr</span>.<span class="i">keyword</span>,
-          <span class="s">&quot;Cannot use &#39;this&#39; outside of a class.&quot;</span>);
+          <span class="s">&quot;Can&#39;t use &#39;this&#39; outside of a class.&quot;</span>);
       <span class="k">return</span> <span class="k">null</span>;
     }
 
@@ -1384,7 +1386,7 @@ a class. C++, Java, and C# use a method whose name matches the class name. Ruby
 and Python call it <code>init()</code>. The latter is nice and short, so we&rsquo;ll do that.</p>
 <p>In LoxClass&rsquo;s implementation of LoxCallable, we add a few more lines:</p>
 <div class="codehilite"><pre class="insert-before">
-  public Object call(Interpreter interpreter, List&lt;Object&gt; arguments) {
+                     List&lt;Object&gt; arguments) {
     LoxInstance instance = new LoxInstance(this);
 </pre><div class="source-file"><em>lox/LoxClass.java</em><br>
 in <em>call</em>()</div>
@@ -1497,7 +1499,8 @@ and fix the few places where we create LoxFunctions:</p>
 in <em>visitFunctionStmt</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="t">LoxFunction</span> <span class="i">function</span> = <span class="k">new</span> <span class="t">LoxFunction</span>(<span class="i">stmt</span>, <span class="i">environment</span>, <span class="k">false</span>);
+    <span class="t">LoxFunction</span> <span class="i">function</span> = <span class="k">new</span> <span class="t">LoxFunction</span>(<span class="i">stmt</span>, <span class="i">environment</span>,
+                                           <span class="k">false</span>);
 </pre><pre class="insert-after">
     environment.define(stmt.name.lexeme, function);
 </pre></div>
@@ -1526,7 +1529,8 @@ we pass along the original method&rsquo;s value:</p>
 in <em>bind</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="k">return</span> <span class="k">new</span> <span class="t">LoxFunction</span>(<span class="i">declaration</span>, <span class="i">environment</span>, <span class="i">isInitializer</span>);
+    <span class="k">return</span> <span class="k">new</span> <span class="t">LoxFunction</span>(<span class="i">declaration</span>, <span class="i">environment</span>,
+                           <span class="i">isInitializer</span>);
 </pre><pre class="insert-after">
   }
 </pre></div>
@@ -1581,7 +1585,7 @@ in <em>visitReturnStmt</em>()</div>
 <pre class="insert">
       <span class="k">if</span> (<span class="i">currentFunction</span> == <span class="t">FunctionType</span>.<span class="i">INITIALIZER</span>) {
         <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">stmt</span>.<span class="i">keyword</span>,
-            <span class="s">&quot;Cannot return a value from an initializer.&quot;</span>);
+            <span class="s">&quot;Can&#39;t return a value from an initializer.&quot;</span>);
       }
 
 </pre><pre class="insert-after">

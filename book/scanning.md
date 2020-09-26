@@ -125,7 +125,7 @@ claim you even *have* error reporting. Imagine if you accidentally left a
 dangling comma in some function call and the interpreter printed out:
 
 ```text
-Error: Unexpected "," *somewhere* in your program. Good luck finding it!
+Error: Unexpected "," somewhere in your code. Good luck finding it!
 ```
 
 That's not very helpful. We need to at least point them to the right line. Even

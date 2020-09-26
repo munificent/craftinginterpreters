@@ -156,8 +156,8 @@ ones. So we slot it into the grammar by having the <code>unary</code> rule bubbl
 new <code>call</code> rule:</p>
 <p><span name="curry"></span></p>
 <div class="codehilite"><pre>
-<span class="i">unary</span> → ( <span class="s">&quot;!&quot;</span> | <span class="s">&quot;-&quot;</span> ) <span class="i">unary</span> | <span class="i">call</span> ;
-<span class="i">call</span>  → <span class="i">primary</span> ( <span class="s">&quot;(&quot;</span> <span class="i">arguments</span>? <span class="s">&quot;)&quot;</span> )* ;
+<span class="i">unary</span>          → ( <span class="s">&quot;!&quot;</span> | <span class="s">&quot;-&quot;</span> ) <span class="i">unary</span> | <span class="i">call</span> ;
+<span class="i">call</span>           → <span class="i">primary</span> ( <span class="s">&quot;(&quot;</span> <span class="i">arguments</span>? <span class="s">&quot;)&quot;</span> )* ;
 </pre></div>
 <p>This rule matches a primary expression followed by zero or more function calls.
 If there are no parentheses, this parses a bare primary expression. Otherwise,
@@ -176,7 +176,7 @@ name graces that <em>other</em> well-known functional language), is baked direct
 the language syntax so it&rsquo;s not as cumbersome as it would be here.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="i">arguments</span> → <span class="i">expression</span> ( <span class="s">&quot;,&quot;</span> <span class="i">expression</span> )* ;
+<span class="i">arguments</span>      → <span class="i">expression</span> ( <span class="s">&quot;,&quot;</span> <span class="i">expression</span> )* ;
 </pre></div>
 <p>This rule requires at least one argument expression, followed by zero or more
 other expressions, each preceded by a comma. To handle zero-argument calls, the
@@ -264,7 +264,8 @@ add after <em>unary</em>()</div>
       } <span class="k">while</span> (<span class="i">match</span>(<span class="i">COMMA</span>));
     }
 
-    <span class="t">Token</span> <span class="i">paren</span> = <span class="i">consume</span>(<span class="i">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span>);
+    <span class="t">Token</span> <span class="i">paren</span> = <span class="i">consume</span>(<span class="i">RIGHT_PAREN</span>,
+                          <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span>);
 
     <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Call</span>(<span class="i">callee</span>, <span class="i">paren</span>, <span class="i">arguments</span>);
   }
@@ -302,7 +303,7 @@ cases like this, so we&rsquo;ll add the same limit to jlox.</p>
 in <em>finishCall</em>()</div>
 <pre class="insert">
         <span class="k">if</span> (<span class="i">arguments</span>.<span class="i">size</span>() &gt;= <span class="n">255</span>) {
-          <span class="i">error</span>(<span class="i">peek</span>(), <span class="s">&quot;Cannot have more than 255 arguments.&quot;</span>);
+          <span class="i">error</span>(<span class="i">peek</span>(), <span class="s">&quot;Can&#39;t have more than 255 arguments.&quot;</span>);
         }
 </pre><pre class="insert-after">
         arguments.add(expression());
@@ -544,7 +545,7 @@ successive invocations tells you how much time elapsed between the two calls.
 This function is defined in the global scope, so let&rsquo;s ensure the interpreter
 has access to that:</p>
 <div class="codehilite"><pre class="insert-before">
-class Interpreter implements Expr.Visitor&lt;Object&gt;, Stmt.Visitor&lt;Void&gt; {
+                             Stmt.Visitor&lt;Void&gt; {
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em><br>
 replace 1 line</div>
@@ -629,14 +630,14 @@ wouldn&rsquo;t need function declaration statements. You could just do:</p>
 nice syntax for them.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="i">declaration</span> → <span class="i">funDecl</span>
-            | <span class="i">varDecl</span>
-            | <span class="i">statement</span> ;
+<span class="i">declaration</span>    → <span class="i">funDecl</span>
+               | <span class="i">varDecl</span>
+               | <span class="i">statement</span> ;
 </pre></div>
 <p>That references this new rule:</p>
 <div class="codehilite"><pre>
-<span class="i">funDecl</span>  → <span class="s">&quot;fun&quot;</span> <span class="i">function</span> ;
-<span class="i">function</span> → <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span>? <span class="s">&quot;)&quot;</span> <span class="i">block</span> ;
+<span class="i">funDecl</span>        → <span class="s">&quot;fun&quot;</span> <span class="i">function</span> ;
+<span class="i">function</span>       → <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span>? <span class="s">&quot;)&quot;</span> <span class="i">block</span> ;
 </pre></div>
 <p>The main <code>funDecl</code> rule uses a separate helper rule <code>function</code>. A function
 <em>declaration statement</em> is the <code>fun</code> keyword followed by the actual function-y
@@ -650,7 +651,7 @@ methods. Those look similar to function declarations, but aren&rsquo;t preceded 
 the body. The body is always a braced block, using the same grammar rule that
 block statements use. The parameter list uses this rule:</p>
 <div class="codehilite"><pre>
-<span class="i">parameters</span> → <span class="t">IDENTIFIER</span> ( <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> )* ;
+<span class="i">parameters</span>     → <span class="t">IDENTIFIER</span> ( <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> )* ;
 </pre></div>
 <p>It&rsquo;s like the earlier <code>arguments</code> rule, except that each parameter is an
 identifier, not an expression. That&rsquo;s a lot of new syntax for the parser to chew
@@ -660,9 +661,10 @@ through, but the resulting AST <span name="fun-ast">node</span> isn&rsquo;t too 
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
-      <span class="s">&quot;Function   : Token name, List&lt;Token&gt; params, List&lt;Stmt&gt; body&quot;</span>,
+      <span class="s">&quot;Function   : Token name, List&lt;Token&gt; params,&quot;</span> +
+                  <span class="s">&quot; List&lt;Stmt&gt; body&quot;</span>,
 </pre><pre class="insert-after">
-      &quot;If         : Expr condition, Stmt thenBranch, Stmt elseBranch&quot;,
+      &quot;If         : Expr condition, Stmt thenBranch,&quot; +
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
 
@@ -712,10 +714,11 @@ in <em>function</em>()</div>
     <span class="k">if</span> (!<span class="i">check</span>(<span class="i">RIGHT_PAREN</span>)) {
       <span class="k">do</span> {
         <span class="k">if</span> (<span class="i">parameters</span>.<span class="i">size</span>() &gt;= <span class="n">255</span>) {
-          <span class="i">error</span>(<span class="i">peek</span>(), <span class="s">&quot;Cannot have more than 255 parameters.&quot;</span>);
+          <span class="i">error</span>(<span class="i">peek</span>(), <span class="s">&quot;Can&#39;t have more than 255 parameters.&quot;</span>);
         }
 
-        <span class="i">parameters</span>.<span class="i">add</span>(<span class="i">consume</span>(<span class="i">IDENTIFIER</span>, <span class="s">&quot;Expect parameter name.&quot;</span>));
+        <span class="i">parameters</span>.<span class="i">add</span>(
+            <span class="i">consume</span>(<span class="i">IDENTIFIER</span>, <span class="s">&quot;Expect parameter name.&quot;</span>));
       } <span class="k">while</span> (<span class="i">match</span>(<span class="i">COMMA</span>));
     }
     <span class="i">consume</span>(<span class="i">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span>);
@@ -783,7 +786,8 @@ create new file</div>
 add after <em>LoxFunction</em>()</div>
 <pre>
   <span class="a">@Override</span>
-  <span class="k">public</span> <span class="t">Object</span> <span class="i">call</span>(<span class="t">Interpreter</span> <span class="i">interpreter</span>, <span class="t">List</span>&lt;<span class="t">Object</span>&gt; <span class="i">arguments</span>) {
+  <span class="k">public</span> <span class="t">Object</span> <span class="i">call</span>(<span class="t">Interpreter</span> <span class="i">interpreter</span>,
+                     <span class="t">List</span>&lt;<span class="t">Object</span>&gt; <span class="i">arguments</span>) {
     <span class="t">Environment</span> <span class="i">environment</span> = <span class="k">new</span> <span class="t">Environment</span>(<span class="i">interpreter</span>.<span class="i">globals</span>);
     <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">declaration</span>.<span class="i">params</span>.<span class="i">size</span>(); <span class="i">i</span>++) {
       <span class="i">environment</span>.<span class="i">define</span>(<span class="i">declaration</span>.<span class="i">params</span>.<span class="i">get</span>(<span class="i">i</span>).<span class="i">lexeme</span>,
@@ -933,15 +937,15 @@ sure you can guess the grammar already:</p>
 <p>The Hotel California of data.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="i">statement</span>  → <span class="i">exprStmt</span>
-           | <span class="i">forStmt</span>
-           | <span class="i">ifStmt</span>
-           | <span class="i">printStmt</span>
-           | <span class="i">returnStmt</span>
-           | <span class="i">whileStmt</span>
-           | <span class="i">block</span> ;
+<span class="i">statement</span>      → <span class="i">exprStmt</span>
+               | <span class="i">forStmt</span>
+               | <span class="i">ifStmt</span>
+               | <span class="i">printStmt</span>
+               | <span class="i">returnStmt</span>
+               | <span class="i">whileStmt</span>
+               | <span class="i">block</span> ;
 
-<span class="i">returnStmt</span> → <span class="s">&quot;return&quot;</span> <span class="i">expression</span>? <span class="s">&quot;;&quot;</span> ;
+<span class="i">returnStmt</span>     → <span class="s">&quot;return&quot;</span> <span class="i">expression</span>? <span class="s">&quot;;&quot;</span> ;
 </pre></div>
 <p>We&rsquo;ve got one more<span class="em">&mdash;</span>the final, in fact<span class="em">&mdash;</span>production under the venerable
 <code>statement</code> rule. A <code>return</code> statement is the <code>return</code> keyword followed by an
@@ -1247,7 +1251,7 @@ it&rsquo;s <em>called</em>, which is what we want. It represents the lexical sco
 surrounding the function declaration. Finally, when we call the function, we use
 that environment instead of going straight to <code>globals</code>:</p>
 <div class="codehilite"><pre class="insert-before">
-  public Object call(Interpreter interpreter, List&lt;Object&gt; arguments) {
+                     List&lt;Object&gt; arguments) {
 </pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
 in <em>call</em>()<br>
 replace 1 line</div>

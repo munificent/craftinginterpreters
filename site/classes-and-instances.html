@@ -179,25 +179,25 @@ in enum <em>ObjType</em></div>
 <p>And that type gets a corresponding pair of macros. First, for testing an
 object&rsquo;s type:</p>
 <div class="codehilite"><pre class="insert-before">
-#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)
+#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define IS_CLASS(value)         isObjType(value, OBJ_CLASS)</span>
+<span class="a">#define IS_CLASS(value)        isObjType(value, OBJ_CLASS)</span>
 </pre><pre class="insert-after">
-#define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
+#define IS_CLOSURE(value)      isObjType(value, OBJ_CLOSURE)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>And then for casting a Value to an ObjClass pointer:</p>
 <div class="codehilite"><pre class="insert-before">
-#define IS_STRING(value)        isObjType(value, OBJ_STRING)
+#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))</span>
+<span class="a">#define AS_CLASS(value)        ((ObjClass*)AS_OBJ(value))</span>
 </pre><pre class="insert-after">
-#define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
+#define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
@@ -508,23 +508,23 @@ class it is an instance of, is an ObjInstance. That one VM object type covers
 instances of all classes. The two worlds map to each other something like this:</p><img src="image/classes-and-instances/lox-clox.png" alt="A set of class declarations and instances, and the runtime representations each maps to."/>
 <p>Got it? OK, back to the implementation. We also get our usual macros:</p>
 <div class="codehilite"><pre class="insert-before">
-#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
+#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)</span>
+<span class="a">#define IS_INSTANCE(value)     isObjType(value, OBJ_INSTANCE)</span>
 </pre><pre class="insert-after">
-#define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
+#define IS_NATIVE(value)       isObjType(value, OBJ_NATIVE)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>And:</p>
 <div class="codehilite"><pre class="insert-before">
-#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
+#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))</span>
+<span class="a">#define AS_INSTANCE(value)     ((ObjInstance*)AS_OBJ(value))</span>
 </pre><pre class="insert-after">
-#define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))-&gt;function)
+#define AS_NATIVE(value) \
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
@@ -615,7 +615,8 @@ tracing them easy.</p>
 in <em>printObject</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OBJ_INSTANCE</span>:
-      <span class="i">printf</span>(<span class="s">&quot;%s instance&quot;</span>, <span class="a">AS_INSTANCE</span>(<span class="i">value</span>)-&gt;<span class="i">klass</span>-&gt;<span class="i">name</span>-&gt;<span class="i">chars</span>);
+      <span class="i">printf</span>(<span class="s">&quot;%s instance&quot;</span>,
+             <span class="a">AS_INSTANCE</span>(<span class="i">value</span>)-&gt;<span class="i">klass</span>-&gt;<span class="i">name</span>-&gt;<span class="i">chars</span>);
       <span class="k">break</span>;
 </pre><pre class="insert-after">
     case OBJ_NATIVE:
@@ -687,13 +688,13 @@ but a single identifier whose semantics are handled by the get or set expression
 itself. It&rsquo;s really closer to a postfix expression.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-  [TOKEN_COMMA]         = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  [<span class="a">TOKEN_DOT</span>]           = { <span class="a">NULL</span>,     <span class="i">dot</span>,    <span class="a">PREC_CALL</span> },
+  [<span class="a">TOKEN_DOT</span>]           = {<span class="a">NULL</span>,     <span class="i">dot</span>,    <span class="a">PREC_CALL</span>},
 </pre><pre class="insert-after">
-  [TOKEN_MINUS]         = { unary,    binary, PREC_TERM },
+  [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 

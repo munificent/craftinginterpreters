@@ -38,7 +38,8 @@ static Obj* allocateObject(size_t size, ObjType type) {
 }
 //< allocate-object
 //> Methods and Initializers new-bound-method
-ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
+ObjBoundMethod* newBoundMethod(Value receiver,
+                               ObjClosure* method) {
   ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod,
                                        OBJ_BOUND_METHOD);
   bound->receiver = receiver;
@@ -59,7 +60,8 @@ ObjClass* newClass(ObjString* name) {
 //> Closures new-closure
 ObjClosure* newClosure(ObjFunction* function) {
 //> allocate-upvalue-array
-  ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*, function->upvalueCount);
+  ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*,
+                                   function->upvalueCount);
   for (int i = 0; i < function->upvalueCount; i++) {
     upvalues[i] = NULL;
   }
@@ -233,7 +235,8 @@ void printObject(Value value) {
 //< Calls and Functions print-function
 //> Classes and Instances print-instance
     case OBJ_INSTANCE:
-      printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
+      printf("%s instance",
+             AS_INSTANCE(value)->klass->name->chars);
       break;
 //< Classes and Instances print-instance
 //> Calls and Functions print-native

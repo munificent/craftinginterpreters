@@ -46,18 +46,20 @@ static int simpleInstruction(const char* name, int offset) {
 }
 //< simple-instruction
 //> Local Variables byte-instruction
-static int byteInstruction(const char* name, Chunk* chunk, int offset) {
+static int byteInstruction(const char* name, Chunk* chunk,
+                           int offset) {
   uint8_t slot = chunk->code[offset + 1];
   printf("%-16s %4d\n", name, slot);
   return offset + 2; // [debug]
 }
 //< Local Variables byte-instruction
 //> Jumping Back and Forth jump-instruction
-static int jumpInstruction(const char* name, int sign, Chunk* chunk,
-                           int offset) {
+static int jumpInstruction(const char* name, int sign,
+                           Chunk* chunk, int offset) {
   uint16_t jump = (uint16_t)(chunk->code[offset + 1] << 8);
   jump |= chunk->code[offset + 2];
-  printf("%-16s %4d -> %d\n", name, offset, offset + 3 + sign * jump);
+  printf("%-16s %4d -> %d\n", name, offset,
+         offset + 3 + sign * jump);
   return offset + 3;
 }
 //< Jumping Back and Forth jump-instruction
@@ -65,7 +67,8 @@ static int jumpInstruction(const char* name, int sign, Chunk* chunk,
 int disassembleInstruction(Chunk* chunk, int offset) {
   printf("%04d ", offset);
 //> show-location
-  if (offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1]) {
+  if (offset > 0 &&
+      chunk->lines[offset] == chunk->lines[offset - 1]) {
     printf("   | ");
   } else {
     printf("%4d ", chunk->lines[offset]);
@@ -102,7 +105,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 //< Global Variables disassemble-get-global
 //> Global Variables disassemble-define-global
     case OP_DEFINE_GLOBAL:
-      return constantInstruction("OP_DEFINE_GLOBAL", chunk, offset);
+      return constantInstruction("OP_DEFINE_GLOBAL", chunk,
+                                 offset);
 //< Global Variables disassemble-define-global
 //> Global Variables disassemble-set-global
     case OP_SET_GLOBAL:

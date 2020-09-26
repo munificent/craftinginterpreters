@@ -182,8 +182,8 @@ lexer. We don&rsquo;t have <code>extends</code> or even <code>:</code>, so we&rs
 <p>To work this into the grammar, we add a new optional clause in our existing
 <code>classDecl</code> rule:</p>
 <div class="codehilite"><pre>
-<span class="i">classDecl</span> → <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> ( <span class="s">&quot;&lt;&quot;</span> <span class="t">IDENTIFIER</span> )?
-            <span class="s">&quot;{&quot;</span> <span class="i">function</span>* <span class="s">&quot;}&quot;</span> ;
+<span class="i">classDecl</span>      → <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> ( <span class="s">&quot;&lt;&quot;</span> <span class="t">IDENTIFIER</span> )?
+                 <span class="s">&quot;{&quot;</span> <span class="i">function</span>* <span class="s">&quot;}&quot;</span> ;
 </pre></div>
 <p>After the class name, you can have a <code>&lt;</code> followed by the superclass&rsquo;s name. The
 superclass clause is optional because you don&rsquo;t <em>have</em> to have a superclass.
@@ -283,7 +283,7 @@ in <em>visitClassStmt</em>()</div>
     <span class="k">if</span> (<span class="i">stmt</span>.<span class="i">superclass</span> != <span class="k">null</span> &amp;&amp;
         <span class="i">stmt</span>.<span class="i">name</span>.<span class="i">lexeme</span>.<span class="i">equals</span>(<span class="i">stmt</span>.<span class="i">superclass</span>.<span class="i">name</span>.<span class="i">lexeme</span>)) {
       <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">stmt</span>.<span class="i">superclass</span>.<span class="i">name</span>,
-          <span class="s">&quot;A class cannot inherit from itself.&quot;</span>);
+          <span class="s">&quot;A class can&#39;t inherit from itself.&quot;</span>);
     }
 
 </pre><pre class="insert-after">
@@ -465,9 +465,9 @@ token all by itself:</p>
 <p>So the new clause we add to the <code>primary</code> rule in our grammar includes the
 property access as well:</p>
 <div class="codehilite"><pre>
-<span class="i">primary</span> → <span class="s">&quot;true&quot;</span> | <span class="s">&quot;false&quot;</span> | <span class="s">&quot;nil&quot;</span> | <span class="s">&quot;this&quot;</span>
-        | <span class="t">NUMBER</span> | <span class="t">STRING</span> | <span class="t">IDENTIFIER</span> | <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span>
-        | <span class="s">&quot;super&quot;</span> <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> ;
+<span class="i">primary</span>        → <span class="s">&quot;true&quot;</span> | <span class="s">&quot;false&quot;</span> | <span class="s">&quot;nil&quot;</span> | <span class="s">&quot;this&quot;</span>
+               | <span class="t">NUMBER</span> | <span class="t">STRING</span> | <span class="t">IDENTIFIER</span> | <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span>
+               | <span class="s">&quot;super&quot;</span> <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> ;
 </pre></div>
 <p>Typically, a super expression is used for a method call, but, as with regular
 methods, the argument list is <em>not</em> part of the expression. Instead, a super
@@ -731,7 +731,6 @@ always right inside the environment where we store &ldquo;super&rdquo;:</p>
 in <em>visitSuperExpr</em>()</div>
 <pre class="insert">
 
-    <span class="c">// &quot;this&quot; is always one level nearer than &quot;super&quot;&#39;s environment.</span>
     <span class="t">LoxInstance</span> <span class="i">object</span> = (<span class="t">LoxInstance</span>)<span class="i">environment</span>.<span class="i">getAt</span>(
         <span class="i">distance</span> - <span class="n">1</span>, <span class="s">&quot;this&quot;</span>);
 </pre><pre class="insert-after">
@@ -857,10 +856,10 @@ in <em>visitSuperExpr</em>()</div>
 <pre class="insert">
     <span class="k">if</span> (<span class="i">currentClass</span> == <span class="t">ClassType</span>.<span class="i">NONE</span>) {
       <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">expr</span>.<span class="i">keyword</span>,
-          <span class="s">&quot;Cannot use &#39;super&#39; outside of a class.&quot;</span>);
+          <span class="s">&quot;Can&#39;t use &#39;super&#39; outside of a class.&quot;</span>);
     } <span class="k">else</span> <span class="k">if</span> (<span class="i">currentClass</span> != <span class="t">ClassType</span>.<span class="i">SUBCLASS</span>) {
       <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">expr</span>.<span class="i">keyword</span>,
-          <span class="s">&quot;Cannot use &#39;super&#39; in a class with no superclass.&quot;</span>);
+          <span class="s">&quot;Can&#39;t use &#39;super&#39; in a class with no superclass.&quot;</span>);
     }
 
 </pre><pre class="insert-after">

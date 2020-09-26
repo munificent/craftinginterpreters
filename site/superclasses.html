@@ -194,7 +194,7 @@ in <em>classDeclaration</em>()</div>
 <pre class="insert">
 
     <span class="k">if</span> (<span class="i">identifiersEqual</span>(&amp;<span class="i">className</span>, &amp;<span class="i">parser</span>.<span class="i">previous</span>)) {
-      <span class="i">error</span>(<span class="s">&quot;A class cannot inherit from itself.&quot;</span>);
+      <span class="i">error</span>(<span class="s">&quot;A class can&#39;t inherit from itself.&quot;</span>);
     }
 
 </pre><pre class="insert-after">
@@ -247,7 +247,8 @@ in <em>run</em>()</div>
       <span class="k">case</span> <span class="a">OP_INHERIT</span>: {
         <span class="t">Value</span> <span class="i">superclass</span> = <span class="i">peek</span>(<span class="n">1</span>);
         <span class="t">ObjClass</span>* <span class="i">subclass</span> = <span class="a">AS_CLASS</span>(<span class="i">peek</span>(<span class="n">0</span>));
-        <span class="i">tableAddAll</span>(&amp;<span class="a">AS_CLASS</span>(<span class="i">superclass</span>)-&gt;<span class="i">methods</span>, &amp;<span class="i">subclass</span>-&gt;<span class="i">methods</span>);
+        <span class="i">tableAddAll</span>(&amp;<span class="a">AS_CLASS</span>(<span class="i">superclass</span>)-&gt;<span class="i">methods</span>,
+                    &amp;<span class="i">subclass</span>-&gt;<span class="i">methods</span>);
         <span class="i">pop</span>(); <span class="c">// Subclass.</span>
         <span class="k">break</span>;
       }
@@ -330,7 +331,7 @@ in <em>run</em>()</div>
 
 </pre><pre class="insert-after">
         ObjClass* subclass = AS_CLASS(peek(0));
-        tableAddAll(&amp;AS_CLASS(superclass)-&gt;methods, &amp;subclass-&gt;methods);
+        tableAddAll(&amp;AS_CLASS(superclass)-&gt;methods,
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -543,13 +544,13 @@ name="last">begins</span>, naturally enough, with the <code>super</code> keyword
 <p>This is it, friend. The very last entry you&rsquo;ll add to the parsing table.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-  [TOKEN_RETURN]        = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  [<span class="a">TOKEN_SUPER</span>]         = { <span class="i">super_</span>,   <span class="a">NULL</span>,   <span class="a">PREC_NONE</span> },
+  [<span class="a">TOKEN_SUPER</span>]         = {<span class="i">super_</span>,   <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
 </pre><pre class="insert-after">
-  [TOKEN_THIS]          = { this_,    NULL,   PREC_NONE },
+  [TOKEN_THIS]          = {this_,    NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
@@ -661,9 +662,9 @@ static void super_(bool canAssign) {
 in <em>super_</em>()</div>
 <pre class="insert">
   <span class="k">if</span> (<span class="i">currentClass</span> == <span class="a">NULL</span>) {
-    <span class="i">error</span>(<span class="s">&quot;Cannot use &#39;super&#39; outside of a class.&quot;</span>);
+    <span class="i">error</span>(<span class="s">&quot;Can&#39;t use &#39;super&#39; outside of a class.&quot;</span>);
   } <span class="k">else</span> <span class="k">if</span> (!<span class="i">currentClass</span>-&gt;<span class="i">hasSuperclass</span>) {
-    <span class="i">error</span>(<span class="s">&quot;Cannot use &#39;super&#39; in a class with no superclass.&quot;</span>);
+    <span class="i">error</span>(<span class="s">&quot;Can&#39;t use &#39;super&#39; in a class with no superclass.&quot;</span>);
   }
 
 </pre><pre class="insert-after">

@@ -82,17 +82,17 @@ the language each token belongs to. Here's the Lox expression grammar we put
 together in the last chapter:
 
 ```ebnf
-expression → literal
-           | unary
-           | binary
-           | grouping ;
+expression     → literal
+               | unary
+               | binary
+               | grouping ;
 
-literal    → NUMBER | STRING | "false" | "true" | "nil" ;
-grouping   → "(" expression ")" ;
-unary      → ( "-" | "!" ) expression ;
-binary     → expression operator expression ;
-operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
-           | "+"  | "-"  | "*" | "/" ;
+literal        → NUMBER | STRING | "true" | "false" | "nil" ;
+grouping       → "(" expression ")" ;
+unary          → ( "-" | "!" ) expression ;
+binary         → expression operator expression ;
+operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
+               | "+"  | "-"  | "*" | "/" ;
 ```
 
 This is a valid string in that grammar:
@@ -197,12 +197,12 @@ applying the same precedence rules as C, going from lowest to highest:
   <td>Left</td>
 </tr>
 <tr>
-  <td>Addition</td>
+  <td>Term</td>
   <td><code>-</code> <code>+</code></td>
   <td>Left</td>
 </tr>
 <tr>
-  <td>Multiplication</td>
+  <td>Factor</td>
   <td><code>/</code> <code>*</code></td>
   <td>Left</td>
 </tr>
@@ -226,8 +226,8 @@ separate rule for each precedence level.
 expression     → ...
 equality       → ...
 comparison     → ...
-addition       → ...
-multiplication → ...
+term           → ...
+factor         → ...
 unary          → ...
 primary        → ...
 ```
@@ -243,8 +243,8 @@ disambiguate.
 
 Each rule here only matches expressions at its precedence level or higher. For
 example, `unary` matches a unary expression like `!negated` or a primary
-expression like `1234`. And `addition` can match `1 + 2` but also `3 * 4 / 5`.
-The final `primary` rule covers the highest-precedence forms -- literals and
+expression like `1234`. And `term` can match `1 + 2` but also `3 * 4 / 5`. The
+final `primary` rule covers the highest-precedence forms -- literals and
 parenthesized expressions.
 
 We just need to fill in the productions for each of those rules. We'll do the
@@ -272,7 +272,7 @@ Over at the other end of the precedence table, a primary expression contains
 all the literals and grouping expressions.
 
 ```ebnf
-primary        → NUMBER | STRING | "false" | "true" | "nil"
+primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 ```
 
@@ -299,7 +299,7 @@ The remaining rules are all binary operators. We'll start with the rule for
 multiplication and division. Here's a first try:
 
 ```ebnf
-multiplication → multiplication ( "/" | "*" ) unary
+factor         → factor ( "/" | "*" ) unary
                | unary ;
 ```
 
@@ -342,10 +342,10 @@ partially a pragmatic one. This rule is correct, but not optimal for how we
 intend to parse it. Instead of a left recursive rule, we'll use a different one.
 
 ```ebnf
-multiplication → unary ( ( "/" | "*" ) unary )* ;
+factor         → unary ( ( "/" | "*" ) unary )* ;
 ```
 
-We define a multiplication expression as a flat *sequence* of multiplications
+We define a factor expression as a flat *sequence* of multiplications
 and divisions. This matches the same syntax as the previous rule, but better
 mirrors the code we'll write to parse Lox. We use the same structure for all of
 the other binary operator precedence levels, giving us this complete expression
@@ -354,12 +354,12 @@ grammar:
 ```ebnf
 expression     → equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
-addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
-multiplication → unary ( ( "/" | "*" ) unary )* ;
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term           → factor ( ( "-" | "+" ) factor )* ;
+factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | primary ;
-primary        → NUMBER | STRING | "false" | "true" | "nil"
+primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 ```
 
@@ -470,7 +470,7 @@ and so on, until the parser hits a stack overflow and dies.
 The rule for equality is a little more complex.
 
 ```ebnf
-equality → comparison ( ( "!=" | "==" ) comparison )* ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 ```
 
 In Java, that becomes:
@@ -546,7 +546,7 @@ precedence*.
 Moving on to the next rule...
 
 ```ebnf
-comparison → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 ```
 
 Translated to Java:
@@ -556,7 +556,7 @@ Translated to Java:
 The grammar rule is virtually <span name="handle">identical</span> to `equality`
 and so is the corresponding code. The only differences are the token types for
 the operators we match, and the method we call for the operands -- now
-`addition()` instead of `comparison()`. The remaining two binary operator rules
+`term()` instead of `comparison()`. The remaining two binary operator rules
 follow the same pattern.
 
 In order of precedence, first addition and subtraction:
@@ -569,19 +569,19 @@ types and an operand method handle to simplify this redundant code.
 
 </aside>
 
-^code addition
+^code term
 
 And finally multiplication and division:
 
-^code multiplication
+^code factor
 
 That's all of the binary operators, parsed with the correct precedence and
 associativity. We're crawling up the precedence hierarchy and now we've reached
 the unary operators.
 
 ```ebnf
-unary → ( "!" | "-" ) unary
-      | primary ;
+unary          → ( "!" | "-" ) unary
+               | primary ;
 ```
 
 The code for this is a little different.
@@ -604,8 +604,8 @@ Otherwise, we must have reached the highest level of precedence, primary
 expressions.
 
 ```ebnf
-primary → NUMBER | STRING | "false" | "true" | "nil"
-        | "(" expression ")" ;
+primary        → NUMBER | STRING | "true" | "false" | "nil"
+               | "(" expression ")" ;
 ```
 
 Most of the cases for the rule are single terminals, so parsing is
@@ -788,8 +788,8 @@ not. Instead of getting confused when the parser stumbles onto a `+` at the
 beginning of an expression, we could extend the unary rule to allow it:
 
 ```ebnf
-unary → ( "!" | "-" | "+" ) unary
-        | primary ;
+unary          → ( "!" | "-" | "+" ) unary
+               | primary ;
 ```
 
 This lets the parser consume `+` without going into panic mode or leaving the
