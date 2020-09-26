@@ -222,12 +222,13 @@ only operator in C that takes three operands.</p>
 <code>if</code> statement on. It gets a new production under the statement grammar rule:</p>
 <p><span name="semicolon"></span></p>
 <div class="codehilite"><pre>
-<span class="i">statement</span> → <span class="i">exprStmt</span>
-          | <span class="i">ifStmt</span>
-          | <span class="i">printStmt</span>
-          | <span class="i">block</span> ;
+<span class="i">statement</span>      → <span class="i">exprStmt</span>
+               | <span class="i">ifStmt</span>
+               | <span class="i">printStmt</span>
+               | <span class="i">block</span> ;
 
-<span class="i">ifStmt</span>    → <span class="s">&quot;if&quot;</span> <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span> <span class="i">statement</span> ( <span class="s">&quot;else&quot;</span> <span class="i">statement</span> )? ;
+<span class="i">ifStmt</span>         → <span class="s">&quot;if&quot;</span> <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span> <span class="i">statement</span>
+               ( <span class="s">&quot;else&quot;</span> <span class="i">statement</span> )? ;
 </pre></div>
 <aside name="semicolon">
 <p>The semicolons in the rules aren&rsquo;t quoted, which means they are part of the
@@ -244,7 +245,8 @@ tree node</span> has fields for each of those three pieces:</p>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
-      <span class="s">&quot;If         : Expr condition, Stmt thenBranch, Stmt elseBranch&quot;</span>,
+      <span class="s">&quot;If         : Expr condition, Stmt thenBranch,&quot;</span> +
+                  <span class="s">&quot; Stmt elseBranch&quot;</span>,
 </pre><pre class="insert-after">
       &quot;Print      : Expr expression&quot;,
 </pre></div>
@@ -388,11 +390,11 @@ right between <code>assignment</code> and <code>equality</code>:</p>
 comparison or equality operators do.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="i">expression</span> → <span class="i">assignment</span> ;
-<span class="i">assignment</span> → <span class="i">identifier</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
-           | <span class="i">logic_or</span> ;
-<span class="i">logic_or</span>   → <span class="i">logic_and</span> ( <span class="s">&quot;or&quot;</span> <span class="i">logic_and</span> )* ;
-<span class="i">logic_and</span>  → <span class="i">equality</span> ( <span class="s">&quot;and&quot;</span> <span class="i">equality</span> )* ;
+<span class="i">expression</span>     → <span class="i">assignment</span> ;
+<span class="i">assignment</span>     → <span class="i">identifier</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
+               | <span class="i">logic_or</span> ;
+<span class="i">logic_or</span>       → <span class="i">logic_and</span> ( <span class="s">&quot;or&quot;</span> <span class="i">logic_and</span> )* ;
+<span class="i">logic_and</span>      → <span class="i">equality</span> ( <span class="s">&quot;and&quot;</span> <span class="i">equality</span> )* ;
 </pre></div>
 <p>Instead of falling back to <code>equality</code>, <code>assignment</code> now cascades to <code>logic_or</code>.
 The two new rules, <code>logic_or</code> and <code>logic_and</code>, are <span
@@ -518,13 +520,13 @@ reference to&hellip; oh, forget it.</p>
 <p>Lox features two looping control flow statements, while and for. While is the
 simpler one so we&rsquo;ll start there. Its grammar is the same as in C:</p>
 <div class="codehilite"><pre>
-<span class="i">statement</span> → <span class="i">exprStmt</span>
-          | <span class="i">ifStmt</span>
-          | <span class="i">printStmt</span>
-          | <span class="i">whileStmt</span>
-          | <span class="i">block</span> ;
+<span class="i">statement</span>      → <span class="i">exprStmt</span>
+               | <span class="i">ifStmt</span>
+               | <span class="i">printStmt</span>
+               | <span class="i">whileStmt</span>
+               | <span class="i">block</span> ;
 
-<span class="i">whileStmt</span> → <span class="s">&quot;while&quot;</span> <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span> <span class="i">statement</span> ;
+<span class="i">whileStmt</span>      → <span class="s">&quot;while&quot;</span> <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span> <span class="i">statement</span> ;
 </pre></div>
 <p>We add another clause to the statement rule that points to the new rule for
 while. It takes a <code>while</code> keyword, followed by a parenthesized condition
@@ -606,16 +608,16 @@ C-style <code>for</code> loop. I probably don&rsquo;t need to remind you, but it
 </pre></div>
 <p>In grammarese, that&rsquo;s:</p>
 <div class="codehilite"><pre>
-<span class="i">statement</span> → <span class="i">exprStmt</span>
-          | <span class="i">forStmt</span>
-          | <span class="i">ifStmt</span>
-          | <span class="i">printStmt</span>
-          | <span class="i">whileStmt</span>
-          | <span class="i">block</span> ;
+<span class="i">statement</span>      → <span class="i">exprStmt</span>
+               | <span class="i">forStmt</span>
+               | <span class="i">ifStmt</span>
+               | <span class="i">printStmt</span>
+               | <span class="i">whileStmt</span>
+               | <span class="i">block</span> ;
 
-<span class="i">forStmt</span>   → <span class="s">&quot;for&quot;</span> <span class="s">&quot;(&quot;</span> ( <span class="i">varDecl</span> | <span class="i">exprStmt</span> | <span class="s">&quot;;&quot;</span> )
-                      <span class="i">expression</span>? <span class="s">&quot;;&quot;</span>
-                      <span class="i">expression</span>? <span class="s">&quot;)&quot;</span> <span class="i">statement</span> ;
+<span class="i">forStmt</span>        → <span class="s">&quot;for&quot;</span> <span class="s">&quot;(&quot;</span> ( <span class="i">varDecl</span> | <span class="i">exprStmt</span> | <span class="s">&quot;;&quot;</span> )
+                 <span class="i">expression</span>? <span class="s">&quot;;&quot;</span>
+                 <span class="i">expression</span>? <span class="s">&quot;)&quot;</span> <span class="i">statement</span> ;
 </pre></div>
 <aside name="for">
 <p>Most modern languages have a higher-level looping statement for iterating over

@@ -208,10 +208,10 @@ add after struct <em>Value</em></div>
 
 <p>It extracts the Obj pointer from the value. We can also go the other way:</p>
 <div class="codehilite"><pre class="insert-before">
-#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
+#define NUMBER_VAL(value) ((Value){VAL_NUMBER, {.number = value}})
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="a">#define OBJ_VAL(object)   ((Value){ VAL_OBJ, { .obj = (Obj*)object } })</span>
+<span class="a">#define OBJ_VAL(object)   ((Value){VAL_OBJ, {.obj = (Obj*)object}})</span>
 </pre><pre class="insert-after">
 
 typedef struct {
@@ -304,7 +304,7 @@ Value:</p>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 
-<span class="a">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)</span>
+<span class="a">#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)</span>
 </pre><pre class="insert-after">
 
 typedef enum {
@@ -379,11 +379,11 @@ does point to the <code>obj</code> field of an actual ObjString. Otherwise, you 
 unsafely reinterpreting random bits of memory. To detect that such a cast is
 safe, we add another macro:</p>
 <div class="codehilite"><pre class="insert-before">
-#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)
+#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 
-<span class="a">#define IS_STRING(value)        isObjType(value, OBJ_STRING)</span>
+<span class="a">#define IS_STRING(value)       isObjType(value, OBJ_STRING)</span>
 </pre><pre class="insert-after">
 
 typedef enum {
@@ -422,12 +422,12 @@ more than once, that expression gets evaluated multiple times.</p>
 Obj of some type, this macro will tell us when it&rsquo;s safe to cast a value to a
 specific object type. We can do that using these:</p>
 <div class="codehilite"><pre class="insert-before">
-#define IS_STRING(value)        isObjType(value, OBJ_STRING)
+#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 
-<span class="a">#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))</span>
-<span class="a">#define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))-&gt;chars)</span>
+<span class="a">#define AS_STRING(value)       ((ObjString*)AS_OBJ(value))</span>
+<span class="a">#define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))-&gt;chars)</span>
 </pre><pre class="insert-after">
 
 typedef enum {
@@ -443,13 +443,13 @@ often what we&rsquo;ll end up needing.</p>
 language itself. As usual, we begin in the front end. The lexer already
 tokenizes string literals, so it&rsquo;s the parser&rsquo;s turn:</p>
 <div class="codehilite"><pre class="insert-before">
-  [TOKEN_IDENTIFIER]    = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  [<span class="a">TOKEN_STRING</span>]        = { <span class="i">string</span>,   <span class="a">NULL</span>,   <span class="a">PREC_NONE</span> },
+  [<span class="a">TOKEN_STRING</span>]        = {<span class="i">string</span>,   <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
 </pre><pre class="insert-after">
-  [TOKEN_NUMBER]        = { number,   NULL,   PREC_NONE },
+  [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
@@ -635,7 +635,7 @@ first step is to make the existing print code not barf on the new value type:</p
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">VAL_OBJ</span>:    <span class="i">printObject</span>(<span class="i">value</span>); <span class="k">break</span>;
+    <span class="k">case</span> <span class="a">VAL_OBJ</span>: <span class="i">printObject</span>(<span class="i">value</span>); <span class="k">break</span>;
 </pre><pre class="insert-after">
   }
 </pre></div>
@@ -688,7 +688,8 @@ in <em>valuesEqual</em>()</div>
       <span class="t">ObjString</span>* <span class="i">aString</span> = <span class="a">AS_STRING</span>(<span class="i">a</span>);
       <span class="t">ObjString</span>* <span class="i">bString</span> = <span class="a">AS_STRING</span>(<span class="i">b</span>);
       <span class="k">return</span> <span class="i">aString</span>-&gt;<span class="i">length</span> == <span class="i">bString</span>-&gt;<span class="i">length</span> &amp;&amp;
-          <span class="i">memcmp</span>(<span class="i">aString</span>-&gt;<span class="i">chars</span>, <span class="i">bString</span>-&gt;<span class="i">chars</span>, <span class="i">aString</span>-&gt;<span class="i">length</span>) == <span class="n">0</span>;
+          <span class="i">memcmp</span>(<span class="i">aString</span>-&gt;<span class="i">chars</span>, <span class="i">bString</span>-&gt;<span class="i">chars</span>,
+                 <span class="i">aString</span>-&gt;<span class="i">length</span>) == <span class="n">0</span>;
     }
 </pre><pre class="insert-after">
     default:
@@ -749,7 +750,8 @@ replace 1 line</div>
           <span class="t">double</span> <span class="i">a</span> = <span class="a">AS_NUMBER</span>(<span class="i">pop</span>());
           <span class="i">push</span>(<span class="a">NUMBER_VAL</span>(<span class="i">a</span> + <span class="i">b</span>));
         } <span class="k">else</span> {
-          <span class="i">runtimeError</span>(<span class="s">&quot;Operands must be two numbers or two strings.&quot;</span>);
+          <span class="i">runtimeError</span>(
+              <span class="s">&quot;Operands must be two numbers or two strings.&quot;</span>);
           <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span>;
         }
         <span class="k">break</span>;

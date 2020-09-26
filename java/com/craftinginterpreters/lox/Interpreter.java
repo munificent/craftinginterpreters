@@ -18,7 +18,8 @@ import java.util.Map;
 class Interpreter implements Expr.Visitor<Object> {
 */
 //> Statements and State interpreter
-class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+class Interpreter implements Expr.Visitor<Object>,
+                             Stmt.Visitor<Void> {
 //< Statements and State interpreter
 /* Statements and State environment-field < Functions global-environment
   private Environment environment = new Environment();
@@ -88,7 +89,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 //< Resolving and Binding resolve
 //> Statements and State execute-block
-  void executeBlock(List<Stmt> statements, Environment environment) {
+  void executeBlock(List<Stmt> statements,
+                    Environment environment) {
     Environment previous = this.environment;
     try {
       this.environment = environment;
@@ -183,7 +185,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     LoxFunction function = new LoxFunction(stmt, environment);
 */
 //> Classes construct-function
-    LoxFunction function = new LoxFunction(stmt, environment, false);
+    LoxFunction function = new LoxFunction(stmt, environment,
+                                           false);
 //< Classes construct-function
     environment.define(stmt.name.lexeme, function);
     return null;
@@ -400,7 +403,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object object = evaluate(expr.object);
 
     if (!(object instanceof LoxInstance)) { // [order]
-      throw new RuntimeError(expr.name, "Only instances have fields.");
+      throw new RuntimeError(expr.name,
+                             "Only instances have fields.");
     }
 
     Object value = evaluate(expr.value);
@@ -416,7 +420,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         distance, "super");
 //> super-find-this
 
-    // "this" is always one level nearer than "super"'s environment.
     LoxInstance object = (LoxInstance)environment.getAt(
         distance - 1, "this");
 //< super-find-this
@@ -517,7 +520,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   private String stringify(Object object) {
     if (object == null) return "nil";
 
-    // Hack. Work around Java adding ".0" to integer-valued doubles.
     if (object instanceof Double) {
       String text = object.toString();
       if (text.endsWith(".0")) {

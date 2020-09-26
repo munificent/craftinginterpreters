@@ -147,12 +147,13 @@ For simplicity's sake, Lox doesn't have a conditional operator, so let's get our
 <span name="semicolon"></span>
 
 ```ebnf
-statement → exprStmt
-          | ifStmt
-          | printStmt
-          | block ;
+statement      → exprStmt
+               | ifStmt
+               | printStmt
+               | block ;
 
-ifStmt    → "if" "(" expression ")" statement ( "else" statement )? ;
+ifStmt         → "if" "(" expression ")" statement
+               ( "else" statement )? ;
 ```
 
 <aside name="semicolon">
@@ -305,11 +306,11 @@ comparison or equality operators do.
 </aside>
 
 ```ebnf
-expression → assignment ;
-assignment → identifier "=" assignment
-           | logic_or ;
-logic_or   → logic_and ( "or" logic_and )* ;
-logic_and  → equality ( "and" equality )* ;
+expression     → assignment ;
+assignment     → identifier "=" assignment
+               | logic_or ;
+logic_or       → logic_and ( "or" logic_and )* ;
+logic_and      → equality ( "and" equality )* ;
 ```
 
 Instead of falling back to `equality`, `assignment` now cascades to `logic_or`.
@@ -394,13 +395,13 @@ Lox features two looping control flow statements, while and for. While is the
 simpler one so we'll start there. Its grammar is the same as in C:
 
 ```ebnf
-statement → exprStmt
-          | ifStmt
-          | printStmt
-          | whileStmt
-          | block ;
+statement      → exprStmt
+               | ifStmt
+               | printStmt
+               | whileStmt
+               | block ;
 
-whileStmt → "while" "(" expression ")" statement ;
+whileStmt      → "while" "(" expression ")" statement ;
 ```
 
 We add another clause to the statement rule that points to the new rule for
@@ -455,16 +456,16 @@ for (var i = 0; i < 10; i = i + 1) print i;
 In grammarese, that's:
 
 ```ebnf
-statement → exprStmt
-          | forStmt
-          | ifStmt
-          | printStmt
-          | whileStmt
-          | block ;
+statement      → exprStmt
+               | forStmt
+               | ifStmt
+               | printStmt
+               | whileStmt
+               | block ;
 
-forStmt   → "for" "(" ( varDecl | exprStmt | ";" )
-                      expression? ";"
-                      expression? ")" statement ;
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                 expression? ";"
+                 expression? ")" statement ;
 ```
 
 <aside name="for">

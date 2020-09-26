@@ -114,7 +114,7 @@
             scopes.peek().containsKey(expr.name.lexeme) &&
             scopes.peek().get(expr.name.lexeme).state == VariableState.DECLARED) {
           Lox.error(expr.name,
-              "Cannot read local variable in its own initializer.");
+              "Can't read local variable in its own initializer.");
         }
 
         resolveLocal(expr, expr.name, true);
@@ -131,7 +131,7 @@
         Map<String, Variable> scope = scopes.peek();
         if (scope.containsKey(name.lexeme)) {
           Lox.error(name,
-              "Variable with this name already declared in this scope.");
+              "Already variable with this name in this scope.");
         }
 
         scope.put(name.lexeme, new Variable(name, VariableState.DECLARED));

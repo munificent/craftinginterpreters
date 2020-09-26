@@ -630,10 +630,10 @@ I couldn't resist the pun. I regret nothing.
     `switch` statement. Add one to clox. The grammar is:
 
     ```ebnf
-    switchStmt  → "switch" "(" expression ")"
-                  "{" switchCase* defaultCase? "}" ;
-    switchCase  → "case" expression ":" statement* ;
-    defaultCase → "default" ":" statement* ;
+    switchStmt     → "switch" "(" expression ")"
+                     "{" switchCase* defaultCase? "}" ;
+    switchCase     → "case" expression ":" statement* ;
+    defaultCase    → "default" ":" statement* ;
     ```
 
     To execute a `switch` statement, first evaluate the parenthesized switch
@@ -651,7 +651,7 @@ I couldn't resist the pun. I regret nothing.
     time, let's do `continue`:
 
     ```ebnf
-    continueStmt → "continue" ";" ;
+    continueStmt   → "continue" ";" ;
     ```
 
     A `continue` statement jumps directly to the top of the nearest enclosing

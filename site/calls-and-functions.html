@@ -293,26 +293,26 @@ add after <em>copyString</em>()</div>
 <p>Finally, we have a couple of macros for converting values to functions. First,
 make sure your value actually <em>is</em> a function:</p>
 <div class="codehilite"><pre class="insert-before">
-#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)
+#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)</span>
+<span class="a">#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)</span>
 </pre><pre class="insert-after">
-#define IS_STRING(value)        isObjType(value, OBJ_STRING)
+#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Assuming that returns true, you can then safely cast the Value to an ObjFunction
 pointer using:</p>
 <div class="codehilite"><pre class="insert-before">
-#define IS_STRING(value)        isObjType(value, OBJ_STRING)
+#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))</span>
+<span class="a">#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))</span>
 </pre><pre class="insert-after">
-#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
+#define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
@@ -529,8 +529,8 @@ in a function:</p>
 in <em>endCompiler</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="i">disassembleChunk</span>(<span class="i">currentChunk</span>(),
-        <span class="i">function</span>-&gt;<span class="i">name</span> != <span class="a">NULL</span> ? <span class="i">function</span>-&gt;<span class="i">name</span>-&gt;<span class="i">chars</span> : <span class="s">&quot;&lt;script&gt;&quot;</span>);
+    <span class="i">disassembleChunk</span>(<span class="i">currentChunk</span>(), <span class="i">function</span>-&gt;<span class="i">name</span> != <span class="a">NULL</span>
+        ? <span class="i">function</span>-&gt;<span class="i">name</span>-&gt;<span class="i">chars</span> : <span class="s">&quot;&lt;script&gt;&quot;</span>);
 </pre><pre class="insert-after">
   }
 #endif
@@ -864,7 +864,8 @@ replace 4 lines</div>
 
 <span class="a">#define READ_BYTE() (*frame-&gt;ip++)</span>
 <span class="a">#define READ_SHORT() \</span>
-<span class="a">    (frame-&gt;ip += 2, (uint16_t)((frame-&gt;ip[-2] &lt;&lt; 8) | frame-&gt;ip[-1]))</span>
+<span class="a">    (frame-&gt;ip += 2, \</span>
+<span class="a">    (uint16_t)((frame-&gt;ip[-2] &lt;&lt; 8) | frame-&gt;ip[-1]))</span>
 <span class="a">#define READ_CONSTANT() \</span>
 <span class="a">    (frame-&gt;function-&gt;chunk.constants.values[READ_BYTE()])</span>
 </pre><pre class="insert-after">
@@ -964,14 +965,14 @@ us debug our VM. That needs to work with the new structure too:</p>
     printf(&quot;\n&quot;);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
-replace 1 line</div>
+replace 2 lines</div>
 <pre class="insert">
     <span class="i">disassembleInstruction</span>(&amp;<span class="i">frame</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>,
         (<span class="t">int</span>)(<span class="i">frame</span>-&gt;<span class="i">ip</span> - <span class="i">frame</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span>));
 </pre><pre class="insert-after">
 #endif
 </pre></div>
-<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
 <p>Instead of passing in the VM&rsquo;s <code>chunk</code> and <code>ip</code> fields, now we read from the
 current CallFrame.</p>
@@ -1213,7 +1214,7 @@ in <em>initCompiler</em>()</div>
 <p>Then when a Compiler finishes, it pops itself off the stack by restoring the
 previous compiler as the current one:</p>
 <div class="codehilite"><pre class="insert-before">
-        function-&gt;name != NULL ? function-&gt;name-&gt;chars : &quot;&lt;script&gt;&quot;);
+        ? function-&gt;name-&gt;chars : &quot;&lt;script&gt;&quot;);
   }
 #endif
 
@@ -1250,10 +1251,11 @@ in <em>function</em>()</div>
     <span class="k">do</span> {
       <span class="i">current</span>-&gt;<span class="i">function</span>-&gt;<span class="i">arity</span>++;
       <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">function</span>-&gt;<span class="i">arity</span> &gt; <span class="n">255</span>) {
-        <span class="i">errorAtCurrent</span>(<span class="s">&quot;Cannot have more than 255 parameters.&quot;</span>);
+        <span class="i">errorAtCurrent</span>(<span class="s">&quot;Can&#39;t have more than 255 parameters.&quot;</span>);
       }
 
-      <span class="t">uint8_t</span> <span class="i">paramConstant</span> = <span class="i">parseVariable</span>(<span class="s">&quot;Expect parameter name.&quot;</span>);
+      <span class="t">uint8_t</span> <span class="i">paramConstant</span> = <span class="i">parseVariable</span>(
+          <span class="s">&quot;Expect parameter name.&quot;</span>);
       <span class="i">defineVariable</span>(<span class="i">paramConstant</span>);
     } <span class="k">while</span> (<span class="i">match</span>(<span class="a">TOKEN_COMMA</span>));
   }
@@ -1321,9 +1323,9 @@ ParseRule rules[] = {
 add after <em>unary</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  [<span class="a">TOKEN_LEFT_PAREN</span>]    = { <span class="i">grouping</span>, <span class="i">call</span>,   <span class="a">PREC_CALL</span> },
+  [<span class="a">TOKEN_LEFT_PAREN</span>]    = {<span class="i">grouping</span>, <span class="i">call</span>,   <span class="a">PREC_CALL</span>},
 </pre><pre class="insert-after">
-  [TOKEN_RIGHT_PAREN]   = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>unary</em>(), replace 1 line</div>
 
@@ -1378,7 +1380,7 @@ in <em>argumentList</em>()</div>
 <pre class="insert">
 
       <span class="k">if</span> (<span class="i">argCount</span> == <span class="n">255</span>) {
-        <span class="i">error</span>(<span class="s">&quot;Cannot have more than 255 arguments.&quot;</span>);
+        <span class="i">error</span>(<span class="s">&quot;Can&#39;t have more than 255 arguments.&quot;</span>);
       }
 </pre><pre class="insert-after">
       argCount++;
@@ -1835,7 +1837,7 @@ static void returnStatement() {
 in <em>returnStatement</em>()</div>
 <pre class="insert">
   <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">type</span> == <span class="a">TYPE_SCRIPT</span>) {
-    <span class="i">error</span>(<span class="s">&quot;Cannot return from top-level code.&quot;</span>);
+    <span class="i">error</span>(<span class="s">&quot;Can&#39;t return from top-level code.&quot;</span>);
   }
 
 </pre><pre class="insert-after">
@@ -1973,24 +1975,25 @@ in <em>printObject</em>()</div>
 <p>In order to support dynamic typing, we have a macro to see if a value is a
 native function:</p>
 <div class="codehilite"><pre class="insert-before">
-#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
+#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)</span>
+<span class="a">#define IS_NATIVE(value)       isObjType(value, OBJ_NATIVE)</span>
 </pre><pre class="insert-after">
-#define IS_STRING(value)        isObjType(value, OBJ_STRING)
+#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Assuming that returns true, this macro extracts the C function pointer from a
 Value representing a native function:</p>
 <div class="codehilite"><pre class="insert-before">
-#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
+#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
-<span class="a">#define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))-&gt;function)</span>
+<span class="a">#define AS_NATIVE(value) \</span>
+<span class="a">    (((ObjNative*)AS_OBJ(value))-&gt;function)</span>
 </pre><pre class="insert-after">
-#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
+#define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 

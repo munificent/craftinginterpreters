@@ -65,7 +65,7 @@ private FunctionType currentFunction = FunctionType.NONE;
   @Override
   public Void visitReturnStmt(Stmt.Return stmt) {
     if (currentFunction == FunctionType.NONE) {
-      Lox.error(stmt.keyword, "Cannot return from top-level code.");
+      Lox.error(stmt.keyword, "Can't return from top-level code.");
     }
 
     if (stmt.value != null) {
@@ -137,7 +137,7 @@ private FunctionType currentFunction = FunctionType.NONE;
         scopes.peek().containsKey(expr.name.lexeme) &&
         !scopes.peek().get(expr.name.lexeme).isDefined) {
       Lox.error(expr.name,
-          "Cannot read local variable in its own initializer.");
+          "Can't read local variable in its own initializer.");
     }
 
     resolveLocal(expr, expr.name);
@@ -174,7 +174,7 @@ private FunctionType currentFunction = FunctionType.NONE;
     Map<String, Variable> scope = scopes.peek();
     if (scope.containsKey(name.lexeme)) {
       Lox.error(name,
-          "Variable with this name already declared in this scope.");
+          "Already variable with this name in this scope.");
     }
 
     scope.put(name.lexeme, new Variable(scope.size()));

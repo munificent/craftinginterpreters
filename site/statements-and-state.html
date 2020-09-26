@@ -180,13 +180,13 @@ to parse an entire Lox script. Since Lox is an imperative, dynamically-typed
 language, the &ldquo;top level&rdquo; of a script is simply a list of statements. The new
 rules are:</p>
 <div class="codehilite"><pre>
-<span class="i">program</span>   → <span class="i">statement</span>* <span class="t">EOF</span> ;
+<span class="i">program</span>        → <span class="i">statement</span>* <span class="t">EOF</span> ;
 
-<span class="i">statement</span> → <span class="i">exprStmt</span>
-          | <span class="i">printStmt</span> ;
+<span class="i">statement</span>      → <span class="i">exprStmt</span>
+               | <span class="i">printStmt</span> ;
 
-<span class="i">exprStmt</span>  → <span class="i">expression</span> <span class="s">&quot;;&quot;</span> ;
-<span class="i">printStmt</span> → <span class="s">&quot;print&quot;</span> <span class="i">expression</span> <span class="s">&quot;;&quot;</span> ;
+<span class="i">exprStmt</span>       → <span class="i">expression</span> <span class="s">&quot;;&quot;</span> ;
+<span class="i">printStmt</span>      → <span class="s">&quot;print&quot;</span> <span class="i">expression</span> <span class="s">&quot;;&quot;</span> ;
 </pre></div>
 <p>The first rule is now <code>program</code>, which is the starting point for the grammar and
 represents a complete Lox script or REPL entry. A program is a list of
@@ -338,7 +338,8 @@ implement since statements have their own base class.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 replace 1 line</div>
 <pre class="insert">
-<span class="k">class</span> <span class="t">Interpreter</span> <span class="k">implements</span> <span class="t">Expr</span>.<span class="t">Visitor</span>&lt;<span class="t">Object</span>&gt;, <span class="t">Stmt</span>.<span class="t">Visitor</span>&lt;<span class="t">Void</span>&gt; {
+<span class="k">class</span> <span class="t">Interpreter</span> <span class="k">implements</span> <span class="t">Expr</span>.<span class="t">Visitor</span>&lt;<span class="t">Object</span>&gt;,
+                             <span class="t">Stmt</span>.<span class="t">Visitor</span>&lt;<span class="t">Void</span>&gt; {
 </pre><pre class="insert-after">
   void interpret(Expr expression) {
 </pre></div>
@@ -427,7 +428,7 @@ package com.craftinginterpreters.lox;
 <span class="k">import</span> <span class="i">java.util.List</span>;
 </pre><pre class="insert-after">
 
-class Interpreter implements Expr.Visitor&lt;Object&gt;, Stmt.Visitor&lt;Void&gt; {
+class Interpreter implements Expr.Visitor&lt;Object&gt;,
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em></div>
 
@@ -542,13 +543,13 @@ statement grammar from a place where only some statements are allowed.</p>
 <p>To accommodate the distinction, we add another rule for kinds of statements that
 declare names:</p>
 <div class="codehilite"><pre>
-<span class="i">program</span>     → <span class="i">declaration</span>* <span class="t">EOF</span> ;
+<span class="i">program</span>        → <span class="i">declaration</span>* <span class="t">EOF</span> ;
 
-<span class="i">declaration</span> → <span class="i">varDecl</span>
-            | <span class="i">statement</span> ;
+<span class="i">declaration</span>    → <span class="i">varDecl</span>
+               | <span class="i">statement</span> ;
 
-<span class="i">statement</span>   → <span class="i">exprStmt</span>
-            | <span class="i">printStmt</span> ;
+<span class="i">statement</span>      → <span class="i">exprStmt</span>
+               | <span class="i">printStmt</span> ;
 </pre></div>
 <p>Declaration statements go under the new <code>declaration</code> rule. Right now, it&rsquo;s only
 variables, but later it will include functions and classes. Any place where a
@@ -557,7 +558,7 @@ declaration is allowed also allows non-declaring statements, so the
 stuff at the top level of a script, so <code>program</code> routes to the new rule.</p>
 <p>The rule for declaring a variable looks like:</p>
 <div class="codehilite"><pre>
-<span class="i">varDecl</span> → <span class="s">&quot;var&quot;</span> <span class="t">IDENTIFIER</span> ( <span class="s">&quot;=&quot;</span> <span class="i">expression</span> )? <span class="s">&quot;;&quot;</span> ;
+<span class="i">varDecl</span>        → <span class="s">&quot;var&quot;</span> <span class="t">IDENTIFIER</span> ( <span class="s">&quot;=&quot;</span> <span class="i">expression</span> )? <span class="s">&quot;;&quot;</span> ;
 </pre></div>
 <p>Like most statements, it starts with a leading keyword. In this case, <code>var</code>.
 Then an identifier token for the name of the variable being declared, followed
@@ -565,10 +566,10 @@ by an optional initializer expression. Finally, we put a bow on it with the
 semicolon.</p>
 <p>To access a variable, we define a new kind of primary expression:</p>
 <div class="codehilite"><pre>
-<span class="i">primary</span> → <span class="s">&quot;true&quot;</span> | <span class="s">&quot;false&quot;</span> | <span class="s">&quot;nil&quot;</span>
-        | <span class="t">NUMBER</span> | <span class="t">STRING</span>
-        | <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span>
-        | <span class="t">IDENTIFIER</span> ;
+<span class="i">primary</span>        → <span class="s">&quot;true&quot;</span> | <span class="s">&quot;false&quot;</span> | <span class="s">&quot;nil&quot;</span>
+               | <span class="t">NUMBER</span> | <span class="t">STRING</span>
+               | <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span>
+               | <span class="t">IDENTIFIER</span> ;
 </pre></div>
 <p>That <code>IDENTIFIER</code> clause matches a single identifier token, which is understood
 to be the name of the variable being accessed.</p>
@@ -889,7 +890,7 @@ tell the user where in their code they messed up.</p>
 <h3><a href="#interpreting-global-variables" name="interpreting-global-variables"><small>8&#8202;.&#8202;3&#8202;.&#8202;1</small>Interpreting global variables</a></h3>
 <p>The Interpreter class gets an instance of the new Environment class:</p>
 <div class="codehilite"><pre class="insert-before">
-class Interpreter implements Expr.Visitor&lt;Object&gt;, Stmt.Visitor&lt;Void&gt; {
+                             Stmt.Visitor&lt;Void&gt; {
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
 <pre class="insert">
@@ -987,9 +988,9 @@ expression:</p>
 <p>In some other languages, like Pascal, Python, and Go, assignment is a statement.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="i">expression</span> → <span class="i">assignment</span> ;
-<span class="i">assignment</span> → <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
-           | <span class="i">equality</span> ;
+<span class="i">expression</span>     → <span class="i">assignment</span> ;
+<span class="i">assignment</span>     → <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
+               | <span class="i">equality</span> ;
 </pre></div>
 <p>This says an <code>assignment</code> is either an identifier followed by an <code>=</code> and an
 expression for the value, or an <code>equality</code> (and thus any other) expression.
@@ -1425,11 +1426,11 @@ recursively.</p>
 <p>Now that Environments nest, we&rsquo;re ready to add blocks to the language. Behold
 the grammar:</p>
 <div class="codehilite"><pre>
-<span class="i">statement</span> → <span class="i">exprStmt</span>
-          | <span class="i">printStmt</span>
-          | <span class="i">block</span> ;
+<span class="i">statement</span>      → <span class="i">exprStmt</span>
+               | <span class="i">printStmt</span>
+               | <span class="i">block</span> ;
 
-<span class="i">block</span>     → <span class="s">&quot;{&quot;</span> <span class="i">declaration</span>* <span class="s">&quot;}&quot;</span> ;
+<span class="i">block</span>          → <span class="s">&quot;{&quot;</span> <span class="i">declaration</span>* <span class="s">&quot;}&quot;</span> ;
 </pre></div>
 <p>A block is a (possibly empty) series of statements or declarations surrounded by
 curly braces. A block is itself a statement and can appear anywhere a statement
@@ -1512,7 +1513,8 @@ it off to this other method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>execute</em>()</div>
 <pre>
-  <span class="t">void</span> <span class="i">executeBlock</span>(<span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">statements</span>, <span class="t">Environment</span> <span class="i">environment</span>) {
+  <span class="t">void</span> <span class="i">executeBlock</span>(<span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">statements</span>,
+                    <span class="t">Environment</span> <span class="i">environment</span>) {
     <span class="t">Environment</span> <span class="i">previous</span> = <span class="k">this</span>.<span class="i">environment</span>;
     <span class="k">try</span> {
       <span class="k">this</span>.<span class="i">environment</span> = <span class="i">environment</span>;

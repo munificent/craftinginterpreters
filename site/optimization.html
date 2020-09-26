@@ -562,8 +562,8 @@ a hash table lookup for interning strings. We need to make the same changes
 there that we made in <code>findEntry()</code>. We use <code>capacity</code> as a mask when wrapping
 the string&rsquo;s hash key:</p>
 <div class="codehilite"><pre class="insert-before">
-ObjString* tableFindString(Table* table, const char* chars, int length,
-                           uint32_t hash) {
+ObjString* tableFindString(Table* table, const char* chars,
+                           int length, uint32_t hash) {
   if (table-&gt;count == 0) return NULL;
 
 </pre><div class="source-file"><em>table.c</em><br>
@@ -869,7 +869,7 @@ this module, the rest of the VM doesn&rsquo;t really care one way or the other.<
 <p>Before we start re-implementing those macros, we close the <code>#else</code> branch of the
 <code>#ifdef</code> at the end of the definitions for the old representation:</p>
 <div class="codehilite"><pre class="insert-before">
-#define OBJ_VAL(object)   ((Value){ VAL_OBJ, { .obj = (Obj*)object } })
+#define OBJ_VAL(object)   ((Value){VAL_OBJ, {.obj = (Obj*)object}})
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -969,7 +969,7 @@ typedef uint64_t Value;
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
-<span class="a">#define AS_NUMBER(v)    valueToNum(v)</span>
+<span class="a">#define AS_NUMBER(value)    valueToNum(value)</span>
 </pre><pre class="insert-after">
 
 #define NUMBER_VAL(num) numToValue(num)
@@ -1018,10 +1018,10 @@ typedef uint64_t Value;
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
-<span class="a">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
+<span class="a">#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)</span>
 </pre><pre class="insert-after">
 
-#define AS_NUMBER(v)    valueToNum(v)
+#define AS_NUMBER(value)    valueToNum(value)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
@@ -1084,7 +1084,7 @@ typedef uint64_t Value;
 quiet NaN representation along with the <code>nil</code> type tag bits:</p><img src="image/optimization/nil.png" alt="The bit representation of the nil value." />
 <p>In code, that&rsquo;s:</p>
 <div class="codehilite"><pre class="insert-before">
-#define AS_NUMBER(v)    valueToNum(v)
+#define AS_NUMBER(value)    valueToNum(value)
 
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
@@ -1104,15 +1104,15 @@ typedef uint64_t Value;
 
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="a">#define IS_NIL(v)       ((v) == NIL_VAL)</span>
+<span class="a">#define IS_NIL(value)       ((value) == NIL_VAL)</span>
 </pre><pre class="insert-after">
-#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)
+#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>You can guess how we define the <code>true</code> and <code>false</code> values:</p>
 <div class="codehilite"><pre class="insert-before">
-#define AS_NUMBER(v)    valueToNum(v)
+#define AS_NUMBER(value)    valueToNum(value)
 
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
@@ -1127,7 +1127,7 @@ typedef uint64_t Value;
 <p>To convert a C bool into a Lox Boolean, we rely on these two singleton values
 and the good old conditional operator:</p>
 <div class="codehilite"><pre class="insert-before">
-#define AS_NUMBER(v)    valueToNum(v)
+#define AS_NUMBER(value)    valueToNum(value)
 
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
@@ -1141,13 +1141,13 @@ and the good old conditional operator:</p>
 compiler can figure one out faster than I can. Going the other direction is
 simpler:</p>
 <div class="codehilite"><pre class="insert-before">
-#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)
+#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)
 
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="a">#define AS_BOOL(v)      ((v) == TRUE_VAL)</span>
+<span class="a">#define AS_BOOL(value)      ((value) == TRUE_VAL)</span>
 </pre><pre class="insert-after">
-#define AS_NUMBER(v)    valueToNum(v)
+#define AS_NUMBER(value)    valueToNum(value)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
@@ -1160,9 +1160,9 @@ typedef uint64_t Value;
 
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="a">#define IS_BOOL(v)      (((v) | 1) == TRUE_VAL)</span>
+<span class="a">#define IS_BOOL(value)      (((value) | 1) == TRUE_VAL)</span>
 </pre><pre class="insert-after">
-#define IS_NIL(v)       ((v) == NIL_VAL)
+#define IS_NIL(value)       ((value) == NIL_VAL)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
@@ -1248,10 +1248,11 @@ lawless territory too. It&rsquo;s up to you to decide if the gains are worth it.
 
 <p>To get the Obj pointer back out, we simply mask off all of those extra bits:</p>
 <div class="codehilite"><pre class="insert-before">
-#define AS_NUMBER(v)    valueToNum(v)
+#define AS_NUMBER(value)    valueToNum(value)
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="a">#define AS_OBJ(v)       ((Obj*)(uintptr_t)((v) &amp; ~(SIGN_BIT | QNAN)))</span>
+<span class="a">#define AS_OBJ(value) \</span>
+<span class="a">    ((Obj*)(uintptr_t)((value) &amp; ~(SIGN_BIT | QNAN)))</span>
 </pre><pre class="insert-after">
 
 #define BOOL_VAL(b)     ((b) ? TRUE_VAL : FALSE_VAL)
@@ -1264,13 +1265,14 @@ value with the bitwise negation of the quiet NaN and sign bits, we <em>clear</em
 bits and let the pointer bits remain.</p>
 <p>One last macro:</p>
 <div class="codehilite"><pre class="insert-before">
-#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)
+#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="a">#define IS_OBJ(v)       (((v) &amp; (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))</span>
+<span class="a">#define IS_OBJ(value) \</span>
+<span class="a">    (((value) &amp; (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))</span>
 </pre><pre class="insert-after">
 
-#define AS_BOOL(v)      ((v) == TRUE_VAL)
+#define AS_BOOL(value)      ((value) == TRUE_VAL)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
@@ -1366,7 +1368,9 @@ want to be <em>fully</em> compliant with IEEE 754, we need to handle this case:<
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
 <pre class="insert">
-  <span class="k">if</span> (<span class="a">IS_NUMBER</span>(<span class="i">a</span>) &amp;&amp; <span class="a">IS_NUMBER</span>(<span class="i">b</span>)) <span class="k">return</span> <span class="a">AS_NUMBER</span>(<span class="i">a</span>) == <span class="a">AS_NUMBER</span>(<span class="i">b</span>);
+  <span class="k">if</span> (<span class="a">IS_NUMBER</span>(<span class="i">a</span>) &amp;&amp; <span class="a">IS_NUMBER</span>(<span class="i">b</span>)) {
+    <span class="k">return</span> <span class="a">AS_NUMBER</span>(<span class="i">a</span>) == <span class="a">AS_NUMBER</span>(<span class="i">b</span>);
+  }
 </pre><pre class="insert-after">
   return a == b;
 </pre></div>

@@ -57,8 +57,8 @@ new `call` rule:
 <span name="curry"></span>
 
 ```ebnf
-unary → ( "!" | "-" ) unary | call ;
-call  → primary ( "(" arguments? ")" )* ;
+unary          → ( "!" | "-" ) unary | call ;
+call           → primary ( "(" arguments? ")" )* ;
 ```
 
 This rule matches a primary expression followed by zero or more function calls.
@@ -83,7 +83,7 @@ the language syntax so it's not as cumbersome as it would be here.
 </aside>
 
 ```ebnf
-arguments → expression ( "," expression )* ;
+arguments      → expression ( "," expression )* ;
 ```
 
 This rule requires at least one argument expression, followed by zero or more
@@ -455,16 +455,16 @@ nice syntax for them.
 </aside>
 
 ```ebnf
-declaration → funDecl
-            | varDecl
-            | statement ;
+declaration    → funDecl
+               | varDecl
+               | statement ;
 ```
 
 That references this new rule:
 
 ```ebnf
-funDecl  → "fun" function ;
-function → IDENTIFIER "(" parameters? ")" block ;
+funDecl        → "fun" function ;
+function       → IDENTIFIER "(" parameters? ")" block ;
 ```
 
 The main `funDecl` rule uses a separate helper rule `function`. A function
@@ -484,7 +484,7 @@ the body. The body is always a braced block, using the same grammar rule that
 block statements use. The parameter list uses this rule:
 
 ```ebnf
-parameters → IDENTIFIER ( "," IDENTIFIER )* ;
+parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 ```
 
 It's like the earlier `arguments` rule, except that each parameter is an
@@ -716,15 +716,15 @@ The Hotel California of data.
 </aside>
 
 ```ebnf
-statement  → exprStmt
-           | forStmt
-           | ifStmt
-           | printStmt
-           | returnStmt
-           | whileStmt
-           | block ;
+statement      → exprStmt
+               | forStmt
+               | ifStmt
+               | printStmt
+               | returnStmt
+               | whileStmt
+               | block ;
 
-returnStmt → "return" expression? ";" ;
+returnStmt     → "return" expression? ";" ;
 ```
 
 We've got one more -- the final, in fact -- production under the venerable

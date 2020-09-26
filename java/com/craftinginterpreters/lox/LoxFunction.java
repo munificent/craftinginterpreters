@@ -34,7 +34,8 @@ class LoxFunction implements LoxCallable {
     return new LoxFunction(declaration, environment);
 */
 //> lox-function-bind-with-initializer
-    return new LoxFunction(declaration, environment, isInitializer);
+    return new LoxFunction(declaration, environment,
+                           isInitializer);
 //< lox-function-bind-with-initializer
   }
 //< Classes bind-instance
@@ -52,7 +53,8 @@ class LoxFunction implements LoxCallable {
 //< function-arity
 //> function-call
   @Override
-  public Object call(Interpreter interpreter, List<Object> arguments) {
+  public Object call(Interpreter interpreter,
+                     List<Object> arguments) {
 /* Functions function-call < Functions call-closure
     Environment environment = new Environment(interpreter.globals);
 */

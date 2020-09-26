@@ -79,13 +79,13 @@ language, the "top level" of a script is simply a list of statements. The new
 rules are:
 
 ```ebnf
-program   → statement* EOF ;
+program        → statement* EOF ;
 
-statement → exprStmt
-          | printStmt ;
+statement      → exprStmt
+               | printStmt ;
 
-exprStmt  → expression ";" ;
-printStmt → "print" expression ";" ;
+exprStmt       → expression ";" ;
+printStmt      → "print" expression ";" ;
 ```
 
 The first rule is now `program`, which is the starting point for the grammar and
@@ -371,13 +371,13 @@ To accommodate the distinction, we add another rule for kinds of statements that
 declare names:
 
 ```ebnf
-program     → declaration* EOF ;
+program        → declaration* EOF ;
 
-declaration → varDecl
-            | statement ;
+declaration    → varDecl
+               | statement ;
 
-statement   → exprStmt
-            | printStmt ;
+statement      → exprStmt
+               | printStmt ;
 ```
 
 Declaration statements go under the new `declaration` rule. Right now, it's only
@@ -389,7 +389,7 @@ stuff at the top level of a script, so `program` routes to the new rule.
 The rule for declaring a variable looks like:
 
 ```ebnf
-varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
+varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 ```
 
 Like most statements, it starts with a leading keyword. In this case, `var`.
@@ -400,10 +400,10 @@ semicolon.
 To access a variable, we define a new kind of primary expression:
 
 ```ebnf
-primary → "true" | "false" | "nil"
-        | NUMBER | STRING
-        | "(" expression ")"
-        | IDENTIFIER ;
+primary        → "true" | "false" | "nil"
+               | NUMBER | STRING
+               | "(" expression ")"
+               | IDENTIFIER ;
 ```
 
 That `IDENTIFIER` clause matches a single identifier token, which is understood
@@ -760,9 +760,9 @@ In some other languages, like Pascal, Python, and Go, assignment is a statement.
 </aside>
 
 ```ebnf
-expression → assignment ;
-assignment → IDENTIFIER "=" assignment
-           | equality ;
+expression     → assignment ;
+assignment     → IDENTIFIER "=" assignment
+               | equality ;
 ```
 
 This says an `assignment` is either an identifier followed by an `=` and an
@@ -1196,11 +1196,11 @@ Now that Environments nest, we're ready to add blocks to the language. Behold
 the grammar:
 
 ```ebnf
-statement → exprStmt
-          | printStmt
-          | block ;
+statement      → exprStmt
+               | printStmt
+               | block ;
 
-block     → "{" declaration* "}" ;
+block          → "{" declaration* "}" ;
 ```
 
 A block is a (possibly empty) series of statements or declarations surrounded by

@@ -36,8 +36,8 @@ bool tableDelete(Table* table, ObjString* key);
 void tableAddAll(Table* from, Table* to);
 //< table-add-all-h
 //> table-find-string-h
-ObjString* tableFindString(Table* table, const char* chars, int length,
-                           uint32_t hash);
+ObjString* tableFindString(Table* table, const char* chars,
+                           int length, uint32_t hash);
 //< table-find-string-h
 //> Garbage Collection table-remove-white-h
 

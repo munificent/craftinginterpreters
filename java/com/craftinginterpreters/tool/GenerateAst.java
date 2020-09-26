@@ -62,10 +62,12 @@ public class GenerateAst {
 //< Inheritance superclass-ast
       "Expression : Expr expression",
 //> Functions function-ast
-      "Function   : Token name, List<Token> params, List<Stmt> body",
+      "Function   : Token name, List<Token> params," +
+                  " List<Stmt> body",
 //< Functions function-ast
 //> Control Flow if-ast
-      "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
+      "If         : Expr condition, Stmt thenBranch," +
+                  " Stmt elseBranch",
 //< Control Flow if-ast
 /* Statements and State stmt-ast < Statements and State var-stmt-ast
       "Print      : Expr expression"

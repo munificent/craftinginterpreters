@@ -145,7 +145,7 @@
         if (!check(RIGHT_PAREN)) {
           do {
             if (parameters.size() >= 8) {
-              error(peek(), "Cannot have more than 8 parameters.");
+              error(peek(), "Can't have more than 8 parameters.");
             }
 
             parameters.add(consume(IDENTIFIER, "Expect parameter name."));

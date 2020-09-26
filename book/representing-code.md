@@ -424,17 +424,17 @@ That gives us enough syntax for expressions like:
 Using our handy dandy new notation, here's a grammar for those:
 
 ```ebnf
-expression → literal
-           | unary
-           | binary
-           | grouping ;
+expression     → literal
+               | unary
+               | binary
+               | grouping ;
 
-literal    → NUMBER | STRING | "false" | "true" | "nil" ;
-grouping   → "(" expression ")" ;
-unary      → ( "-" | "!" ) expression ;
-binary     → expression operator expression ;
-operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
-           | "+"  | "-"  | "*" | "/" ;
+literal        → NUMBER | STRING | "true" | "false" | "nil" ;
+grouping       → "(" expression ")" ;
+unary          → ( "-" | "!" ) expression ;
+binary         → expression operator expression ;
+operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
+               | "+"  | "-"  | "*" | "/" ;
 ```
 
 There's one bit of extra <span name="play">metasyntax</span> here. In addition

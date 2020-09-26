@@ -2,17 +2,17 @@
     and equality:
 
     ```ebnf
-    expression     → comma ;
-    comma          → equality ( "," equality )* ;
-    equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-    comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
-    addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
-    multiplication → unary ( ( "/" | "*" ) unary )* ;
-    unary          → ( "!" | "-" | "--" | "++" ) unary
-                   | postfix ;
-    postfix        → primary ( "--" | ++" )* ;
-    primary        → NUMBER | STRING | "true" | "false" | "nil"
-                   | "(" expression ")" ;
+    expression → comma ;
+    comma      → equality ( "," equality )* ;
+    equality   → comparison ( ( "!=" | "==" ) comparison )* ;
+    comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+    term       → factor ( ( "-" | "+" ) factor )* ;
+    factor     → unary ( ( "/" | "*" ) unary )* ;
+    unary      → ( "!" | "-" | "--" | "++" ) unary
+               | postfix ;
+    postfix    → primary ( "--" | ++" )* ;
+    primary    → NUMBER | STRING | "true" | "false" | "nil"
+               | "(" expression ")" ;
     ```
 
     We could define a new syntax tree node by adding this to the `defineAst()`
@@ -68,7 +68,7 @@
     if (!check(RIGHT_PAREN)) {
       do {
         if (arguments.size() >= 8) {
-          error(peek(), "Cannot have more than 8 arguments.");
+          error(peek(), "Can't have more than 8 arguments.");
         }
         arguments.add(equality()); // <-- was expression().
       } while (match(COMMA));
@@ -116,21 +116,21 @@
     these productions are errors. The parser handles that.
 
     ```ebnf
-    expression     → equality ;
-    equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-    comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
-    addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
-    multiplication → unary ( ( "/" | "*" ) unary )* ;
-    unary          → ( "!" | "-" | "--" | "++" ) unary
-                   | postfix ;
-    postfix        → primary ( "--" | ++" )* ;
-    primary        → NUMBER | STRING | "true" | "false" | "nil"
-                   | "(" expression ")"
-                   // Error productions...
-                   | ( "!=" | "==" ) equality
-                   | ( ">" | ">=" | "<" | "<=" ) comparison
-                   | ( "+" ) addition
-                   | ( "/" | "*" ) multiplication ;
+    expression → equality ;
+    equality   → comparison ( ( "!=" | "==" ) comparison )* ;
+    comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+    term       → factor ( ( "-" | "+" ) factor )* ;
+    factor     → unary ( ( "/" | "*" ) unary )* ;
+    unary      → ( "!" | "-" | "--" | "++" ) unary
+               | postfix ;
+    postfix    → primary ( "--" | ++" )* ;
+    primary    → NUMBER | STRING | "true" | "false" | "nil"
+               | "(" expression ")"
+               // Error productions...
+               | ( "!=" | "==" ) equality
+               | ( ">" | ">=" | "<" | "<=" ) comparison
+               | ( "+" ) term
+               | ( "/" | "*" ) factor ;
     ```
 
     Note that "-" isn't an error production because that *is* a valid prefix
@@ -151,7 +151,7 @@
     ```
 
     The error production for `+` will match the leading `+` and then use
-    `addition` to also match the rest of the expression.
+    `term` to also match the rest of the expression.
 
     ```java
     private Expr primary() {
@@ -184,13 +184,13 @@
 
       if (match(PLUS)) {
         error(previous(), "Missing left-hand operand.");
-        addition();
+        term();
         return null;
       }
 
       if (match(SLASH, STAR)) {
         error(previous(), "Missing left-hand operand.");
-        multiplication();
+        factor();
         return null;
       }
 

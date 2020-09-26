@@ -81,7 +81,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     if (stmt.superclass != null &&
         stmt.name.lexeme.equals(stmt.superclass.name.lexeme)) {
       Lox.error(stmt.superclass.name,
-          "A class cannot inherit from itself.");
+          "A class can't inherit from itself.");
     }
 
 //< inherit-self
@@ -176,7 +176,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   public Void visitReturnStmt(Stmt.Return stmt) {
 //> return-from-top
     if (currentFunction == FunctionType.NONE) {
-      Lox.error(stmt.keyword, "Cannot return from top-level code.");
+      Lox.error(stmt.keyword, "Can't return from top-level code.");
     }
 
 //< return-from-top
@@ -184,7 +184,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //> Classes return-in-initializer
       if (currentFunction == FunctionType.INITIALIZER) {
         Lox.error(stmt.keyword,
-            "Cannot return a value from an initializer.");
+            "Can't return a value from an initializer.");
       }
 
 //< Classes return-in-initializer
@@ -285,10 +285,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //> invalid-super
     if (currentClass == ClassType.NONE) {
       Lox.error(expr.keyword,
-          "Cannot use 'super' outside of a class.");
+          "Can't use 'super' outside of a class.");
     } else if (currentClass != ClassType.SUBCLASS) {
       Lox.error(expr.keyword,
-          "Cannot use 'super' in a class with no superclass.");
+          "Can't use 'super' in a class with no superclass.");
     }
 
 //< invalid-super
@@ -302,7 +302,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //> this-outside-of-class
     if (currentClass == ClassType.NONE) {
       Lox.error(expr.keyword,
-          "Cannot use 'this' outside of a class.");
+          "Can't use 'this' outside of a class.");
       return null;
     }
 
@@ -325,7 +325,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     if (!scopes.isEmpty() &&
         scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
       Lox.error(expr.name,
-          "Cannot read local variable in its own initializer.");
+          "Can't read local variable in its own initializer.");
     }
 
     resolveLocal(expr, expr.name);
@@ -383,7 +383,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //> duplicate-variable
     if (scope.containsKey(name.lexeme)) {
       Lox.error(name,
-          "Variable with this name already declared in this scope.");
+          "Already variable with this name in this scope.");
     }
 
 //< duplicate-variable

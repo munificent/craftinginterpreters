@@ -57,7 +57,8 @@ class LoxClass implements LoxCallable {
   }
 //> lox-class-call-arity
   @Override
-  public Object call(Interpreter interpreter, List<Object> arguments) {
+  public Object call(Interpreter interpreter,
+                     List<Object> arguments) {
     LoxInstance instance = new LoxInstance(this);
 //> lox-class-call-initializer
     LoxFunction initializer = findMethod("init");
