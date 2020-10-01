@@ -509,7 +509,6 @@ class Interpreter implements Expr.Visitor<Object>,
 //< is-truthy
 //> is-equal
   private boolean isEqual(Object a, Object b) {
-    // nil is only equal to nil.
     if (a == null && b == null) return true;
     if (a == null) return false;
 
