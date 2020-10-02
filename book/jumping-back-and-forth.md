@@ -488,7 +488,7 @@ clauses, all of which are optional:
 
 <aside name="detail">
 
-If you want a refresher, the corresponding chapter in part I goes through the
+If you want a refresher, the corresponding chapter in part II goes through the
 semantics [in more detail][jlox].
 
 [jlox]: control-flow.html#for-loops
