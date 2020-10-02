@@ -1013,7 +1013,7 @@ maintain AstPrinter, feel free to delete it. We won't need it again.
     metasyntax were just syntactic sugar. Given this grammar:
 
     ```ebnf
-    expr → expr ( "(" ( expr ( "," expr )* )? ")" | "." IDENTIFIER )*
+    expr → expr ( "(" ( expr ( "," expr )* )? ")" | "." IDENTIFIER )+
          | IDENTIFIER
          | NUMBER
     ```
