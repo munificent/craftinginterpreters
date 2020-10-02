@@ -264,9 +264,9 @@ Speaking of which:
 
 ^code print-script (1 before, 1 after)
 
-There's no way for a *user* to get a reference to top-level function and try to
-print it, but our `DEBUG_TRACE_EXECUTION` diagnostic code that prints the entire
-stack can and does.
+There's no way for a *user* to get a reference to the top-level function and try
+to print it, but our `DEBUG_TRACE_EXECUTION` diagnostic code that prints the
+entire stack can and does.
 
 Bumping up a level to `compile()`, we adjust its signature:
 
