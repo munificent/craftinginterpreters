@@ -404,7 +404,7 @@ Like everything in Java, our variable resolution pass lives nestled in a class:
 
 Since the resolver needs to visit every node in the syntax tree, it will
 implement the handy Visitor abstraction we already have in place. Only a few
-of nodes are interesting when it comes to resolving variables:
+kinds of nodes are interesting when it comes to resolving variables:
 
 *   A block statement introduces a new scope for the statements it contains.
 
