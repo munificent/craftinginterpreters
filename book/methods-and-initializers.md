@@ -574,8 +574,13 @@ interpreter isn't holding up its end of the bargain yet. Here is the fix:
 When a method is called, the top of the stack contains all of the arguments and
 then just under those is the closure of the called method. That's where slot
 zero in the new CallFrame will be. This line of code inserts the receiver into
-that slot. For example, given a method call like `scone.topping("berries",
-"cream")`, we calculate the slot to store the receiver like so:
+that slot. For example, given a method call like:
+
+```lox
+scone.topping("berries", "cream");
+```
+
+We calculate the slot to store the receiver like so:
 
 <img src="image/methods-and-initializers/closure-slot.png" alt="Skipping over the argument stack slots to find the slot containing the closure." />
 
