@@ -948,7 +948,7 @@ in <em>initVM</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
-<p>And, because we manage it ourselves, we need to free it when the VM shuts down:</p>
+<p>And we need to free it when the VM shuts down:</p>
 <div class="codehilite"><pre class="insert-before">
     object = next;
   }
@@ -961,6 +961,31 @@ in <em>freeObjects</em>()</div>
 }
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObjects</em>()</div>
+
+<p><span name="robust">We</span> take full responsibility for this array. That
+includes allocation failure. If we can&rsquo;t create or grow the gray stack, then we
+can&rsquo;t finish the garbage collection. This is bad news for the VM, but
+fortunately rare since the gray stack tends to be pretty small. It would be nice
+to do something more graceful, but to keep the code in this book simple, we just
+abort.</p>
+<aside name="robust">
+<p>To be more robust, we can allocate a &ldquo;rainy day fund&rdquo; block of memory when we
+start the VM. If the gray stack allocation fails, we free the rainy day block
+and try again. That may give us enough wiggle room on the heap to create the
+gray stack, finish the GC, and free up more memory.</p>
+</aside>
+<div class="codehilite"><pre class="insert-before">
+    vm.grayStack = realloc(vm.grayStack,
+                           sizeof(Obj*) * vm.grayCapacity);
+</pre><div class="source-file"><em>memory.c</em><br>
+in <em>markObject</em>()</div>
+<pre class="insert">
+
+    <span class="k">if</span> (<span class="i">vm</span>.<span class="i">grayStack</span> == <span class="a">NULL</span>) <span class="i">exit</span>(<span class="n">1</span>);
+</pre><pre class="insert-after">
+  }
+</pre></div>
+<div class="source-file-narrow"><em>memory.c</em>, in <em>markObject</em>()</div>
 
 <h3><a href="#processing-gray-objects" name="processing-gray-objects"><small>26&#8202;.&#8202;3&#8202;.&#8202;3</small>Processing gray objects</a></h3>
 <p>OK, now when we&rsquo;re done marking the roots we have both set a bunch of fields
