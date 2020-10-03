@@ -589,9 +589,27 @@ It starts out empty:
 
 ^code init-gray-stack (1 before, 2 after)
 
-And, because we manage it ourselves, we need to free it when the VM shuts down:
+And we need to free it when the VM shuts down:
 
 ^code free-gray-stack (2 before, 1 after)
+
+<span name="robust">We</span> take full responsibility for this array. That
+includes allocation failure. If we can't create or grow the gray stack, then we
+can't finish the garbage collection. This is bad news for the VM, but
+fortunately rare since the gray stack tends to be pretty small. It would be nice
+to do something more graceful, but to keep the code in this book simple, we just
+abort.
+
+<aside name="robust">
+
+To be more robust, we can allocate a "rainy day fund" block of memory when we
+start the VM. If the gray stack allocation fails, we free the rainy day block
+and try again. That may give us enough wiggle room on the heap to create the
+gray stack, finish the GC, and free up more memory.
+
+</aside>
+
+^code exit-gray-stack (2 before, 1 after)
 
 ### Processing gray objects
 
