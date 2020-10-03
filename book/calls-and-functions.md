@@ -1279,7 +1279,7 @@ a helper to define a new native function exposed to Lox programs:
 ^code define-native
 
 It takes a pointer to a C function and the name it will be known as in Lox.
-We wrap the function in an ObjFunction and then store that in a global variable
+We wrap the function in an ObjNative and then store that in a global variable
 with the given name.
 
 You're probably wondering why we push and pop the name and function on the
