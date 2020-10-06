@@ -445,7 +445,7 @@ class Doughnut {
 
 class Cruller < Doughnut {
   finish(ingredient) {
-    // No sprinkles.
+    // No sprinkles, always icing.
     super.finish("icing");
   }
 }
