@@ -1,11 +1,11 @@
 > All my life, my heart has yearned for a thing I cannot name.
 > <cite>Andre Breton, <em>Mad Love</em></cite>
 
-The interpreter we have so far feels less like programming in a real language
-and more like using a calculator. "Programming" to me means building up a system
-out of smaller pieces. We can't do that yet because we have no way to bind a
-name to some data or function. We can't compose software without a way to refer
-to the pieces.
+The interpreter we have so far feels less like programming a real language and
+more like punching buttons on a calculator. "Programming" to me means building
+up a system out of smaller pieces. We can't do that yet because we have no way
+to bind a name to some data or function. We can't compose software without a way
+to refer to the pieces.
 
 To support bindings, our interpreter needs internal state. When you define a
 variable at the beginning of the program and use it at the end, the interpreter
@@ -17,7 +17,7 @@ chapter, we will give our interpreter a brain that can not just process, but
 
 State and <span name="expr">statements</span> go hand in hand. Since statements,
 by definition, don't evaluate to a value, they need to do something else to be
-useful. That something is called a **"side effect"**. It could mean producing
+useful. That something is called a **side effect**. It could mean producing
 user-visible output or modifying some state in the interpreter that can be
 detected later. The latter makes them a great fit for defining variables or
 other named entities.
@@ -39,31 +39,33 @@ stuff into one chapter, but we'll chew through it all one bite at a time.
 
 ## Statements
 
-First, we'll extend Lox's grammar with statements. They aren't very different
+We start by extending Lox's grammar with statements. They aren't very different
 from expressions. We start with the two simplest kinds:
 
-1.  An **expression statement** lets you evaluate an expression where a
-    statement is expected. They exist to call functions that have side effects.
-    You may not notice them, but you use them all the time in <span
+1.  An **expression statement** lets you place an expression where a statement
+    is expected. They exist to evaluate expressions that have side effects. You
+    may not notice them, but you use them all the time in <span
     name="expr-stmt">C</span>, Java, and other languages. Any time you see a
-    function or method call followed by a `;`, you're looking at one.
+    function or method call followed by a `;`, you're looking at an expression
+    statement.
 
     <aside name="expr-stmt">
 
     Pascal is an outlier. It distinguishes between *procedures* and *functions*.
     Functions return values, but procedures cannot. There is a statement form
-    for calling a procedure, but functions can only be called where an expression is expected. There are no statement expressions.
+    for calling a procedure, but functions can only be called where an
+    expression is expected. There are no expression statements.
 
     </aside>
 
-2.  A **`print` statement** evaluates an expression and displays the result to the
-    user. I admit it's weird to bake print right into the language instead of
-    making it a library function. Doing so is a concession to the fact that
-    we're building this interpreter one chapter at a time and want to be able to
-    play with it before it's all done. To make print a library function, we'd
-    have to wait until we had all of the machinery for defining and calling
-    functions <span name="print">before</span> we could witness any side
-    effects.
+2.  A **`print` statement** evaluates an expression and displays the result to
+    the user. I admit it's weird to bake printing right into the language
+    instead of making it a library function. Doing so is a concession to the
+    fact that we're building this interpreter one chapter at a time and want to
+    be able to play with it before it's all done. To make print a library
+    function, we'd have to wait until we had all of the machinery for defining
+    and calling functions <span name="print">before</span> we could witness any
+    side effects.
 
     <aside name="print">
 
@@ -106,20 +108,20 @@ allowed. The operands of, say, `+` are always expressions, never statements. The
 body of a `while` loop is always a statement.
 
 Since the two syntaxes are disjoint, we don't need a single base class that they
-all inherit from. Splitting them into separate class hierarchies enables the
-Java compiler to help us find dumb mistakes like passing a statement to a Java
-method that expects an expression.
+all inherit from. Splitting expressions and statements into separate class
+hierarchies enables the Java compiler to help us find dumb mistakes like passing
+a statement to a Java method that expects an expression.
 
 That means a new base class for statements. As our elders did before us, we will
 use the cryptic name "Stmt". With great <span name="foresight">foresight</span>,
 I have designed our little AST metaprogramming script in anticipation of this.
-That's why we passed in "Expr" as a parameter to `defineAst()`. We add another
-call to that for defining Stmt and its <span name="stmt-ast">subclasses</span>:
+That's why we passed in "Expr" as a parameter to `defineAst()`. Now we add
+another call to define Stmt and its <span name="stmt-ast">subclasses</span>.
 
 <aside name="foresight">
 
-Not really foresight: I wrote all the code for the whole book before I started
-slicing things into chapters and scrawling prose.
+Not really foresight: I wrote all the code for the book before I sliced it into
+chapters.
 
 </aside>
 
@@ -135,15 +137,15 @@ The generated code for the new nodes is in [Appendix II][appendix-ii]: [Expressi
 
 </aside>
 
-Run that script and behold your new "Stmt.java" file with the syntax tree
-classes we need for expression and `print` statements. Don't forget to add it to
-your IDE project or makefile or whatever.
+Run the AST generator script and behold the resulting "Stmt.java" file with the
+syntax tree classes we need for expression and `print` statements. Don't forget
+to add the file to your IDE project or makefile or whatever.
 
 ### Parsing statements
 
 The parser's `parse()` method that parses and returns a single expression was a
 temporary hack to get the last chapter up and running. Now that our grammar has
-the correct starting rule, `program`, we can turn `parse()` into the real deal:
+the correct starting rule, `program`, we can turn `parse()` into the real deal.
 
 ^code parse
 
@@ -155,19 +157,20 @@ statement types.
 
 </aside>
 
-It parses a series of statements, as many as it can find until it hits the end
+This parses a series of statements, as many as it can find until it hits the end
 of the input. This is a pretty direct translation of the `program` rule into
 recursive descent style. We must also chant a minor prayer to the Java Verbosity
-Gods since we are using ArrayList now:
+Gods since we are using ArrayList now.
 
 ^code parser-imports (2 before, 1 after)
 
-A program is a list of statements, and we parse one of those statements using:
+A program is a list of statements, and we parse one of those statements using
+this method:
 
 ^code parse-statement
 
-It's a little bare bones, but we'll fill it in with more statement types later.
-It determines which specific statement rule is matched by looking at the current
+A little bare bones, but we'll fill it in with more statement types later. We
+determine which specific statement rule is matched by looking at the current
 token. A `print` token means it's obviously a `print` statement.
 
 If the next token doesn't look like any known kind of statement, we assume it
@@ -179,25 +182,16 @@ Each statement kind gets its own method. First print:
 
 ^code parse-print-statement
 
-Since we <span name="consume">already</span> matched and consumed the `print`
-token itself, it doesn't need to do that here. It parses the subsequent
-expression, consumes the terminating semicolon, and emits the syntax tree.
-
-<aside name="consume">
-
-Some parser writers prefix a method name with "finish" if it is called after
-some of its corresponding grammar rule has already been consumed. In a big
-complex parser, this helps maintainers keep track of what state the token stream
-is in when a method is called. For Lox's little parser, I didn't bother.
-
-</aside>
+Since we already matched and consumed the `print` token itself, we don't need to
+do that here. We parse the subsequent expression, consume the terminating
+semicolon, and emit the syntax tree.
 
 If we didn't match a `print` statement, we must have one of these:
 
 ^code parse-expression-statement
 
-Similar to the previous method, it parses an expression followed by a semicolon.
-It wraps that Expr in a Stmt and returns it.
+Similar to the previous method, we parse an expression followed by a semicolon.
+We wrap that Expr in a Stmt of the right type and return it.
 
 ### Executing statements
 
@@ -207,45 +201,48 @@ the next and final step is to interpret them. As in expressions, we use the
 Visitor pattern, but we have a new visitor interface, Stmt.Visitor, to
 implement since statements have their own base class.
 
-We add that to the list of interfaces Interpreter implements:
+We add that to the list of interfaces Interpreter implements.
 
 ^code interpreter (1 after)
 
-Unlike expressions, statements produce no values, so the return type of the
-visit methods is Void, not Object. We have two statement types, and we need a
-visit method for each. The easiest is expression statements:
-
 <aside name="void">
 
-The capitalized "Void" might be unfamiliar. Java doesn't let you use lowercase
-"void" as a generic type argument for obscure reasons having to do with type
-erasure and the stack. Instead, there is a separate "Void" type specifically for
-this use. Sort of like a "boxed void", as "Integer" is to "int". It has only one
-value, `null`.
-
-I've never used it for anything but the return type of visit methods in the
-Visitor pattern.
+Java doesn't let you use lowercase "void" as a generic type argument for obscure
+reasons having to do with type erasure and the stack. Instead, there is a
+separate "Void" type specifically for this use. Sort of a "boxed void", list
+"Integer" is for "int".
 
 </aside>
 
+Unlike expressions, statements produce no values, so the return type of the
+visit methods is Void, not Object. We have two statement types, and we need a
+visit method for each. The easiest is expression statements.
+
 ^code visit-expression-stmt
 
-It evaluates the inner expression using our existing `evaluate()` method and
-discards the value (appropriately enough by using a Java expression statement to
-call `evaluate()`). Then we return `null`. Java requires that to satisfy the
-special capitalized Void return type. Weird, but what can you do?
+We evaluate the inner expression using our existing `evaluate()` method and
+<span name="discard">discard</span> the value. Then we return `null`. Java
+requires that to satisfy the special capitalized Void return type. Weird, but
+what can you do?
 
-The `print` statement's visit method isn't much different:
+<aside name="discard">
+
+Appropriately enough, we discard the value returned by `evaluate()` by placing
+that call inside a *Java* expression statement.
+
+</aside>
+
+The `print` statement's visit method isn't much different.
 
 ^code visit-print
 
-Before discarding the expression's value, it converts it to a string using the
-`stringify()` method we introduced in the last chapter and then dumps it to
+Before discarding the expression's value, we convert it to a string using the
+`stringify()` method we introduced in the last chapter and then dump it to
 stdout.
 
-Our interpreter is ready to visit statements now, but we have some work to do to
+Our interpreter is able to visit statements now, but we have some work to do to
 feed them to it. First, modify the old `interpret()` method in the Interpreter
-class to accept a list of statements -- in other words, a program:
+class to accept a list of statements -- in other words, a program.
 
 ^code interpret
 
@@ -255,7 +252,7 @@ on this tiny helper method:
 ^code execute
 
 That's the statement analogue to the `evaluate()` method we have for
-expressions. Since we're working with lists now, we need to let Java know:
+expressions. Since we're working with lists now, we need to let Java know.
 
 ^code import-list (2 before, 2 after)
 
@@ -286,8 +283,7 @@ semicolons.
 
 Now that we have statements, we can start working on state. Before we get into
 all of the complexity of lexical scoping, we'll start off with the easiest kind
-of variables, <span name="globals">globals</span>. That requires two new
-constructs.
+of variables -- <span name="globals">globals</span>. We need two new constructs.
 
 1.  A **variable declaration** statement brings a new variable into the world:
 
@@ -306,7 +302,7 @@ constructs.
     print beverage; // "espresso".
     ```
 
-Later, we'll add assignment and block scope, but that's enough to get started.
+Later, we'll add assignment and block scope, but that's enough to get moving.
 
 <aside name="globals">
 
@@ -368,7 +364,7 @@ statement grammar from a place where only some statements are allowed.
 </aside>
 
 To accommodate the distinction, we add another rule for kinds of statements that
-declare names:
+declare names.
 
 ```ebnf
 program        → declaration* EOF ;
@@ -424,7 +420,7 @@ The generated code for the new node is in [Appendix II][appendix-var-stmt].
 </aside>
 
 It stores the name token so we know what it's declaring, along with the
-initializer expression. (If there isn't an initializer, that's `null`.)
+initializer expression. (If there isn't an initializer, that field is `null`.)
 
 Then we add an expression node for accessing a variable:
 
@@ -446,7 +442,7 @@ The generated code for the new node is in [Appendix II][appendix-var-expr].
 
 Before we parse variable statements, we need to shift around some code to make
 room for the new `declaration` rule in the grammar. The top level of a program
-is now a list of declarations, so the entrypoint method to the parser becomes:
+is now a list of declarations, so the entrypoint method to the parser changes.
 
 ^code parse-declaration (3 before, 4 after)
 
@@ -462,33 +458,34 @@ up.
 [error recovery]: http://localhost:8000/parsing-expressions.html#panic-mode-error-recovery
 
 This `declaration()` method is the method we call repeatedly when parsing a
-series of statements in a block or a script, so it's the right point to
-synchronize to when the parser goes into panic mode. The whole body of this
-method is wrapped in a try block to catch the exception thrown when the parser
-begins error recovery. This gets it back to trying to parse the beginning of the
-next statement or declaration.
+series of statements in a block or a script, so it's the right place to
+synchronize when the parser goes into panic mode. The whole body of this method
+is wrapped in a try block to catch the exception thrown when the parser begins
+error recovery. This gets it back to trying to parse the beginning of the next
+statement or declaration.
 
 The real parsing happens inside the try block. First, it looks to see if we're
 at a variable declaration by looking for the leading `var` keyword. If not, it
-bubbles up to the "higher precedence" statement method.
+falls through to the existing `statement()` method that parses `print` and
+expression statements.
 
-Recall that `statement()` tries to parse an expression statement if no other
-statement matches. And `expression()` reports a syntax error if it can't parse
-an expression at the current token. So that chain of calls ensures we report an
+Remember how `statement()` tries to parse an expression statement if no other
+statement matches? And `expression()` reports a syntax error if it can't parse
+an expression at the current token? That chain of calls ensures we report an
 error if a valid declaration or statement isn't parsed.
 
 When the parser matches a `var` token, it branches to:
 
 ^code parse-var-declaration
 
-As always, the recursive descent code follows the grammar rule. We've already
-matched the `var` token, so next it requires and consumes an identifier token
-for the variable name.
+As always, the recursive descent code follows the grammar rule. The parser has
+already matched the `var` token, so next it requires and consumes an identifier
+token for the variable name.
 
-Then, when it sees an `=` token, it knows there is an initializer expression. If
-so, it parses it. Otherwise, it leaves the initializer `null`. Finally, it
-consumes the required semicolon at the end of the statement. All this gets
-wrapped in a Stmt.Var syntax tree node and we're groovy.
+Then, if it sees an `=` token, it knows there is an initializer expression and
+parses it. Otherwise, it leaves the initializer `null`. Finally, it consumes the
+required semicolon at the end of the statement. All this gets wrapped in a
+Stmt.Var syntax tree node and we're groovy.
 
 Parsing a variable expression is even easier. In `primary()`, we look for an
 identifier token:
@@ -503,7 +500,7 @@ about where variables live in memory.
 
 The bindings that associate variables to values need to be stored somewhere.
 Ever since the Lisp folks invented parentheses, this data structure has been
-called an <span name="env">**"environment"**</span>.
+called an <span name="env">**environment**</span>.
 
 <img src="image/statements-and-state/environment.png" alt="An environment containing two bindings." />
 
@@ -524,9 +521,10 @@ Start a new file and add:
 
 <aside name="map">
 
-Java calls them "maps" or "hashmaps". Other languages call them "hash tables",
-"dictionaries" (Python and C#), "hashes" (Ruby and Perl), "tables" (Lua), or
-"associative arrays" (PHP). Way back when, they were known as "scatter tables".
+Java calls them **maps** or **hashmaps**. Other languages call them **hash
+tables**, **dictionaries** (Python and C#), **hashes** (Ruby and Perl),
+**tables** (Lua), or **associative arrays** (PHP). Way back when, they were
+known as **scatter tables**.
 
 </aside>
 
@@ -536,10 +534,10 @@ There's a Java Map in there to store the bindings. It uses bare strings for the
 keys, not tokens. A token represents a unit of code at a specific place in the
 source text, but when it comes to looking up variables, all identifier tokens
 with the same name should refer to the same variable (ignoring scope for now).
-Using the string ensures all of those tokens refer to the same map key.
+Using the raw string ensures all of those tokens refer to the same map key.
 
 There are two operations we need to support. First, a variable definition binds
-a new name to a value:
+a new name to a value.
 
 ^code environment-define
 
@@ -578,8 +576,8 @@ Scheme allows redefining variables at the top level.
 
 </aside>
 
-So, to keep the two modes consistent, we'll allow it (at least for global
-variables). Once a variable exists, we need a way to look it up:
+So, to keep the two modes consistent, we'll allow it -- at least for global
+variables. Once a variable exists, we need a way to look it up.
 
 ^code environment-get (3 before, 1 after)
 
@@ -668,7 +666,7 @@ tell the user where in their code they messed up.
 
 ### Interpreting global variables
 
-The Interpreter class gets an instance of the new Environment class:
+The Interpreter class gets an instance of the new Environment class.
 
 ^code environment-field (1 before, 1 after)
 
@@ -676,7 +674,7 @@ We store it as a field directly in Interpreter so that the variables stay in
 memory as long as the interpreter is still running.
 
 We have two new syntax trees, so that's two new visit methods. The first is for
-declaration statements:
+declaration statements.
 
 ^code visit-var
 
@@ -689,7 +687,7 @@ We could make it a runtime error. We'd let you define an uninitialized variable,
 but if you accessed before assigning to it, a runtime error would occur. It's
 not a bad idea, but most dynamically typed languages don't do that. Instead,
 we'll keep it simple and say that Lox sets a variable to `nil` if it isn't
-explicitly initialized:
+explicitly initialized.
 
 ```lox
 var a;
@@ -700,7 +698,7 @@ Thus, if there isn't an initializer, we set the value to `null`, which is the
 Java representation of Lox's `nil` value. Then we tell the environment to bind
 the variable to that value.
 
-Next, to evaluate a variable expression:
+Next, to evaluate a variable expression.
 
 ^code visit-variable
 
@@ -720,7 +718,7 @@ We can't reuse *code* yet, but we can start to build up programs that reuse
 ## Assignment
 
 It's possible to create a language that has variables but does not let you
-reassign, or **"mutate"**, them. Haskell is one example. SML only supports
+reassign -- or **mutate** -- them. Haskell is one example. SML only supports
 mutable references and arrays -- variables cannot be re-assigned. Rust steers
 you away from mutation by requiring a `mut` modifier to enable assignment.
 
@@ -750,8 +748,7 @@ That little `=` syntax is more complex than it might seem. Like most C-derived
 languages, assignment is an <span name="assign">expression</span> and not a
 statement. As in C, it is the lowest precedence expression form. That means the
 rule slots between `expression` and `equality`, the next lowest precedence
-expression:
-
+expression.
 
 <aside name="assign">
 
@@ -774,7 +771,7 @@ objects, like:
 instance.field = "value";
 ```
 
-The easy part is adding the <span name="assign-ast">new syntax tree node</span>:
+The easy part is adding the <span name="assign-ast">new syntax tree node</span>.
 
 ^code assign-expr (1 before, 1 after)
 
@@ -789,7 +786,7 @@ The generated code for the new node is in [Appendix II][appendix-assign].
 It has a token for the variable being assigned to, and an expression for the new
 value. After you run the AstGenerator to get the new Expr.Assign class, swap out
 the body of the parser's existing `expression()` method to match the updated
-rule:
+rule.
 
 ^code expression (1 before, 1 after)
 
@@ -811,9 +808,9 @@ a = "value";
 On the second line, we don't *evaluate* `a` (which would return the string
 "before"). We figure out what variable `a` refers to so we know where to store
 the right-hand side expression's value. The [classic terms][l-value] for these
-two <span name="l-value">constructs</span> are **"l-value"** and **"r-value"**.
-All of the expressions that we've seen so far that produce values are r-values.
-An l-value "evaluates" to a storage location that you can assign into.
+two <span name="l-value">constructs</span> are **l-value** and **r-value**. All
+of the expressions that we've seen so far that produce values are r-values. An
+l-value "evaluates" to a storage location that you can assign into.
 
 [l-value]: https://en.wikipedia.org/wiki/Value_(computer_science)#lrvalue
 
@@ -824,11 +821,11 @@ In fact, the names come from assignment expressions: *l*-values appear on the
 
 </aside>
 
-Because an l-value isn't evaluated like a normal expression, the syntax tree
-must reflect that. That's why the Expr.Assign node has a *Token* for the
-left-hand side, not an Expr. The problem is that the parser doesn't know it's
-parsing an l-value until it hits the `=`. In a complex l-value, that may occur
-<span name="many">many</span> tokens later:
+We want the syntax tree to reflect that an l-value isn't evaluated like a normal
+expression. That's why the Expr.Assign node has a *Token* for the left-hand
+side, not an Expr. The problem is that the parser doesn't know it's parsing an
+l-value until it hits the `=`. In a complex l-value, that may occur <span
+name="many">many</span> tokens later:
 
 ```lox
 makeList().head.next = node;
@@ -836,9 +833,9 @@ makeList().head.next = node;
 
 <aside name="many">
 
-In fact, since the receiver of a field assignment can be any expression, and
-expressions can be as long as you want to make them, it may take an unbounded
-number of tokens of lookahead to find the `=`.
+Since the receiver of a field assignment can be any expression, and expressions
+can be as long as you want to make them, it may take an *unbounded* number of
+tokens of lookahead to find the `=`.
 
 </aside>
 
@@ -925,7 +922,7 @@ being assigned. All with only a single token of lookahead and no backtracking.
 
 ### Assignment semantics
 
-We have a new syntax tree node, so our interpreter gets a new visit method:
+We have a new syntax tree node, so our interpreter gets a new visit method.
 
 ^code visit-assign
 
@@ -972,13 +969,13 @@ names longer than two characters
 
 ## Scope
 
-A **scope** is a region where a name maps to a certain entity. Multiple scopes
-enable the same name to refer to different things in different contexts. In my
-house, "Bob" usually refers to me. But maybe in your town you know a different
-Bob. Same name, but different entities based on where you use it.
+A **scope** defines a region where a name maps to a certain entity. Multiple
+scopes enable the same name to refer to different things in different contexts.
+In my house, "Bob" usually refers to me. But maybe in your town you know a
+different Bob. Same name, but different dudes based on where you say it.
 
 <span name="lexical">**Lexical scope**</span> (or the less commonly heard
-**"static scope"**) is a specific style of scope where the text of the program
+**static scope**) is a specific style of scoping where the text of the program
 itself shows where a scope begins and ends. In Lox, as in most modern languages,
 variables are lexically scoped. When you see an expression that uses some
 variable, you can figure out which variable declaration it refers to just by
@@ -1020,14 +1017,15 @@ For example:
 ```
 
 Here, we have two blocks and a variable `a` is declared in each of them. You and
-I can tell just from looking at the code that the use of `a` in the first print
-refers to the first `a`, and the second one refers to the second.
+I can tell just from looking at the code that the use of `a` in the first
+`print` statement refers to the first `a`, and the second one refers to the
+second.
 
 <img src="image/statements-and-state/blocks.png" alt="An environment for each 'a'." />
 
 This is in contrast with **dynamic scope** where you don't know what a name
 refers to until you execute the code. Lox doesn't have dynamically scoped
-*variables*, but methods and fields on objects are dynamically scoped:
+*variables*, but methods and fields on objects are dynamically scoped.
 
 ```lox
 class Saxophone {
@@ -1055,7 +1053,7 @@ Scope and environments are close cousins. The former is the theoretical concept,
 and the latter machinery implements it. As our interpreter works its way through
 code, syntax tree nodes that affect scope will change the environment. In a
 C-ish syntax like Lox's, scope is controlled by curly-braced <span
-name="block">blocks</span>. (That's why it's called **"block scope"**.)
+name="block">blocks</span>. (That's why we call it **block scope**.)
 
 ```lox
 {
@@ -1104,8 +1102,8 @@ the same name declared outside of the block, *that's a different variable*. It
 doesn't get touched.
 
 When a local variable has the same name as a variable in an enclosing scope, it
-**shadows** the outer one. Code inside the block can't see it any more (it is
-hidden in the "shadow" cast by the inner one), but it's still there.
+**shadows** the outer one. Code inside the block can't see it any more -- it is
+hidden in the "shadow" cast by the inner one -- but it's still there.
 
 When we enter a new block scope, we need to preserve variables defined in outer
 scopes so they are still around when we exit the inner block. We do that by
@@ -1113,7 +1111,7 @@ defining a fresh environment for each block containing only the variables
 defined in that scope. When we exit the block, we discard its environment and
 restore the previous one.
 
-We also need to handle enclosing variables that are *not* shadowed:
+We also need to handle enclosing variables that are *not* shadowed.
 
 ```lox
 var global = "outside";
@@ -1144,8 +1142,8 @@ execution. An outer scope may have multiple blocks nested within it, and each
 will point to the outer one, giving a tree-like structure, though only one path
 through the tree exists at a time.
 
-The boring name for this is a [**"parent-pointer tree"**][parent pointer], but I
-much prefer the evocative "cactus stack".
+The boring name for this is a [**parent-pointer tree**][parent pointer], but I
+much prefer the evocative **cactus stack**.
 
 [parent pointer]: https://en.wikipedia.org/wiki/Parent_pointer_tree
 
@@ -1155,7 +1153,7 @@ much prefer the evocative "cactus stack".
 
 Before we add block syntax to the grammar, we'll beef up our Environment class
 with support for this nesting. First, we give each environment a reference to
-its enclosing one:
+its enclosing one.
 
 ^code enclosing-field (1 before, 1 after)
 
@@ -1170,13 +1168,17 @@ given outer one.
 We don't have to touch the `define()` method -- a new variable is always
 declared in the current innermost scope. But variable lookup and assignment work
 with existing variables and they need to walk the chain to find them. First,
-lookup:
+lookup.
 
 ^code environment-get-enclosing (2 before, 3 after)
 
-If the variable isn't found in this scope, we simply try the enclosing one. That
-in turn does the same thing <span name="recurse">recursively</span>, so this
-will ultimately walk the entire chain. Assignment rolls the same way:
+If the variable isn't found in this environment, we simply try the enclosing
+one. That in turn does the same thing <span name="recurse">recursively</span>,
+so this will ultimately walk the entire chain. If we reach an environment with
+no enclosing one and still don't find the variable, then we give up and report
+an error as before.
+
+Assignment works the same way.
 
 <aside name="recurse">
 
@@ -1243,25 +1245,26 @@ forgot a closing `}`, the parser needs to not get stuck.
 <aside name="list">
 
 Having `block()` return the raw list of statements and leaving it to
-`statement()` to wrap that in a Stmt.Block looks a little odd. I did it that way
-because we'll reuse `block()` later for parsing function bodies and we don't
+`statement()` to wrap the list in a Stmt.Block looks a little odd. I did it that
+way because we'll reuse `block()` later for parsing function bodies and we don't
 want that body wrapped in a Stmt.Block.
 
 </aside>
 
-That's it for syntax. For semantics, we add another visit method to Interpreter:
+That's it for syntax. For semantics, we add another visit method to Interpreter.
 
 ^code visit-block
 
 To execute a block, we create a new environment for the block's scope and pass
-it off to this other method:
+it off to this other method.
 
 ^code execute-block
 
-It executes a list of statements in the context of a given <span
+This new method executes a list of statements in the context of a given <span
 name="param">environment</span>. Up until now, the `environment` field in
 Interpreter always pointed to the same environment -- the global one. Now, that
-field represents the *current* environment. That's the environment that corresponds to the innermost scope containing the code to be executed.
+field represents the *current* environment. That's the environment that
+corresponds to the innermost scope containing the code to be executed.
 
 To execute code within a given scope, this method updates the interpreter's
 `environment` field, visits all of the statements, and then restores the
@@ -1279,7 +1282,8 @@ lives on the Java stack and is implicitly discarded when the interpreter returns
 from the block's visit method.
 
 I considered that for jlox, but it's kind of tedious and verbose adding an
-environment parameter to every single visit method.
+environment parameter to every single visit method. To keep the book a little
+simpler, I went with the mutable field.
 
 </aside>
 
@@ -1396,12 +1400,12 @@ The main advantage to implicit declaration is simplicity. There's less syntax
 and no "declaration" concept to learn. Users can just start assigning stuff and
 the language figures it out.
 
-Older statically typed languages like C benefit from explicit declaration
+Older statically-typed languages like C benefit from explicit declaration
 because they give the user a place to tell the compiler what type each variable
-has and how much storage to allocate for it. In a dynamically typed, garbage
-collected language, that isn't really necessary, so you can get away with making
-declarations implicit. It feels a little more "scripty", more "you know what I
-mean".
+has and how much storage to allocate for it. In a dynamically-typed,
+garbage-collected language, that isn't really necessary, so you can get away
+with making declarations implicit. It feels a little more "scripty", more "you
+know what I mean".
 
 But is that a good idea? Implicit declaration has some problems.
 

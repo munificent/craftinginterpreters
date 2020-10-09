@@ -53,7 +53,7 @@ class Interpreter implements Expr.Visitor<Object>,
   
 //< Functions interpreter-constructor
 /* Evaluating Expressions interpret < Statements and State interpret
-  void interpret(Expr expression) {
+  void interpret(Expr expression) { // [void]
     try {
       Object value = evaluate(expression);
       System.out.println(stringify(value));
@@ -172,7 +172,7 @@ class Interpreter implements Expr.Visitor<Object>,
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     evaluate(stmt.expression);
-    return null; // [void]
+    return null;
   }
 //< Statements and State visit-expression-stmt
 //> Functions visit-function
@@ -245,11 +245,11 @@ class Interpreter implements Expr.Visitor<Object>,
   @Override
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
-
 /* Statements and State visit-assign < Resolving and Binding resolved-assign
     environment.assign(expr.name, value);
 */
 //> Resolving and Binding resolved-assign
+
     Integer distance = locals.get(expr);
     if (distance != null) {
       environment.assignAt(distance, expr.name, value);
