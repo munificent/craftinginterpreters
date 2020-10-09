@@ -131,8 +131,7 @@ static TokenType checkKeyword(int start, int length,
 }
 //< check-keyword
 //> identifier-type
-static TokenType identifierType()
-{
+static TokenType identifierType() {
 //> keywords
   switch (scanner.start[0]) {
     case 'a': return checkKeyword(1, 2, "nd", TOKEN_AND);
