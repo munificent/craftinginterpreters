@@ -22,15 +22,15 @@ confusing <span name="paradox">paradoxes</span> that led them to doubt the
 stability of the foundation they built their work upon. To address that
 [crisis][], they went back to square one. Starting from a handful of axioms,
 logic, and set theory, they hoped to rebuild mathematics on top of an
-impenetrable foundation.
+impervious foundation.
 
 [crisis]: https://en.wikipedia.org/wiki/Foundations_of_mathematics#Foundational_crisis
 
 <aside name="paradox">
 
-The most famous of those is [**Russell's paradox**][russell]. Initially, set
-theory allowed you to define any sort of set. If you could describe it in English,
-it was valid. Naturally, given mathematicians' predilection for self reference,
+The most famous is [**Russell's paradox**][russell]. Initially, set theory
+allowed you to define any sort of set. If you could describe it in English, it
+was valid. Naturally, given mathematicians' predilection for self reference,
 sets can contain other sets. So Russell, rascal that he was, came up with:
 
 *R is the set of all sets that do not contain themselves.*
@@ -50,7 +50,7 @@ more general question, "What do we mean when we claim a function is
 
 [compute]: https://en.wikipedia.org/wiki/Computable_function
 
-They hoped the answer to the first two questions would be "yes". All that
+They presumed the answer to the first two questions would be "yes". All that
 remained was to prove it. It turns out that the answer to both is "no" and,
 astonishingly, the two questions are deeply intertwined. This is a fascinating
 corner of mathematics that touches fundamental questions about what brains are
@@ -130,7 +130,7 @@ into two kinds:
 
 Branching is simpler, so we'll start there. C-derived languages have two main
 conditional execution features, the `if` statement and the perspicaciously named
-"conditional" <span name="ternary">operator</span> (`? :`). An `if` statement
+"conditional" <span name="ternary">operator</span> (`?:`). An `if` statement
 lets you conditionally execute statements and the conditional operator lets you
 conditionally execute expressions.
 
@@ -142,7 +142,7 @@ only operator in C that takes three operands.
 </aside>
 
 For simplicity's sake, Lox doesn't have a conditional operator, so let's get our
-`if` statement on. It gets a new production under the statement grammar rule:
+`if` statement on. Our statement grammar gets a new production.
 
 <span name="semicolon"></span>
 
@@ -168,7 +168,7 @@ one that ends in a semicolon.
 An `if` statement has an expression for the condition then a statement to execute
 if the condition is truthy. Optionally, it may also have an `else` keyword and a
 statement to execute if the condition is falsey. The <span name="if-ast">syntax
-tree node</span> has fields for each of those three pieces:
+tree node</span> has fields for each of those three pieces.
 
 ^code if-ast (1 before, 1 after)
 
@@ -181,11 +181,11 @@ The generated code for the new node is in [Appendix II][appendix-if].
 </aside>
 
 Like other statements, the parser recognizes an `if` statement by the leading
-`if` keyword:
+`if` keyword.
 
 ^code match-if (1 before, 1 after)
 
-When it finds one, it calls this to parse the rest:
+When it finds one, it calls this new method to parse the rest:
 
 ^code if-statement
 
@@ -227,9 +227,8 @@ affects how the code executes.
     called if `first` is truthy and `second` is falsey.
 
 Since else clauses are optional, and there is no explicit delimiter marking the
-end of the `if` statement, the grammar is ambiguous when you nest ifs in this way.
-This classic pitfall of syntax is called the **"[dangling else][]&rdquo;**
-problem.
+end of the `if` statement, the grammar is ambiguous when you nest ifs in this
+way. This classic pitfall of syntax is called the **[dangling else][]** problem.
 
 [dangling else]: https://en.wikipedia.org/wiki/Dangling_else
 
@@ -258,12 +257,12 @@ Our parser conveniently does that already. Since `ifStatement()` eagerly looks
 for an `else` before returning, the innermost call to a nested series will claim
 the else clause for itself before returning to the outer `if` statements.
 
-Syntax in hand, we are ready to interpret:
+Syntax in hand, we are ready to interpret.
 
 ^code visit-if
 
-The implementation is merely a thin wrapper around the self-same Java code. It
-evaluates the condition. If it's truthy, it executes the then branch. Otherwise,
+The interpreter implementation is a thin wrapper around the self-same Java code.
+It evaluates the condition. If truthy, it executes the then branch. Otherwise,
 if there is an else branch, it executes that.
 
 If you compare this code to how the interpreter handles other syntax we've
@@ -289,14 +288,14 @@ false and sideEffect();
 
 For an `and` expression to evaluate to something truthy, both operands must be
 truthy. We can see as soon as we evaluate the left `false` operand that that
-isn't going to be the case, so there's no need to evaluate `sideEffect()` and so
-it gets skipped.
+isn't going to be the case, so there's no need to evaluate `sideEffect()` and it
+gets skipped.
 
 This is why we didn't implement the logical operators with the other binary
 operators. Now we're ready. The two new operators are low in the precedence
 table. Similar to `||` and `&&` in C, they each have their <span
 name="logical">own</span> precedence with `or` lower than `and`. We slot them
-right between `assignment` and `equality`:
+right between `assignment` and `equality`.
 
 <aside name="logical">
 
@@ -343,20 +342,20 @@ The generated code for the new node is in [Appendix II][appendix-logical].
 </aside>
 
 To weave the new expressions into the parser, we first change the parsing code
-for assignment to call `or()`:
+for assignment to call `or()`.
 
 ^code or-in-assignment (1 before, 2 after)
 
-The code to parse a series of `or` expressions mirrors other binary operators:
+The code to parse a series of `or` expressions mirrors other binary operators.
 
 ^code or
 
-Its operands are the next higher level of precedence, the new `and` expression:
+Its operands are the next higher level of precedence, the new `and` expression.
 
 ^code and
 
-That calls `equality()` for its operands and now it's all tied back together
-again. We're ready to interpret it:
+That calls `equality()` for its operands and with that the expression parser is
+all tied back together again. We're ready to interpret.
 
 ^code visit-logical
 
@@ -391,8 +390,8 @@ reference to... oh, forget it.
 
 ## While Loops
 
-Lox features two looping control flow statements, while and for. While is the
-simpler one so we'll start there. Its grammar is the same as in C:
+Lox features two looping control flow statements, `while` and `for`. The `while`
+loop is the simpler one so we'll start there. Its grammar is the same as in C.
 
 ```ebnf
 statement      → exprStmt
@@ -406,10 +405,8 @@ whileStmt      → "while" "(" expression ")" statement ;
 
 We add another clause to the statement rule that points to the new rule for
 while. It takes a `while` keyword, followed by a parenthesized condition
-expression, then a statement for the body.
-
-The new grammar rule gets its own <span name="while-ast">syntax tree
-node</span>:
+expression, then a statement for the body. That new grammar rule gets a <span
+name="while-ast">syntax tree node</span>.
 
 ^code while-ast (1 before, 1 after)
 
@@ -421,16 +418,17 @@ The generated code for the new node is in [Appendix II][appendix-while].
 
 </aside>
 
-It stores the condition and body. Here you can see why it's nice to have
+The node stores the condition and body. Here you can see why it's nice to have
 separate base classes for expressions and statements. The field declarations
 make it clear that the condition is an expression and the body is a statement.
 
-Over in the parser, we follow the same process we did for if. First, we add
-another case in `statement()` to detect and match the leading keyword:
+Over in the parser, we follow the same process we used for `if` statements.
+First, we add another case in `statement()` to detect and match the leading
+keyword.
 
 ^code match-while (1 before, 1 after)
 
-That delegates the real work to:
+That delegates the real work to this method:
 
 ^code while-statement
 
@@ -439,10 +437,10 @@ Speaking of translating straight to Java, here's how we execute the new syntax:
 
 ^code visit-while
 
-Like the visit method for if, it uses the corresponding Java feature. The code
-isn't complex, but it makes Lox much more powerful now. We can finally write a
-program whose running time isn't strictly bound by the length of the source
-code.
+Like the visit method for `if`, this visitor uses the corresponding Java
+feature. This method isn't complex, but it makes Lox much more powerful. We can
+finally write a program whose running time isn't strictly bound by the length of
+the source code.
 
 ## For Loops
 
@@ -476,7 +474,7 @@ even C++ has range-based `for` statements now. Those offer cleaner syntax than
 C's `for` statement by implicitly calling into an iteration protocol that the
 object being looped over supports.
 
-Those are great. For Lox, though, we're limited by building up the interpreter a
+I love those. For Lox, though, we're limited by building up the interpreter a
 chapter at a time. We don't have objects and methods yet, so we have no way of
 defining an iteration protocol that the `for` loop could use. So we'll stick
 with the old school C `for` loop. Think of it as "vintage". The fixie of control
@@ -498,31 +496,31 @@ Inside the parentheses, you have three clauses separated by semicolons:
 
 3.  The last clause is the *increment*. It's an arbitrary expression that does
     some work at the end of each loop iteration. The result of the expression is
-    discarded, so it must have a side effect to be useful. In practice, it's
-    usually incrementing and assigning a variable.
+    discarded, so it must have a side effect to be useful. In practice, it
+    usually increments a variable.
 
-Any of these clauses can be omitted. Following the clauses is a statement for
-the body.
+Any of these clauses can be omitted. Following the three header clauses is a
+statement for the body, which is typically a block.
 
 ### Desugaring
 
 That's a lot of machinery, but note that none of it does anything you couldn't
 do with the statements we already have. If `for` loops didn't support
 initializer clauses, you could just put the initializer expression before the
-`for` statement. If it didn't have an increment clause, you could simply put the
-increment expression at the end of the body yourself.
+`for` statement. Without an increment clause, you could simply put the increment
+expression at the end of the body yourself.
 
 In other words, Lox doesn't *need* `for` loops, they just make some common code
 patterns more pleasant to write. These kinds of features are called <span
 name="sugar">**syntactic sugar**</span>. For example, the previous `for` loop
-could be rewritten to:
+could be rewritten like so:
 
 <aside name="sugar">
 
 This delightful turn of phrase was coined by Peter J. Landin in 1964 to describe
 how some of the nice expression forms supported by languages like ALGOL were a
-sugaring over the more fundamental, yet presumably less palatable lambda
-calculus underneath.
+sweetener sprinkled over the more fundamental -- but presumably less palatable
+-- lambda calculus underneath.
 
 <img class="above" src="image/control-flow/sugar.png" alt="Slightly more than a spoonful of sugar.">
 
@@ -538,12 +536,16 @@ calculus underneath.
 }
 ```
 
-That has the exact same semantics, though it's certainly not as easy on the
-eyes. Reducing syntactic sugar to semantically equivalent but more verbose forms
-is called <span name="caramel">**desugaring**</span>. We'll use this technique
-inside our interpreter. Instead of directly interpreting `for` loops, the parser
-will consume the new syntax and translate it to more primitive forms that the
-interpreter already knows how to execute.
+This script has the exact same semantics as the previous one, though it's not as
+easy on the eyes. Syntactic sugar features like Lox's `for` loop make a language
+more pleasant and productive to work in. But, especially in sophisticated
+language implementations, every language feature that requires back end support
+and optimization is expensive.
+
+We can have our cake and eat it too by <span
+name="caramel">**desugaring**</span>. That funny word describes a process where
+the front end takes code using syntax sugar and translates it to a more
+primitive form that the back end already knows how to execute.
 
 <aside name="caramel">
 
@@ -552,23 +554,15 @@ metaphor if you aren't going to stick with it?
 
 </aside>
 
-It's not saving us a ton of work in this tiny interpreter, but desugaring is a
-powerful tool to have in your toolbox and this gives me an excuse to show it to
-you. In a sophisticated implementation, the backend does lots of work optimizing
-each supported chunk of semantics. The fewer of those there are, the more
-mileage it gets out of each optimization.
-
-Meanwhile, a rich syntax makes the language more pleasant and productive to work
-in. Desugaring bridges that gap -- it lets you take a robust expressive grammar
-and cook it down to a small number of primitives that the back end can do its
-magic on.
-
-So, unlike the previous statements, we *won't* add a new syntax tree node.
-Instead, we go straight to parsing. First, add an import we'll need soon:
+We're going to desugar `for` loops to the `while` loops and other statements the
+interpreter already handles. In our simple interpreter, desugaring really
+doesn't save us much work, but it does give me an excuse to introduce you to the
+technique. So, unlike the previous statements, we *won't* add a new syntax tree
+node. Instead, we go straight to parsing. First, add an import we'll need soon.
 
 ^code import-arrays (1 before, 1 after)
 
-Like every statement, we start parsing a `for` loop by matching its keyword:
+Like every statement, we start parsing a `for` loop by matching its keyword.
 
 ^code match-for (1 before, 1 after)
 
@@ -578,7 +572,7 @@ before the clauses.
 
 ^code for-statement
 
-The first clause following that is the initializer:
+The first clause following that is the initializer.
 
 ^code for-initializer (2 before, 1 after)
 
@@ -597,17 +591,17 @@ true, I guess.
 
 </aside>
 
-Next up is the condition:
+Next up is the condition.
 
 ^code for-condition (2 before, 1 after)
 
 Again, we look for a semicolon to see if the clause has been omitted. The last
-clause is the increment:
+clause is the increment.
 
 ^code for-increment (1 before, 1 after)
 
 It's similar to the condition clause except this one is terminated by the
-closing parenthesis. All that remains is the <span name="body">body</span>:
+closing parenthesis. All that remains is the <span name="body">body</span>.
 
 <aside name="body">
 
@@ -617,13 +611,14 @@ Is it just me or does that sound morbid? "All that remained... was the *body."*
 
 ^code for-body (1 before, 1 after)
 
-Something is clearly missing. What about all of the clauses we parsed? This is
-where the desugaring comes in. We'll take those and use them to synthesize
-syntax tree nodes that express the semantics of the `for` loop, like the
-hand-desugared example I showed you earlier.
+We've parsed all of the various pieces of the `for` loop and the resulting AST
+nodes are sitting in a handful of Java local variables. This is where the
+desugaring comes in. We take those and use them to synthesize syntax tree nodes
+that express the semantics of the `for` loop, like the hand-desugared example I
+showed you earlier.
 
 The code is a little simpler if we work backwards, so we start with the
-increment clause:
+increment clause.
 
 ^code for-desugar-increment (2 before, 1 after)
 
@@ -643,9 +638,9 @@ Finally, if there is an initializer, it runs once before the entire loop. We do
 that by, again, replacing the whole statement with a block that runs the
 initializer and then executes the loop.
 
-That's it. Our interpreter now supports C-style `for` loops and we didn't have to
-touch the Interpreter class at all. Since we desugared to nodes it already knows
-how to visit, there is no more work to do.
+That's it. Our interpreter now supports C-style `for` loops and we didn't have
+to touch the Interpreter class at all. Since we desugared to nodes the
+interpreter already knows how to visit, there is no more work to do.
 
 Finally, Lox is powerful enough to entertain us, at least for a few minutes.
 Here's a tiny program to print the first 21 elements in the Fibonacci
@@ -653,13 +648,12 @@ sequence:
 
 ```lox
 var a = 0;
-var b = 1;
+var temp;
 
-while (a < 10000) {
+for (var b = 1; a < 10000; b = temp + b) {
   print a;
-  var temp = a;
+  temp = a;
   a = b;
-  b = temp + b;
 }
 ```
 
@@ -712,7 +706,7 @@ syntax to get out of the way of the semantics, so they focus on keeping both the
 grammar and libraries simple. Code should be obvious more than beautiful.
 
 Somewhere in the middle you have languages like Java, C# and Python. Eventually
-you reach Ruby, C++, Perl, and D, languages which have stuffed so much syntax
+you reach Ruby, C++, Perl, and D -- languages which have stuffed so much syntax
 into their grammar, they are running out of punctuation characters on the
 keyboard.
 

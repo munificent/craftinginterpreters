@@ -890,7 +890,7 @@ but the foundation is in place.
 
 3.  You might be wondering about more complex "mixfix" expressions that have
     more than two operands separated by tokens. C's conditional or "ternary"
-    operator, `? :` is a widely-known one.
+    operator, `?:` is a widely-known one.
 
     Add support for that operator to the compiler. You don't have to generate
     any bytecode, just show how you would hook it up to the parser and handle

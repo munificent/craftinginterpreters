@@ -163,9 +163,10 @@ class Parser {
 
 //> for-desugar-increment
     if (increment != null) {
-      body = new Stmt.Block(Arrays.asList(
-          body,
-          new Stmt.Expression(increment)));
+      body = new Stmt.Block(
+          Arrays.asList(
+              body,
+              new Stmt.Expression(increment)));
     }
 
 //< for-desugar-increment
