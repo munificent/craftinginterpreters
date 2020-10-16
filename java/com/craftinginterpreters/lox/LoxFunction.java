@@ -7,6 +7,7 @@ class LoxFunction implements LoxCallable {
   private final Stmt.Function declaration;
 //> closure-field
   private final Environment closure;
+  
 //< closure-field
 /* Functions lox-function < Functions closure-constructor
   LoxFunction(Stmt.Function declaration) {

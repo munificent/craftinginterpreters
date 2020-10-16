@@ -1124,7 +1124,7 @@ that won't cause your users and future self to curse your short-sightedness.
 If the function is an initializer, we override the actual return value and
 forcibly return `this`. That relies on a new `isInitializer` field:
 
-^code is-initializer-field (1 before, 2 after)
+^code is-initializer-field (2 before, 2 after)
 
 We can't simply see if the name of the LoxFunction is "init" because the user
 could have defined a *function* with that name. In that case, there *is* no
