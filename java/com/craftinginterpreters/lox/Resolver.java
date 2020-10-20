@@ -404,8 +404,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return;
       }
     }
-
-    // Not found. Assume it is global.
   }
 //< resolve-local
 }
