@@ -363,12 +363,12 @@ recursion.
 With all of those syntactic niceties, our breakfast grammar condenses down to:
 
 ```ebnf
-breakfast → protein ( "with" breakfast "on the side" )?
+breakfast → ( protein ( "with" breakfast "on the side" )? )
           | bread ;
 
-protein   → "really"+ "crispy" "bacon"
+protein   → ( "really"+ "crispy" "bacon" )
           | "sausage"
-          | ( "scrambled" | "poached" | "fried" ) "eggs" ;
+          | ( ( "scrambled" | "poached" | "fried" ) "eggs" ) ;
 
 bread     → "toast" | "biscuits" | "English muffin" ;
 ```
