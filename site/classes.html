@@ -127,7 +127,7 @@ a little or not at all.</p>
 a complete scripting language. It could use a couple of built-in data structures
 like lists and maps, and it certainly needs a core library for file I/O, user
 input etc. But the language itself is sufficient. We&rsquo;ve got a little procedural
-language in the same vein as BASIC, TCL, Scheme (minus macros), and early
+language in the same vein as BASIC, Tcl, Scheme (minus macros), and early
 versions of Python and Lua.</p>
 <p>If this was the 80&rsquo;s, we&rsquo;d stop here. But, today, many popular languages support
 &ldquo;object-oriented programming&rdquo;. Adding that to Lox will give users a familiar set
@@ -172,18 +172,17 @@ class.</p>
 operate on the instances&rsquo; state.</p>
 </li>
 </ol>
-<p>That&rsquo;s about as minimal as it gets. Most object-oriented languages, all the
-way back to Simula, also do inheritance to reuse behavior across <em>classes</em>.
-We&rsquo;ll add that in the <a href="inheritance.html">next chapter</a>. Even kicking that out, we
-still have a lot to get through. This is a big chapter and everything doesn&rsquo;t
-quite come together until we have all of the above pieces, so gather your
-stamina.</p>
+<p>That&rsquo;s about as minimal as it gets. Most object-oriented languages, all the way
+back to Simula, also do inheritance to reuse behavior across classes. We&rsquo;ll add
+that in the <a href="inheritance.html">next chapter</a>. Even kicking that out, we still have a
+lot to get through. This is a big chapter and everything doesn&rsquo;t quite come
+together until we have all of the above pieces, so gather your stamina.</p>
 <aside name="circle"><img src="image/classes/circle.png" alt="The relationships between classes, methods, instances, constructors, and fields.">
 <p>It&rsquo;s like the circle of life, <em>sans</em> Sir Elton John.</p>
 </aside>
 <h2><a href="#class-declarations" name="class-declarations"><small>12&#8202;.&#8202;1</small>Class Declarations</a></h2>
 <p>Like we do, we&rsquo;re gonna start with syntax. A <code>class</code> statement introduces a new
-name, so it lives in the <code>declaration</code> grammar rule:</p>
+name, so it lives in the <code>declaration</code> grammar rule.</p>
 <div class="codehilite"><pre>
 <span class="i">declaration</span>    → <span class="i">classDecl</span>
                | <span class="i">funDecl</span>
@@ -219,9 +218,9 @@ body. Here&rsquo;s an example:</p>
 </pre></div>
 <p>Like most dynamically-typed languages, fields are not explicitly listed in the
 class declaration. Instances are loose bags of data and you can freely add
-fields to them as you see fit in the middle of normal imperative code.</p>
+fields to them as you see fit using normal imperative code.</p>
 <p>Over in our AST generator, the <code>classDecl</code> grammar rule gets its own statement
-<span name="class-ast">node</span>:</p>
+<span name="class-ast">node</span>.</p>
 <div class="codehilite"><pre class="insert-before">
       &quot;Block      : List&lt;Stmt&gt; statements&quot;,
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
@@ -236,12 +235,12 @@ in <em>main</em>()</div>
 <aside name="class-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#class-statement">Appendix II</a>.</p>
 </aside>
-<p>It stores the name and the methods inside the body. Methods are represented by
-the existing Stmt.Function class that we use for function declaration AST nodes.
-It has all the bits of state that we need for a method: name, parameter list,
-and body.</p>
+<p>It stores the class&rsquo;s name and the methods inside its body. Methods are
+represented by the existing Stmt.Function class that we use for function
+declaration AST nodes. That gives us all the bits of state that we need for a
+method: name, parameter list, and body.</p>
 <p>A class can appear anywhere a named declaration is allowed, triggered by the
-leading <code>class</code> keyword:</p>
+leading <code>class</code> keyword.</p>
 <div class="codehilite"><pre class="insert-before">
     try {
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
@@ -285,8 +284,8 @@ closing brace at the end, but it ensures the parser doesn&rsquo;t get stuck in a
 infinite loop if the user has a syntax error and forgets to correctly end the
 class body.</p>
 <p>We wrap the name and list of methods into a Stmt.Class node and we&rsquo;re done.
-Usually, this would feed into the interpreter, but now we need to plumb it
-through the resolver first:</p>
+Previous, we would jump straight into the interpreter, but now we need to plumb
+the node through the resolver first.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitBlockStmt</em>()</div>
 <pre>
@@ -301,10 +300,10 @@ add after <em>visitBlockStmt</em>()</div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
 
 <p>We aren&rsquo;t going to worry about resolving the methods themselves yet, so for now
-all we need to do is declare the class name itself. It&rsquo;s not common to declare a
-class as a local variable, but Lox permits it, so we need to handle it
+all we need to do is declare the class using its name. It&rsquo;s not common to
+declare a class as a local variable, but Lox permits it, so we need to handle it
 correctly.</p>
-<p><em>Now</em> we interpret it:</p>
+<p>Now we interpret the class declaration:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitBlockStmt</em>()</div>
 <pre>
@@ -324,7 +323,7 @@ into a LoxClass, the <em>runtime</em> representation of a class. We circle back 
 store the class object in the variable we previously declared. That two-stage
 variable binding process allows references to the class inside its own methods.</p>
 <p>We will refine it throughout the chapter, but the first draft of LoxClass looks
-like:</p>
+like this:</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxClass.java</em><br>
 create new file</div>
 <pre>
@@ -361,7 +360,7 @@ script and test that class objects are actually being parsed and executed:</p>
 <span class="k">print</span> <span class="t">DevonshireCream</span>; <span class="c">// Prints &quot;DevonshireCream&quot;.</span>
 </pre></div>
 <h2><a href="#creating-instances" name="creating-instances"><small>12&#8202;.&#8202;2</small>Creating Instances</a></h2>
-<p>We have classes, but they don&rsquo;t <em>do</em> anything yet. Lox doesn&rsquo;t have &ldquo;static&rdquo;
+<p>We have classes, but they don&rsquo;t do anything yet. Lox doesn&rsquo;t have &ldquo;static&rdquo;
 methods that you can call right on the class itself, so without actual
 instances, classes are useless. Thus instances are the next step.</p>
 <p>While some syntax and semantics are fairly standard across OOP languages, the
@@ -389,7 +388,7 @@ into the runtime.</p>
 </pre></div>
 <p>You get a runtime error. <code>visitCallExpr()</code> checks to see if the called object
 implements <code>LoxCallable</code> and reports an error since LoxClass doesn&rsquo;t. Not <em>yet</em>,
-that is:</p>
+that is.</p>
 <div class="codehilite"><pre class="insert-before">
 import java.util.Map;
 
@@ -402,7 +401,7 @@ replace 1 line</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/LoxClass.java</em>, replace 1 line</div>
 
-<p>That interface requires two methods:</p>
+<p>Implementing that interface requires two methods.</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxClass.java</em><br>
 add after <em>toString</em>()</div>
 <pre>
@@ -426,7 +425,7 @@ interpreter validates that you passed the right number of arguments to a
 callable. For now, we&rsquo;ll say you can&rsquo;t pass any. When we get to user-defined
 constructors, we&rsquo;ll revisit this.</p>
 <p>That leads us to LoxInstance, the runtime representation of an instance of a Lox
-class. Again, our first iteration starts small:</p>
+class. Again, our first implementation starts small.</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxInstance.java</em><br>
 create new file</div>
 <pre>
@@ -457,7 +456,7 @@ want to give it a try, here&rsquo;s a script to run:</p>
 <span class="k">var</span> <span class="i">bagel</span> = <span class="t">Bagel</span>();
 <span class="k">print</span> <span class="i">bagel</span>; <span class="c">// Prints &quot;Bagel instance&quot;.</span>
 </pre></div>
-<p>It doesn&rsquo;t do much, but it&rsquo;s starting to do <em>something</em>.</p>
+<p>This program doesn&rsquo;t do much, but it&rsquo;s starting to do <em>something</em>.</p>
 <h2><a href="#properties-on-instances" name="properties-on-instances"><small>12&#8202;.&#8202;3</small>Properties on Instances</a></h2>
 <p>We have instances, so we should make them useful. We&rsquo;re at a fork in the road.
 We could add behavior first<span class="em">&mdash;</span>methods<span class="em">&mdash;</span>or we could start with state<span class="em">&mdash;</span>properties. We&rsquo;re going to take the latter because, as we&rsquo;ll see, the two get
@@ -466,7 +465,7 @@ we get properties working first.</p>
 <p>Lox follows JavaScript and Python in how it handles state. Every instance is an
 open collection of named values. Methods on the instance&rsquo;s class can access and
 modify properties, but so can <span name="outside">outside</span> code.
-Properties are accessed using a <code>.</code> syntax:</p>
+Properties are accessed using a <code>.</code> syntax.</p>
 <aside name="outside">
 <p>Allowing code outside of the class to directly modify an object&rsquo;s fields goes
 against the object-oriented credo that a class <em>encapsulates</em> state. Some
@@ -480,10 +479,10 @@ on the current object.</p>
 <div class="codehilite"><pre>
 <span class="i">someObject</span>.<span class="i">someProperty</span>
 </pre></div>
-<p>An expression followed by a <code>.</code> and an identifier reads the property with that
-name from the object the expression evaluates to. That <code>.</code> is as high precedence
-as the parentheses in a function call expression, so we slot it into the grammar
-by replacing the existing <code>call</code> rule with:</p>
+<p>An expression followed by <code>.</code> and an identifier reads the property with that
+name from the object the expression evaluates to. That dot has the same
+precedence as the parentheses in a function call expression, so we slot it into
+the grammar by replacing the existing <code>call</code> rule with:</p>
 <div class="codehilite"><pre>
 <span class="i">call</span>           → <span class="i">primary</span> ( <span class="s">&quot;(&quot;</span> <span class="i">arguments</span>? <span class="s">&quot;)&quot;</span> | <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> )* ;
 </pre></div>
@@ -530,7 +529,7 @@ in <em>call</em>()</div>
 <p>The outer <code>while</code> loop there corresponds to the <code>*</code> in the grammar rule. We zip
 along the tokens building up a chain of calls and gets as we find parentheses
 and dots, like so:</p><img src="image/classes/zip.png" alt="Parsing a series of '.' and '()' expressions to an AST." />
-<p>Instances of the new Expr.Get node feed into the resolver:</p>
+<p>Instances of the new Expr.Get node feed into the resolver.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitCallExpr</em>()</div>
 <pre>
@@ -546,10 +545,10 @@ add after <em>visitCallExpr</em>()</div>
 <p>OK, not much to that. Since properties are looked up <span
 name="dispatch">dynamically</span>, they don&rsquo;t get resolved. During resolution,
 we only recurse into the expression to the left of the dot. The actual property
-access happens in the interpreter:</p>
+access happens in the interpreter.</p>
 <aside name="dispatch">
 <p>You can literally see that property dispatch in Lox is dynamic since we don&rsquo;t
-process it during the static resolution pass.</p>
+process the property name during the static resolution pass.</p>
 </aside>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitCallExpr</em>()</div>
@@ -570,8 +569,8 @@ add after <em>visitCallExpr</em>()</div>
 <p>First, we evaluate the expression whose property is being accessed. In Lox, only
 instances of classes have properties. If the object is some other type like a
 number, invoking a getter on it is a runtime error.</p>
-<p>If the object is a LoxInstance, then we ask it to look up the property. Looks
-like it&rsquo;s time to give LoxInstance some actual state. A map will do fine:</p>
+<p>If the object is a LoxInstance, then we ask it to look up the property. It must
+be time to give LoxInstance some actual state. A map will do fine.</p>
 <div class="codehilite"><pre class="insert-before">
   private LoxClass klass;
 </pre><div class="source-file"><em>lox/LoxInstance.java</em><br>
@@ -615,7 +614,7 @@ dummy value like <code>nil</code>, but my experience with languages like JavaScr
 this behavior masks bugs more often than it does anything useful. Instead, we&rsquo;ll
 make it a runtime error.</p>
 <p>So the first thing we do is see if the instance actually has a field with the
-given name. Only then does it return it. Otherwise, it raises an error.</p>
+given name. Only then do we return it. Otherwise, we raise an error.</p>
 <p>Note how I switched from talking about &ldquo;properties&rdquo; to &ldquo;fields&rdquo;. There is a
 subtle difference between the two. Fields are named bits of state stored
 directly in an instance. Properties are the named, uh, <em>things</em>, that a get
@@ -629,24 +628,24 @@ actually stuff any state into an instance, there are no fields to access. Before
 we can test out reading, we must support writing.</p>
 <h3><a href="#set-expressions" name="set-expressions"><small>12&#8202;.&#8202;3&#8202;.&#8202;2</small>Set expressions</a></h3>
 <p>Setters use the same syntax as getters, except they appear on the left side of
-an assignment:</p>
+an assignment.</p>
 <div class="codehilite"><pre>
 <span class="i">someObject</span>.<span class="i">someProperty</span> = <span class="i">value</span>;
 </pre></div>
 <p>In grammar land, we extend the rule for assignment to allow dotted identifiers
-on the left-hand side:</p>
+on the left-hand side.</p>
 <div class="codehilite"><pre>
 <span class="i">assignment</span>     → ( <span class="i">call</span> <span class="s">&quot;.&quot;</span> )? <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
                | <span class="i">logic_or</span> ;
 </pre></div>
-<p>Unlike getters, setters don&rsquo;t chain. The reference to <code>call</code> allows any high
-precedence expression before the last <code>.</code>, including a series of property
-accesses, as in:</p><img src="image/classes/setter.png" alt="breakfast.omelette.filling.meat = ham" />
+<p>Unlike getters, setters don&rsquo;t chain. However, the reference to <code>call</code> allows any
+high precedence expression before the last dot, including any number of
+<em>getters</em>, as in:</p><img src="image/classes/setter.png" alt="breakfast.omelette.filling.meat = ham" />
 <p>Note here that only the <em>last</em> part, the <code>.meat</code> is the <em>setter</em>. The
 <code>.omelette</code> and <code>.filling</code> parts are both <em>get</em> expressions.</p>
 <p>Like we have two separate AST nodes for variable access and variable assignment,
 we need a <span name="set-ast">second setter node</span> to complement our
-getter node:</p>
+getter node.</p>
 <div class="codehilite"><pre class="insert-before">
       &quot;Logical  : Expr left, Token operator, Expr right&quot;,
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
@@ -672,7 +671,7 @@ Then, when we stumble onto the equals sign after it, we take the expression we
 already parsed and transform it into the correct syntax tree node for the
 assignment.</p>
 <p>We add another clause to that transformation to handle turning an Expr.Get
-expression on the left into the corresponding Expr.Set:</p>
+expression on the left into the corresponding Expr.Set.</p>
 <div class="codehilite"><pre class="insert-before">
         return new Expr.Assign(name, value);
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
@@ -686,7 +685,7 @@ in <em>assignment</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>assignment</em>()</div>
 
-<p>That&rsquo;s our syntax. We push that through into the resolver:</p>
+<p>That&rsquo;s parsing our syntax. We push that node through into the resolver.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitLogicalExpr</em>()</div>
 <pre>
@@ -704,7 +703,7 @@ add after <em>visitLogicalExpr</em>()</div>
 nothing to resolve there. All we need to do is recurse into the two
 subexpressions of Expr.Set, the object whose property is being set, and the
 value it&rsquo;s being set to.</p>
-<p>That leads us to the interpreter:</p>
+<p>That leads us to the interpreter.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitLogicalExpr</em>()</div>
 <pre>
@@ -724,9 +723,10 @@ add after <em>visitLogicalExpr</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitLogicalExpr</em>()</div>
 
-<p>We evaluate the object whose property is being set and we check to see if it&rsquo;s a
+<p>We evaluate the object whose property is being set and check to see if it&rsquo;s a
 LoxInstance. If not, that&rsquo;s a runtime error. Otherwise, we evaluate the value
-being set and store it on the instance. That relies on:</p>
+being set and store it on the instance. That relies on a new method in
+LoxInstance.</p>
 <aside name="order">
 <p>This is another semantic edge case. There are three distinct operations:</p>
 <ol>
@@ -752,9 +752,9 @@ add after <em>get</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/LoxInstance.java</em>, add after <em>get</em>()</div>
 
-<p>No real magic here. We go straight to the Java map in the instance where fields
-are stored. Since we allow freely creating new fields on instances, there&rsquo;s no
-need to see if the key is already present.</p>
+<p>No real magic here. We stuff the values straight into the Java map where fields
+live. Since Lox allows freely creating new fields on instances, there&rsquo;s no need
+to see if the key is already present.</p>
 <h2><a href="#methods-on-classes" name="methods-on-classes"><small>12&#8202;.&#8202;4</small>Methods on Classes</a></h2>
 <p>You can create instances of classes and stuff data into them, but the class
 itself doesn&rsquo;t really <em>do</em> anything. Instances are just maps and all instances
@@ -765,8 +765,9 @@ also don&rsquo;t need to add any new parser support for method <em>calls</em>. W
 have <code>.</code> (getters) and <code>()</code> (function calls). A &ldquo;method call&rdquo; simply chains
 those together:</p><img src="image/classes/method.png" alt="The syntax tree for 'object.method(argument)" />
 <p>That raises an interesting question. What happens when those two expressions are
-pulled apart? Assuming <code>method</code> is a method on the class of <code>object</code> and not a
-field on the instance, what should this do:</p>
+pulled apart? Assuming that <code>method</code> in this example is a method on the class of
+<code>object</code> and not a field on the instance, what should the following piece of
+code do?</p>
 <div class="codehilite"><pre>
 <span class="k">var</span> <span class="i">m</span> = <span class="i">object</span>.<span class="i">method</span>;
 <span class="i">m</span>(<span class="i">argument</span>);
@@ -792,7 +793,7 @@ work?</p>
 treatise on it. For Lox, we&rsquo;ll say the answer to both of these is that, yes, it
 does work. We have a couple of reasons to justify that. For the second
 example<span class="em">&mdash;</span>calling a function stored in a field<span class="em">&mdash;</span>we want to support that
-because first class functions are useful and storing them in fields is a
+because first-class functions are useful and storing them in fields is a
 perfectly normal thing to do.</p>
 <p>The first example is more obscure. One motivation is that users generally expect
 to be able to hoist a subexpression out into a local variable without changing
@@ -881,7 +882,7 @@ on some other object.</p>
 <p>OK, that&rsquo;s a lot of semantics to load into your head. Forget about the edge
 cases for a bit. We&rsquo;ll get back to those. For now, let&rsquo;s get basic method calls
 working. We&rsquo;re already parsing the method declarations inside the class body, so
-the next step is to resolve them:</p>
+the next step is to resolve them.</p>
 <div class="codehilite"><pre class="insert-before">
     define(stmt.name);
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -904,7 +905,7 @@ expand this code before too long and it will make more sense.</p>
 </aside>
 <p>We iterate through the methods in the class body and call the
 <code>resolveFunction()</code> method we wrote for handling function declarations already.
-The only difference is that we pass in a new FunctionType enum value:</p>
+The only difference is that we pass in a new FunctionType enum value.</p>
 <div class="codehilite"><pre class="insert-before">
     NONE,
 </pre><pre class="insert-before">
@@ -920,7 +921,7 @@ add <em>&ldquo;,&rdquo;</em> to previous line</div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in enum <em>FunctionType</em>, add <em>&ldquo;,&rdquo;</em> to previous line</div>
 
 <p>That&rsquo;s going to be important when we resolve <code>this</code> expressions. For now, don&rsquo;t
-worry about it. The interesting stuff is in the interpreter:</p>
+worry about it. The interesting stuff is in the interpreter.</p>
 <div class="codehilite"><pre class="insert-before">
     environment.define(stmt.name.lexeme, null);
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
@@ -945,7 +946,7 @@ representation of the class<span class="em">&mdash;</span>its AST node<span clas
 Now, we need to do that for the methods contained in the class as well. Each
 method declaration blossoms into a LoxFunction object.</p>
 <p>We take all of those and wrap them up into a map, keyed by the method names.
-That gets stored in LoxClass:</p>
+That gets stored in LoxClass.</p>
 <div class="codehilite"><pre class="insert-before">
   final String name;
 </pre><div class="source-file"><em>lox/LoxClass.java</em><br>
@@ -967,7 +968,7 @@ replace 4 lines</div>
 
 <p>Where an instance stores state, the class stores behavior. LoxInstance has its
 map of fields, and LoxClass gets a map of methods. Even though methods are
-owned by the class, they are still accessed through instances of that class:</p>
+owned by the class, they are still accessed through instances of that class.</p>
 <div class="codehilite"><pre class="insert-before">
   Object get(Token name) {
     if (fields.containsKey(name.lexeme)) {
@@ -1084,13 +1085,13 @@ hold onto a surrounding environment, so we have the machinery we need.</p>
 <code>taste()</code>. Its closure is the environment surrounding the class, in this case
 the global one. So the LoxFunction we store in the class&rsquo;s method map looks
 like so:</p><img src="image/classes/closure.png" alt="The initial closure for the method." />
-<p>When we evaluate the <code>.</code> expression in <code>cake.taste</code>, we create a new environment
+<p>When we evaluate the <code>cake.taste</code> get expression, we create a new environment
 that binds <code>this</code> to the object the method is accessed from (here, <code>cake</code>). Then
 we make a <em>new</em> LoxFunction with the same code as the original one but using
-that new environment as its closure:</p><img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." />
+that new environment as its closure.</p><img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." />
 <p>This is the LoxFunction that gets returned when evaluating the get expression
 for the method name. When that function is later called by a <code>()</code> expression,
-we create an environment for the method body as usual:</p><img src="image/classes/call.png" alt="Calling the bound method and creating a new environment for the method body." />
+we create an environment for the method body as usual.</p><img src="image/classes/call.png" alt="Calling the bound method and creating a new environment for the method body." />
 <p>The parent of the body environment is the environment we created earlier to bind
 <code>this</code> to the current object. Thus any use of <code>this</code> inside the body
 successfully resolves to that instance.</p>
@@ -1115,7 +1116,7 @@ callback may want to hang onto and retain access to the original object<span cla
 <code>this</code> value<span class="em">&mdash;</span>that the method was associated with. Our existing support for
 closures and environment chains should do all this correctly.</p>
 <p>Let&rsquo;s code it up. The first step is adding <span name="this-ast">new
-syntax</span> for <code>this</code>:</p>
+syntax</span> for <code>this</code>.</p>
 <div class="codehilite"><pre class="insert-before">
       &quot;Set      : Expr object, Token name, Expr value&quot;,
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
@@ -1130,8 +1131,8 @@ in <em>main</em>()</div>
 <aside name="this-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#this-expression">Appendix II</a>.</p>
 </aside>
-<p>Parsing is simple since it&rsquo;s a single token (which our lexer already
-recognizes as a reserved word):</p>
+<p>Parsing is simple since it&rsquo;s a single token which our lexer already
+recognizes as a reserved word:</p>
 <div class="codehilite"><pre class="insert-before">
       return new Expr.Literal(previous().literal);
     }
@@ -1147,7 +1148,7 @@ in <em>primary</em>()</div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>primary</em>()</div>
 
 <p>You can start to see how <code>this</code> works like a variable when we get to the
-resolver:</p>
+resolver.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitSetExpr</em>()</div>
 <pre>
@@ -1162,7 +1163,7 @@ add after <em>visitSetExpr</em>()</div>
 
 <p>We resolve it exactly like any other local variable using &ldquo;this&rdquo; as the name for
 the &ldquo;variable&rdquo;. Of course, that&rsquo;s not going to work right now, because &ldquo;this&rdquo;
-<em>isn&rsquo;t</em> declared in any scope. Let&rsquo;s fix that over in <code>visitClassStmt()</code>:</p>
+<em>isn&rsquo;t</em> declared in any scope. Let&rsquo;s fix that over in <code>visitClassStmt()</code>.</p>
 <div class="codehilite"><pre class="insert-before">
     define(stmt.name);
 
@@ -1179,7 +1180,7 @@ in <em>visitClassStmt</em>()</div>
 
 <p>Before we step in and start resolving the method bodies, we push a new scope and
 define &ldquo;this&rdquo; in it as if it were a variable. Then, when we&rsquo;re done, we discard
-it:</p>
+that surrounding scope.</p>
 <div class="codehilite"><pre class="insert-before">
     }
 
@@ -1197,7 +1198,7 @@ in <em>visitClassStmt</em>()</div>
 will resolve to a &ldquo;local variable&rdquo; defined in an implicit scope just outside of
 the block for the method body.</p>
 <p>The resolver has a new <em>scope</em> for <code>this</code>, so the interpreter needs to create a
-corresponding environment for it. Remember, we always have to keep the
+corresponding <em>environment</em> for it. Remember, we always have to keep the
 resolver&rsquo;s scope chains and the interpreter&rsquo;s linked environments in sync with
 each other. At runtime, we create the environment after we find the method on
 the instance. We replace the previous line of code that simply returned the
@@ -1236,7 +1237,7 @@ instance, the instance that the method is being accessed from. <em>Et voilà</em
 returned LoxFunction now carries around its own little persistent world where
 &ldquo;this&rdquo; is bound to the object.</p>
 <p>The remaining task is interpreting those <code>this</code> expressions. Similar to the
-resolver, it is the same as interpreting a variable expression:</p>
+resolver, it is the same as interpreting a variable expression.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitSetExpr</em>()</div>
 <pre>
@@ -1270,7 +1271,7 @@ happier they&rsquo;ll be.</p>
 <p>Our resolution pass is a fine place to detect this error statically. It already
 detects <code>return</code> statements outside of functions. We&rsquo;ll do something similar for
 <code>this</code>. In the vein of our existing FunctionType enum, we define a new ClassType
-one:</p>
+one.</p>
 <div class="codehilite"><pre class="insert-before">
   }
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -1291,9 +1292,10 @@ add after enum <em>FunctionType</em></div>
 
 <p>Yes, it could be a Boolean. When we get to inheritance, it will get a third
 value, hence the enum right now. We also add a corresponding field,
-<code>currentClass</code>. Its value tells us if we are currently inside a class while
-traversing the syntax tree. It starts out <code>NONE</code> which means we aren&rsquo;t in one.</p>
-<p>When we begin to resolve a class declaration, we change that:</p>
+<code>currentClass</code>. Its value tells us if we are currently inside a class
+declaration while traversing the syntax tree. It starts out <code>NONE</code> which means
+we aren&rsquo;t in one.</p>
+<p>When we begin to resolve a class declaration, we change that.</p>
 <div class="codehilite"><pre class="insert-before">
   public Void visitClassStmt(Stmt.Class stmt) {
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -1312,7 +1314,7 @@ variable. This lets us piggyback onto the JVM to keep a stack of <code>currentCl
 values. That way we don&rsquo;t lose track of the previous value if one class nests
 inside another.</p>
 <p>Once the methods have been resolved, we &ldquo;pop&rdquo; that stack by restoring the old
-value:</p>
+value.</p>
 <div class="codehilite"><pre class="insert-before">
     endScope();
 
@@ -1325,8 +1327,9 @@ in <em>visitClassStmt</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
 
-<p>When we resolve a <code>this</code> expression, that gives us the bit of data we need to
-report an error if the expression doesn&rsquo;t occur nestled inside a method body:</p>
+<p>When we resolve a <code>this</code> expression, the <code>currentClass</code> field gives us the bit
+of data we need to report an error if the expression doesn&rsquo;t occur nestled
+inside a method body.</p>
 <div class="codehilite"><pre class="insert-before">
   public Void visitThisExpr(Expr.This expr) {
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -1377,14 +1380,14 @@ unformed object.</p>
 </li>
 </ol>
 <p>The latter is what we tend to think of when we hear &ldquo;constructor&rdquo;, but the
-language itself has usually done some groundwork for us first before we get to
-that point. In fact, our Lox interpreter already has that covered when it
-creates a new LoxInstance object.</p>
+language itself has usually done some groundwork for us before we get to that
+point. In fact, our Lox interpreter already has that covered when it creates a
+new LoxInstance object.</p>
 <p>We&rsquo;ll do the remaining part<span class="em">&mdash;</span>user-defined initialization<span class="em">&mdash;</span>now. Languages
 have a variety of notations for the chunk of code that sets up a new object for
 a class. C++, Java, and C# use a method whose name matches the class name. Ruby
 and Python call it <code>init()</code>. The latter is nice and short, so we&rsquo;ll do that.</p>
-<p>In LoxClass&rsquo;s implementation of LoxCallable, we add a few more lines:</p>
+<p>In LoxClass&rsquo;s implementation of LoxCallable, we add a few more lines.</p>
 <div class="codehilite"><pre class="insert-before">
                      List&lt;Object&gt; arguments) {
     LoxInstance instance = new LoxInstance(this);
@@ -1404,7 +1407,7 @@ in <em>call</em>()</div>
 <p>When a class is called, after the LoxInstance is created, we look for an &ldquo;init&rdquo;
 method. If we find one, we immediately bind and invoke it just like a normal
 method call. The argument list is forwarded along.</p>
-<p>That argument list means we also need to tweak how a class declares its arity:</p>
+<p>That argument list means we also need to tweak how a class declares its arity.</p>
 <div class="codehilite"><pre class="insert-before">
   public int arity() {
 </pre><div class="source-file"><em>lox/LoxClass.java</em><br>
@@ -1447,7 +1450,7 @@ would be <code>nil</code> since that&rsquo;s what it appears the body returns.</
 implementation<span class="em">&mdash;</span>it will make clox&rsquo;s implementation of constructors much
 easier if we say that <code>init()</code> methods always return <code>this</code>, even when
 directly called. In order to keep jlox compatible with that, we add a little
-special case code in LoxFunction:</p>
+special case code in LoxFunction.</p>
 <aside name="compromise">
 <p>Maybe &ldquo;dislike&rdquo; is too strong a claim. It&rsquo;s reasonable to have the constraints
 and resources of your implementation affect the design of the language. There
@@ -1470,7 +1473,7 @@ in <em>call</em>()</div>
 <div class="source-file-narrow"><em>lox/LoxFunction.java</em>, in <em>call</em>()</div>
 
 <p>If the function is an initializer, we override the actual return value and
-forcibly return <code>this</code>. That relies on a new <code>isInitializer</code> field:</p>
+forcibly return <code>this</code>. That relies on a new <code>isInitializer</code> field.</p>
 <div class="codehilite"><pre class="insert-before">
   private final Environment closure;
 
@@ -1493,7 +1496,7 @@ replace 1 line</div>
 could have defined a <em>function</em> with that name. In that case, there <em>is</em> no
 <code>this</code> to return. To avoid <em>that</em> weird edge case, we&rsquo;ll directly store whether
 the LoxFunction represents an initializer method. That means we need to go back
-and fix the few places where we create LoxFunctions:</p>
+and fix the few places where we create LoxFunctions.</p>
 <div class="codehilite"><pre class="insert-before">
   public Void visitFunctionStmt(Stmt.Function stmt) {
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
@@ -1508,7 +1511,7 @@ replace 1 line</div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitFunctionStmt</em>(), replace 1 line</div>
 
 <p>For actual function declarations, <code>isInitializer</code> is always false. For methods,
-we check the name:</p>
+we check the name.</p>
 <div class="codehilite"><pre class="insert-before">
     for (Stmt.Function method : stmt.methods) {
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
@@ -1523,7 +1526,7 @@ replace 1 line</div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitClassStmt</em>(), replace 1 line</div>
 
 <p>And then in <code>bind()</code> where we create the closure that binds <code>this</code> to a method,
-we pass along the original method&rsquo;s value:</p>
+we pass along the original method&rsquo;s value.</p>
 <div class="codehilite"><pre class="insert-before">
     environment.define(&quot;this&quot;, instance);
 </pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
@@ -1549,7 +1552,7 @@ What should happen if a user tries:</p>
 }
 </pre></div>
 <p>It&rsquo;s definitely not going to do what they want, so we may as well make it a
-static error. Back in the resolver, we add another case to FunctionType:</p>
+static error. Back in the resolver, we add another case to FunctionType.</p>
 <div class="codehilite"><pre class="insert-before">
     FUNCTION,
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -1561,8 +1564,8 @@ in enum <em>FunctionType</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in enum <em>FunctionType</em></div>
 
-<p>When visiting a method, we use its name to determine if we&rsquo;re resolving an
-initializer or not:</p>
+<p>We use the visited method&rsquo;s name to determine if we&rsquo;re resolving an initializer
+or not.</p>
 <div class="codehilite"><pre class="insert-before">
       FunctionType declaration = FunctionType.METHOD;
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -1578,7 +1581,7 @@ in <em>visitClassStmt</em>()</div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
 
 <p>When we later traverse into a <code>return</code> statement, we check that field and make
-it an error to return a value from inside an <code>init()</code> method:</p>
+it an error to return a value from inside an <code>init()</code> method.</p>
 <div class="codehilite"><pre class="insert-before">
     if (stmt.value != null) {
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -1605,7 +1608,7 @@ initializer, but you can still use an empty early <code>return</code>:</p>
 </pre></div>
 <p>That is actually kind of useful sometimes, so we don&rsquo;t want to disallow it
 entirely. Instead, it should return <code>this</code> instead of <code>nil</code>. That&rsquo;s an easy fix
-over in LoxFunction:</p>
+over in LoxFunction.</p>
 <div class="codehilite"><pre class="insert-before">
     } catch (Return returnValue) {
 </pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
@@ -1669,7 +1672,7 @@ name is accessed:</p>
 <p>Python and JavaScript allow you to freely access an object&rsquo;s fields from
 outside of its own methods. Ruby and Smalltalk encapsulate instance state.
 Only methods on the class can access the raw fields, and it is up to the
-class to decide which state is exposed. Most statically typed languages
+class to decide which state is exposed. Most statically-typed languages
 offer modifiers like <code>private</code> and <code>public</code> to control which parts of a
 class are externally accessible on a per-member basis.</p>
 <p>What are the trade-offs between these approaches and why might a language
@@ -1685,10 +1688,10 @@ for state. What if you could define methods right on a single object, inside
 LoxInstance? In that case, we wouldn&rsquo;t need LoxClass at all. LoxInstance would
 be a complete package for defining the behavior and state of an object.</p>
 <p>We&rsquo;d still want some way to reuse behavior across multiple instances. Since
-there are no classes, we&rsquo;ll let a LoxInstance <a href="https://en.wikipedia.org/wiki/Prototype-based_programming#Delegation"><em>delegate</em></a> directly to
-another LoxInstance to reuse its fields and methods, sort of like inheritance.
-The end result is a simpler runtime with only a single internal construct,
-LoxInstance.</p>
+there are no classes, we&rsquo;ll let a LoxInstance <a href="https://en.wikipedia.org/wiki/Prototype-based_programming#Delegation"><strong>delegate</strong></a> directly
+to another LoxInstance to reuse its fields and methods, sort of like
+inheritance. The end result is a simpler runtime with only a single internal
+construct, LoxInstance.</p>
 <p>Users would model their program as a constellation of objects, some of which
 delegate to each other to reflect commonality. There are no longer classes.
 Instead, individual objects that are delegated to represent &ldquo;canonical&rdquo; or
