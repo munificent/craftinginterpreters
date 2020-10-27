@@ -9,7 +9,7 @@
     AstGenerator, add a new field to Stmt.Class:
 
     ```java
-    "Class : Token name, List<Stmt.Function> methods, List<Stmt.Function> classMethods",
+    "Class      : Token name, List<Stmt.Function> methods, List<Stmt.Function> classMethods",
     ```
 
     When parsing a class, we separate out the class methods (prefixed with
@@ -71,6 +71,7 @@
     we create two LoxClasses:
 
     ```java
+    @Override
     public Void visitClassStmt(Stmt.Class stmt) {
       environment.define(stmt.name.lexeme, null);
       Map<String, LoxFunction> classMethods = new HashMap<>();
@@ -169,8 +170,8 @@
       currentFunction = type;
 
       beginScope();
-      if (function.parameters != null) {
-        for (Token param : function.parameters) {
+      if (function.params != null) {
+        for (Token param : function.params) {
           declare(param);
           define(param);
         }
@@ -184,11 +185,12 @@
     And when calling a LoxFunction:
 
     ```java
+    @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
       Environment environment = new Environment(closure);
-      if (declaration.parameters != null) {
-        for (int i = 0; i < declaration.parameters.size(); i++) {
-          environment.define(declaration.parameters.get(i).lexeme,
+      if (declaration.params != null) {
+        for (int i = 0; i < declaration.params.size(); i++) {
+          environment.define(declaration.params.get(i).lexeme,
               arguments.get(i));
         }
       }
@@ -204,6 +206,7 @@
     This isn't maybe the most elegant implementation, but it gets it done:
 
     ```java
+    @Override
     public Object visitGetExpr(Expr.Get expr) {
       Object object = evaluate(expr.object);
       if (object instanceof LoxInstance) {
@@ -218,6 +221,7 @@
 
       throw new RuntimeError(expr.name,
           "Only instances have properties.");
+    }
     ```
 
     After looking up the property, we see if the resulting object is a getter.
@@ -226,7 +230,7 @@
 
     ```java
     public boolean isGetter() {
-      return declaration.parameters == null;
+      return declaration.params == null;
     }
     ```
 
