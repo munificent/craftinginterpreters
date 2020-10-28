@@ -481,7 +481,7 @@ that's `NULL` or points to a class with no superclass, we report those errors.
 
 ### Executing super accesses
 
-Assuming the user didn't put a super expression where it's not allowed, their
+Assuming the user didn't put a `super` expression where it's not allowed, their
 code passes from the compiler over to the runtime. We've got ourselves a new
 instruction:
 
@@ -521,7 +521,7 @@ pushes the new bound method. Otherwise, it reports a runtime error and returns
 <aside name="field">
 
 Another difference compared to `OP_GET_PROPERTY` is that we don't try to look
-for a shadowing field first. Fields are not inherited so super expressions
+for a shadowing field first. Fields are not inherited so `super` expressions
 always resolve to methods.
 
 If Lox were a prototype-based language that used *delegation* instead of
