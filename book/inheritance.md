@@ -12,7 +12,7 @@ Can you believe it? We've reached the last chapter of [Part II][]. We're almost
 done with our first Lox interpreter. The [previous chapter][] was a big ball of
 intertwined object-orientation features. I couldn't separate those from each
 other, but I did manage to untangle one piece. In this chapter, we'll finish
-off Lox's class support by adding **inheritance.**
+off Lox's class support by adding inheritance.
 
 [part ii]: a-tree-walk-interpreter.html
 [previous chapter]: classes.html
@@ -47,7 +47,7 @@ stick with "superclass" and "subclass".
 <aside name="subclass">
 
 "Super-" and "sub-" mean "above" and "below" in Latin, respectively. Picture an
-inheritance tree with the root at the top like a family tree -- subclasses are
+inheritance tree like a family tree with the root at the top -- subclasses are
 below their superclasses on the diagram. More generally, "sub-" refers to things
 that refine or are contained by some more general concept. In zoology, a
 subclass is a finer categorization of a larger class of living things.
@@ -78,7 +78,8 @@ in parentheses after the class name. Simula puts the superclass's name *before*
 the `class` keyword.
 
 This late in the game, I'd rather not add a new reserved word or token to the
-lexer. We don't have `extends` or even `:`, so we'll follow Ruby and use `<`:
+lexer. We don't have `extends` or even `:`, so we'll follow Ruby and use a
+less-than sign (`<`).
 
 ```lox
 class Doughnut {
@@ -91,7 +92,7 @@ class BostonCream < Doughnut {
 ```
 
 To work this into the grammar, we add a new optional clause in our existing
-`classDecl` rule:
+`classDecl` rule.
 
 ```ebnf
 classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
@@ -104,7 +105,7 @@ Unlike some other object-oriented languages like Java, Lox has no root "Object"
 class that everything inherits from, so when you omit the superclass clause, the
 class has *no* superclass, not even an implicit one.
 
-We want to capture this new syntax in the class declaration's AST node:
+We want to capture this new syntax in the class declaration's AST node.
 
 ^code superclass-ast (1 before, 1 after)
 
@@ -114,17 +115,17 @@ but at runtime, that identifier is evaluated as a variable access. Wrapping the
 name in an Expr.Variable early on in the parser gives us an object that the
 resolver can hang the resolution information off of.
 
-The new parser code follows the grammar directly:
+The new parser code follows the grammar directly.
 
 ^code parse-superclass (1 before, 1 after)
 
-Once we've (possibly) parsed a superclass declaration, we store it in the AST:
+Once we've (possibly) parsed a superclass declaration, we store it in the AST.
 
 ^code construct-class-ast (2 before, 1 after)
 
 If we didn't parse a superclass clause, the superclass expression will be
 `null`. We'll have to make sure the later passes check for that. The first of
-those is the resolver:
+those is the resolver.
 
 ^code resolve-superclass (1 before, 2 after)
 
@@ -136,20 +137,20 @@ inside blocks, so it's possible the superclass name refers to a local variable.
 In that case, we need to make sure it's resolved.
 
 Because even well-intentioned programmers sometimes write weird code, there's a
-silly edge case we need to worry about while we're in here. Take a look at:
+silly edge case we need to worry about while we're in here. Take a look at this:
 
 ```lox
 class Oops < Oops {}
 ```
 
-There's no way this will do anything useful and if we let it go until the
-runtime, it will break the expectation the interpreter has about there not being
-cycles in the inheritance chain. The safest thing is to detect it statically and
-report it as an error:
+There's no way this will do anything useful and if we let the runtime try to run
+this, it will break the expectation the interpreter has about there not being
+cycles in the inheritance chain. The safest thing is to detect this case
+statically and report it as an error.
 
 ^code inherit-self (2 before, 1 after)
 
-Assuming the code resolves without error, it travels to the interpreter:
+Assuming the code resolves without error, the AST travels to the interpreter.
 
 ^code interpret-superclass (1 before, 1 after)
 
@@ -167,21 +168,20 @@ class Subclass < NotAClass {} // ?!
 Assuming that check passes, we continue on. Executing a class declaration turns
 the syntactic representation of a class -- its AST node -- into its runtime
 representation, a LoxClass object. We need to plumb the superclass through to
-that too. We pass it through the constructor:
+that too. We pass the superclass to the constructor.
 
 ^code interpreter-construct-class (3 before, 1 after)
 
-...which stores it:
+The constructor stores it in a field.
 
 ^code lox-class-constructor (1 after)
 
-...in a new field:
+Which we declare here:
 
 ^code lox-class-superclass-field (1 before, 1 after)
 
-That's our foundation -- the syntax and runtime representation the semantics
-will build on. We can define classes that are subclasses of other classes. Now,
-what does having a superclass actually *do?*
+With that, we can define classes that are subclasses of other classes. Now, what
+does having a superclass actually *do?*
 
 ## Inheriting Methods
 
@@ -248,7 +248,7 @@ However, since the subclass has overridden the method, there's no way to refer
 to the original one. If the subclass method tries to call it by name, it will
 just recursively hit its own override. We need a way to say "Call this method,
 but look for it directly on my superclass and ignore my override". Java uses
-`super` for this, and we'll use that same syntax in Lox:
+`super` for this, and we'll use that same syntax in Lox. Here is an example:
 
 ```lox
 class Doughnut {
@@ -265,27 +265,32 @@ class BostonCream < Doughnut {
 }
 
 BostonCream().cook();
-// Prints:
-// Fry until golden brown.
-// Pipe full of custard and coat with chocolate.
 ```
 
-The `super` keyword, followed by a dot and an identifier looks for a method with
-that name. Unlike calls on `this`, the search starts at the superclass.
+If you run this, it should print:
+
+```text
+Fry until golden brown.
+Pipe full of custard and coat with chocolate.
+```
+
+We have a new expression form. The `super` keyword, followed by a dot and an
+identifier looks for a method with that name. Unlike calls on `this`, the search
+starts at the superclass.
 
 ### Syntax
 
 With `this`, the keyword works sort of like a magic variable and the expression
 is that one lone token. But with `super`, the subsequent `.` and property name
-are inseparable parts of the super expression. You can't have a bare `super`
-token all by itself:
+are inseparable parts of the `super` expression. You can't have a bare `super`
+token all by itself.
 
 ```lox
 print super; // Syntax error.
 ```
 
 So the new clause we add to the `primary` rule in our grammar includes the
-property access as well:
+property access as well.
 
 ```ebnf
 primary        → "true" | "false" | "nil" | "this"
@@ -293,17 +298,17 @@ primary        → "true" | "false" | "nil" | "this"
                | "super" "." IDENTIFIER ;
 ```
 
-Typically, a super expression is used for a method call, but, as with regular
+Typically, a `super` expression is used for a method call, but, as with regular
 methods, the argument list is *not* part of the expression. Instead, a super
 *call* is a super *access* followed by a function call. Like other method calls,
-you can get a handle to a superclass method and invoke it separately:
+you can get a handle to a superclass method and invoke it separately.
 
 ```lox
 var method = super.cook;
 method();
 ```
 
-So the super expression itself contains only the token for the `super` keyword
+So the `super` expression itself contains only the token for the `super` keyword
 and the name of the method being looked up. The corresponding <span
 name="super-ast">syntax tree node</span> is thus:
 
@@ -318,31 +323,31 @@ The generated code for the new node is in [Appendix II][appendix-super].
 </aside>
 
 Following the grammar, the new parsing code goes inside our existing `primary()`
-method:
+method.
 
 ^code parse-super (2 before, 2 after)
 
-A leading `super` keyword tells us we've hit a super expression. After that we
+A leading `super` keyword tells us we've hit a `super` expression. After that we
 consume the expected `.` and method name.
 
 ### Semantics
 
-Earlier, I said a super expression starts the method lookup from "the
-superclass", but *which* superclass? I need to be more precise. The naïve answer
-is the superclass of `this`, the object the surrounding method was called on.
-That coincidentally produces the right behavior in a lot of cases, but that's
-not actually correct. Gaze upon:
+Earlier, I said a `super` expression starts the method lookup from "the
+superclass", but *which* superclass? The naïve answer is the superclass of
+`this`, the object the surrounding method was called on. That coincidentally
+produces the right behavior in a lot of cases, but that's not actually correct.
+Gaze upon:
 
 ```lox
 class A {
   method() {
-    print "A method";
+    print "Method A";
   }
 }
 
 class B < A {
   method() {
-    print "B method";
+    print "Method B";
   }
 
   test() {
@@ -355,14 +360,15 @@ class C < B {}
 C().test();
 ```
 
-Translate this program to Java, C#, or C++ and it would print "A method", which
+Translate this program to Java, C#, or C++ and it will print "Method A", which
 is what we want Lox to do too. When this program runs, inside the body of
 `test()`, `this` is an instance of C. The superclass of C is B, but that is
 *not* where the lookup should start. If it did, we would hit B's `method()`.
 
 Instead, lookup should start on the superclass of *the class containing the
-super expression*. In this case, since `test()` is defined inside B, the super
-expression inside it should start the lookup on *B*&rsquo;s superclass -- A.
+`super` expression*. In this case, since `test()` is defined inside B, the
+`super` expression inside it should start the lookup on *B*&rsquo;s superclass
+-- A.
 
 <span name="flow"></span>
 
@@ -382,15 +388,15 @@ The execution flow looks something like this
 
 </aside>
 
-Thus, in order to evaluate a super expression, we need access to the superclass
-of the class definition surrounding the call. Alack and alas, at the point in
-the interpreter where we are executing a super expression, we don't have that
-easily available.
+Thus, in order to evaluate a `super` expression, we need access to the
+superclass of the class definition surrounding the call. Alack and alas, at the
+point in the interpreter where we are executing a `super` expression, we don't
+have that easily available.
 
 We *could* add a field to LoxFunction to store a reference to the LoxClass that
 owns that method. The interpreter would keep a reference to the
 currently-executing LoxFunction so that we could look it up later when we hit a
-super expression. From there, we'd get the LoxClass of the method, then its
+`super` expression. From there, we'd get the LoxClass of the method, then its
 superclass.
 
 That's a lot of plumbing. In the [last chapter][], we had a similar problem when
@@ -410,13 +416,13 @@ Does anyone even like rhetorical questions?
 
 One important difference is that we bound `this` when the method was *accessed*.
 The same method can be called on different instances and each needs its own
-`this`. With super expressions, the superclass is a fixed property of the *class
-declaration itself*. Every time you evaluate some super expression, the
+`this`. With `super` expressions, the superclass is a fixed property of the
+*class declaration itself*. Every time you evaluate some `super` expression, the
 superclass is always the same.
 
 That means we can create the environment for the superclass once, when the class
 definition is executed. Immediately before we define the methods, we make a new
-environment to bind the class's superclass to the name `super`:
+environment to bind the class's superclass to the name `super`.
 
 <img src="image/inheritance/superclass.png" alt="The superclass environment." />
 
@@ -429,13 +435,13 @@ the method's environment, like so:
 
 That's a lot of machinery, but we'll get through it a step at a time. Before we
 can get to creating the environment at runtime, we need to handle the
-corresponding scope chain in the resolver:
+corresponding scope chain in the resolver.
 
 ^code begin-super-scope (2 before, 2 after)
 
 If the class declaration has a superclass, then we create a new scope
 surrounding all of its methods. In that scope, we define the name "super". Once
-we're done resolving the class's methods, we discard that scope:
+we're done resolving the class's methods, we discard that scope.
 
 ^code end-super-scope (2 before, 1 after)
 
@@ -443,17 +449,17 @@ It's a minor optimization, but we only create the superclass environment if the
 class actually *has* a superclass. There's no point creating it when there isn't
 a superclass since there'd be no superclass to store in it anyway.
 
-With "super" defined in a scope chain, we are able to resolve the super
-expression itself:
+With "super" defined in a scope chain, we are able to resolve the `super`
+expression itself.
 
 ^code resolve-super-expr
 
-We resolve the `super` token exactly as if it were a variable. That stores the
-number of hops along the environment chain the interpreter needs to walk to find
-the environment where the superclass is stored.
+We resolve the `super` token exactly as if it were a variable. The resolution
+stores the number of hops along the environment chain that the interpreter needs
+to walk to find the environment where the superclass is stored.
 
 This code is mirrored in the interpreter. When we evaluate a subclass
-definition, we create a new environment:
+definition, we create a new environment.
 
 ^code begin-superclass-environment (6 before, 2 after)
 
@@ -461,12 +467,12 @@ Inside that environment, we store a reference to the superclass -- the actual
 LoxClass object for the superclass which we have now that we are in the runtime.
 Then we create the LoxFunctions for each method. Those will capture the current
 environment -- the one where we just bound "super" -- as their closure, holding
-onto the superclass like we need. Once that's done, we pop the environment:
+onto the superclass like we need. Once that's done, we pop the environment.
 
 ^code end-superclass-environment (2 before, 2 after)
 
-We're ready to interpret super expressions themselves. There's a few moving
-parts, so we'll build this method up in pieces:
+We're ready to interpret `super` expressions themselves. There's a few moving
+parts, so we'll build this method up in pieces.
 
 ^code interpreter-visit-super
 
@@ -475,15 +481,15 @@ superclass by looking up "super" in the proper environment.
 
 When we access a method, we also need to bind `this` to the object the method is
 accessed from. In an expression like `doughnut.cook`, the object is whatever we
-get from evaluating `doughnut`. In a super expression like `super.cook`, the
+get from evaluating `doughnut`. In a `super` expression like `super.cook`, the
 current object is implicitly the *same* current object that we're using. In
 other words, `this`. Even though we are looking up the *method* on the
 superclass, the *instance* is still `this`.
 
-Unfortunately, inside the super expression, we don't have a convenient node for
-the resolver to hang the number of hops to `this` on. Fortunately, we do control
-the layout of the environment chains. The environment where "this" is bound is
-always right inside the environment where we store "super":
+Unfortunately, inside the `super` expression, we don't have a convenient node
+for the resolver to hang the number of hops to `this` on. Fortunately, we do
+control the layout of the environment chains. The environment where "this" is
+bound is always right inside the environment where we store "super".
 
 ^code super-find-this (2 before, 1 after)
 
@@ -494,12 +500,11 @@ works.
 <aside name="elegant">
 
 Writing a book that includes every single line of code for a program means I
-can't hide the hacks and cut corners by leaving them as an "exercise for the
-reader".
+can't hide the hacks by leaving them as an "exercise for the reader".
 
 </aside>
 
-Now we're ready to look up and bind the method, starting at the superclass:
+Now we're ready to look up and bind the method, starting at the superclass.
 
 ^code super-find-method (2 before, 1 after)
 
@@ -508,7 +513,7 @@ expression, except that we call `findMethod()` on the superclass instead of on
 the class of the current object.
 
 That's basically it. Except, of course, that we might *fail* to find the method.
-So we check for that too:
+So we check for that too.
 
 ^code super-no-method (2 before, 2 after)
 
@@ -531,11 +536,11 @@ class Eclair {
 }
 ```
 
-This class has a super expression, but no superclass. At runtime, the code for
-evaluating super expressions assumes that "super" was successfully resolved and
-will be found in the environment. That's going to fail here because there is no
-surrounding environment for the superclass since there is no superclass. The JVM
-will throw an exception and bring our interpreter to its knees.
+This class has a `super` expression, but no superclass. At runtime, the code for
+evaluating `super` expressions assumes that "super" was successfully resolved
+and will be found in the environment. That's going to fail here because there is
+no surrounding environment for the superclass since there is no superclass. The
+JVM will throw an exception and bring our interpreter to its knees.
 
 Heck, there are even simpler broken uses of super:
 
@@ -545,8 +550,8 @@ super.notEvenInAClass();
 
 We could handle errors like these at runtime by checking to see if the look-up
 of "super" succeeded. But we can tell statically -- just by looking at the
-source code -- that Eclair has no superclass and thus no super expression will
-work inside it. Likewise, in the second example, we know that the super
+source code -- that Eclair has no superclass and thus no `super` expression will
+work inside it. Likewise, in the second example, we know that the `super`
 expression is not even inside a method body.
 
 Even though Lox is dynamically typed, that doesn't mean we want to defer
@@ -555,18 +560,18 @@ it sooner rather than later. So we'll report these errors statically, in the
 resolver.
 
 First, we add a new case to the enum we use to keep track of what kind of class
-is surrounding the current code being visited:
+is surrounding the current code being visited.
 
 ^code class-type-subclass (1 before, 1 after)
 
 We'll use that to distinguish when we're inside a class that has a superclass
 versus one that doesn't. When we resolve a class declaration, we set that if the
-class is a subclass:
+class is a subclass.
 
 ^code set-current-subclass (1 before, 1 after)
 
-Then, when we resolve a super expression, we check to see that we are currently
-inside a scope where that's allowed:
+Then, when we resolve a `super` expression, we check to see that we are
+currently inside a scope where that's allowed.
 
 ^code invalid-super (1 before, 1 after)
 
