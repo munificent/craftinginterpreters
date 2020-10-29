@@ -254,7 +254,7 @@ the &ldquo;value&rdquo; module:</p>
 
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="k">typedef</span> <span class="k">struct</span> <span class="i">sObj</span> <span class="t">Obj</span>;
+<span class="k">typedef</span> <span class="k">struct</span> <span class="t">Obj</span> <span class="t">Obj</span>;
 
 </pre><pre class="insert-after">
 typedef enum {
@@ -271,7 +271,7 @@ create new file</div>
 <span class="a">#include &quot;common.h&quot;</span>
 <span class="a">#include &quot;value.h&quot;</span>
 
-<span class="k">struct</span> <span class="i">sObj</span> {
+<span class="k">struct</span> <span class="t">Obj</span> {
   <span class="t">ObjType</span> <span class="i">type</span>;
 };
 
@@ -291,7 +291,7 @@ bookkeeping information for memory management in there. The type enum is:</p>
 } <span class="t">ObjType</span>;
 </pre><pre class="insert-after">
 
-struct sObj {
+struct Obj {
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
@@ -314,10 +314,10 @@ typedef enum {
 <p>That&rsquo;s our foundation. Now, let&rsquo;s build strings on top of it. The payload for
 strings is defined in a separate struct. Again we need to forward-declare it:</p>
 <div class="codehilite"><pre class="insert-before">
-typedef struct sObj Obj;
+typedef struct Obj Obj;
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="k">typedef</span> <span class="k">struct</span> <span class="i">sObjString</span> <span class="t">ObjString</span>;
+<span class="k">typedef</span> <span class="k">struct</span> <span class="t">ObjString</span> <span class="t">ObjString</span>;
 </pre><pre class="insert-after">
 
 typedef enum {
@@ -328,10 +328,10 @@ typedef enum {
 <div class="codehilite"><pre class="insert-before">
 };
 </pre><div class="source-file"><em>object.h</em><br>
-add after struct <em>sObj</em></div>
+add after struct <em>Obj</em></div>
 <pre class="insert">
 
-<span class="k">struct</span> <span class="i">sObjString</span> {
+<span class="k">struct</span> <span class="t">ObjString</span> {
   <span class="t">Obj</span> <span class="i">obj</span>;
   <span class="t">int</span> <span class="i">length</span>;
   <span class="t">char</span>* <span class="i">chars</span>;
@@ -340,7 +340,7 @@ add after struct <em>sObj</em></div>
 
 #endif
 </pre></div>
-<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObj</em></div>
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>Obj</em></div>
 
 <p>A string object contains an array of characters. Those are stored in a separate
 heap-allocated array so that we only set aside as much room as needed for each
@@ -396,7 +396,7 @@ Values. It relies on this inline function:</p>
 };
 
 </pre><div class="source-file"><em>object.h</em><br>
-add after struct <em>sObjString</em></div>
+add after struct <em>ObjString</em></div>
 <pre class="insert">
 <span class="k">static</span> <span class="k">inline</span> <span class="t">bool</span> <span class="i">isObjType</span>(<span class="t">Value</span> <span class="i">value</span>, <span class="t">ObjType</span> <span class="i">type</span>) {
   <span class="k">return</span> <span class="a">IS_OBJ</span>(<span class="i">value</span>) &amp;&amp; <span class="a">AS_OBJ</span>(<span class="i">value</span>)-&gt;<span class="i">type</span> == <span class="i">type</span>;
@@ -405,7 +405,7 @@ add after struct <em>sObjString</em></div>
 </pre><pre class="insert-after">
 #endif
 </pre></div>
-<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjString</em></div>
 
 <p>Pop quiz: Why not just put the body of this function right in the macro? What&rsquo;s
 different about this one compared to the others? Right, it&rsquo;s because the body
@@ -477,14 +477,14 @@ Since it doesn&rsquo;t, we can take the characters as they are.</p>
 };
 
 </pre><div class="source-file"><em>object.h</em><br>
-add after struct <em>sObjString</em></div>
+add after struct <em>ObjString</em></div>
 <pre class="insert">
 <span class="t">ObjString</span>* <span class="i">copyString</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">chars</span>, <span class="t">int</span> <span class="i">length</span>);
 
 </pre><pre class="insert-after">
 static inline bool isObjType(Value value, ObjType type) {
 </pre></div>
-<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjString</em></div>
 
 <p>Which the compiler needs to include:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -813,7 +813,7 @@ new function, <code>takeString()</code>:</p>
 };
 
 </pre><div class="source-file"><em>object.h</em><br>
-add after struct <em>sObjString</em></div>
+add after struct <em>ObjString</em></div>
 <pre class="insert">
 <span class="t">ObjString</span>* <span class="i">takeString</span>(<span class="t">char</span>* <span class="i">chars</span>, <span class="t">int</span> <span class="i">length</span>);
 </pre><pre class="insert-after">
@@ -821,7 +821,7 @@ ObjString* copyString(const char* chars, int length);
 void printObject(Value value);
 
 </pre></div>
-<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjString</em></div>
 
 <p>The implementation looks like:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
@@ -918,16 +918,16 @@ allocate those too. Instead, we&rsquo;ll use an <em>intrusive list</em><span cla
 itself will be the linked list node. Each Obj gets a pointer to the next Obj in
 the chain:</p>
 <div class="codehilite"><pre class="insert-before">
-struct sObj {
+struct Obj {
   ObjType type;
 </pre><div class="source-file"><em>object.h</em><br>
-in struct <em>sObj</em></div>
+in struct <em>Obj</em></div>
 <pre class="insert">
-  <span class="k">struct</span> <span class="i">sObj</span>* <span class="i">next</span>;
+  <span class="k">struct</span> <span class="t">Obj</span>* <span class="i">next</span>;
 </pre><pre class="insert-after">
 };
 </pre></div>
-<div class="source-file-narrow"><em>object.h</em>, in struct <em>sObj</em></div>
+<div class="source-file-narrow"><em>object.h</em>, in struct <em>Obj</em></div>
 
 <p>The VM stores a pointer to the head of the list:</p>
 <div class="codehilite"><pre class="insert-before">

@@ -88,13 +88,13 @@ typedef enum {
 } ObjType;
 //< obj-type
 
-struct sObj {
+struct Obj {
   ObjType type;
 //> Garbage Collection is-marked-field
   bool isMarked;
 //< Garbage Collection is-marked-field
 //> next-field
-  struct sObj* next;
+  struct Obj* next;
 //< next-field
 };
 //> Calls and Functions obj-function
@@ -120,7 +120,7 @@ typedef struct {
 //< Calls and Functions obj-native
 //> obj-string
 
-struct sObjString {
+struct ObjString {
   Obj obj;
   int length;
   char* chars;

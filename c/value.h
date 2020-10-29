@@ -9,9 +9,9 @@
 #include "common.h"
 
 //> Strings forward-declare-obj
-typedef struct sObj Obj;
+typedef struct Obj Obj;
 //> forward-declare-obj-string
-typedef struct sObjString ObjString;
+typedef struct ObjString ObjString;
 //< forward-declare-obj-string
 
 //< Strings forward-declare-obj

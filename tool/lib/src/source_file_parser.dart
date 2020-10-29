@@ -17,7 +17,7 @@ final _endChapterPattern = RegExp(r"^//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)$");
 final _constructorPattern = RegExp(r"^  ([A-Z][a-z]\w+)\(");
 final _functionPattern = RegExp(r"(\w+)>*\*? (\w+)\(([^)]*)");
 final _modulePattern = RegExp(r"^(\w+) (\w+);");
-final _structPattern = RegExp(r"^struct (s\w+)? {$");
+final _structPattern = RegExp(r"^struct (\w+)? {$");
 final _typePattern =
     RegExp(r"(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)");
 final _namedTypedefPattern = RegExp(r"^typedef (enum|struct|union) (\w+) {$");
