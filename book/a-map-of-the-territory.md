@@ -527,12 +527,13 @@ reserved for experts. The fastest way to execute code is by compiling it to
 machine code, but you might not know what architecture your end user's machine
 supports. What to do?
 
-You can do the same thing the HotSpot JVM, Microsoft's CLR and most JavaScript
-interpreters do. On the end user's machine, when the program is loaded -- either
-from source in the case of JS, or platform-independent bytecode for the JVM and
-CLR -- you compile it to native for the architecture their computer supports.
-Naturally enough, this is called **just-in-time compilation.** Most hackers just
-say "JIT", pronounced like it rhymes with "fit".
+You can do the same thing that the HotSpot JVM, Microsoft's CLR and most
+JavaScript interpreters do. On the end user's machine, when the program is
+loaded -- either from source in the case of JS, or platform-independent bytecode
+for the JVM and CLR -- you compile it to native for the architecture their
+computer supports. Naturally enough, this is called **just-in-time
+compilation.** Most hackers just say "JIT", pronounced like it rhymes with
+"fit".
 
 The most sophisticated JITs insert profiling hooks into the generated code to
 see which regions are most performance critical and what kind of data is flowing
