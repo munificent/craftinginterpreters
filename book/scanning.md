@@ -305,8 +305,8 @@ identifiers (variable names and the like). This regex matches one:
 ```
 
 If you did think of regular expressions, your intuition is a deep one. The rules
-that determine a particular language groups characters into lexemes are called
-its <span name="theory">**lexical grammar**</span>. In Lox, as in most
+that determine how a particular language groups characters into lexemes are
+called its <span name="theory">**lexical grammar**</span>. In Lox, as in most
 programming languages, the rules of that grammar are simple enough to be
 classified a **[regular language][]**. That's the same "regular" as in regular
 expressions.
