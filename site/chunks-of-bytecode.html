@@ -212,10 +212,10 @@ upwards of 100 <em>times</em> faster.</p>
 there for you. Its heuristic is pretty simple. Whenever the CPU reads a bit of
 data from RAM, it pulls in a whole little bundle of adjacent bytes and stuffs
 them in the cache.</p>
-<p>If our program next requests some data close enough to be inside that <em>cache
-line</em>, our CPU runs like a well-oiled conveyor belt in a factory. We <em>really</em>
-want to take advantage of this. To get that, the way we represent code in memory
-should be dense and ordered like it&rsquo;s read.</p>
+<p>If our program next requests some data close enough to be inside that cache
+line, our CPU runs like a well-oiled conveyor belt in a factory. We <em>really</em>
+want to take advantage of this. To use the cache effectively, the way we
+represent code in memory should be dense and ordered like it&rsquo;s read.</p>
 <p>Now look up at that tree. Those sub-objects could be <span
 name="anywhere"><em>anywhere</em></span>. Every step the tree-walker takes where it
 follows a reference to a child node may step outside the bounds of the cache and
@@ -268,7 +268,7 @@ different architectures you support. It&rsquo;s mainly the code generation and s
 the details around instruction selection that you&rsquo;ll need to write afresh each
 time.</p>
 <p>The <a href="https://llvm.org/">LLVM</a> project gives you some of this out of the box. If your compiler
-outputs LLVM&rsquo;s own special intermediate language, it in turn compiles that to
+outputs LLVM&rsquo;s own special intermediate language, LLVM in turn compiles that to
 native code for a plethora of architectures.</p>
 </aside>
 <h3><a href="#what-is-bytecode" name="what-is-bytecode"><small>14&#8202;.&#8202;1&#8202;.&#8202;3</small>What is bytecode?</a></h3>
@@ -276,7 +276,7 @@ native code for a plethora of architectures.</p>
 simple, portable, and slow. On the other, native code is complex and
 platform-specific but fast. Bytecode sits in the middle. It retains the
 portability of a tree-walker<span class="em">&mdash;</span>we won&rsquo;t be getting our hands dirty with
-assembly code in this book. It trades in <em>some</em> simplicity to get a performance
+assembly code in this book. It sacrifices <em>some</em> simplicity to get a performance
 boost in return, though not as fast as going fully native.</p>
 <p>Structurally, bytecode resembles machine code. It&rsquo;s a dense, linear sequence of
 binary instructions. That keeps overhead low and plays nice with the cache.
@@ -289,8 +289,8 @@ Bytecode is kind of like that. It&rsquo;s an idealized fantasy instruction set t
 makes your life as the compiler writer easier.</p>
 <p>The problem with a fantasy architecture, of course, is that it doesn&rsquo;t exist. We
 solve that by writing an <em>emulator</em><span class="em">&mdash;</span>a simulated chip written in software that
-interprets the bytecode one instruction at a time. A <strong>&ldquo;virtual machine&rdquo;</strong>
-(<strong>VM</strong>) if you will.</p>
+interprets the bytecode one instruction at a time. A <strong>virtual machine</strong>
+(<strong>VM</strong>), if you will.</p>
 <p>That emulation layer adds <span name="p-code">overhead</span>, which is a key
 reason bytecode is slower than native code. But in return, it gives us
 portability. Write our VM in a language like C that is already supported on all
@@ -304,9 +304,10 @@ Cambrian explosion and new architectures appeared every day. Keeping up with the
 latest chips was worth more than squeezing the maximum performance from each
 one. That&rsquo;s why the &ldquo;p&rdquo; in &ldquo;p-code&rdquo; doesn&rsquo;t stand for &ldquo;Pascal&rdquo;, but &ldquo;portable&rdquo;.</p>
 </aside>
-<p>This is the path we&rsquo;ll take with our new interpreter, clox. The same path taken
-by the main implementations of Python, Ruby, Lua, OCaml, Erlang, and others. In
-many ways, it parallels the structure of our previous interpreter:</p>
+<p>This is the path we&rsquo;ll take with our new interpreter, clox. We&rsquo;ll follow in the
+footsteps of the main implementations of Python, Ruby, Lua, OCaml, Erlang, and
+others. In many ways, our VM&rsquo;s design will parallel the structure of our
+previous interpreter:</p>
 <p><img src="image/chunks-of-bytecode/phases.png" alt="Phases of the two
 implementations. jlox is Parser to Syntax Trees to Interpreter. clox is Compiler
 to Bytecode to Virtual Machine." /></p>
@@ -316,7 +317,7 @@ feature at a time. In this chapter, we&rsquo;ll get the skeleton of the applicat
 place and the data structures needed to store and represent a chunk of bytecode.</p>
 <h2><a href="#getting-started" name="getting-started"><small>14&#8202;.&#8202;2</small>Getting Started</a></h2>
 <p>Where else to begin, but at <code>main()</code>? <span name="ready">Fire</span> up your
-trusty text editor and C compiler and start typing:</p>
+trusty text editor and start typing.</p>
 <aside name="ready">
 <p>Now is a good time to stretch, maybe crack your knuckles. A little montage music
 wouldn&rsquo;t hurt either.</p>
@@ -350,12 +351,12 @@ create new file</div>
 <div class="source-file-narrow"><em>common.h</em>, create new file</div>
 
 <p>There are a handful of types and constants we&rsquo;ll use throughout the interpreter,
-and this is a convenient place to put them. For now, it&rsquo;s the venerable <code>NULL</code>
-and <code>size_t</code> along with the nice C99 Boolean and explicit-sized integer types<span class="em">&mdash;</span><code>bool</code>, <code>uint8_t</code>, and friends.</p>
+and this is a convenient place to put them. For now, it&rsquo;s the venerable <code>NULL</code>,
+<code>size_t</code>, the nice C99 Boolean <code>bool</code>, and explicit-sized integer types<span class="em">&mdash;</span><code>uint8_t</code> and friends.</p>
 <h2><a href="#chunks-of-instructions" name="chunks-of-instructions"><small>14&#8202;.&#8202;3</small>Chunks of Instructions</a></h2>
 <p>Next, we need a module to define our code representation. I&rsquo;ve been using
-&ldquo;chunk&rdquo; to refer to blobs of bytecode, so let&rsquo;s make that the official name for
-that module:</p>
+&ldquo;chunk&rdquo; to refer to sequences of bytecode, so let&rsquo;s make that the official name
+for that module.</p>
 <div class="codehilite"><div class="source-file"><em>chunk.h</em><br>
 create new file</div>
 <pre>
@@ -369,7 +370,7 @@ create new file</div>
 <div class="source-file-narrow"><em>chunk.h</em>, create new file</div>
 
 <p>In our bytecode format, each instruction has a one-byte <strong>operation code</strong>
-(universally shortened to &ldquo;opcode&rdquo;). That number controls what kind of
+(universally shortened to <strong>opcode</strong>). That number controls what kind of
 instruction we&rsquo;re dealing with<span class="em">&mdash;</span>add, subtract, look up variable, etc. We
 define those here:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -386,14 +387,14 @@ define those here:</p>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em></div>
 
-<p>For now, we start with a single instruction, <code>OP_RETURN</code>. When we have a VM,
-this one will mean &ldquo;return from the current function&rdquo;. I admit this isn&rsquo;t
-exactly useful yet, but we have to start somewhere, and this is a particularly
-simple instruction, for reasons we&rsquo;ll get to later.</p>
+<p>For now, we start with a single instruction, <code>OP_RETURN</code>. When we have a
+full-featured VM, this instruction will mean &ldquo;return from the current function&rdquo;.
+I admit this isn&rsquo;t exactly useful yet, but we have to start somewhere, and this
+is a particularly simple instruction, for reasons we&rsquo;ll get to later.</p>
 <h3><a href="#a-dynamic-array-of-instructions" name="a-dynamic-array-of-instructions"><small>14&#8202;.&#8202;3&#8202;.&#8202;1</small>A dynamic array of instructions</a></h3>
 <p>Bytecode is a series of instructions. Eventually, we&rsquo;ll store some other data
 along with the instructions, so let&rsquo;s go ahead and create a struct to hold it
-all:</p>
+all.</p>
 <div class="codehilite"><pre class="insert-before">
 } OpCode;
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -412,12 +413,21 @@ add after enum <em>OpCode</em></div>
 <p>At the moment, this is simply a wrapper around an array of bytes. Since we don&rsquo;t
 know how big the array needs to be before we start compiling a chunk, it must be
 dynamic. Dynamic arrays are one of my favorite data structures. That sounds like
-claiming vanilla is my favorite ice cream flavor, but hear me out. Dynamic
-arrays provide:</p>
+claiming vanilla is my favorite ice cream <span name="flavor">flavor</span>, but
+hear me out. Dynamic arrays provide:</p>
+<aside name="flavor">
+<p>Butter pecan is actually my favorite.</p>
+</aside>
 <ul>
-<li>Cache-friendly, dense storage.</li>
-<li>Constant-time indexed element lookup.</li>
-<li>Constant-time appending to the end of the array.</li>
+<li>
+<p>Cache-friendly, dense storage.</p>
+</li>
+<li>
+<p>Constant-time indexed element lookup.</p>
+</li>
+<li>
+<p>Constant-time appending to the end of the array.</p>
+</li>
 </ul>
 <p>Those features are exactly why we used dynamic arrays all the time in jlox under
 the guise of Java&rsquo;s ArrayList class. Now that we&rsquo;re in C, we get to roll our
@@ -466,7 +476,7 @@ that as long as we grow the array by a multiple of its current size, when we
 average out the cost of a <em>sequence</em> of appends, each append is <em>O(1)</em>.</p>
 </aside>
 <p>We have our struct ready, so let&rsquo;s implement the functions to work with it. C
-doesn&rsquo;t have constructors, so we declare a function to initialize a new chunk:</p>
+doesn&rsquo;t have constructors, so we declare a function to initialize a new chunk.</p>
 <div class="codehilite"><pre class="insert-before">
 } Chunk;
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -496,8 +506,8 @@ create new file</div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em>, create new file</div>
 
-<p>It starts off completely empty. We don&rsquo;t even allocate an array yet. To append a
-byte to the end of the chunk we use:</p>
+<p>The dynamic array starts off completely empty. We don&rsquo;t even allocate a raw
+array yet. To append a byte to the end of the chunk we use a new function.</p>
 <div class="codehilite"><pre class="insert-before">
 void initChunk(Chunk* chunk);
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -510,7 +520,7 @@ add after <em>initChunk</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, add after <em>initChunk</em>()</div>
 
-<p>This is where the interesting work happens:</p>
+<p>This is where the interesting work happens.</p>
 <div class="codehilite"><div class="source-file"><em>chunk.c</em><br>
 add after <em>initChunk</em>()</div>
 <pre>
@@ -534,7 +544,7 @@ room. (We also hit this case on the very first write when the array is <code>NUL
 and <code>capacity</code> is 0.)</p>
 <p>To grow the array, first we figure out the new capacity and grow the array to
 that size. Both of those lower-level memory operations are defined in a new
-module:</p>
+module.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;chunk.h&quot;
 </pre><div class="source-file"><em>chunk.c</em></div>
@@ -546,7 +556,7 @@ void initChunk(Chunk* chunk) {
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em></div>
 
-<p>It starts with:</p>
+<p>This is enough to get us started:</p>
 <div class="codehilite"><div class="source-file"><em>memory.h</em><br>
 create new file</div>
 <pre>
@@ -566,11 +576,10 @@ create new file</div>
 to get the performance we want, the important part is that it <em>scales</em> based on
 the old size. We grow by a factor of two, which is pretty typical. 1.5&times; is
 another common choice.</p>
-<p>We also have an edge case to handle the first &ldquo;grow&rdquo; when the current capacity
-is zero. In that case, we jump straight to eight elements instead of starting at
-one. That <span name="profile">avoids</span> a little extra memory churn when
-the array is very small, at the expense of wasting a few bytes on very small
-chunks.</p>
+<p>We also handle the when the current capacity is zero. In that case, we jump
+straight to eight elements instead of starting at one. That <span
+name="profile">avoids</span> a little extra memory churn when the array is very
+small, at the expense of wasting a few bytes on very small chunks.</p>
 <aside name="profile">
 <p>I picked the number eight somewhat arbitrarily for the book. Most dynamic array
 implementations have a minimum threshold like this. The right way to pick a
@@ -578,7 +587,7 @@ value for this is to profile against real-world usage and see which constant
 makes the best performance trade-off between extra grows versus wasted space.</p>
 </aside>
 <p>Once we know the desired capacity, we create or grow the array to that size
-using <code>GROW_ARRAY()</code>:</p>
+using <code>GROW_ARRAY()</code>.</p>
 <div class="codehilite"><pre class="insert-before">
 #define GROW_CAPACITY(capacity) \
     ((capacity) &lt; 8 ? 8 : (capacity) * 2)
@@ -596,10 +605,9 @@ using <code>GROW_ARRAY()</code>:</p>
 </pre></div>
 <div class="source-file-narrow"><em>memory.h</em></div>
 
-<p>This macro wraps a little syntactic sugar around a function call to
-<code>reallocate()</code>, where the real work happens. The macro itself takes care of
-getting the size of the array&rsquo;s element type and casting the resulting <code>void*</code>
-back to a pointer of the right type.</p>
+<p>This macro pretties up a function call to <code>reallocate()</code> where the real work
+happens. The macro itself takes care of getting the size of the array&rsquo;s element
+type and casting the resulting <code>void*</code> back to a pointer of the right type.</p>
 <p>This <code>reallocate()</code> function is the single function we&rsquo;ll use for all dynamic
 memory management in clox<span class="em">&mdash;</span>allocating memory, freeing it, and changing the
 size of an existing allocation. Routing all of those operations through a single
@@ -609,8 +617,8 @@ keep track of how much memory is in use.</p>
 perform:</p><table>
   <thead>
     <tr>
-      <td><code>oldSize</code></td>
-      <td><code>newSize</code></td>
+      <td>oldSize</td>
+      <td>newSize</td>
       <td>Operation</td>
     </tr>
   </thead>
@@ -673,7 +681,7 @@ behavior we want for our dynamic array.</p>
 <p>Because computers are finite lumps of matter and not the perfect mathematical
 abstractions computer science theory would have us believe, allocation can fail
 if there isn&rsquo;t enough memory and <code>realloc()</code> will return <code>NULL</code>. We should
-handle that:</p>
+handle that.</p>
 <div class="codehilite"><pre class="insert-before">
   void* result = realloc(pointer, newSize);
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -701,7 +709,7 @@ this size metadata that <code>realloc()</code> updates.</p>
 </aside>
 <p>OK, we can create new chunks and write instructions to them. Are we done? Nope!
 We&rsquo;re in C now, remember, we have to manage memory ourselves, like Ye Olden
-Times, and that means <em>freeing</em> it too:</p>
+Times, and that means <em>freeing</em> it too.</p>
 <div class="codehilite"><pre class="insert-before">
 void initChunk(Chunk* chunk);
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -724,9 +732,9 @@ add after <em>initChunk</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em>, add after <em>initChunk</em>()</div>
 
-<p>It deallocates all of the memory and then calls <code>initChunk()</code> to zero out the
+<p>We deallocate all of the memory and then call <code>initChunk()</code> to zero out the
 fields leaving the chunk in a well-defined empty state. To free the memory, we
-add one more macro:</p>
+add one more macro.</p>
 <div class="codehilite"><pre class="insert-before">
 #define GROW_ARRAY(type, pointer, oldCount, newCount) \
     (type*)reallocate(pointer, sizeof(type) * (oldCount), \
@@ -743,10 +751,13 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize);
 <div class="source-file-narrow"><em>memory.h</em></div>
 
 <p>Like <code>GROW_ARRAY()</code>, this is a wrapper around a call to <code>reallocate()</code>. This one
-frees the memory by passing in zero for the new size.</p>
+frees the memory by passing in zero for the new size. I know, this is a lot of
+boring low-level stuff. Don&rsquo;t worry, we&rsquo;ll get a lot of use out of these in
+later chapters and will get to program at a higher level. Before we can do that,
+though, we gotta lay our own foundation.</p>
 <h2><a href="#disassembling-chunks" name="disassembling-chunks"><small>14&#8202;.&#8202;4</small>Disassembling Chunks</a></h2>
-<p>Great, now we have a little module for creating chunks of bytecode. Let&rsquo;s try
-it out by hand-building a sample chunk:</p>
+<p>Now we have a little module for creating chunks of bytecode. Let&rsquo;s try it out by
+hand-building a sample chunk.</p>
 <div class="codehilite"><pre class="insert-before">
 int main(int argc, const char* argv[]) {
 </pre><div class="source-file"><em>main.c</em><br>
@@ -761,7 +772,7 @@ in <em>main</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>()</div>
 
-<p>Don&rsquo;t forget the include:</p>
+<p>Don&rsquo;t forget the include.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;common.h&quot;
 </pre><div class="source-file"><em>main.c</em></div>
@@ -788,7 +799,7 @@ interpreter&rsquo;s internal representation of code.</p>
 <aside name="printer">
 <p>In jlox, our analogous tool was the <a href="representing-code.html#a-(not-very)-pretty-printer">AstPrinter class</a>.</p>
 </aside>
-<p>In <code>main()</code>, after we create the chunk, we pass it to the disassembler:</p>
+<p>In <code>main()</code>, after we create the chunk, we pass it to the disassembler.</p>
 <div class="codehilite"><pre class="insert-before">
   initChunk(&amp;chunk);
   writeChunk(&amp;chunk, OP_RETURN);
@@ -802,10 +813,9 @@ in <em>main</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>()</div>
 
-<p>Again, we whip up <span name="module">yet another</span> module:</p>
+<p>Again, we whip up <span name="module">yet another</span> module.</p>
 <aside name="module">
-<p>I promise you we won&rsquo;t be creating this many new files in later chapters. This
-first one lays much of the groundwork.</p>
+<p>I promise you we won&rsquo;t be creating this many new files in later chapters.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;chunk.h&quot;
@@ -882,7 +892,7 @@ add after <em>disassembleChunk</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, add after <em>disassembleChunk</em>()</div>
 
-<p>First, it prints the byte offset of the given instruction<span class="em">&mdash;</span>it tells us where
+<p>First, it prints the byte offset of the given instruction<span class="em">&mdash;</span>that tells us where
 in the chunk this instruction is. This will be a helpful signpost when we start
 doing control flow and jumping around in the bytecode.</p>
 <p>Next, it reads a single byte from the bytecode at the given offset. That&rsquo;s our
@@ -935,7 +945,7 @@ in both the static and dynamic worlds of our interpreter, they force us to start
 thinking at least a little bit about how our VM should represent values.</p>
 <p>For now, we&rsquo;re going to start as simple as possible<span class="em">&mdash;</span>we&rsquo;ll only support
 double-precision floating point numbers. This will obviously expand over time,
-so we&rsquo;ll set up a new module to give ourselves room to grow:</p>
+so we&rsquo;ll set up a new module to give ourselves room to grow.</p>
 <div class="codehilite"><div class="source-file"><em>value.h</em><br>
 create new file</div>
 <pre>
@@ -950,9 +960,9 @@ create new file</div>
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em>, create new file</div>
 
-<p>This typedef abstracts how values are concretely represented in C. That way, we
-can change that representation without needing to go back and fix existing code
-that passes around values.</p>
+<p>This typedef abstracts how Lox values are concretely represented in C. That way,
+we can change that representation without needing to go back and fix existing
+code that passes around values.</p>
 <p>Back to the question of where to store constants in a chunk. For small
 fixed-size values like integers, many instruction sets store the value directly
 in the code stream right after the opcode. These are called <strong>immediate
@@ -976,11 +986,11 @@ happy if you try to say, stuff a 4-byte integer at an odd address.</p>
 </aside>
 <h3><a href="#value-arrays" name="value-arrays"><small>14&#8202;.&#8202;5&#8202;.&#8202;2</small>Value arrays</a></h3>
 <p>The constant pool is an array of values. The instruction to load a constant
-looks up the value by index in that array. As with our bytecode array, the
-compiler doesn&rsquo;t know how big the array needs to be ahead of time. So, <span
-name="generic">again</span>, we need a dynamic one. Since C doesn&rsquo;t have generic
-data structures, we&rsquo;ll write another dynamic array data structure, this time for
-Value:</p>
+looks up the value by index in that array. As with our <span
+name="generic">bytecode</span> array, the compiler doesn&rsquo;t know how big the
+array needs to be ahead of time. So, again, we need a dynamic one. Since C
+doesn&rsquo;t have generic data structures, we&rsquo;ll write another dynamic array data
+structure, this time for Value.</p>
 <aside name="generic">
 <p>Defining a new struct and manipulation functions each time we need a dynamic
 array of a different type is a chore. We could cobble together some preprocessor
@@ -1005,7 +1015,7 @@ typedef double Value;
 
 <p>As with the bytecode array in Chunk, this struct wraps a pointer to an array
 along with its allocated capacity and the number of elements in use. We also
-need the same three functions to work with value arrays:</p>
+need the same three functions to work with value arrays.</p>
 <div class="codehilite"><pre class="insert-before">
 } ValueArray;
 </pre><div class="source-file"><em>value.h</em><br>
@@ -1039,7 +1049,7 @@ create new file</div>
 <div class="source-file-narrow"><em>value.c</em>, create new file</div>
 
 <p>Once we have an initialized array, we can start <span name="add">adding</span>
-values to it:</p>
+values to it.</p>
 <aside name="add">
 <p>Fortunately, we don&rsquo;t need other operations like insertion and removal.</p>
 </aside>
@@ -1073,8 +1083,8 @@ add after <em>writeValueArray</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em>, add after <em>writeValueArray</em>()</div>
 
-<p>Now that we have growable arrays of values, we can add one to Chunk to store its
-constants:</p>
+<p>Now that we have growable arrays of values, we can add one to Chunk to store the
+chunk&rsquo;s constants.</p>
 <div class="codehilite"><pre class="insert-before">
   uint8_t* code;
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -1086,7 +1096,7 @@ in struct <em>Chunk</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in struct <em>Chunk</em></div>
 
-<p>Don&rsquo;t forget the include:</p>
+<p>Don&rsquo;t forget the include.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;common.h&quot;
 </pre><div class="source-file"><em>chunk.h</em></div>
@@ -1099,7 +1109,7 @@ typedef enum {
 <div class="source-file-narrow"><em>chunk.h</em></div>
 
 <p>Ah, C, and its Stone Age modularity story. Where were we? Right. When we
-initialize a new chunk, we initialize its constant list too:</p>
+initialize a new chunk, we initialize its constant list too.</p>
 <div class="codehilite"><pre class="insert-before">
   chunk-&gt;code = NULL;
 </pre><div class="source-file"><em>chunk.c</em><br>
@@ -1112,7 +1122,7 @@ in <em>initChunk</em>()</div>
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>initChunk</em>()</div>
 
 <p>Likewise, we <span name="circle">free</span> the constants when we free the
-chunk:</p>
+chunk.</p>
 <aside name="circle">
 <p>It&rsquo;s like the circle of life.</p>
 </aside>
@@ -1130,7 +1140,7 @@ in <em>freeChunk</em>()</div>
 <p>Next, we define a convenience method to add a new constant to the chunk. Our
 yet-to-be-written compiler could write to the constant array inside Chunk
 directly<span class="em">&mdash;</span>it&rsquo;s not like C has private fields or anything<span class="em">&mdash;</span>but it&rsquo;s a little
-nicer to add an explicit function:</p>
+nicer to add an explicit function.</p>
 <div class="codehilite"><pre class="insert-before">
 void writeChunk(Chunk* chunk, uint8_t byte);
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -1143,7 +1153,7 @@ add after <em>writeChunk</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, add after <em>writeChunk</em>()</div>
 
-<p>Then we implement it:</p>
+<p>Then we implement it.</p>
 <div class="codehilite"><div class="source-file"><em>chunk.c</em><br>
 add after <em>writeChunk</em>()</div>
 <pre>
@@ -1154,8 +1164,8 @@ add after <em>writeChunk</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em>, add after <em>writeChunk</em>()</div>
 
-<p>After it adds the constant, it returns the index where it was appended so that
-we can locate that same constant later.</p>
+<p>After we add the constant, we return the index where the constant was appended
+so that we can locate that same constant later.</p>
 <h3><a href="#constant-instructions" name="constant-instructions"><small>14&#8202;.&#8202;5&#8202;.&#8202;3</small>Constant instructions</a></h3>
 <p>We can <em>store</em> constants in chunks, but we also need to <em>execute</em> them. In a
 piece of code like:</p>
@@ -1165,7 +1175,7 @@ piece of code like:</p>
 </pre></div>
 <p>The compiled chunk needs to not only contain the values 1 and 2, but know <em>when</em>
 to produce them so that they are printed in the right order. Thus, we need an
-instruction that produces a particular constant:</p>
+instruction that produces a particular constant.</p>
 <div class="codehilite"><pre class="insert-before">
 typedef enum {
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -1191,11 +1201,13 @@ For that, you&rsquo;ll have to wait until you get to (or skip ahead to, I suppos
 instructions to have <span name="operand"><strong>operands</strong></span>. These are stored
 as binary data immediately after the opcode in the instruction stream and let us
 parameterize what the instruction does.</p>
+<p><img src="image/chunks-of-bytecode/format.png" alt="OP_CONSTANT is a byte for
+the opcode followed by a byte for the constant index." /></p>
 <p>Each opcode determines how many operand bytes it has and what they mean. For
 example, a simple operation like &ldquo;return&rdquo; may have no operands, where an
 instruction for &ldquo;load local variable&rdquo; needs an operand to identify which
-variable to load. Each time we add a new instruction to clox, we specify what
-its operands look like<span class="em">&mdash;</span>its <strong>instruction format</strong>.</p>
+variable to load. Each time we add a new opcode to clox, we specify what its
+operands look like<span class="em">&mdash;</span>its <strong>instruction format</strong>.</p>
 <aside name="operand">
 <p>Bytecode instruction operands are <em>not</em> the same as the operands passed to an
 arithmetic operator. You&rsquo;ll see when we get to expressions that those operand
@@ -1203,10 +1215,8 @@ values are tracked separately. Instruction operands are a lower-level notion
 that modify how the bytecode instruction itself behaves.</p>
 </aside>
 <p>In this case, <code>OP_CONSTANT</code> takes a single byte operand that specifies which
-constant to load from the chunk&rsquo;s constant array.</p>
-<p><img src="image/chunks-of-bytecode/format.png" alt="OP_CONSTANT is a byte for
-the opcode followed by a byte for the constant index." /></p>
-<p>Since we don&rsquo;t have a compiler yet, we &ldquo;hand-compile&rdquo; one in our test chunk:</p>
+constant to load from the chunk&rsquo;s constant array. Since we don&rsquo;t have a compiler
+yet, we &ldquo;hand-compile&rdquo; an instruction in our test chunk.</p>
 <div class="codehilite"><pre class="insert-before">
   initChunk(&amp;chunk);
 </pre><div class="source-file"><em>main.c</em><br>
@@ -1228,7 +1238,7 @@ starting with its opcode. After that, we write the one-byte constant index
 operand. Note that <code>writeChunk()</code> can write opcodes or operands. It&rsquo;s all raw
 bytes as far as that function is concerned.</p>
 <p>If we try to run this now, the disassembler is going to yell at us because it
-doesn&rsquo;t know how to decode the new instruction. Let&rsquo;s fix that:</p>
+doesn&rsquo;t know how to decode the new instruction. Let&rsquo;s fix that.</p>
 <div class="codehilite"><pre class="insert-before">
   switch (instruction) {
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -1242,7 +1252,7 @@ in <em>disassembleInstruction</em>()</div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>This instruction has a different instruction format, so we write a new helper
-function to disassemble it:</p>
+function to disassemble it.</p>
 <div class="codehilite"><div class="source-file"><em>debug.c</em><br>
 add after <em>disassembleChunk</em>()</div>
 <pre>
@@ -1261,8 +1271,8 @@ opcode. Then we pull out the constant index from the subsequent byte in the
 chunk. We print that index, but that isn&rsquo;t super useful to us human readers. So
 we also look up the actual constant value<span class="em">&mdash;</span>since constants <em>are</em> known at
 compile-time after all<span class="em">&mdash;</span>and display the value itself too.</p>
-<p>This requires some way to print a Lox Value. That function will live in the
-&ldquo;value&rdquo; module, so we include that:</p>
+<p>This requires some way to print a clox Value. That function will live in the
+&ldquo;value&rdquo; module, so we include that.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;debug.h&quot;
 </pre><div class="source-file"><em>debug.c</em></div>
@@ -1299,7 +1309,7 @@ add after <em>freeValueArray</em>()</div>
 
 <p>Magnificent, right? As you can imagine, this is going to get more complex once
 we add dynamic typing to Lox and have values of different types.</p>
-<p>Back in <code>constantInstruction()</code>, the only remaining piece is the return value:</p>
+<p>Back in <code>constantInstruction()</code>, the only remaining piece is the return value.</p>
 <div class="codehilite"><pre class="insert-before">
   printf(&quot;'\n&quot;);
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -1312,14 +1322,15 @@ in <em>constantInstruction</em>()</div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>constantInstruction</em>()</div>
 
 <p>Remember that <code>disassembleInstruction()</code> also returns a number to tell the
-caller how many bytes to advance to reach the beginning of the <em>next</em>
-instruction. Where <code>OP_RETURN</code> was only a single byte, <code>OP_CONSTANT</code> is two<span class="em">&mdash;</span>one for the opcode and one for the operand.</p>
+caller the offset of the beginning of the <em>next</em> instruction. Where <code>OP_RETURN</code>
+was only a single byte, <code>OP_CONSTANT</code> is two<span class="em">&mdash;</span>one for the opcode and one for
+the operand.</p>
 <h2><a href="#line-information" name="line-information"><small>14&#8202;.&#8202;6</small>Line Information</a></h2>
-<p>Chunks contain almost everything we need to preserve from the user&rsquo;s source
-code. It&rsquo;s kind of crazy to think that we can reduce all of the different AST
-classes that we created in jlox down to an array of bytes and an array of
-constants. There&rsquo;s only one piece of data we&rsquo;re missing. We need it, even though
-the user hopes to never see it.</p>
+<p>Chunks contain almost all of the information that the runtime needs from the
+user&rsquo;s source code. It&rsquo;s kind of crazy to think that we can reduce all of the
+different AST classes that we created in jlox down to an array of bytes and an
+array of constants. There&rsquo;s only one piece of data we&rsquo;re missing. We need it,
+even though the user hopes to never see it.</p>
 <p>When a runtime error occurs, we show the user the line number of the offending
 source code. In jlox, those numbers live in tokens, which we in turn store in
 the AST nodes. We need a different solution for clox now that we&rsquo;ve ditched
@@ -1341,7 +1352,7 @@ between the instructions, taking up precious space in the CPU cache and causing
 more cache misses as the interpreter skips past it to get to the opcodes and
 operands it cares about.</p>
 </aside>
-<p>To implement this, we add another array to Chunk:</p>
+<p>To implement this, we add another array to Chunk.</p>
 <div class="codehilite"><pre class="insert-before">
   uint8_t* code;
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -1355,7 +1366,7 @@ in struct <em>Chunk</em></div>
 
 <p>Since it exactly parallels the bytecode array, we don&rsquo;t need a separate count or
 capacity. Every time we touch the code array, we make a corresponding change to
-the line number array, starting with initialization:</p>
+the line number array, starting with initialization.</p>
 <div class="codehilite"><pre class="insert-before">
   chunk-&gt;code = NULL;
 </pre><div class="source-file"><em>chunk.c</em><br>
@@ -1380,7 +1391,7 @@ in <em>freeChunk</em>()</div>
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>freeChunk</em>()</div>
 
 <p>When we write a byte of code to the chunk, we need to know what source line it
-came from, so we add an extra parameter in the declaration of <code>writeChunk()</code>:</p>
+came from, so we add an extra parameter in the declaration of <code>writeChunk()</code>.</p>
 <div class="codehilite"><pre class="insert-before">
 void freeChunk(Chunk* chunk);
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -1404,7 +1415,7 @@ replace 1 line</div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em>, function <em>writeChunk</em>(), replace 1 line</div>
 
-<p>When we allocate or grow the code array, we do the same for the line info too:</p>
+<p>When we allocate or grow the code array, we do the same for the line info too.</p>
 <div class="codehilite"><pre class="insert-before">
     chunk-&gt;code = GROW_ARRAY(uint8_t, chunk-&gt;code,
         oldCapacity, chunk-&gt;capacity);
@@ -1418,7 +1429,7 @@ in <em>writeChunk</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>writeChunk</em>()</div>
 
-<p>Finally, we store the line number in the array:</p>
+<p>Finally, we store the line number in the array.</p>
 <div class="codehilite"><pre class="insert-before">
   chunk-&gt;code[chunk-&gt;count] = byte;
 </pre><div class="source-file"><em>chunk.c</em><br>
@@ -1433,7 +1444,7 @@ in <em>writeChunk</em>()</div>
 <h3><a href="#disassembling-line-information" name="disassembling-line-information"><small>14&#8202;.&#8202;6&#8202;.&#8202;1</small>Disassembling line information</a></h3>
 <p>Alright, let&rsquo;s try this out with our little, uh, artisanal chunk. First, since
 we added a new parameter to <code>writeChunk()</code>, we need to fix those calls to pass
-in some<span class="em">&mdash;</span>arbitrary at this point<span class="em">&mdash;</span>line number:</p>
+in some<span class="em">&mdash;</span>arbitrary at this point<span class="em">&mdash;</span>line number.</p>
 <div class="codehilite"><pre class="insert-before">
   int constant = addConstant(&amp;chunk, 1.2);
 </pre><div class="source-file"><em>main.c</em><br>
@@ -1450,14 +1461,14 @@ replace 4 lines</div>
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>(), replace 4 lines</div>
 
-<p>Once we have a compiler, of course, it will track the current line as it parses
-and pass that in.</p>
+<p>Once we have a read front end, of course, the compiler will track the current
+line as it parses and pass that in.</p>
 <p>Now that we have line information for every instruction, let&rsquo;s put it to good
 use. In our disassembler, it&rsquo;s helpful to show which source line each
 instruction was compiled from. That gives us a way to map back to the original
 code when we&rsquo;re trying to figure out what some blob of bytecode is supposed to
 do. After printing the offset of the instruction<span class="em">&mdash;</span>the number of bytes from the
-beginning of the chunk<span class="em">&mdash;</span>we show its source line:</p>
+beginning of the chunk<span class="em">&mdash;</span>we show its source line.</p>
 <div class="codehilite"><pre class="insert-before">
 int disassembleInstruction(Chunk* chunk, int offset) {
   printf(&quot;%04d &quot;, offset);
@@ -1497,8 +1508,9 @@ In clox, we&rsquo;ve reduced that down to three arrays: bytes of code, constant
 values, and line information for debugging.</p>
 <p>This reduction is a key reason why our new interpreter will be faster than jlox.
 You can think of bytecode as a sort of compact serialization of the AST, highly
-optimized for how the interpreter will deserialize it, in the order it needs. In
-the <a href="a-virtual-machine.html">next chapter</a>, we will see how the virtual machine does exactly that.</p>
+optimized for how the interpreter will deserialize it in the order it needs as
+it executes. In the <a href="a-virtual-machine.html">next chapter</a>, we will see how the virtual machine does
+exactly that.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 <ol>
@@ -1572,9 +1584,9 @@ programming language for at least a couple of reasons:</p>
 <p><strong>Users expect their programming languages to be rock solid.</strong> We are so
 used to mature, stable compilers and interpreters that &ldquo;It&rsquo;s your code, not
 the compiler&rdquo; is <a href="https://blog.codinghorror.com/the-first-rule-of-programming-its-always-your-fault/">an ingrained part of software culture</a>. If there
-are bugs in your language, users will go through the full five stages of
-grief before they can figure out what&rsquo;s going on, and you don&rsquo;t want to put
-them through all that.</p>
+are bugs in your language implementation, users will go through the full
+five stages of grief before they can figure out what&rsquo;s going on, and you
+don&rsquo;t want to put them through all that.</p>
 </li>
 <li>
 <p><strong>A language implementation is a deeply interconnected piece of software.</strong>
