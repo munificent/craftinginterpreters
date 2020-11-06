@@ -118,20 +118,20 @@ would be embarrassed to admit that that was how it was done.</p>
 <p><cite>Christopher Priest, <em>The Prestige</em></cite></p>
 </blockquote>
 <p>We&rsquo;ve spent a lot of time talking about how to represent a program as a sequence
-of bytecode instructions, but it feels like learning biology using only dead
-stuffed animals. We know what instructions are in theory, but we&rsquo;ve never seen
-them living and breathing, so it&rsquo;s hard to really understand what they <em>do</em>. It
-would be hard to write a compiler that outputs bytecode when we don&rsquo;t have a
-good understanding of how that bytecode behaves.</p>
+of bytecode instructions, but it feels like learning biology using only stuffed
+dead animals. We know what instructions are in theory, but we&rsquo;ve never seen them
+in action, so it&rsquo;s hard to really understand what they <em>do</em>. It would be hard to
+write a compiler that outputs bytecode when we don&rsquo;t have a good understanding
+of how that bytecode behaves.</p>
 <p>So, before we go and build the front end of our new interpreter, we will begin
 with the back end<span class="em">&mdash;</span>the virtual machine that executes instructions. It breathes
 life into the bytecode. Watching the instructions prance around gives us a
 clearer picture of how a compiler might translate the user&rsquo;s source code into a
 series of them.</p>
 <h2><a href="#an-instruction-execution-machine" name="an-instruction-execution-machine"><small>15&#8202;.&#8202;1</small>An Instruction Execution Machine</a></h2>
-<p>The &ldquo;virtual machine&rdquo; is one part of our interpreter&rsquo;s internal architecture.
-You hand it a chunk of code<span class="em">&mdash;</span>literally a Chunk<span class="em">&mdash;</span>and it runs it. The code and
-data structures for the VM reside in a new module:</p>
+<p>The virtual machine is one part of our interpreter&rsquo;s internal architecture. You
+hand it a chunk of code<span class="em">&mdash;</span>literally a Chunk<span class="em">&mdash;</span>and it runs it. The code and
+data structures for the VM reside in a new module.</p>
 <div class="codehilite"><div class="source-file"><em>vm.h</em><br>
 create new file</div>
 <pre>
@@ -193,7 +193,7 @@ global variables</a> is still true when programming in the large. But when
 keeping things small for a book&hellip;</p>
 </aside>
 <p>Before we start pumping fun code into our VM, let&rsquo;s go ahead and wire it up to
-the interpreter&rsquo;s main entrypoint:</p>
+the interpreter&rsquo;s main entrypoint.</p>
 <div class="codehilite"><pre class="insert-before">
 int main(int argc, const char* argv[]) {
 </pre><div class="source-file"><em>main.c</em><br>
@@ -207,7 +207,7 @@ in <em>main</em>()</div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>()</div>
 
 <p>We spin up the VM when the interpreter first starts. Then when we&rsquo;re about to
-exit, we wind it down:</p>
+exit, we wind it down.</p>
 <div class="codehilite"><pre class="insert-before">
   disassembleChunk(&amp;chunk, &quot;test chunk&quot;);
 </pre><div class="source-file"><em>main.c</em><br>
@@ -235,7 +235,7 @@ int main(int argc, const char* argv[]) {
 chunk from the <a href="chunks-of-bytecode.html#disassembling-chunks">last chapter</a>. The VM is ready and waiting, so let&rsquo;s teach it
 to do something.</p>
 <h3><a href="#executing-instructions" name="executing-instructions"><small>15&#8202;.&#8202;1&#8202;.&#8202;1</small>Executing instructions</a></h3>
-<p>The VM springs into action when we command it to interpret a chunk of bytecode:</p>
+<p>The VM springs into action when we command it to interpret a chunk of bytecode.</p>
 <div class="codehilite"><pre class="insert-before">
   disassembleChunk(&amp;chunk, &quot;test chunk&quot;);
 </pre><div class="source-file"><em>main.c</em><br>
@@ -282,7 +282,7 @@ void freeVM();
 <p>We aren&rsquo;t using the result yet, but when we have a compiler that reports static
 errors and a VM that detects runtime errors, the interpreter will use this to
 know how to set the exit code of the process.</p>
-<p>We&rsquo;re tiptoeing towards some actual implementation:</p>
+<p>We&rsquo;re inching towards some actual implementation.</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>freeVM</em>()</div>
 <pre>
@@ -299,12 +299,11 @@ internal helper function that actually runs the bytecode instructions. Between
 those two parts is an intriguing line. What is this <code>ip</code> business?</p>
 <p>As the VM works its way through the bytecode, it keeps track of where it is<span class="em">&mdash;</span>the location of the instruction currently being executed. We don&rsquo;t use a <span
 name="local">local</span> variable inside <code>run()</code> for this because eventually
-other functions will need to access it. Instead, we store it as a field in VM:</p>
+other functions will need to access it. Instead, we store it as a field in VM.</p>
 <aside name="local">
-<p>Actually, if we were trying to squeeze every ounce of speed out of our bytecode
-interpreter, we <em>would</em> store <code>ip</code> in a local variable. It gets modified so
-frequently during execution that we ideally want the C compiler to keep it in a
-register.</p>
+<p>If we were trying to squeeze every ounce of speed out of our bytecode
+interpreter, we would store <code>ip</code> in a local variable. It gets modified so often
+during execution that we want the C compiler to keep it in a register.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
 typedef struct {
@@ -334,7 +333,7 @@ it &ldquo;PC&rdquo;.</p>
 haven&rsquo;t executed that instruction yet, so <code>ip</code> points to the instruction <em>about
 to be executed</em>. This will be true during the entire time the VM is running: the
 IP always points to the next instruction, not the one currently being handled.</p>
-<p>The real fun happens in <code>run</code>():</p>
+<p>The real fun happens in <code>run</code>().</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>freeVM</em>()</div>
 <pre>
@@ -363,7 +362,7 @@ VM.</p>
 <p>Or, at least, it <em>will</em> be in a few chapters when it has enough content to be
 useful. Right now, it&rsquo;s not exactly a wonder of software wizardry.</p>
 </aside>
-<p>Despite that dramatic intro, it&rsquo;s conceptually pretty simple. You have an outer
+<p>Despite that dramatic intro, it&rsquo;s conceptually pretty simple. We have an outer
 loop that goes and goes. Each turn through that loop, we read and execute a
 single bytecode instruction.</p>
 <p>To process an instruction, we first figure out what kind of instruction we&rsquo;re
@@ -371,11 +370,11 @@ dealing with. The <code>READ_BYTE</code> macro reads the byte currently pointed 
 and then <span name="next">advances</span> the instruction pointer. The first
 byte of any instruction is the opcode. Given a numeric opcode, we need to get to
 the right C code that implements that instruction&rsquo;s semantics. This process is
-called <strong>&ldquo;decoding&rdquo;</strong> or <strong>&ldquo;dispatching&rdquo;</strong> the instruction.</p>
+called <strong>decoding</strong> or <strong>dispatching</strong> the instruction.</p>
 <aside name="next">
 <p>Note that <code>ip</code> advances as soon as we read the opcode, before we&rsquo;ve actually
 started executing the instruction. So, again, <code>ip</code> points to the <em>next</em>
-instruction to execute.</p>
+byte of code to be used.</p>
 </aside>
 <p>We do that process for every single instruction, every single time one is
 executed, so this is the most performance critical part of the entire virtual
@@ -394,7 +393,7 @@ opcode. The body of each case implements that opcode&rsquo;s behavior.</p>
 does is exit the loop entirely. Eventually, that instruction will be used to
 return from the current Lox function, but we don&rsquo;t have functions yet, so we&rsquo;ll
 repurpose it temporarily to end the execution.</p>
-<p>Let&rsquo;s go ahead and support our one other instruction:</p>
+<p>Let&rsquo;s go ahead and support our one other instruction.</p>
 <div class="codehilite"><pre class="insert-before">
     switch (instruction = READ_BYTE()) {
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -413,7 +412,7 @@ in <em>run</em>()</div>
 
 <p>We don&rsquo;t have enough machinery in place yet to do anything useful with a
 constant. For now, we&rsquo;ll just print it out so we interpreter hackers can see
-what&rsquo;s going on inside our VM. That call to <code>printf()</code> necessitates an include:</p>
+what&rsquo;s going on inside our VM. That call to <code>printf()</code> necessitates an include.</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add to top of file</div>
 <pre class="insert">
@@ -424,7 +423,7 @@ add to top of file</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add to top of file</div>
 
-<p>We also have a new macro to define:</p>
+<p>We also have a new macro to define.</p>
 <div class="codehilite"><pre class="insert-before">
 #define READ_BYTE() (*vm.ip++)
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -438,9 +437,9 @@ in <em>run</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p><code>READ_CONSTANT()</code> reads the next byte from the bytecode, treats the resulting
-number as an index, and looks up the corresponding location in the chunk&rsquo;s
-constant table. In later chapters, we&rsquo;ll add a few more instructions with
-operands that refer to constants, so we&rsquo;re setting up this helper macro now.</p>
+number as an index, and looks up the corresponding Value in the chunk&rsquo;s constant
+table. In later chapters, we&rsquo;ll add a few more instructions with operands that
+refer to constants, so we&rsquo;re setting up this helper macro now.</p>
 <p>Like the previous <code>READ_BYTE</code> macro, <code>READ_CONSTANT</code> is only used inside
 <code>run()</code>. To make that scoping more explicit, the macro definitions themselves
 are confined to that function. We <span name="macro">define</span> them at the
@@ -460,6 +459,7 @@ in <em>run</em>()</div>
 <p>Undefining these macros explicitly might seem needlessly fastidious, but C tends
 to punish sloppy users, and the C preprocessor doubly so.</p>
 </aside>
+<h3><a href="#execution-tracing" name="execution-tracing"><small>15&#8202;.&#8202;1&#8202;.&#8202;2</small>Execution tracing</a></h3>
 <p>If you run clox now, it executes the chunk we hand-authored in the last chapter
 and spits out <code>1.2</code> to your terminal. We can see that it&rsquo;s working, but that&rsquo;s
 only because our implementation of <code>OP_CONSTANT</code> has temporary code to log the
@@ -469,7 +469,7 @@ black box. That makes our lives as VM implementers harder.</p>
 <p>To help ourselves out, now is a good time to add some diagnostic logging to the
 VM like we did with chunks themselves. In fact, we&rsquo;ll even reuse the same code.
 We don&rsquo;t want this logging enabled all the time<span class="em">&mdash;</span>it&rsquo;s just for us VM hackers,
-not Lox users<span class="em">&mdash;</span>so first we create a flag to hide it behind:</p>
+not Lox users<span class="em">&mdash;</span>so first we create a flag to hide it behind.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &lt;stdint.h&gt;
 </pre><div class="source-file"><em>common.h</em></div>
@@ -484,7 +484,7 @@ not Lox users<span class="em">&mdash;</span>so first we create a flag to hide it
 
 <p>When this flag is defined, the VM disassembles and prints each instruction right
 before executing it. Where our previous disassembler walked an entire chunk
-once, statically, this disassembles instructions dynamically, on the fly:</p>
+once, statically, this disassembles instructions dynamically, on the fly.</p>
 <div class="codehilite"><pre class="insert-before">
   for (;;) {
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -505,7 +505,7 @@ current instruction reference as a direct pointer, we first do a little pointer
 math to convert <code>ip</code> back to a relative offset from the beginning of the
 bytecode. Then we disassemble the instruction that begins at that byte.</p>
 <p>As ever, we need to bring in the declaration of the function before we can call
-it:</p>
+it.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;common.h&quot;
 </pre><div class="source-file"><em>vm.c</em></div>
@@ -613,7 +613,7 @@ expression.</p>
 <p>In the above diagram, I gave each unique number its own visual column. Let&rsquo;s be
 a little more parsimonious. Once a number is consumed, we allow its column to be
 reused for another later value. In other words, we take all of those gaps
-up there and fill them in with numbers from the right:</p>
+up there and fill them in pushing in numbers from the right:</p>
 <p><img src="image/a-virtual-machine/bars-stacked.png" alt="Like the previous
 diagram, but with number bars pushed to the left, forming a stack." /></p>
 <p>There&rsquo;s some interesting stuff going on here. When we shift everything over,
@@ -722,7 +722,7 @@ typedef struct {
 <p>Giving our VM a fixed stack size means it&rsquo;s possible for some sequence of
 instructions to push too many values and run out of stack space<span class="em">&mdash;</span>the classic
 &ldquo;stack overflow&rdquo;. We could grow the stack dynamically as needed, but for now
-we&rsquo;ll keep it simple. Since VM uses Value, we need to include its declaration:</p>
+we&rsquo;ll keep it simple. Since VM uses Value, we need to include its declaration.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;chunk.h&quot;
 </pre><div class="source-file"><em>vm.h</em></div>
@@ -734,7 +734,7 @@ we&rsquo;ll keep it simple. Since VM uses Value, we need to include its declarat
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em></div>
 
-<p>Now that VM has some interesting state, we get to initialize it:</p>
+<p>Now that VM has some interesting state, we get to initialize it.</p>
 <div class="codehilite"><pre class="insert-before">
 void initVM() {
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -790,9 +790,10 @@ add after <em>freeVM</em>()</div>
 <p>If you&rsquo;re rusty on your C pointer syntax and operations, this is a good warm-up.
 The first line stores <code>value</code> in the array element at the top of the stack.
 Remember, <code>stackTop</code> points just <em>past</em> the last used element, at the next
-available one. This stores the value in that slot.</p>
-<p>Then we increment the pointer itself to point to the next unused slot in the
-array now that the previous slot is occupied. Popping is the mirror image:</p>
+available one. This stores the value in that slot. Then we increment the pointer
+itself to point to the next unused slot in the array now that the previous slot
+is occupied.</p>
+<p>Popping is the mirror image.</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>push</em>()</div>
 <pre>
@@ -807,12 +808,13 @@ add after <em>push</em>()</div>
 the array. Then we look up the value at that index and return it. We don&rsquo;t need
 to explicitly &ldquo;remove&rdquo; it from the array<span class="em">&mdash;</span>moving <code>stackTop</code> down is enough to
 mark that slot as no longer in use.</p>
+<h3><a href="#stack-tracing" name="stack-tracing"><small>15&#8202;.&#8202;2&#8202;.&#8202;2</small>Stack tracing</a></h3>
 <p>We have a working stack, but it&rsquo;s hard to <em>see</em> that it&rsquo;s working. When we start
 implementing more complex instructions and compiling and running larger pieces
 of code, we&rsquo;ll end up with a lot of values crammed into that array. It would
 make our lives as VM hackers easier if we had some visibility into the stack.</p>
 <p>To that end, whenever we&rsquo;re tracing execution, we&rsquo;ll also show the current
-contents of the stack before we interpret each instruction:</p>
+contents of the stack before we interpret each instruction.</p>
 <div class="codehilite"><pre class="insert-before">
 #ifdef DEBUG_TRACE_EXECUTION
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -880,7 +882,7 @@ interpreter to do arithmetic.</p>
 </pre></div>
 <p>The prefix <code>-</code> operator takes one operand, the value to negate. It produces a
 single result. We aren&rsquo;t fussing with a parser yet, but we can add the
-bytecode instruction that the above syntax will compile to:</p>
+bytecode instruction that the above syntax will compile to.</p>
 <div class="codehilite"><pre class="insert-before">
   OP_CONSTANT,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -904,9 +906,9 @@ in <em>run</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
-<p>It needs a value to operate on, so it gets it by popping it from the stack. It
-negates that, then pushes the result back on for later instructions to use.
-Doesn&rsquo;t get much easier than that. We can disassemble it too:</p>
+<p>The instruction needs a value to operate on which it gets by popping from the
+stack. It negates that, then pushes the result back on for later instructions to
+use. Doesn&rsquo;t get much easier than that. We can disassemble it too.</p>
 <div class="codehilite"><pre class="insert-before">
     case OP_CONSTANT:
       return constantInstruction(&quot;OP_CONSTANT&quot;, chunk, offset);
@@ -920,7 +922,7 @@ in <em>disassembleInstruction</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
-<p>And we can try it out in our test chunk:</p>
+<p>And we can try it out in our test chunk.</p>
 <div class="codehilite"><pre class="insert-before">
   writeChunk(&amp;chunk, constant, 123);
 </pre><div class="source-file"><em>main.c</em><br>
@@ -944,7 +946,7 @@ return instruction prints that out:</p>
 value on the stack. To really see some depth, we need binary operators. Lox has
 four binary <span name="ops">arithmetic</span> operators: addition, subtraction,
 multiplication, and division. We&rsquo;ll go ahead and implement them all at the same
-time:</p>
+time.</p>
 <aside name="ops">
 <p>Lox has some other binary operators<span class="em">&mdash;</span>comparison and equality<span class="em">&mdash;</span>but those
 don&rsquo;t produce numbers as a result, so we aren&rsquo;t ready for them yet.</p>
@@ -963,7 +965,7 @@ in enum <em>OpCode</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<p>Back in the bytecode loop, they look like:</p>
+<p>Back in the bytecode loop, they are executed like this:</p>
 <div class="codehilite"><pre class="insert-before">
       }
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -982,7 +984,7 @@ in <em>run</em>()</div>
 operator they ultimately use to combine the two operands. Surrounding that core
 arithmetic expression is some boilerplate code to pull values off the stack and
 push the result. When we later add dynamic typing, that boilerplate will grow.
-To avoid repeating that code four times, I wrapped it up in a macro:</p>
+To avoid repeating that code four times, I wrapped it up in a macro.</p>
 <div class="codehilite"><pre class="insert-before">
 #define READ_CONSTANT() (vm.chunk-&gt;constants.values[READ_BYTE()])
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -1028,7 +1030,7 @@ true. But it expands to:</p>
 <span class="k">if</span> (<span class="i">morning</span>) <span class="i">makeCoffee</span>(); <span class="i">drinkCoffee</span>();;
 </pre></div>
 <p>Oops. The <code>if</code> only attaches to the <em>first</em> statement. You might think you could
-fix this using a block:</p>
+fix this using a block.</p>
 <div class="codehilite"><pre>
 <span class="a">#define WAKE_UP() { makeCoffee(); drinkCoffee(); }</span>
 </pre></div>
@@ -1057,7 +1059,7 @@ like so:</p>
 with the stack for each showing how pushing and then popping values reverses
 their order." /></p>
 <p>As we did with the other macros inside <code>run()</code>, we clean up after ourselves at
-the end of the function:</p>
+the end of the function.</p>
 <div class="codehilite"><pre class="insert-before">
 #undef READ_CONSTANT
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -1069,7 +1071,7 @@ in <em>run</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
-<p>Last is disassembler support:</p>
+<p>Last is disassembler support.</p>
 <div class="codehilite"><pre class="insert-before">
     case OP_CONSTANT:
       return constantInstruction(&quot;OP_CONSTANT&quot;, chunk, offset);
@@ -1089,7 +1091,7 @@ in <em>disassembleInstruction</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
-<p>The arithmetic instructions are simple, like <code>OP_RETURN</code>. Even though the
+<p>The arithmetic instruction formats are simple, like <code>OP_RETURN</code>. Even though the
 arithmetic <em>operators</em> take operands<span class="em">&mdash;</span>which are found on the stack<span class="em">&mdash;</span>the
 arithmetic <em>bytecode instructions</em> do not.</p>
 <p>Let&rsquo;s put some of our new instructions through their paces by evaluating a
@@ -1097,7 +1099,7 @@ larger expression:</p>
 <p><img src="image/a-virtual-machine/chunk.png" alt="The expression being
 evaluated: -((1.2 + 3.4) / 5.6)" /></p>
 <p>Building on our existing example chunk, here&rsquo;s the additional instructions we
-need:</p>
+need to hand-compile that AST to bytecode:</p>
 <div class="codehilite"><pre class="insert-before">
   int constant = addConstant(&amp;chunk, 1.2);
   writeChunk(&amp;chunk, OP_CONSTANT, 123);

@@ -6,11 +6,11 @@
 > <cite>Christopher Priest, <em>The Prestige</em></cite>
 
 We've spent a lot of time talking about how to represent a program as a sequence
-of bytecode instructions, but it feels like learning biology using only dead
-stuffed animals. We know what instructions are in theory, but we've never seen
-them living and breathing, so it's hard to really understand what they *do*. It
-would be hard to write a compiler that outputs bytecode when we don't have a
-good understanding of how that bytecode behaves.
+of bytecode instructions, but it feels like learning biology using only stuffed
+dead animals. We know what instructions are in theory, but we've never seen them
+in action, so it's hard to really understand what they *do*. It would be hard to
+write a compiler that outputs bytecode when we don't have a good understanding
+of how that bytecode behaves.
 
 So, before we go and build the front end of our new interpreter, we will begin
 with the back end -- the virtual machine that executes instructions. It breathes
@@ -20,9 +20,9 @@ series of them.
 
 ## An Instruction Execution Machine
 
-The "virtual machine" is one part of our interpreter's internal architecture.
-You hand it a chunk of code -- literally a Chunk -- and it runs it. The code and
-data structures for the VM reside in a new module:
+The virtual machine is one part of our interpreter's internal architecture. You
+hand it a chunk of code -- literally a Chunk -- and it runs it. The code and
+data structures for the VM reside in a new module.
 
 ^code vm-h
 
@@ -65,12 +65,12 @@ keeping things small for a book...
 </aside>
 
 Before we start pumping fun code into our VM, let's go ahead and wire it up to
-the interpreter's main entrypoint:
+the interpreter's main entrypoint.
 
 ^code main-init-vm (1 before, 1 after)
 
 We spin up the VM when the interpreter first starts. Then when we're about to
-exit, we wind it down:
+exit, we wind it down.
 
 ^code main-free-vm (1 before, 1 after)
 
@@ -86,7 +86,7 @@ to do something.
 
 ### Executing instructions
 
-The VM springs into action when we command it to interpret a chunk of bytecode:
+The VM springs into action when we command it to interpret a chunk of bytecode.
 
 ^code main-interpret (1 before, 1 after)
 
@@ -102,7 +102,7 @@ We aren't using the result yet, but when we have a compiler that reports static
 errors and a VM that detects runtime errors, the interpreter will use this to
 know how to set the exit code of the process.
 
-We're tiptoeing towards some actual implementation:
+We're inching towards some actual implementation.
 
 ^code interpret
 
@@ -113,14 +113,13 @@ those two parts is an intriguing line. What is this `ip` business?
 As the VM works its way through the bytecode, it keeps track of where it is --
 the location of the instruction currently being executed. We don't use a <span
 name="local">local</span> variable inside `run()` for this because eventually
-other functions will need to access it. Instead, we store it as a field in VM:
+other functions will need to access it. Instead, we store it as a field in VM.
 
 <aside name="local">
 
-Actually, if we were trying to squeeze every ounce of speed out of our bytecode
-interpreter, we *would* store `ip` in a local variable. It gets modified so
-frequently during execution that we ideally want the C compiler to keep it in a
-register.
+If we were trying to squeeze every ounce of speed out of our bytecode
+interpreter, we would store `ip` in a local variable. It gets modified so often
+during execution that we want the C compiler to keep it in a register.
 
 </aside>
 
@@ -151,7 +150,7 @@ haven't executed that instruction yet, so `ip` points to the instruction *about
 to be executed*. This will be true during the entire time the VM is running: the
 IP always points to the next instruction, not the one currently being handled.
 
-The real fun happens in `run`():
+The real fun happens in `run`().
 
 ^code run
 
@@ -167,7 +166,7 @@ useful. Right now, it's not exactly a wonder of software wizardry.
 
 </aside>
 
-Despite that dramatic intro, it's conceptually pretty simple. You have an outer
+Despite that dramatic intro, it's conceptually pretty simple. We have an outer
 loop that goes and goes. Each turn through that loop, we read and execute a
 single bytecode instruction.
 
@@ -176,13 +175,13 @@ dealing with. The `READ_BYTE` macro reads the byte currently pointed at by `ip`
 and then <span name="next">advances</span> the instruction pointer. The first
 byte of any instruction is the opcode. Given a numeric opcode, we need to get to
 the right C code that implements that instruction's semantics. This process is
-called **"decoding"** or **"dispatching"** the instruction.
+called **decoding** or **dispatching** the instruction.
 
 <aside name="next">
 
 Note that `ip` advances as soon as we read the opcode, before we've actually
 started executing the instruction. So, again, `ip` points to the *next*
-instruction to execute.
+byte of code to be used.
 
 </aside>
 
@@ -209,24 +208,24 @@ does is exit the loop entirely. Eventually, that instruction will be used to
 return from the current Lox function, but we don't have functions yet, so we'll
 repurpose it temporarily to end the execution.
 
-Let's go ahead and support our one other instruction:
+Let's go ahead and support our one other instruction.
 
 ^code op-constant (1 before, 1 after)
 
 We don't have enough machinery in place yet to do anything useful with a
 constant. For now, we'll just print it out so we interpreter hackers can see
-what's going on inside our VM. That call to `printf()` necessitates an include:
+what's going on inside our VM. That call to `printf()` necessitates an include.
 
 ^code vm-include-stdio (1 after)
 
-We also have a new macro to define:
+We also have a new macro to define.
 
 ^code read-constant (1 before, 2 after)
 
 `READ_CONSTANT()` reads the next byte from the bytecode, treats the resulting
-number as an index, and looks up the corresponding location in the chunk's
-constant table. In later chapters, we'll add a few more instructions with
-operands that refer to constants, so we're setting up this helper macro now.
+number as an index, and looks up the corresponding Value in the chunk's constant
+table. In later chapters, we'll add a few more instructions with operands that
+refer to constants, so we're setting up this helper macro now.
 
 Like the previous `READ_BYTE` macro, `READ_CONSTANT` is only used inside
 `run()`. To make that scoping more explicit, the macro definitions themselves
@@ -242,6 +241,8 @@ to punish sloppy users, and the C preprocessor doubly so.
 
 </aside>
 
+### Execution tracing
+
 If you run clox now, it executes the chunk we hand-authored in the last chapter
 and spits out `1.2` to your terminal. We can see that it's working, but that's
 only because our implementation of `OP_CONSTANT` has temporary code to log the
@@ -252,13 +253,13 @@ black box. That makes our lives as VM implementers harder.
 To help ourselves out, now is a good time to add some diagnostic logging to the
 VM like we did with chunks themselves. In fact, we'll even reuse the same code.
 We don't want this logging enabled all the time -- it's just for us VM hackers,
-not Lox users -- so first we create a flag to hide it behind:
+not Lox users -- so first we create a flag to hide it behind.
 
 ^code define-debug-trace (1 before, 2 after)
 
 When this flag is defined, the VM disassembles and prints each instruction right
 before executing it. Where our previous disassembler walked an entire chunk
-once, statically, this disassembles instructions dynamically, on the fly:
+once, statically, this disassembles instructions dynamically, on the fly.
 
 ^code trace-execution (1 before, 1 after)
 
@@ -268,7 +269,7 @@ math to convert `ip` back to a relative offset from the beginning of the
 bytecode. Then we disassemble the instruction that begins at that byte.
 
 As ever, we need to bring in the declaration of the function before we can call
-it:
+it.
 
 ^code vm-include-debug (1 before, 1 after)
 
@@ -401,7 +402,7 @@ expression.
 In the above diagram, I gave each unique number its own visual column. Let's be
 a little more parsimonious. Once a number is consumed, we allow its column to be
 reused for another later value. In other words, we take all of those gaps
-up there and fill them in with numbers from the right:
+up there and fill them in pushing in numbers from the right:
 
 <img src="image/a-virtual-machine/bars-stacked.png" alt="Like the previous
 diagram, but with number bars pushed to the left, forming a stack." />
@@ -532,11 +533,11 @@ least) is:
 Giving our VM a fixed stack size means it's possible for some sequence of
 instructions to push too many values and run out of stack space -- the classic
 "stack overflow". We could grow the stack dynamically as needed, but for now
-we'll keep it simple. Since VM uses Value, we need to include its declaration:
+we'll keep it simple. Since VM uses Value, we need to include its declaration.
 
 ^code vm-include-value (1 before, 2 after)
 
-Now that VM has some interesting state, we get to initialize it:
+Now that VM has some interesting state, we get to initialize it.
 
 ^code call-reset-stack (1 before, 1 after)
 
@@ -562,10 +563,11 @@ recently pushed value back off. Here's the first function:
 If you're rusty on your C pointer syntax and operations, this is a good warm-up.
 The first line stores `value` in the array element at the top of the stack.
 Remember, `stackTop` points just *past* the last used element, at the next
-available one. This stores the value in that slot.
+available one. This stores the value in that slot. Then we increment the pointer
+itself to point to the next unused slot in the array now that the previous slot
+is occupied.
 
-Then we increment the pointer itself to point to the next unused slot in the
-array now that the previous slot is occupied. Popping is the mirror image:
+Popping is the mirror image.
 
 ^code pop
 
@@ -574,13 +576,15 @@ the array. Then we look up the value at that index and return it. We don't need
 to explicitly "remove" it from the array -- moving `stackTop` down is enough to
 mark that slot as no longer in use.
 
+### Stack tracing
+
 We have a working stack, but it's hard to *see* that it's working. When we start
 implementing more complex instructions and compiling and running larger pieces
 of code, we'll end up with a lot of values crammed into that array. It would
 make our lives as VM hackers easier if we had some visibility into the stack.
 
 To that end, whenever we're tracing execution, we'll also show the current
-contents of the stack before we interpret each instruction:
+contents of the stack before we interpret each instruction.
 
 ^code trace-stack (1 before, 1 after)
 
@@ -621,7 +625,7 @@ print -a; // -1.2.
 
 The prefix `-` operator takes one operand, the value to negate. It produces a
 single result. We aren't fussing with a parser yet, but we can add the
-bytecode instruction that the above syntax will compile to:
+bytecode instruction that the above syntax will compile to.
 
 ^code negate-op (1 before, 1 after)
 
@@ -629,13 +633,13 @@ We execute it like so:
 
 ^code op-negate (1 before, 1 after)
 
-It needs a value to operate on, so it gets it by popping it from the stack. It
-negates that, then pushes the result back on for later instructions to use.
-Doesn't get much easier than that. We can disassemble it too:
+The instruction needs a value to operate on which it gets by popping from the
+stack. It negates that, then pushes the result back on for later instructions to
+use. Doesn't get much easier than that. We can disassemble it too.
 
 ^code disassemble-negate (2 before, 1 after)
 
-And we can try it out in our test chunk:
+And we can try it out in our test chunk.
 
 ^code main-negate (1 before, 2 after)
 
@@ -655,7 +659,7 @@ OK, unary operators aren't *that* impressive. We still only ever have a single
 value on the stack. To really see some depth, we need binary operators. Lox has
 four binary <span name="ops">arithmetic</span> operators: addition, subtraction,
 multiplication, and division. We'll go ahead and implement them all at the same
-time:
+time.
 
 <aside name="ops">
 
@@ -666,7 +670,7 @@ don't produce numbers as a result, so we aren't ready for them yet.
 
 ^code binary-ops (1 before, 1 after)
 
-Back in the bytecode loop, they look like:
+Back in the bytecode loop, they are executed like this:
 
 ^code op-binary (1 before, 1 after)
 
@@ -674,7 +678,7 @@ The only difference between these four instructions is which underlying C
 operator they ultimately use to combine the two operands. Surrounding that core
 arithmetic expression is some boilerplate code to pull values off the stack and
 push the result. When we later add dynamic typing, that boilerplate will grow.
-To avoid repeating that code four times, I wrapped it up in a macro:
+To avoid repeating that code four times, I wrapped it up in a macro.
 
 ^code binary-op (1 before, 2 after)
 
@@ -716,7 +720,7 @@ if (morning) makeCoffee(); drinkCoffee();;
 ```
 
 Oops. The `if` only attaches to the *first* statement. You might think you could
-fix this using a block:
+fix this using a block.
 
 ```c
 #define WAKE_UP() { makeCoffee(); drinkCoffee(); }
@@ -754,15 +758,15 @@ with the stack for each showing how pushing and then popping values reverses
 their order." />
 
 As we did with the other macros inside `run()`, we clean up after ourselves at
-the end of the function:
+the end of the function.
 
 ^code undef-binary-op (1 before, 1 after)
 
-Last is disassembler support:
+Last is disassembler support.
 
 ^code disassemble-binary (2 before, 1 after)
 
-The arithmetic instructions are simple, like `OP_RETURN`. Even though the
+The arithmetic instruction formats are simple, like `OP_RETURN`. Even though the
 arithmetic *operators* take operands -- which are found on the stack -- the
 arithmetic *bytecode instructions* do not.
 
@@ -773,7 +777,7 @@ larger expression:
 evaluated: -((1.2 + 3.4) / 5.6)" />
 
 Building on our existing example chunk, here's the additional instructions we
-need:
+need to hand-compile that AST to bytecode:
 
 ^code main-chunk (3 before, 3 after)
 
