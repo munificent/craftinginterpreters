@@ -265,7 +265,7 @@ replacement of aggregates", "dead code elimination", and "loop unrolling".
 
 We have applied all of the optimizations we can think of to the user's program.
 The last step is converting it to a form the machine can actually run. In other
-words **generating code** (or **codegen**), where "code" here usually refers to
+words **generating code** (or **code gen**), where "code" here usually refers to
 the kind of primitive assembly-like instructions a CPU runs and not the kind of
 "source code" a human might want to read.
 
