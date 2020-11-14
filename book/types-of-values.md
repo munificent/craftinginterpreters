@@ -17,8 +17,8 @@ different types.
 
 <aside name="unityped">
 
-There is a third category next to "statically typed" and "dynamically typed":
-**"unityped"**. In that paradigm, all variables have a single type, usually a
+There is a third category next to statically typed and dynamically typed:
+**unityped**. In that paradigm, all variables have a single type, usually a
 machine register integer. Unityped languages aren't common today, but some
 Forths and BCPL, the language that inspired C, worked like this.
 
@@ -45,15 +45,15 @@ In order to choose a value representation, we need to answer two key questions:
     know, seems obvious, right? But we're operating at a level where it's good
     to spell these things out.
 
-Since we're not just designing this language, but building it ourselves, we also
-have to keep in mind the implementer's eternal question: **how do we solve the
-above efficiently?**
+Since we're not just designing this language but building it ourselves, when
+answering these two questions we also have to keep in mind the implementer's
+eternal goal: how do we do it *efficiently?*
 
 Language hackers over the years have come up with a variety of clever ways to
 pack the above information into as few bits as possible. For now, we'll start
 with the simplest, classic solution: a **tagged union**. A value contains two
 parts: a type "tag", and a payload for the actual value. To store the value's
-type, we define an enum for each kind of value the VM supports:
+type, we define an enum for each kind of value the VM supports.
 
 ^code value-type (2 before, 2 after)
 
@@ -106,7 +106,7 @@ unsafe and will happily saw your fingers off if you don't watch out.
 </aside>
 
 As the name "tagged union" implies, our new value representation combines these
-two parts into a single struct:
+two parts into a single struct.
 
 ^code value (2 before, 2 after)
 
@@ -116,8 +116,9 @@ the layout looks like this:
 
 <aside name="as">
 
-A smart language hacker gave me the idea to use "as" for the name of this field
-because it reads nicely, almost like a cast, when you pull the value out.
+A smart language hacker gave me the idea to use "as" for the name of the union
+field because it reads nicely, almost like a cast, when you pull the various
+values out.
 
 </aside>
 
@@ -170,7 +171,7 @@ Each one of these takes a C value of the appropriate type and produces a Value
 that has the correct type tag and contains the underlying value. This hoists
 statically-typed values up into clox's dynamically-typed universe. In order to
 *do* anything with a Value, though, we need to unpack it and get the C value
-back out:
+back out.
 
 ^code as-macros (1 before, 2 after)
 
@@ -193,7 +194,7 @@ double number = AS_NUMBER(value);
 
 Then we may open a smoldering portal to the Shadow Realm. It's not safe to use
 any of the `AS_` macros unless we know the value contains the appropriate type.
-To that end, we define a last few macros to check a value's type:
+To that end, we define a last few macros to check a value's type.
 
 ^code is-macros (1 before, 2 after)
 
@@ -221,11 +222,11 @@ single line of code, so here we are.
 
 The first values we create are the constants generated when we compile number
 literals. After we convert the lexeme to a C double, we simply wrap it in a
-Value before storing it in the constant table:
+Value before storing it in the constant table.
 
 ^code const-number-val (1 before, 1 after)
 
-Over in the runtime, we have a function to print values:
+Over in the runtime, we have a function to print values.
 
 ^code print-number-value (1 before, 1 after)
 
@@ -247,7 +248,7 @@ We need to handle that gracefully, which means it's time for **runtime errors**.
 Before performing an operation that requires a certain type, we need to make
 sure the value *is* that type.
 
-For unary negate, the check looks like this:
+For unary negation, the check looks like this:
 
 ^code op-negate (1 before, 1 after)
 
@@ -265,7 +266,7 @@ remedy.
 
 </aside>
 
-To access the value, we use:
+To access the value, we use a new little function.
 
 ^code peek
 
@@ -282,8 +283,8 @@ the operation. I do the same thing here mostly out of habit.
 
 </aside>
 
-We report the runtime error using this function that we'll get a lot of mileage
-out of over the remainder of the book:
+We report the runtime error using a new function that we'll get a lot of mileage
+out of over the remainder of the book.
 
 ^code runtime-error
 
@@ -332,13 +333,13 @@ call yet, so there is no call stack to trace.
 </aside>
 
 In order to use `va_list` and the macros for working with it, we need to bring
-in a standard header:
+in a standard header.
 
 ^code include-stdarg (1 after)
 
 With this, our VM can not only do the right thing when you negate numbers (like
 it used to before we broke it), but it also gracefully handles erroneous
-attempts to negate other types.
+attempts to negate other types (which we don't have yet, but still).
 
 ### Binary arithmetic operators
 
@@ -351,7 +352,7 @@ the operator token as a parameter.
 
 That macro seemed like overkill in the [last chapter][], but we get the benefit
 from it today. It lets us add the necessary type checking and conversions in one
-place:
+place.
 
 [last chapter]: compiling-expressions.html
 
@@ -367,7 +368,7 @@ given operator, wrap the result, and push it back on the stack. Note that we
 don't wrap the result by directly using `NUMBER_VAL()`. Instead, the wrapper to
 use is passed in as a macro <span name="macro">parameter</span>. For our
 existing arithmetic operators, the result is a number, so we pass in the
-`NUMBER_VAL` macro:
+`NUMBER_VAL` macro.
 
 <aside name="macro">
 
@@ -381,9 +382,9 @@ Soon, I'll show you why we made the wrapping macro an argument.
 
 ## Two New Types
 
-Finally, it's time to add some new types. All of our existing clox code is back
-in working order. We've got a running numeric calculator that now does a number
-of pointless paranoid runtime type checks. We can represent other types
+All of our existing clox code is back in working order. Finally, it's time to
+add some new types. We've got a running numeric calculator that now does a
+number of pointless paranoid runtime type checks. We can represent other types
 internally, but there's no way for a user's program to ever create a value of
 one of those types.
 
@@ -401,7 +402,7 @@ But given that there are literally only three possible values we need to worry
 about with these new types, it's gratuitous -- and <span
 name="small">slow!</span> -- to waste a two-byte instruction and a constant
 table entry on them. Instead, we'll define three dedicated instructions to push
-each of these literals on the stack:
+each of these literals on the stack.
 
 <aside name="small" class="bottom">
 
@@ -423,28 +424,28 @@ bytecode to machine code before execution anyway.)
 Our scanner already treats `true`, `false`, and `nil` as keywords, so we can
 skip right to the parser. With our table-based Pratt parser, we just need to
 slot parser functions into the rows associated with those keyword token types.
-We'll use the same function in all three slots:
+We'll use the same function in all three slots. Here:
 
 ^code table-false (1 before, 1 after)
 
-And:
+Here:
 
 ^code table-true (1 before, 1 after)
 
-And finally:
+And here:
 
 ^code table-nil (1 before, 1 after)
 
 When the parser encounters `false`, `nil`, or `true`, in prefix position, it
-calls:
+calls this new parser function:
 
 ^code parse-literal
 
 Since `parsePrecedence()` has already consumed the keyword token, all we need to
-do is output the proper instruction. We <span name="switch">look</span> at the
-token type to see which literal it was. Our front end can now compile Boolean
+do is output the proper instruction. We <span name="switch">figure</span> that
+out based on the type of token we parsed. Our front end can now compile Boolean
 and nil literals to bytecode. Moving down the execution pipeline, we reach the
-interpreter:
+interpreter.
 
 <aside name="switch">
 
@@ -457,7 +458,7 @@ matter of taste.
 ^code interpret-literals (5 before, 1 after)
 
 This is pretty self-explanatory. Each instruction summons the appropriate value
-and pushes it onto the stack. We shouldn't forget our disassembler either:
+and pushes it onto the stack. We shouldn't forget our disassembler either.
 
 ^code disassemble-literals (2 before, 1 after)
 
@@ -467,14 +468,15 @@ With this in place, we can run this Earth-shattering program:
 true
 ```
 
-...Except that when the interpreter tries to print the result, it blows up. We
-need to extend `printValue()` to handle the new types too:
+Except that when the interpreter tries to print the result, it blows up. We need
+to extend `printValue()` to handle the new types too:
 
 ^code print-value (1 before, 1 after)
 
 There we go! Now we have some new types. They just aren't very useful yet. Aside
 from the literals, you can't really *do* anything with them. It will be a while
-before `nil` comes into play, but we can start putting Booleans to work.
+before `nil` comes into play, but we can start putting Booleans to work in the
+logical operators.
 
 ### Logical not and falsiness
 
@@ -484,30 +486,30 @@ The simplest logical operator is our old exclamatory friend unary not:
 print !true; // "false"
 ```
 
-This new operation gets a new instruction:
+This new operation gets a new instruction.
 
 ^code not-op (1 before, 1 after)
 
-We can reuse the `unary()` parser function we wrote for unary `-` to compile a
-prefix `!` expression. We just need to slot it into the parsing table:
+We can reuse the `unary()` parser function we wrote for unary negation to
+compile a not expression. We just need to slot it into the parsing table.
 
 ^code table-not (1 before, 1 after)
 
 Because I knew we were going to do this, the `unary()` function already has a
 switch on the token type to figure out which bytecode instruction to output. We
-merely add another case:
+merely add another case.
 
 ^code compile-not (1 before, 4 after)
 
 That's it for the front end. Let's head over to the VM and conjure this
-instruction into life:
+instruction into life.
 
 ^code op-not (1 before, 1 after)
 
 Like our previous unary operator, it pops the one operand, performs the
 operation, and pushes the result. And, as we did there, we have to worry about
 dynamic typing. Taking the logical not of `true` is easy, but there's nothing
-preventing an unruly programmer from writing something like:
+preventing an unruly programmer from writing something like this:
 
 ```lox
 print !nil;
@@ -531,7 +533,7 @@ Negating a string could, uh, reverse it?
 
 Lox follows Ruby in that `nil` and `false` are falsey and every other value
 behaves like `true`. We've got a new instruction we can generate, so we also
-need to be able to *un*-generate it in the disassembler:
+need to be able to *un*-generate it in the disassembler.
 
 ^code disassemble-not (2 before, 1 after)
 
@@ -583,12 +585,12 @@ for `!=`:
 
 ^code table-equal (1 before, 1 after)
 
-And the remaining five operators are a little farther down in the table:
+The remaining five operators are a little farther down in the table.
 
 ^code table-comparisons (1 before, 1 after)
 
-Inside `binary()` we have a switch to generate the right bytecode for each token
-type. We add cases for the six new operators:
+Inside `binary()` we already have a switch to generate the right bytecode for
+each token type. We add cases for the six new operators.
 
 ^code comparison-operators (1 before, 1 after)
 
@@ -597,7 +599,7 @@ a pair of instructions, one to evalute the inverse operation, and then an
 `OP_NOT` to flip the result. Six operators for the price of three instructions!
 
 That means over in the VM, our job is simpler. Equality is the most general
-operation:
+operation.
 
 ^code interpret-equal (1 before, 1 after)
 
@@ -605,7 +607,7 @@ You can evaluate `==` on any pair of objects, even objects of different types.
 There's enough complexity that it makes sense to shunt that logic over to a
 separate function. That function always returns a C `bool`, so we can safely
 wrap the result in a `BOOL_VAL`. The function relates to values, so it lives
-over in the "value" module:
+over in the "value" module.
 
 ^code values-equal-h (2 before, 1 after)
 
@@ -649,7 +651,7 @@ equal Values actually differ in memory that isn't used.
 
 Anyway, as we add more types to clox, this function will grow new cases. For
 now, these three are sufficient. The other comparison operators are easier since
-they only work on numbers:
+they only work on numbers.
 
 ^code interpret-comparison (4 before, 1 after)
 
@@ -657,7 +659,7 @@ We already extended the `BINARY_OP` macro to handle operators that return
 non-numeric types. Now we get to use that. We pass in `BOOL_VAL` since the
 result value type is Boolean. Otherwise, it's no different from plus or minus.
 
-As always, the coda to today's aria is disassembling the new instructions:
+As always, the coda to today's aria is disassembling the new instructions.
 
 ^code disassemble-comparison (2 before, 1 after)
 
