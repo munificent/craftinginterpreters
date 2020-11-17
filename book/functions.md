@@ -965,7 +965,7 @@ when we declared `count()` inside the body of `makeCounter()`:
 
 So at the point where the function is declared, we can see `i`. But when we
 return from `makeCounter()` and exit its body, the interpreter discards that
-environment. Since the interpreter doesn't keepi the environment surrounding
+environment. Since the interpreter doesn't keep the environment surrounding
 `count()` around, it's up to the function object itself to hang on to it.
 
 This data structure is called a <span name="closure">"closure"</span> because it
