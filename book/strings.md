@@ -62,20 +62,20 @@ ValueType case to refer to all heap-allocated types:
 ^code val-obj (1 before, 1 after)
 
 When a Value's type is `VAL_OBJ`, the payload is a pointer to the heap memory,
-so we add another case to the union for that:
+so we add another case to the union for that.
 
 ^code union-object (1 before, 1 after)
 
 As we did with the other value types, we crank out a couple of helpful macros
-for working with Obj values:
+for working with Obj values.
 
 ^code is-obj (1 before, 2 after)
 
-This evaluates to `true` if the given Value is an Obj. If so, we can use:
+This evaluates to `true` if the given Value is an Obj. If so, we can use this:
 
 ^code as-obj (2 before, 1 after)
 
-It extracts the Obj pointer from the value. We can also go the other way:
+It extracts the Obj pointer from the value. We can also go the other way.
 
 ^code obj-val (1 before, 2 after)
 
@@ -99,8 +99,8 @@ vowel in there somewhere.
 Instead, we'll use another technique. It's been around for ages, to the point
 that the C specification carves out specific support for it, but I don't know
 that it has a canonical name. It's an example of [*type punning*][pun], but that
-term is too broad. In the absence of any better ideas, I'll call it **"struct
-inheritance"**, because it relies on structs and roughly follows how
+term is too broad. In the absence of any better ideas, I'll call it **struct
+inheritance**, because it relies on structs and roughly follows how
 single-inheritance of state works in object-oriented languages.
 
 [pun]: https://en.wikipedia.org/wiki/Type_punning
@@ -122,32 +122,32 @@ Ooh, foreshadowing!
 The name "Obj" itself refers to a struct that contains the state shared across
 all object types. It's sort of like the "base class" for objects. Because of
 some cyclic dependencies between values and objects, we forward-declare it in
-the "value" module:
+the "value" module.
 
 ^code forward-declare-obj (2 before, 1 after)
 
-And the actual definition is in a new module:
+And the actual definition is in a new module.
 
 ^code object-h
 
 Right now, it only contains the type tag. Shortly, we'll add some other
-bookkeeping information for memory management in there. The type enum is:
+bookkeeping information for memory management. The type enum is this:
 
 ^code obj-type (1 before, 2 after)
 
 Obviously, that will be more useful in later chapters after we add more
 heap-allocated types. Since we'll be accessing these tag types frequently, it's
 worth making a little macro that extracts the object type tag from a given
-Value:
+Value.
 
 ^code obj-type-macro (1 before, 2 after)
 
 That's our foundation. Now, let's build strings on top of it. The payload for
-strings is defined in a separate struct. Again we need to forward-declare it:
+strings is defined in a separate struct. Again we need to forward-declare it.
 
 ^code forward-declare-obj-string (1 before, 2 after)
 
-The definition lives alongside Obj:
+The definition lives alongside Obj.
 
 ^code obj-string (1 before, 2 after)
 
@@ -195,7 +195,7 @@ You can go in the other direction too. Given an `Obj*`, you can "downcast" it to
 an `ObjString*`. Of course, you need to ensure that the `Obj*` pointer you have
 does point to the `obj` field of an actual ObjString. Otherwise, you are
 unsafely reinterpreting random bits of memory. To detect that such a cast is
-safe, we add another macro:
+safe, we add another macro.
 
 ^code is-string (1 before, 2 after)
 
@@ -234,11 +234,11 @@ often what we'll end up needing.
 
 OK, our VM can now represent string values. It's time to add strings to the
 language itself. As usual, we begin in the front end. The lexer already
-tokenizes string literals, so it's the parser's turn:
+tokenizes string literals, so it's the parser's turn.
 
 ^code table-string (1 before, 1 after)
 
-When the parser hits a string token, it calls:
+When the parser hits a string token, it calls this parse function:
 
 ^code parse-string
 
@@ -254,16 +254,16 @@ Since it doesn't, we can take the characters as they are.
 
 </aside>
 
-To create the string, we use `copyString()`, which is declared in `object.h`:
+To create the string, we use `copyString()`, which is declared in `object.h`.
 
 ^code copy-string-h (2 before, 1 after)
 
-Which the compiler needs to include:
+The compiler module needs to include that.
 
 ^code compiler-include-object (2 before, 1 after)
 
 Our "object" module gets an implementation file where we define the new
-function:
+function.
 
 ^code object-c
 
@@ -283,9 +283,9 @@ We need to terminate it explicitly ourselves because the lexeme points at a
 range of characters inside the monolithic source string and isn't terminated.
 
 Since ObjString stores the length explicitly, we *could* leave the character
-array unterminated, but slapping a terminator on the end costs us little and
-lets us pass the character array to C standard library functions that expect a
-terminated string.
+array unterminated, but slapping a terminator on the end costs us only a byte
+and lets us pass the character array to C standard library functions that expect
+a terminated string.
 
 </aside>
 
@@ -306,7 +306,7 @@ The real work of creating a string object happens in this function:
 
 It creates a new ObjString on the heap and then initializes its fields. It's
 sort of like a constructor in an OOP language. As such, it first calls the "base
-class" constructor to initialize the Obj state, using this macro:
+class" constructor to initialize the Obj state, using a new macro.
 
 ^code allocate-obj (1 before, 2 after)
 
@@ -316,9 +316,9 @@ actual functionality is here:
 
 <aside name="factored">
 
-I admit there is a sea of helper functions and macros to wade through. I try to
-keep the code nicely factored, but that leads to a scattering of tiny functions.
-They will pay off in later chapters when we reuse them.
+I admit this chapter has a sea of helper functions and macros to wade through. I
+try to keep the code nicely factored, but that leads to a scattering of tiny
+functions. They will pay off when we reuse them later.
 
 </aside>
 
@@ -347,12 +347,12 @@ did spend two hours drawing a viola just to mention that.
 ## Operations on Strings
 
 Our fancy strings are there, but they don't do much of anything yet. A good
-first step is to make the existing print code not barf on the new value type:
+first step is to make the existing print code not barf on the new value type.
 
 ^code call-print-object (1 before, 1 after)
 
 If the value is a heap-allocated object, it defers to a helper function over in
-the "object" module:
+the "object" module.
 
 ^code print-object-h
 
@@ -380,7 +380,7 @@ These are two separate string literals. The compiler will make two separate
 calls to `copyString()`, create two distinct ObjString objects and store them as
 two constants in the chunk. They are different objects in the heap. But our
 users (and thus we) expect strings to have value equality. The above expression
-should evaluate to `true`. That requires a little special support:
+should evaluate to `true`. That requires a little special support.
 
 ^code strings-equal (1 before, 1 after)
 
@@ -393,11 +393,11 @@ that [later][hash], but this gives us the right semantics for now.
 [hash]: hash-tables.html
 
 Finally, in order to use `memcmp()` and the new stuff in the "object" module, we
-need a couple of includes:
+need a couple of includes. Here:
 
 ^code value-include-string (1 before, 2 after)
 
-And:
+And here:
 
 ^code value-include-object (2 before, 1 after)
 
@@ -413,7 +413,7 @@ operator on two string objects, it produces a new string that's a concatenation
 of the two operands. Since Lox is dynamically typed, we can't tell which
 behavior is needed at compile time because we don't know the types of the
 operands until runtime. Thus, the `OP_ADD` instruction dynamically inspects the
-operands and chooses the right operation:
+operands and chooses the right operation.
 
 ^code add-strings (1 before, 1 after)
 
@@ -432,7 +432,7 @@ string" code for each type, so I left it out of Lox.
 
 </aside>
 
-To concatenate strings, we use:
+To concatenate strings, we define a new function.
 
 ^code concatenate
 
@@ -441,16 +441,16 @@ calculate the length of the result string based on the lengths of the operands.
 We allocate a character array for the result and then copy the two halves in. As
 always, we carefully ensure the string is terminated.
 
-In order to call `memcpy()`, the VM needs an include:
+In order to call `memcpy()`, the VM needs an include.
 
 ^code vm-include-string (1 before, 2 after)
 
 Finally, we produce an ObjString to contain those characters. This time we use a
-new function, `takeString()`:
+new function, `takeString()`.
 
 ^code take-string-h (2 before, 3 after)
 
-The implementation looks like:
+The implementation looks like this:
 
 ^code take-string
 
@@ -465,8 +465,7 @@ the heap. Making another copy of that would be redundant (and would mean
 `concatenate()` has to remember to free its copy). Instead, this function claims
 ownership of the string you give it.
 
-As usual, stitching this function functionality together requires a couple of
-includes:
+As usual, stitching this functionality together requires a couple of includes.
 
 ^code vm-include-object-memory (1 before, 1 after)
 
@@ -551,21 +550,21 @@ list to find every single object that has been allocated on the heap, whether or
 not the user's program or the VM's stack still has a reference to it.
 
 We could define a separate linked list node struct but then we'd have to
-allocate those too. Instead, we'll use an *intrusive list* -- the Obj struct
+allocate those too. Instead, we'll use an **intrusive list** -- the Obj struct
 itself will be the linked list node. Each Obj gets a pointer to the next Obj in
-the chain:
+the chain.
 
 ^code next-field (2 before, 1 after)
 
-The VM stores a pointer to the head of the list:
+The VM stores a pointer to the head of the list.
 
 ^code objects-root (1 before, 1 after)
 
-When we first initialize the VM, there are no allocated objects:
+When we first initialize the VM, there are no allocated objects.
 
 ^code init-objects-root (1 before, 1 after)
 
-Every time we allocate an Obj, we insert it in the list:
+Every time we allocate an Obj, we insert it in the list.
 
 ^code add-to-list (1 before, 1 after)
 
@@ -574,7 +573,7 @@ head. That way, we don't need to also store a pointer to the tail and keep it
 updated.
 
 The "object" module is directly using the global `vm` variable from the "vm"
-module, so we need to expose that externally:
+module, so we need to expose that externally.
 
 ^code extern-vm (2 before, 1 after)
 
@@ -583,7 +582,7 @@ running. But, even then, there will usually be unused objects still lingering in
 memory when the user's program completes. The VM should free those too.
 
 There's no sophisticated logic for that. Once the program is done, we can free
-*every* object. We can and should implement that now:
+*every* object. We can and should implement that now.
 
 ^code call-free-objects (1 before, 1 after)
 
@@ -606,7 +605,7 @@ its nodes. For each node, we call:
 We aren't only freeing the Obj itself. Since some object types also allocate
 other memory that they own, we also need a little type-specific code to handle
 each object type's special needs. Here, that means we free the character array
-and then free the ObjString. Those both use one last memory management macro:
+and then free the ObjString. Those both use one last memory management macro.
 
 ^code free (1 before, 2 after)
 
@@ -622,7 +621,7 @@ keep a running count of the number of bytes of allocated memory.
 
 </aside>
 
-As usual, we need an include to wire everything together:
+As usual, we need an include to wire everything together.
 
 ^code memory-include-object (2 before, 2 after)
 
@@ -652,10 +651,8 @@ languages: the venerable [hash table][]. But that's for the next chapter...
 1.  Each string requires two separate dynamic allocations -- one for the
     ObjString and a second for the character array. Accessing the characters
     from a value requires two pointer indirections, which can be bad for
-    performance.
-
-    A more efficient solution relies on a technique called
-    "[flexible array members][]". Use that to store the ObjString and its
+    performance. A more efficient solution relies on a technique called
+    **[flexible array members][]**. Use that to store the ObjString and its
     character array in a single contiguous allocation.
 
 2.  When we create the ObjString for each string literal, we copy the characters
@@ -688,7 +685,7 @@ nasty conundrum: deciding how to represent strings.
 
 There are two facets to a string encoding:
 
-1.  **What is a single "character" in a string?** How many different values are
+*   **What is a single "character" in a string?** How many different values are
     there and what do they represent? The first widely-adopted standard answer
     to this was [ASCII][]. It gave you 127 different character values and
     specified what they were. It was great... if you only ever cared about
@@ -705,24 +702,24 @@ There are two facets to a string encoding:
     </aside>
 
     Next came [Unicode][]. Initially, it supported 16,384 different characters
-    *(code points)*, which fit nicely in 16 bits with a couple of bits to spare.
-    Later that grew and grew and now there are well over 100,000 different code
-    points including such vital instruments of human communication as 💩
-    (Unicode Character 'PILE OF POO', `U+1F4A9`).
+    (**code points**), which fit nicely in 16 bits with a couple of bits to
+    spare. Later that grew and grew and now there are well over 100,000
+    different code points including such vital instruments of human
+    communication as 💩 (Unicode Character 'PILE OF POO', `U+1F4A9`).
 
     Even that long list of code points is not enough to represent each possible
     visible glyph a language might support. To handle that, Unicode also has
-    *combining characters* that modify a preceding code point. For example, "a"
-    followed by the combining character "¨" gives you "ä". (To make things more
-    confusing Unicode *also* has a single code point that looks like "ä".)
+    **combining characters** that modify a preceding code point. For example,
+    "a" followed by the combining character "¨" gives you "ä". (To make things
+    more confusing Unicode *also* has a single code point that looks like "ä".)
 
     If a user accesses the fourth "character" in "naïve", do they expect to get
-    back "v" or &ldquo;¨&rdquo;? The former means they are thinking of each code point and
-    its combining characters as a single unit -- what Unicode calls an *extended
-    grapheme cluster* -- the latter means they are thinking in individual code
-    points. Which do your users expect?
+    back "v" or &ldquo;¨&rdquo;? The former means they are thinking of each code
+    point and its combining characters as a single unit -- what Unicode calls an
+    **extended grapheme cluster** -- the latter means they are thinking in
+    individual code points. Which do your users expect?
 
-2.  **How is a single unit represented in memory?** Most systems using ASCII
+*   **How is a single unit represented in memory?** Most systems using ASCII
     gave a single byte to each character and left the high bit unused. Unicode
     has a handful of common encodings. UTF-16 packs most code points into 16
     bits. That was great when every code point fit in that size. When that

@@ -168,7 +168,7 @@ in enum <em>ValueType</em></div>
 <div class="source-file-narrow"><em>value.h</em>, in enum <em>ValueType</em></div>
 
 <p>When a Value&rsquo;s type is <code>VAL_OBJ</code>, the payload is a pointer to the heap memory,
-so we add another case to the union for that:</p>
+so we add another case to the union for that.</p>
 <div class="codehilite"><pre class="insert-before">
     double number;
 </pre><div class="source-file"><em>value.h</em><br>
@@ -181,7 +181,7 @@ in struct <em>Value</em></div>
 <div class="source-file-narrow"><em>value.h</em>, in struct <em>Value</em></div>
 
 <p>As we did with the other value types, we crank out a couple of helpful macros
-for working with Obj values:</p>
+for working with Obj values.</p>
 <div class="codehilite"><pre class="insert-before">
 #define IS_NUMBER(value)  ((value).type == VAL_NUMBER)
 </pre><div class="source-file"><em>value.h</em><br>
@@ -194,7 +194,7 @@ add after struct <em>Value</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
 
-<p>This evaluates to <code>true</code> if the given Value is an Obj. If so, we can use:</p>
+<p>This evaluates to <code>true</code> if the given Value is an Obj. If so, we can use this:</p>
 <div class="codehilite"><pre class="insert-before">
 #define IS_OBJ(value)     ((value).type == VAL_OBJ)
 
@@ -206,7 +206,7 @@ add after struct <em>Value</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>It extracts the Obj pointer from the value. We can also go the other way:</p>
+<p>It extracts the Obj pointer from the value. We can also go the other way.</p>
 <div class="codehilite"><pre class="insert-before">
 #define NUMBER_VAL(value) ((Value){VAL_NUMBER, {.number = value}})
 </pre><div class="source-file"><em>value.h</em></div>
@@ -232,8 +232,8 @@ vowel in there somewhere.</p>
 <p>Instead, we&rsquo;ll use another technique. It&rsquo;s been around for ages, to the point
 that the C specification carves out specific support for it, but I don&rsquo;t know
 that it has a canonical name. It&rsquo;s an example of <a href="https://en.wikipedia.org/wiki/Type_punning"><em>type punning</em></a>, but that
-term is too broad. In the absence of any better ideas, I&rsquo;ll call it <strong>&ldquo;struct
-inheritance&rdquo;</strong>, because it relies on structs and roughly follows how
+term is too broad. In the absence of any better ideas, I&rsquo;ll call it <strong>struct
+inheritance</strong>, because it relies on structs and roughly follows how
 single-inheritance of state works in object-oriented languages.</p>
 <p>Like a tagged union, each Obj starts with a tag field that identifies what kind
 of object it is<span class="em">&mdash;</span>string, instance, etc. Following that are the payload fields.
@@ -248,7 +248,7 @@ of the way.</p>
 <p>The name &ldquo;Obj&rdquo; itself refers to a struct that contains the state shared across
 all object types. It&rsquo;s sort of like the &ldquo;base class&rdquo; for objects. Because of
 some cyclic dependencies between values and objects, we forward-declare it in
-the &ldquo;value&rdquo; module:</p>
+the &ldquo;value&rdquo; module.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;common.h&quot;
 
@@ -261,7 +261,7 @@ typedef enum {
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>And the actual definition is in a new module:</p>
+<p>And the actual definition is in a new module.</p>
 <div class="codehilite"><div class="source-file"><em>object.h</em><br>
 create new file</div>
 <pre>
@@ -280,7 +280,7 @@ create new file</div>
 <div class="source-file-narrow"><em>object.h</em>, create new file</div>
 
 <p>Right now, it only contains the type tag. Shortly, we&rsquo;ll add some other
-bookkeeping information for memory management in there. The type enum is:</p>
+bookkeeping information for memory management. The type enum is this:</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;value.h&quot;
 </pre><div class="source-file"><em>object.h</em></div>
@@ -298,7 +298,7 @@ struct Obj {
 <p>Obviously, that will be more useful in later chapters after we add more
 heap-allocated types. Since we&rsquo;ll be accessing these tag types frequently, it&rsquo;s
 worth making a little macro that extracts the object type tag from a given
-Value:</p>
+Value.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;value.h&quot;
 </pre><div class="source-file"><em>object.h</em></div>
@@ -312,7 +312,7 @@ typedef enum {
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>That&rsquo;s our foundation. Now, let&rsquo;s build strings on top of it. The payload for
-strings is defined in a separate struct. Again we need to forward-declare it:</p>
+strings is defined in a separate struct. Again we need to forward-declare it.</p>
 <div class="codehilite"><pre class="insert-before">
 typedef struct Obj Obj;
 </pre><div class="source-file"><em>value.h</em></div>
@@ -324,7 +324,7 @@ typedef enum {
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>The definition lives alongside Obj:</p>
+<p>The definition lives alongside Obj.</p>
 <div class="codehilite"><pre class="insert-before">
 };
 </pre><div class="source-file"><em>object.h</em><br>
@@ -377,7 +377,7 @@ field. Any code that wants to work with all objects can treat them as base
 an <code>ObjString*</code>. Of course, you need to ensure that the <code>Obj*</code> pointer you have
 does point to the <code>obj</code> field of an actual ObjString. Otherwise, you are
 unsafely reinterpreting random bits of memory. To detect that such a cast is
-safe, we add another macro:</p>
+safe, we add another macro.</p>
 <div class="codehilite"><pre class="insert-before">
 #define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
 </pre><div class="source-file"><em>object.h</em></div>
@@ -441,7 +441,7 @@ often what we&rsquo;ll end up needing.</p>
 <h2><a href="#strings" name="strings"><small>19&#8202;.&#8202;3</small>Strings</a></h2>
 <p>OK, our VM can now represent string values. It&rsquo;s time to add strings to the
 language itself. As usual, we begin in the front end. The lexer already
-tokenizes string literals, so it&rsquo;s the parser&rsquo;s turn:</p>
+tokenizes string literals, so it&rsquo;s the parser&rsquo;s turn.</p>
 <div class="codehilite"><pre class="insert-before">
   [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -453,7 +453,7 @@ replace 1 line</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
-<p>When the parser hits a string token, it calls:</p>
+<p>When the parser hits a string token, it calls this parse function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>number</em>()</div>
 <pre>
@@ -472,7 +472,7 @@ constant table.</p>
 <p>If Lox supported string escape sequences like <code>\n</code>, we&rsquo;d translate those here.
 Since it doesn&rsquo;t, we can take the characters as they are.</p>
 </aside>
-<p>To create the string, we use <code>copyString()</code>, which is declared in <code>object.h</code>:</p>
+<p>To create the string, we use <code>copyString()</code>, which is declared in <code>object.h</code>.</p>
 <div class="codehilite"><pre class="insert-before">
 };
 
@@ -486,7 +486,7 @@ static inline bool isObjType(Value value, ObjType type) {
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjString</em></div>
 
-<p>Which the compiler needs to include:</p>
+<p>The compiler module needs to include that.</p>
 <div class="codehilite"><pre class="insert-before">
 #define clox_compiler_h
 
@@ -499,7 +499,7 @@ static inline bool isObjType(Value value, ObjType type) {
 <div class="source-file-narrow"><em>compiler.h</em></div>
 
 <p>Our &ldquo;object&rdquo; module gets an implementation file where we define the new
-function:</p>
+function.</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 create new file</div>
 <pre>
@@ -544,9 +544,9 @@ terminate it.</p>
 <p>We need to terminate it explicitly ourselves because the lexeme points at a
 range of characters inside the monolithic source string and isn&rsquo;t terminated.</p>
 <p>Since ObjString stores the length explicitly, we <em>could</em> leave the character
-array unterminated, but slapping a terminator on the end costs us little and
-lets us pass the character array to C standard library functions that expect a
-terminated string.</p>
+array unterminated, but slapping a terminator on the end costs us only a byte
+and lets us pass the character array to C standard library functions that expect
+a terminated string.</p>
 </aside>
 <p>You might wonder why the ObjString can&rsquo;t just point back to the original
 characters in the source string. Some ObjStrings will be created dynamically at
@@ -575,7 +575,7 @@ This way, every ObjString reliably owns its character array and can free it.</p>
 
 <p>It creates a new ObjString on the heap and then initializes its fields. It&rsquo;s
 sort of like a constructor in an OOP language. As such, it first calls the &ldquo;base
-class&rdquo; constructor to initialize the Obj state, using this macro:</p>
+class&rdquo; constructor to initialize the Obj state, using a new macro.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;vm.h&quot;
 </pre><div class="source-file"><em>object.c</em></div>
@@ -593,9 +593,9 @@ static ObjString* allocateString(char* chars, int length) {
 avoid the need to redundantly cast a <code>void*</code> back to the desired type. The
 actual functionality is here:</p>
 <aside name="factored">
-<p>I admit there is a sea of helper functions and macros to wade through. I try to
-keep the code nicely factored, but that leads to a scattering of tiny functions.
-They will pay off in later chapters when we reuse them.</p>
+<p>I admit this chapter has a sea of helper functions and macros to wade through. I
+try to keep the code nicely factored, but that leads to a scattering of tiny
+functions. They will pay off when we reuse them later.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
 #define ALLOCATE_OBJ(type, objectType) \
@@ -629,7 +629,7 @@ did spend two hours drawing a viola just to mention that.</p>
 </aside>
 <h2><a href="#operations-on-strings" name="operations-on-strings"><small>19&#8202;.&#8202;4</small>Operations on Strings</a></h2>
 <p>Our fancy strings are there, but they don&rsquo;t do much of anything yet. A good
-first step is to make the existing print code not barf on the new value type:</p>
+first step is to make the existing print code not barf on the new value type.</p>
 <div class="codehilite"><pre class="insert-before">
     case VAL_NUMBER: printf(&quot;%g&quot;, AS_NUMBER(value)); break;
 </pre><div class="source-file"><em>value.c</em><br>
@@ -642,7 +642,7 @@ in <em>printValue</em>()</div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>()</div>
 
 <p>If the value is a heap-allocated object, it defers to a helper function over in
-the &ldquo;object&rdquo; module:</p>
+the &ldquo;object&rdquo; module.</p>
 <div class="codehilite"><div class="source-file"><em>object.h</em><br>
 add after <em>copyString</em>()</div>
 <pre>
@@ -678,7 +678,7 @@ name="term-2">prints</span> the character array as a C string.</p>
 calls to <code>copyString()</code>, create two distinct ObjString objects and store them as
 two constants in the chunk. They are different objects in the heap. But our
 users (and thus we) expect strings to have value equality. The above expression
-should evaluate to <code>true</code>. That requires a little special support:</p>
+should evaluate to <code>true</code>. That requires a little special support.</p>
 <div class="codehilite"><pre class="insert-before">
     case VAL_NUMBER: return AS_NUMBER(a) == AS_NUMBER(b);
 </pre><div class="source-file"><em>value.c</em><br>
@@ -702,7 +702,7 @@ objects or the exact same one. This does mean that string equality is slower
 than equality on other types since it has to walk the whole string. We&rsquo;ll revise
 that <a href="hash-tables.html">later</a>, but this gives us the right semantics for now.</p>
 <p>Finally, in order to use <code>memcmp()</code> and the new stuff in the &ldquo;object&rdquo; module, we
-need a couple of includes:</p>
+need a couple of includes. Here:</p>
 <div class="codehilite"><pre class="insert-before">
 #include &lt;stdio.h&gt;
 </pre><div class="source-file"><em>value.c</em></div>
@@ -714,7 +714,7 @@ need a couple of includes:</p>
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em></div>
 
-<p>And:</p>
+<p>And here:</p>
 <div class="codehilite"><pre class="insert-before">
 #include &lt;string.h&gt;
 
@@ -735,7 +735,7 @@ operator on two string objects, it produces a new string that&rsquo;s a concaten
 of the two operands. Since Lox is dynamically typed, we can&rsquo;t tell which
 behavior is needed at compile time because we don&rsquo;t know the types of the
 operands until runtime. Thus, the <code>OP_ADD</code> instruction dynamically inspects the
-operands and chooses the right operation:</p>
+operands and chooses the right operation.</p>
 <div class="codehilite"><pre class="insert-before">
       case OP_LESS:     BINARY_OP(BOOL_VAL, &lt;); break;
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -771,7 +771,7 @@ converted to a string before concatenating the two.</p>
 <p>I think that&rsquo;s a fine feature, but would require writing tedious &ldquo;convert to
 string&rdquo; code for each type, so I left it out of Lox.</p>
 </aside>
-<p>To concatenate strings, we use:</p>
+<p>To concatenate strings, we define a new function.</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>isFalsey</em>()</div>
 <pre>
@@ -795,7 +795,7 @@ add after <em>isFalsey</em>()</div>
 calculate the length of the result string based on the lengths of the operands.
 We allocate a character array for the result and then copy the two halves in. As
 always, we carefully ensure the string is terminated.</p>
-<p>In order to call <code>memcpy()</code>, the VM needs an include:</p>
+<p>In order to call <code>memcpy()</code>, the VM needs an include.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &lt;stdio.h&gt;
 </pre><div class="source-file"><em>vm.c</em></div>
@@ -808,7 +808,7 @@ always, we carefully ensure the string is terminated.</p>
 <div class="source-file-narrow"><em>vm.c</em></div>
 
 <p>Finally, we produce an ObjString to contain those characters. This time we use a
-new function, <code>takeString()</code>:</p>
+new function, <code>takeString()</code>.</p>
 <div class="codehilite"><pre class="insert-before">
 };
 
@@ -823,7 +823,7 @@ void printObject(Value value);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjString</em></div>
 
-<p>The implementation looks like:</p>
+<p>The implementation looks like this:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 add after <em>allocateString</em>()</div>
 <pre>
@@ -842,8 +842,7 @@ string.</p>
 the heap. Making another copy of that would be redundant (and would mean
 <code>concatenate()</code> has to remember to free its copy). Instead, this function claims
 ownership of the string you give it.</p>
-<p>As usual, stitching this function functionality together requires a couple of
-includes:</p>
+<p>As usual, stitching this functionality together requires a couple of includes.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;debug.h&quot;
 </pre><div class="source-file"><em>vm.c</em></div>
@@ -914,9 +913,9 @@ take the simplest practical approach.</p>
 list to find every single object that has been allocated on the heap, whether or
 not the user&rsquo;s program or the VM&rsquo;s stack still has a reference to it.</p>
 <p>We could define a separate linked list node struct but then we&rsquo;d have to
-allocate those too. Instead, we&rsquo;ll use an <em>intrusive list</em><span class="em">&mdash;</span>the Obj struct
+allocate those too. Instead, we&rsquo;ll use an <strong>intrusive list</strong><span class="em">&mdash;</span>the Obj struct
 itself will be the linked list node. Each Obj gets a pointer to the next Obj in
-the chain:</p>
+the chain.</p>
 <div class="codehilite"><pre class="insert-before">
 struct Obj {
   ObjType type;
@@ -929,7 +928,7 @@ in struct <em>Obj</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>Obj</em></div>
 
-<p>The VM stores a pointer to the head of the list:</p>
+<p>The VM stores a pointer to the head of the list.</p>
 <div class="codehilite"><pre class="insert-before">
   Value* stackTop;
 </pre><div class="source-file"><em>vm.h</em><br>
@@ -942,7 +941,7 @@ in struct <em>VM</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
-<p>When we first initialize the VM, there are no allocated objects:</p>
+<p>When we first initialize the VM, there are no allocated objects.</p>
 <div class="codehilite"><pre class="insert-before">
   resetStack();
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -954,7 +953,7 @@ in <em>initVM</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
-<p>Every time we allocate an Obj, we insert it in the list:</p>
+<p>Every time we allocate an Obj, we insert it in the list.</p>
 <div class="codehilite"><pre class="insert-before">
   object-&gt;type = type;
 </pre><div class="source-file"><em>object.c</em><br>
@@ -972,7 +971,7 @@ in <em>allocateObject</em>()</div>
 head. That way, we don&rsquo;t need to also store a pointer to the tail and keep it
 updated.</p>
 <p>The &ldquo;object&rdquo; module is directly using the global <code>vm</code> variable from the &ldquo;vm&rdquo;
-module, so we need to expose that externally:</p>
+module, so we need to expose that externally.</p>
 <div class="codehilite"><pre class="insert-before">
 } InterpretResult;
 
@@ -990,7 +989,7 @@ void initVM();
 running. But, even then, there will usually be unused objects still lingering in
 memory when the user&rsquo;s program completes. The VM should free those too.</p>
 <p>There&rsquo;s no sophisticated logic for that. Once the program is done, we can free
-<em>every</em> object. We can and should implement that now:</p>
+<em>every</em> object. We can and should implement that now.</p>
 <div class="codehilite"><pre class="insert-before">
 void freeVM() {
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -1052,7 +1051,7 @@ add after <em>reallocate</em>()</div>
 <p>We aren&rsquo;t only freeing the Obj itself. Since some object types also allocate
 other memory that they own, we also need a little type-specific code to handle
 each object type&rsquo;s special needs. Here, that means we free the character array
-and then free the ObjString. Those both use one last memory management macro:</p>
+and then free the ObjString. Those both use one last memory management macro.</p>
 <div class="codehilite"><pre class="insert-before">
     (type*)reallocate(NULL, 0, sizeof(type) * (count))
 </pre><div class="source-file"><em>memory.h</em></div>
@@ -1073,7 +1072,7 @@ and then free the ObjString. Those both use one last memory management macro:</p
 used. If all allocation and freeing goes through <code>reallocate()</code>, it&rsquo;s easy to
 keep a running count of the number of bytes of allocated memory.</p>
 </aside>
-<p>As usual, we need an include to wire everything together:</p>
+<p>As usual, we need an include to wire everything together.</p>
 <div class="codehilite"><pre class="insert-before">
 
 #include &quot;common.h&quot;
@@ -1116,9 +1115,8 @@ languages: the venerable <a href="hash-tables.html">hash table</a>. But that&rsq
 <p>Each string requires two separate dynamic allocations<span class="em">&mdash;</span>one for the
 ObjString and a second for the character array. Accessing the characters
 from a value requires two pointer indirections, which can be bad for
-performance.</p>
-<p>A more efficient solution relies on a technique called
-&ldquo;<a href="https://en.wikipedia.org/wiki/Flexible_array_member">flexible array members</a>&rdquo;. Use that to store the ObjString and its
+performance. A more efficient solution relies on a technique called
+<strong><a href="https://en.wikipedia.org/wiki/Flexible_array_member">flexible array members</a></strong>. Use that to store the ObjString and its
 character array in a single contiguous allocation.</p>
 </li>
 <li>
@@ -1146,7 +1144,7 @@ solution<span class="em">&mdash;</span>it&rsquo;s an intro book after all<span c
 pretend the problem doesn&rsquo;t exist at all. However, I did skirt around one really
 nasty conundrum: deciding how to represent strings.</p>
 <p>There are two facets to a string encoding:</p>
-<ol>
+<ul>
 <li>
 <p><strong>What is a single &ldquo;character&rdquo; in a string?</strong> How many different values are
 there and what do they represent? The first widely-adopted standard answer
@@ -1161,20 +1159,20 @@ name="gruyere">&ldquo;Gruyère&rdquo;</span>, or &ldquo;Mötley Crüe&rdquo;.</p
 or Mötley Crüe is a language not worth using.</p>
 </aside>
 <p>Next came <a href="https://en.wikipedia.org/wiki/Unicode">Unicode</a>. Initially, it supported 16,384 different characters
-<em>(code points)</em>, which fit nicely in 16 bits with a couple of bits to spare.
-Later that grew and grew and now there are well over 100,000 different code
-points including such vital instruments of human communication as 💩
-(Unicode Character &lsquo;PILE OF POO&rsquo;, <code>U+1F4A9</code>).</p>
+(<strong>code points</strong>), which fit nicely in 16 bits with a couple of bits to
+spare. Later that grew and grew and now there are well over 100,000
+different code points including such vital instruments of human
+communication as 💩 (Unicode Character &lsquo;PILE OF POO&rsquo;, <code>U+1F4A9</code>).</p>
 <p>Even that long list of code points is not enough to represent each possible
 visible glyph a language might support. To handle that, Unicode also has
-<em>combining characters</em> that modify a preceding code point. For example, &ldquo;a&rdquo;
-followed by the combining character &ldquo;¨&rdquo; gives you &ldquo;ä&rdquo;. (To make things more
-confusing Unicode <em>also</em> has a single code point that looks like &ldquo;ä&rdquo;.)</p>
+<strong>combining characters</strong> that modify a preceding code point. For example,
+&ldquo;a&rdquo; followed by the combining character &ldquo;¨&rdquo; gives you &ldquo;ä&rdquo;. (To make things
+more confusing Unicode <em>also</em> has a single code point that looks like &ldquo;ä&rdquo;.)</p>
 <p>If a user accesses the fourth &ldquo;character&rdquo; in &ldquo;naïve&rdquo;, do they expect to get
-back &ldquo;v&rdquo; or &ldquo;¨&rdquo;? The former means they are thinking of each code point and
-its combining characters as a single unit<span class="em">&mdash;</span>what Unicode calls an <em>extended
-grapheme cluster</em><span class="em">&mdash;</span>the latter means they are thinking in individual code
-points. Which do your users expect?</p>
+back &ldquo;v&rdquo; or &ldquo;¨&rdquo;? The former means they are thinking of each code
+point and its combining characters as a single unit<span class="em">&mdash;</span>what Unicode calls an
+<strong>extended grapheme cluster</strong><span class="em">&mdash;</span>the latter means they are thinking in
+individual code points. Which do your users expect?</p>
 </li>
 <li>
 <p><strong>How is a single unit represented in memory?</strong> Most systems using ASCII
@@ -1191,7 +1189,7 @@ directly index into the string to find a specific code point. If you want,
 say, the 10th code point, you don&rsquo;t know how many bytes into the string that
 is without walking and decoding all of the preceding ones.</p>
 </li>
-</ol>
+</ul>
 <p>Choosing a character representation and encoding involves fundamental
 trade-offs. Like many things in engineering, there&rsquo;s no <span
 name="python">perfect</span> solution:</p>
