@@ -6,15 +6,6 @@ final _punctuation = RegExp(r'[,.?!:/"]');
 
 final _whitespace = RegExp(r"\s+");
 
-/// Use nicer HTML entities and special characters.
-String pretty(String text) {
-  return text
-      .replaceAll("à", "&agrave;")
-      .replaceAll("ï", "&iuml;")
-      .replaceAll("ø", "&oslash;")
-      .replaceAll("æ", "&aelig;");
-}
-
 /// Converts [text] to a string suitable for use as a file or anchor name.
 String toFileName(String text) {
   if (text == "Crafting Interpreters") return "index";
@@ -29,15 +20,6 @@ String toFileName(String text) {
   return text.toLowerCase().replaceAll(" ", "-").replaceAll(_punctuation, "");
 }
 
-/// Convert n to roman numerals.
-String roman(int n) {
-  if (n <= 3) return "I" * n;
-  if (n == 4) return "IV";
-  if (n < 10) return "V" + "I" * (n - 5);
-
-  throw ArgumentError("Can't convert $n to Roman.");
-}
-
 /// Returns the length of the longest line in lines, or [longest], whichever
 /// is longer.
 int longestLine(int longest, Iterable<String> lines) {
@@ -47,12 +29,40 @@ int longestLine(int longest, Iterable<String> lines) {
   return longest;
 }
 
-String escapeHtml(String html) =>
-    const HtmlEscape(HtmlEscapeMode.attribute).convert(html);
-
 String pluralize<T>(Iterable<T> sequence) {
   if (sequence.length == 1) return "";
   return "s";
 }
 
-int countWords(String text) => text.split(_whitespace).length;
+extension IntExtensions on int {
+  /// Convert n to roman numerals.
+  String get roman {
+    if (this <= 3) return "I" * this;
+    if (this == 4) return "IV";
+    if (this < 10) return "V" + "I" * (this - 5);
+
+    throw ArgumentError("Can't convert $this to Roman.");
+  }
+
+  /// Make a nicely formatted string.
+  String get withCommas {
+    if (this > 1000) return "${this ~/ 1000},${this % 1000}";
+    return toString();
+  }
+}
+
+extension StringExtensions on String {
+  /// Use nicer HTML entities and special characters.
+  String get pretty {
+    return this
+        .replaceAll("à", "&agrave;")
+        .replaceAll("ï", "&iuml;")
+        .replaceAll("ø", "&oslash;")
+        .replaceAll("æ", "&aelig;");
+  }
+
+  String get escapeHtml =>
+      const HtmlEscape(HtmlEscapeMode.attribute).convert(this);
+
+  int get wordCount => split(_whitespace).length;
+}

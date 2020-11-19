@@ -74,7 +74,7 @@ class Book {
       var partNumber = "";
       inMatter = part == "" || part == "Backmatter";
       if (!inMatter) {
-        partNumber = roman(partIndex);
+        partNumber = partIndex.roman;
         partIndex += 1;
       }
 

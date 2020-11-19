@@ -50,38 +50,44 @@ void _buildPages({bool skipUpToDate = false}) {
         ["asset/mustache/*.html", "c/*.{c,h}", "java/**.java"]);
   }
 
+  var proseWords = 0;
+  var codeLines = 0;
   var totalWords = 0;
   for (var page in book.pages) {
-    totalWords += _buildPage(book, mustache, page,
+    var metrics = _buildPage(book, mustache, page,
         dependenciesModified: dependenciesModified);
+    proseWords += metrics[0];
+    codeLines += metrics[1];
+    totalWords += metrics[2];
   }
 
   if (totalWords > 0) {
-    var wordString = totalWords.toString();
-    if (totalWords > 1000) {
-      wordString = "${totalWords ~/ 1000},${totalWords % 1000}";
-    }
     var seconds = (watch.elapsedMilliseconds / 1000).toStringAsFixed(2);
-    print("Built ${term.green(wordString)} words in $seconds seconds");
+    print("Built ${term.green(proseWords.withCommas)} words and "
+        "${term.cyan(codeLines.withCommas)} lines of code "
+        "(${totalWords.withCommas} total words) in $seconds seconds");
   }
 }
 
-int _buildPage(Book book, Mustache mustache, Page page,
+List<int> _buildPage(Book book, Mustache mustache, Page page,
     {DateTime dependenciesModified}) {
   // See if the HTML is up to date.
   if (dependenciesModified != null &&
       _isUpToDate(page.htmlPath, page.markdownPath, dependenciesModified)) {
-    return 0;
+    return [0, 0, 0];
   }
 
-  var wordCount = 0;
-  for (var line in page.lines) wordCount += countWords(line);
+  var proseCount = 0;
+  var codeLineCount = 0;
+  for (var line in page.lines) proseCount += line.wordCount;
 
+  var wordCount = proseCount;
   for (var tag in page.codeTags) {
     var snippet = book.findSnippet(tag);
-    for (var line in snippet.added) wordCount += countWords(line);
-    for (var line in snippet.contextBefore) wordCount += countWords(line);
-    for (var line in snippet.contextAfter) wordCount += countWords(line);
+    codeLineCount += snippet.added.length;
+    for (var line in snippet.added) wordCount += line.wordCount;
+    for (var line in snippet.contextBefore) wordCount += line.wordCount;
+    for (var line in snippet.contextAfter) wordCount += line.wordCount;
   }
 
   var body = renderMarkdown(book, page, page.lines);
@@ -104,7 +110,10 @@ int _buildPage(Book book, Mustache mustache, Page page,
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
 
-  var words = term.gray("($wordCount words)");
+  var words = "$wordCount words";
+  if (codeLineCount > 0) words += ", $codeLineCount loc";
+  words = term.gray("($words)");
+
   var number = "";
   if (page.numberString.isNotEmpty) {
     number = "${page.numberString}. ";
@@ -118,7 +127,7 @@ int _buildPage(Book book, Mustache mustache, Page page,
     print("${term.green('✓')} $number${page.title} $words");
   }
 
-  return wordCount;
+  return [proseCount, codeLineCount, wordCount];
 }
 
 /// Process each SASS file.

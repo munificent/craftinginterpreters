@@ -56,7 +56,7 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
         // Strip off any leading indentation.
         if (line.length > indent) line = line.substring(indent);
         checkLineLength(line);
-        buffer.writeln(escapeHtml(line));
+        buffer.writeln(line.escapeHtml);
       }
 
       if (!_isXml) buffer.write("</pre>");
@@ -226,7 +226,7 @@ void _writeContextHtml(StringBuffer buffer, List<String> lines,
   buffer.writeln(">");
 
   for (var line in lines) {
-    buffer.writeln(escapeHtml(line));
+    buffer.writeln(line.escapeHtml);
   }
 
   buffer.write("</pre>");
@@ -235,7 +235,7 @@ void _writeContextHtml(StringBuffer buffer, List<String> lines,
 void _writeContextXml(StringBuffer buffer, List<String> lines, String tag) {
   buffer.write("<context-$tag>");
   for (var line in lines) {
-    buffer.writeln(escapeHtml(line));
+    buffer.writeln(line.escapeHtml);
   }
   buffer.write("</context-$tag>");
 }

@@ -37,7 +37,7 @@ PageFile parsePage(Page page) {
       // Keep track of the headers so we can add section navigation for them.
       var headerType = match[1];
       var level = headerType.length;
-      var name = pretty(line.substring(level).trim());
+      var name = line.substring(level).trim().pretty;
 
       if (level == 2) {
         headerIndex += 1;
