@@ -981,7 +981,7 @@ language, you force users to start that process all over again.
 
 Taking advantage of what users already know is one of the most powerful tools
 you can use to ease adoption of your language. It's almost impossible to
-underestimate how valuable this is. But it faces you with a nasty problem: What
+overestimate how valuable this is. But it faces you with a nasty problem: What
 happens when the thing the users all know *kind of sucks?* C's bitwise operator
 precedence is a mistake that doesn't make sense. But it's a *familiar* mistake
 that millions have already gotten used to and learned to live with.
