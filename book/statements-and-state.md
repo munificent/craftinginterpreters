@@ -209,7 +209,7 @@ We add that to the list of interfaces Interpreter implements.
 
 Java doesn't let you use lowercase "void" as a generic type argument for obscure
 reasons having to do with type erasure and the stack. Instead, there is a
-separate "Void" type specifically for this use. Sort of a "boxed void", list
+separate "Void" type specifically for this use. Sort of a "boxed void", like
 "Integer" is for "int".
 
 </aside>
