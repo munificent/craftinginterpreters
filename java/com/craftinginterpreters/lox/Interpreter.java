@@ -308,8 +308,11 @@ class Interpreter implements Expr.Visitor<Object>,
         if (left instanceof String && right instanceof String) {
           return (String)left + (String)right;
         }
-//> string-wrong-type
 
+/* Evaluating Expressions binary-plus < Evaluating Expressions string-wrong-type
+        break;
+*/
+//> string-wrong-type
         throw new RuntimeError(expr.operator,
             "Operands must be two numbers or two strings.");
 //< string-wrong-type
