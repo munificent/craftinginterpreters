@@ -306,7 +306,7 @@ comparison or equality operators do.
 
 ```ebnf
 expression     → assignment ;
-assignment     → identifier "=" assignment
+assignment     → IDENTIFIER "=" assignment
                | logic_or ;
 logic_or       → logic_and ( "or" logic_and )* ;
 logic_and      → equality ( "and" equality )* ;
