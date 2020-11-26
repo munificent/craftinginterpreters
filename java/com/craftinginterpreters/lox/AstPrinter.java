@@ -1,5 +1,9 @@
 //> Representing Code ast-printer
 package com.craftinginterpreters.lox;
+//> omit
+
+import java.util.List;
+//< omit
 
 /* Representing Code ast-printer < Statements and State omit
 class AstPrinter implements Expr.Visitor<String> {
@@ -228,10 +232,15 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     StringBuilder builder = new StringBuilder();
 
     builder.append("(").append(name);
+    transform(builder, parts);
+    builder.append(")");
 
+    return builder.toString();
+  }
+
+  private void transform(StringBuilder builder, Object... parts) {
     for (Object part : parts) {
       builder.append(" ");
-
       if (part instanceof Expr) {
         builder.append(((Expr)part).accept(this));
 //> Statements and State omit
@@ -240,13 +249,12 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 //< Statements and State omit
       } else if (part instanceof Token) {
         builder.append(((Token) part).lexeme);
+      } else if (part instanceof List) {
+        transform(builder, ((List) part).toArray());
       } else {
         builder.append(part);
       }
     }
-    builder.append(")");
-
-    return builder.toString();
   }
 //< omit
 /* Representing Code printer-main < Representing Code omit
