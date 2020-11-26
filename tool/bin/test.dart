@@ -138,11 +138,17 @@ void _runTest(String path) {
   }
 }
 
+class ExpectedOutput {
+  final int line;
+  final String output;
+
+  ExpectedOutput(this.line, this.output);
+}
+
 class Test {
   final String _path;
 
-  // TODO: Better type.
-  final _expectedOutput = <List<Object>>[];
+  final _expectedOutput = <ExpectedOutput>[];
 
   /// The set of expected compile error messages.
   final _expectedErrors = <String>{};
@@ -194,7 +200,7 @@ class Test {
 
       match = _expectedOutputPattern.firstMatch(line);
       if (match != null) {
-        _expectedOutput.add([match[1], lineNum]);
+        _expectedOutput.add(ExpectedOutput(lineNum, match[1]));
         _expectations++;
         continue;
       }
@@ -356,18 +362,22 @@ class Test {
     var index = 0;
     for (; index < outputLines.length; index++) {
       var line = outputLines[index];
-      var output = _expectedOutput[index][0] as String;
       if (index >= _expectedOutput.length) {
         fail("Got output '$line' when none was expected.");
-      } else if (output != line) {
-        var lineNum = _expectedOutput[index][1] as int;
-        fail("Expected output '$output' on line $lineNum and got '$line'.");
+        continue;
+      }
+
+      var expected = _expectedOutput[index];
+      if (expected.output != line) {
+        fail("Expected output '${expected.output}' on line ${expected.line} "
+            " and got '$line'.");
       }
     }
 
     while (index < _expectedOutput.length) {
-      fail("Missing expected output '${_expectedOutput[index][0]}' on line "
-          "${_expectedOutput[index][1]}.");
+      var expected = _expectedOutput[index];
+      fail("Missing expected output '${expected.output}' on line "
+          "${expected.line}.");
       index++;
     }
   }
