@@ -13,11 +13,11 @@ users call them "dictionaries". In C++, it's an "unordered map". "Objects" in
 JavaScript and "tables" in Lua are hash tables under the hood, which is what
 gives them their flexibility.
 
-A hash table, whatever your language calls it, associates a set of *keys* with a
-set of *values*. Each key/value pair is an *entry* in the table. Given a key,
-you can look up its corresponding value. You can add new key/value pairs and
-remove entries by key. If you add a new value for an existing key, it replaces
-the previous entry.
+A hash table, whatever your language calls it, associates a set of **keys** with
+a set of **values**. Each key/value pair is an **entry** in the table. Given a
+key, you can look up its corresponding value. You can add new key/value pairs
+and remove entries by key. If you add a new value for an existing key, it
+replaces the previous entry.
 
 Hash tables appear in so many languages because they are incredibly powerful.
 Much of this power comes from one metric: given a key, a hash table returns the
@@ -70,7 +70,7 @@ optional digit.
 
 With only 26 possible variables (27 if you consider underscore a "letter", I
 guess), the answer is easy. Declare a fixed-size array with 26 elements. We'll
-follow tradition and call each element a "bucket". Each represents a variable
+follow tradition and call each element a **bucket**. Each represents a variable
 with `a` starting at index zero. If there's a value in the array at some
 letter's index, then that key is present with that value. Otherwise, the bucket
 is empty and that key/value pair isn't in the data structure.
@@ -124,11 +124,12 @@ make an array that big, it would be heinously wasteful. Almost every bucket will
 be empty unless users start writing way bigger Lox programs than we've
 anticipated.
 
-Even though our variable keys cover the full 64-bit numeric range, we clearly don't
-need an array that large. Instead, we'll allocate an array with enough
-capacity for the entries we need, but still some reasonable size. We map the
+Even though our variable keys cover the full 64-bit numeric range, we clearly
+don't need an array that large. Instead, we allocate an array with more than
+enough capacity for the entries we need, but not unreasonably large. We map the
 full 64-bit keys down to that smaller range by taking the value modulo the size
-of the array.
+of the array. Doing that essentially folds the larger numeric range onto itself
+until it fits the smaller range of array elements.
 
 For example, say we want to store "bagel". We allocate an array with eight
 elements, plenty enough to store it and more later. We treat the key string as a
@@ -155,7 +156,7 @@ example, if we try to add "jam", it also ends up in bucket 2:
 
 <img src="image/hash-tables/collision.png" alt="'Bagel' and 'jam' both end up in bucket index 2." />
 
-We do have some control of this by tuning the array size. The bigger the array,
+We have some control over this by tuning the array size. The bigger the array,
 the fewer the indexes that get mapped to the same bucket and the fewer the
 collisions that are likely to occur. Hash table implementers track this
 collision likelihood by measuring the table's **load factor**. It's defined as
@@ -239,10 +240,10 @@ store a few entries to reduce the pointer overhead.
 
 ### Open addressing
 
-The other technique is <span name="open">called</span> **"open addressing"** or
-(confusingly) **"closed hashing"**. With this technique, all entries live
-directly in the bucket array, with one entry per bucket. If two entries collide
-in the same bucket, we find a different empty bucket to use instead.
+The other technique is <span name="open">called</span> **open addressing** or
+(confusingly) **closed hashing**. With this technique, all entries live directly
+in the bucket array, with one entry per bucket. If two entries collide in the
+same bucket, we find a different empty bucket to use instead.
 
 <aside name="open">
 
@@ -346,8 +347,8 @@ order to relax the last constraint, we need a way to take a string of any length
 and convert it to a fixed-size integer.
 
 Finally, we get to the "hash" part of "hash table". A **hash function** takes
-some larger blob of data and "hashes" it to produce a fixed-size integer whose
-value depends on all of the bits of the original data. A <span
+some larger blob of data and "hashes" it to produce a fixed-size integer **hash
+code** whose value depends on all of the bits of the original data. A <span
 name="crypto">good</span> hash function has three main goals:
 
 <aside name="crypto">
@@ -358,18 +359,18 @@ hashed. We, thankfully, don't need to worry about those concerns for this book.
 
 </aside>
 
-1.  It must be *deterministic*. The same input must always hash to the same
+*   **It must be *deterministic*.** The same input must always hash to the same
     number. If the same variable ends up in different buckets at different
     points in time, it's gonna get really hard to find it.
 
-2.  It must be *uniform*. Given a typical set of inputs, it should produce a
+*   **It must be *uniform*.** Given a typical set of inputs, it should produce a
     wide and evenly-distributed range of output numbers, with as few clumps or
     patterns as possible. We want it to <span name="scatter">scatter</span>
     values across the whole numeric range to minimize collisions and clustering.
 
-3.  It must be *fast*. Every operation on the hash table requires us to hash the
-    key first. If hashing is slow, it can potentially cancel out the speed of
-    the underlying array storage.
+*   **It must be *fast*.** Every operation on the hash table requires us to hash
+    the key first. If hashing is slow, it can potentially cancel out the speed
+    of the underlying array storage.
 
 <aside name="scatter">
 
@@ -409,7 +410,7 @@ up, it will all click into place.
 
 The great thing about hash tables compared to other classic techniques like
 balanced search trees is that the actual data structure is so simple. Ours goes
-into a new module:
+into a new module.
 
 ^code table-h
 
@@ -435,18 +436,18 @@ hash key.
 
 </aside>
 
-To create a new empty hash table, we declare a constructor-like function:
+To create a new empty hash table, we declare a constructor-like function.
 
 ^code init-table-h (2 before, 2 after)
 
 We need a new implementation file to define that. While we're at it, let's get
-all of the pesky includes out of the way:
+all of the pesky includes out of the way.
 
 ^code table-c
 
 As in our dynamic value array type, a hash table initially starts with zero
 capacity and a `NULL` array. We don't allocate anything until needed. Assuming
-we do eventually allocate something, we need to be able to free it too:
+we do eventually allocate something, we need to be able to free it too.
 
 ^code free-table-h (1 before, 2 after)
 
@@ -476,32 +477,32 @@ Over in the "object" module in ObjString, we add:
 
 ^code obj-string-hash (1 before, 1 after)
 
-Each ObjString stores the hash code for that string. Since strings are immutable
-in Lox, we can calculate it once up front and be certain that it will never get
-invalidated. Caching it eagerly makes a kind of sense: Allocating the string and
-copying its characters over is already an *O(n)* operation, so it's a good time
-to also do the *O(n)* calculation of the string's hash.
+Each ObjString stores the hash code for its string. Since strings are immutable
+in Lox, we can calculate the hash code once up front and be certain that it will
+never get invalidated. Caching it eagerly makes a kind of sense: Allocating the
+string and copying its characters over is already an *O(n)* operation, so it's a
+good time to also do the *O(n)* calculation of the string's hash.
 
 Whenever we call the internal function to allocate a string, we pass in its
-hash code:
+hash code.
 
 ^code allocate-string (1 after)
 
-That function simply stores the hash in the struct:
+That function simply stores the hash in the struct.
 
 ^code allocate-store-hash (1 before, 2 after)
 
 The fun happens over at the callers. `allocateString()` is called from two
 places: the function that copies a string and the one that takes ownership of an
-existing dynamically-allocated string. We'll start with the first:
+existing dynamically-allocated string. We'll start with the first.
 
 ^code copy-string-hash (1 before, 1 after)
 
-No magic here. We calculate the hash code and then pass it along:
+No magic here. We calculate the hash code and then pass it along.
 
 ^code copy-string-allocate (2 before, 1 after)
 
-The other string function is similar:
+The other string function is similar.
 
 ^code take-string-hash (1 before, 1 after)
 
@@ -527,27 +528,28 @@ and clustering.
 ### Inserting entries
 
 Now that string objects know their hash code, we can start putting them into
-hash tables:
+hash tables.
 
 ^code table-set-h (1 before, 2 after)
 
-This adds the given key/value pair to the given hash table. If an entry for that
-key is already present, the new value overwrites the old one. It returns `true`
-if a new entry was added. Here's the implementation:
+This function adds the given key/value pair to the given hash table. If an entry
+for that key is already present, the new value overwrites the old value. The
+function returns `true` if a new entry was added. Here's the implementation:
 
 ^code table-set
 
 Most of the interesting logic is in `findEntry()` which we'll get to soon. That
 function's job is to take a key and figure out which bucket in the array it
-should go in. It returns a pointer to that bucket -- the Entry in the array.
+should go in. It returns a pointer to that bucket -- the address of the Entry in
+the array.
 
-Once we have that, inserting is straightforward. We update the hash table's
+Once we have a bucket, inserting is straightforward. We update the hash table's
 size, taking care to not increase the count if we overwrote an already-present
 key. Then we copy the key and value into the corresponding fields in the entry.
 
 We're missing a little something here, though. We haven't actually allocated the
 entry array yet. Oops! Before we can insert anything, we need to make sure we
-have an array, and that it's big enough:
+have an array, and that it's big enough.
 
 ^code table-set-grow (1 before, 1 after)
 
@@ -557,7 +559,7 @@ array. The `GROW_CAPACITY()` macro takes an existing capacity and grows it by
 a multiple to ensure that we get amortized constant performance over a series
 of inserts.
 
-The interesting difference here is that `TABLE_MAX_LOAD` constant:
+The interesting difference here is that `TABLE_MAX_LOAD` constant.
 
 ^code max-load (2 before, 1 after)
 
@@ -576,26 +578,26 @@ this.
 </aside>
 
 We'll get to the implementation of `adjustCapacity()` soon. First, let's look
-at that `findEntry()` function you've been wondering about:
+at that `findEntry()` function you've been wondering about.
 
 ^code find-entry
 
 This function is the real core of the hash table. It's responsible for taking a
 key and an array of buckets and figuring out which bucket the entry belongs in.
 This function is also where linear probing and collision handling come into
-play. We'll use it both to find existing entries in the hash table, and to
-decide where to insert new ones.
+play. We'll use `findEntry()` both to look up existing entries in the hash
+table, and to decide where to insert new ones.
 
-For all that, there isn't much to it. First, we take the key's hash code and map
-it to the array by taking it modulo the array size. That gives us an index into
-the array where, ideally, we'll be able to find or place the entry.
+For all that, there isn't much to it. First, we use modulo to map the key's hash
+code to an index within the array's bounds. That gives us a bucket index where,
+ideally, we'll be able to find or place the entry.
 
 There are a few cases to check for:
 
-*   If the key for that entry in the array is `NULL`, then the bucket is empty.
-    If we're using `findEntry()` to look up something in the hash table, this
-    means it isn't there. If we're using it to insert, it means we've found a
-    place to add it.
+*   If the key for the entry at that array index is `NULL`, then the bucket is
+    empty. If we're using `findEntry()` to look up something in the hash table,
+    this means it isn't there. If we're using it to insert, it means we've found
+    a place to add the new entry.
 
 *   If the key in the bucket is <span name="equal">equal</span> to the key we're
     looking for, then that key is already present in the table. If we're doing a
@@ -626,10 +628,10 @@ What if we collide with *every* bucket? Fortunately, that can't happen thanks to
 our load factor. Because we grow the array as soon as it gets close to being
 full, we know there will always be empty buckets.
 
-Once we exit the loop, we return a pointer to the found entry so the caller can
-either insert something into it or read from it. Way back in `tableSet()`, the
-function that first kicked this off, it stores the new entry in that bucket and
-we're done.
+We return directly from within the loop, yielding a pointer to the found entry
+so the caller can either insert something into it or read from it. Way back in
+`tableSet()`, the function that first kicked this off, we store the new entry in
+that returned bucket and we're done.
 
 ### Allocating and resizing
 
@@ -639,12 +641,11 @@ function:
 
 ^code table-adjust-capacity
 
-It creates a bucket array with `capacity` entries. After it allocates the array,
-it initializes every element to be an empty bucket and then stores the array
-(and its capacity) in the hash table's main struct. This code is fine for when
-we insert the very first entry into the table, and we require the first
-allocation of the array. But what about when we already have one and we need to
-grow it?
+We create a bucket array with `capacity` entries. After we allocate the array,
+we initialize every element to be an empty bucket and then store the array (and
+its capacity) in the hash table's main struct. This code is fine for when we
+insert the very first entry into the table, and we require the first allocation
+of the array. But what about when we already have one and we need to grow it?
 
 Back when we were doing a dynamic array, we could just use `realloc()` and let
 the C standard library copy everything over. That doesn't work for a hash table.
@@ -655,7 +656,7 @@ in different buckets.
 We need to recalculate the buckets for each of the existing entries in the hash
 table. That in turn could cause new collisions which we need to resolve. So the
 simplest way to handle that is to rebuild the table from scratch by re-inserting
-every entry into the new empty array:
+every entry into the new empty array.
 
 ^code re-hash (2 before, 2 after)
 
@@ -666,7 +667,7 @@ why `findEntry()` takes a pointer directly to an entry array and not the whole
 `Table` struct. That way, we can pass the new array and capacity before we've
 stored those in the struct.)
 
-After that's done, we can release the memory for the old array:
+After that's done, we can release the memory for the old array.
 
 ^code free-old-array (3 before, 3 after)
 
@@ -675,7 +676,7 @@ like. It handles overwriting existing keys and growing itself as needed to
 maintain the desired load capacity.
 
 While we're at it, let's also define a helper function for copying all of the
-entries of one hash table into another:
+entries of one hash table into another.
 
 ^code table-add-all-h (1 before, 2 after)
 
@@ -701,8 +702,7 @@ You pass in a table and a key. If it finds an entry with that key, it returns
 `true`, otherwise it returns `false`. If the entry exists, it stores the
 resulting value in the `value` output parameter.
 
-Since `findEntry()` already does the hard work, the implementation isn't too
-bad:
+Since `findEntry()` already does the hard work, the implementation isn't bad.
 
 ^code table-get
 
@@ -735,7 +735,7 @@ list.
 
 </aside>
 
-At least the declaration is simple:
+At least the declaration is simple.
 
 ^code table-delete-h (1 before, 2 after)
 
@@ -765,7 +765,7 @@ empty entry, and never find it:
 <img src="image/hash-tables/delete-2.png" alt="The 'biscuit' entry has been deleted from the hash table, breaking the chain." />
 
 To solve this, most implementations use a trick called <span
-name="tombstone">**"tombstones"**</span>. Instead of clearing the entry on
+name="tombstone">**tombstones**</span>. Instead of clearing the entry on
 deletion, we replace it with a special sentinel entry called a "tombstone". When
 we are following a probe sequence during a lookup, and we hit a tombstone, we
 *don't* treat it like an empty slot and stop iterating. Instead, we keep going
@@ -797,7 +797,7 @@ of the characteristics of an empty one.
 
 When we are following a probe sequence during a lookup, and we hit a tombstone,
 we *don't* treat it like an empty slot and stop iterating. Instead, we note it
-and keep going:
+and keep going.
 
 ^code find-tombstone (2 before, 2 after)
 
@@ -840,7 +840,7 @@ array slots, so for load factor, we consider tombstones to be full buckets.
 That's why we don't reduce the count when deleting an entry in the previous
 code. The count is no longer the number of entries in the hash table, it's the
 number of entries plus tombstones. That implies that we only increment the count
-during insertion if the new entry goes into an entirely empty bucket:
+during insertion if the new entry goes into an entirely empty bucket.
 
 ^code set-increment-count (2 before, 2 after)
 
@@ -914,11 +914,11 @@ strings.
 
 </aside>
 
-Instead, we'll use a technique called **"string interning"**. The core problem
-is that it's possible to have different strings in memory with the same
-characters. Those need to behave like equivalent values even though they are
-distinct objects. They're essentially duplicates, and we have to compare all of
-their bytes to detect that.
+Instead, we'll use a technique called **string interning**. The core problem is
+that it's possible to have different strings in memory with the same characters.
+Those need to behave like equivalent values even though they are distinct
+objects. They're essentially duplicates, and we have to compare all of their
+bytes to detect that.
 
 <span name="intern">String interning</span> is a process of deduplication. We
 create a collection of "interned" strings. Any string in that collection is
@@ -932,8 +932,8 @@ collection.
 I'm guessing "intern" is short for "internal". I think the idea is that the
 language's runtime keeps its own "internal" collection of these strings, whereas
 other strings could be user created and floating around in memory. When you
-intern a string, you ask it to add the string to that internal collection and
-return a pointer to it.
+intern a string, you ask the runtime to add the string to that internal
+collection and return a pointer to it.
 
 Languages vary in how much string interning they do and how it's exposed to the
 user. Lua interns *all* strings, which is what clox will do too. Lisp, Scheme,
@@ -954,25 +954,25 @@ Thus, pointer equality exactly matches value equality. Which in turn means that
 our existing `==` in `findEntry()` does the right thing. Or, at least, it will
 once we intern all the strings. In order to reliably deduplicate all strings,
 the VM needs to be able to find every string that's created. We do that by
-giving it a hash table to store them all:
+giving it a hash table to store them all.
 
 ^code vm-strings (1 before, 2 after)
 
-As usual, we need an include:
+As usual, we need an include.
 
 ^code vm-include-table (1 before, 1 after)
 
-When we spin up a new VM, the string table is empty:
+When we spin up a new VM, the string table is empty.
 
 ^code init-strings (1 before, 1 after)
 
-And when we shut down the VM, we clean up any resources used by the table:
+And when we shut down the VM, we clean up any resources used by the table.
 
 ^code free-strings (1 before, 1 after)
 
 Some languages have a separate type or an explicit step to intern a string. For
 clox, we'll automatically intern every one. That means whenever we create a new
-unique string, we add it to the table:
+unique string, we add it to the table.
 
 ^code allocate-store-string (2 before, 1 after)
 
@@ -991,7 +991,7 @@ first. If we find it, instead of "copying", we just return a reference to that
 string. Otherwise, we fall through, allocate a new string, and store it in the
 string table.
 
-Taking ownership of a string is a little different:
+Taking ownership of a string is a little different.
 
 ^code take-string-intern (1 before, 1 after)
 
@@ -1000,7 +1000,7 @@ return it, we free the memory for the string that was passed in. Since ownership
 is being passed to this function and we no longer need the duplicate string,
 it's up to us to free it.
 
-Before we get to the new function we need to write, there's one more include:
+Before we get to the new function we need to write, there's one more include.
 
 ^code object-include-table (1 before, 1 after)
 
@@ -1010,11 +1010,11 @@ strings that we're trying to fix right now. Instead, we use this new function:
 
 ^code table-find-string-h (1 before, 2 after)
 
-The implementation looks like this:
+The implementation looks like so:
 
 ^code table-find-string
 
-It looks like we copy-pasted `findEntry()`. There is a lot of redundancy, but
+It appears we have copy-pasted `findEntry()`. There is a lot of redundancy, but
 also a couple of key differences. First, we pass in the raw character array of
 the key we're looking for instead of an ObjString. At the point that we call
 this, we haven't created an ObjString yet.
