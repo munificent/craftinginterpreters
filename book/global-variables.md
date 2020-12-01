@@ -129,30 +129,31 @@ declaration    → varDecl
 
 Up to now, our VM considered a "program" to be a single expression since that's
 all we could parse and compile. In a real Lox program, a script is a sequence of
-declarations. We're ready to support that now:
+declarations. We're ready to support that now.
 
 ^code compile (1 before, 1 after)
 
-We keep compiling declarations until we hit the end of the source file, using:
+We keep compiling declarations until we hit the end of the source file. We
+compile a single declaration using this:
 
 ^code declaration
 
-We'll get to variable declarations later in the chapter, so, for now, this just
-forwards to `statement()`:
+We'll get to variable declarations later in the chapter, so, for now, we simply
+forward to `statement()`.
 
 ^code statement
 
-Block statements can contain declarations and control flow statements contain
-other statements. That means these two functions will eventually be recursive.
-We may as well write out the forward declarations now:
+Blocks can contain declarations and control flow statements can contain other
+statements. That means these two functions will eventually be recursive. We may
+as well write out the forward declarations now.
 
 ^code forward-declarations (1 before, 1 after)
 
 ### Print statements
 
-We have two statement types to support. Let's start with `print` statements,
-which begin, naturally enough, with a `print` token. We detect that using this
-helper function:
+We have two statement types to support in this chapter. Let's start with `print`
+statements, which begin, naturally enough, with a `print` token. We detect that
+using this helper function:
 
 ^code match
 
@@ -184,13 +185,13 @@ keep.
 </aside>
 
 If we did match the `print` token, then we compile the rest of the statement
-using:
+here:
 
 ^code print-statement
 
 A `print` statement evaluates an expression and prints the result, so we first
 parse and compile that expression. The grammar expects a semicolon after that,
-so we consume it. Finally, we emit a new instruction to print the result:
+so we consume it. Finally, we emit a new instruction to print the result.
 
 ^code op-print (1 before, 1 after)
 
@@ -198,8 +199,9 @@ At runtime, we execute this instruction like so:
 
 ^code interpret-print (1 before, 1 after)
 
-At this point, we have already executed the code for the expression and the
-result value remains on top of the stack. Now we simply pop it and print it.
+When the interpreter reaches this instruction, it has already executed the code
+for the expression, leaving the result value on top of the stack. Now we simply
+pop and print it.
 
 Note that we don't push anything else after that. This is a key difference
 between expressions and statements in the VM. Every bytecode instruction has a
@@ -215,9 +217,10 @@ The stack is one element shorter after an `OP_ADD`, so its effect is -1:
 
 </aside>
 
-You can also sum the stack effects of a series of instructions. When you add the
-stack effects of any series of instructions compiled from an expression, it will
-total one. Each expression leaves one result value on the stack.
+You can sum the stack effects of a series of instructions to get their total
+effect. When you add the stack effects of the series of instructions compiled
+from any complete expression, it will total one. Each expression leaves one
+result value on the stack.
 
 The bytecode for an entire statement has a total stack effect of zero. Since a
 statement produces no values, it ultimately leaves the stack unchanged, though
@@ -226,7 +229,7 @@ because when we get to control flow and looping, a program might execute a long
 series of statements. If each statement grew or shrank the stack, it might
 eventually overflow or underflow.
 
-While we're in the interpreter loop, we should delete a bit of code:
+While we're in the interpreter loop, we should delete a bit of code.
 
 ^code op-return (1 before, 1 after)
 
@@ -242,7 +245,7 @@ add functions. Right now, it exits the entire interpreter loop.
 
 </aside>
 
-As usual, a new instruction needs support in the disassembler:
+As usual, a new instruction needs support in the disassembler.
 
 ^code disassemble-print (1 before, 1 after)
 
@@ -253,12 +256,13 @@ print 1 + 2;
 print 3 * 4;
 ```
 
-Exciting!
+Exciting! OK, maybe not thrilling, but we can build scripts that contain as many
+statements as we want now, which feels like progress.
 
 ### Expression statements
 
 Wait until you see the next statement. If we *don't* see a `print` keyword, then
-we must be looking at an expression statement:
+we must be looking at an expression statement.
 
 ^code parse-expressions-statement (1 before, 1 after)
 
@@ -269,7 +273,7 @@ It's parsed like so:
 An "expression statement" is simply an expression followed by a semicolon.
 They're how you write an expression in a context where a statement is expected.
 Usually, it's so that you can call a function or evaluate an assignment for its
-side effect, like:
+side effect, like this:
 
 ```lox
 brunch = "quiche";
@@ -277,29 +281,29 @@ eat(brunch);
 ```
 
 Semantically, an expression statement evaluates the expression and discards the
-result. The compiler directly encodes that behavior. It emits the code for the
-expression, and then an `OP_POP` instruction:
+result. The compiler directly encodes that behavior. It compiles the expression,
+and then emits an `OP_POP` instruction.
 
 ^code pop-op (1 before, 1 after)
 
 As the name implies, that instruction pops the top value off the stack and
-forgets it:
+forgets it.
 
 ^code interpret-pop (1 before, 2 after)
 
-We can disassemble it too:
+We can disassemble it too.
 
 ^code disassemble-pop (1 before, 1 after)
 
 Expression statements aren't very useful yet since we can't create any
-expressions that have side effects, but they'll be essential when we [add
-functions later][functions]. The <span name="majority">majority</span> of
+expressions that have side effects, but they'll be essential when we
+[add functions later][functions]. The <span name="majority">majority</span> of
 statements in real-world code in languages like C are expression statements.
 
 <aside name="majority">
 
-By my count, 80 of the 149 statements (~53%), in the version of "compiler.c"
-that we have at the end of the chapter are expression statements.
+By my count, 80 of the 149 statements, in the version of "compiler.c" that we
+have at the end of this chapter are expression statements.
 
 </aside>
 
@@ -312,14 +316,14 @@ loose end we left [several chapters back][errors]. Like jlox, clox uses panic
 mode error recovery to minimize the number of cascaded compile errors that it
 reports. The compiler exits panic mode when it reaches a synchronization point.
 For Lox, we chose statement boundaries as that point. Now that we have
-statements, we can implement synchronization:
+statements, we can implement synchronization.
 
 [errors]: compiling-expressions.html#handling-syntax-errors
 
 ^code call-synchronize (1 before, 1 after)
 
-If we hit a compile error while parsing the previous statement, we will enter
-panic mode. In that case, after the statement, we start synchronizing:
+If we hit a compile error while parsing the previous statement, we enter panic
+mode. When that happens, after the statement we start synchronizing.
 
 ^code synchronize
 
@@ -348,12 +352,12 @@ straw-lined stalls full of baby languages *moo*-ing and *baa*-ing at each other.
 *   Storing a new value in an existing variable using an assignment expression.
 
 We can't do either of the last two until we have some variables, so we start
-with declarations:
+with declarations.
 
 ^code match-var (1 before, 2 after)
 
 The placeholder parsing function we sketched out for the declaration grammar
-rule has an actual production now. If we match a `var` token, we jump to:
+rule has an actual production now. If we match a `var` token, we jump here:
 
 ^code var-declaration
 
@@ -383,13 +387,13 @@ latter.
 
 </aside>
 
-There are two new functions here for working with variables and identifiers. The
-first one is:
+There are two new functions here for working with variables and identifiers.
+Here is the first:
 
 ^code parse-variable (2 before)
 
-It requires the next token to be an identifier token, which it consumes and
-sends to:
+It requires the next token to be an identifier, which it consumes and sends
+here:
 
 ^code identifier-constant (2 before)
 
@@ -404,7 +408,7 @@ the constant table and the instruction then refers to the name by its index in
 the table.
 
 This function returns that index all the way to `varDeclaration()` which later
-hands it over to:
+hands it over to here:
 
 ^code define-variable
 
@@ -413,7 +417,7 @@ the new variable and stores its initial value. The index of the variable's name
 in the constant table is the instruction's operand. As usual in a stack-based
 VM, we emit this instruction last. At runtime, we execute the code for the
 variable's initializer first. That leaves the value on the stack. Then this
-instruction takes that and stores it away for later.
+instruction takes that value and stores it away for later.
 
 <aside name="helper">
 
@@ -428,7 +432,7 @@ Over in the runtime, we begin with this new instruction:
 
 ^code define-global-op (1 before, 1 after)
 
-Thanks to our handy-dandy hash table, the implementation isn't too hard:
+Thanks to our handy-dandy hash table, the implementation isn't too hard.
 
 ^code interpret-define-global (1 before, 2 after)
 
@@ -461,22 +465,22 @@ safe because the compiler never emits an instruction that refers to a non-string
 constant.
 
 Because we care about lexical hygiene, we also undefine this macro at the end of
-the interpret function:
+the interpret function.
 
 ^code undef-read-string (1 before, 1 after)
 
 I keep saying "the hash table", but we don't actually have one yet. We need a
 place to store these globals. Since we want them to persist as long as clox is
-running, we store them right in the VM:
+running, we store them right in the VM.
 
 ^code vm-globals (1 before, 1 after)
 
 As we did with the string table, we need to initialize the hash table to a valid
-state when the VM boots up:
+state when the VM boots up.
 
 ^code init-globals (1 before, 1 after)
 
-And we should <span name="tear">tear</span> it down when we exit:
+And we <span name="tear">tear</span> it down when we exit.
 
 <aside name="tear">
 
@@ -487,7 +491,7 @@ the operating system to clean up our mess.
 
 ^code free-globals (1 before, 1 after)
 
-As usual, we want to be able to disassemble the new instruction too:
+As usual, we want to be able to disassemble the new instruction too.
 
 ^code disassemble-define-global (1 before, 1 after)
 
@@ -501,7 +505,7 @@ name. We hook up identifier tokens to the expression parser here:
 
 ^code table-identifier (1 before, 1 after)
 
-That calls:
+That calls this new parser function:
 
 ^code variable-without-assign
 
@@ -517,8 +521,7 @@ variable with that name. Here's the instruction:
 
 ^code get-global-op (1 before, 1 after)
 
-Over in the bytecode interpreter, the implementation reflects
-`OP_DEFINE_GLOBAL`:
+Over in the interpreter, the implementation mirrors `OP_DEFINE_GLOBAL`:
 
 ^code interpret-get-global (1 before, 2 after)
 
@@ -533,7 +536,7 @@ onto the stack.
 
 ^code disassemble-get-global (1 before, 1 after)
 
-A little bit of disassembling, and we're done. Our interpreter is up to running
+A little bit of disassembling, and we're done. Our interpreter now able to run
 code like this:
 
 ```lox
@@ -542,7 +545,7 @@ var breakfast = "beignets with " + beverage;
 print breakfast;
 ```
 
-There's only one operation left...
+There's only one operation left.
 
 ## Assignment
 
@@ -592,19 +595,19 @@ be used as an assignment target, we look for a subsequent `=` token. If we see
 one, we compile it as an assignment or setter instead of a variable access or
 getter.
 
-We don't have setters to worry about yet, so all we need to handle is variables:
+We don't have setters to worry about yet, so all we need to handle is variables.
 
 ^code named-variable (1 before, 1 after)
 
-In the parse function for identifier expressions, we look for a following
-equals sign. If we find one, instead of emitting code for a variable access,
-we compile the assigned value and then emit an assignment instruction.
+In the parse function for identifier expressions, we look for an equals sign
+after the identifier. If we find one, instead of emitting code for a variable
+access, we compile the assigned value and then emit an assignment instruction.
 
-That's the last instruction we need to add in this chapter:
+That's the last instruction we need to add in this chapter.
 
 ^code set-global-op (1 before, 1 after)
 
-As you'd expect, its runtime behavior is similar to defining a new variable:
+As you'd expect, its runtime behavior is similar to defining a new variable.
 
 ^code interpret-set-global (1 before, 2 after)
 
@@ -677,39 +680,39 @@ To fix this, `variable()` should only look for and consume the `=` if it's in
 the context of a low precedence expression. The code that knows the current
 precedence is, logically enough, `parsePrecedence()`. The `variable()` function
 doesn't need to know the actual level. It just cares that the precedence is low
-enough to allow assignment, so we pass that fact in as a Boolean:
+enough to allow assignment, so we pass that fact in as a Boolean.
 
 ^code prefix-rule (4 before, 2 after)
 
 Since assignment is the lowest precedence expression, the only time we allow an
 assignment is when parsing an assignment expression or top-level expression like
-in an expression statement. That flag makes its way to:
+in an expression statement. That flag makes its way to the parser function here:
 
 ^code variable
 
-Which accepts the parameter:
+Which passes it through a new parameter:
 
 ^code named-variable-signature (1 after)
 
-And then uses it:
+And then finally uses it here:
 
 ^code named-variable-can-assign (2 before, 1 after)
 
 That's a lot of plumbing to get literally one bit of data to the right place in
 the compiler, but arrived it has. If the variable is nested inside some
 expression with higher precedence, `canAssign` will be `false` and this will
-ignore the `=` even if there is one there. Then this returns and eventually
-makes its way back to `parsePrecedence()`.
+ignore the `=` even if there is one there. Then `namedVariable()` returns and
+execution eventually makes its way back to `parsePrecedence()`.
 
 Then what? What does the compiler do with our broken example from before? Right
-now, `variable()` won't consume the `=` so that will be the current token. It
-returns back to `parsePrecedence()`. `variable()` is a prefix parser, so then it
-tries to enter the infix parsing loop. There is no parsing function associated
-with `=`, so it skips that loop.
+now, `variable()` won't consume the `=` so that will be the current token. The
+compiler returns back to `parsePrecedence()` from the `variable()` prefix parser
+and then tries to enter the infix parsing loop. There is no parsing function
+associated with `=`, so it skips that loop.
 
 Then `parsePrecedence()` silently returns back to the caller. That also isn't
 right. If the `=` doesn't get consumed as part of the expression, nothing else
-is going to consume it. It's an error and we should report it:
+is going to consume it. It's an error and we should report it.
 
 ^code invalid-assign (5 before, 1 after)
 
@@ -729,33 +732,33 @@ would also allow assignment to support `array[index] = value`.
 </aside>
 
 So we're going to finish off this chapter with some grunt work. First, let's go
-ahead and pass the flag to the infix parse functions:
+ahead and pass the flag to the infix parse functions.
 
 ^code infix-rule (1 before, 1 after)
 
 We'll need that for setters eventually. Then we'll fix the typedef for the
-function type:
+function type.
 
 ^code parse-fn-type (2 before, 2 after)
 
 And some completely tedious code to accept this parameter in all of our existing
-parse functions:
+parse functions. Here:
 
 ^code binary (1 after)
 
-And:
+And here:
 
 ^code parse-literal (1 after)
 
-And:
+And here:
 
 ^code grouping (1 after)
 
-And:
+And here:
 
 ^code number (1 after)
 
-And:
+And here too:
 
 ^code string (1 after)
 
@@ -763,7 +766,8 @@ And, finally:
 
 ^code unary (1 after)
 
-Phew! We're back to a C program we can compile. Fire it up and now you can run:
+Phew! We're back to a C program we can compile. Fire it up and now you can run
+this:
 
 ```lox
 var breakfast = "beignets";

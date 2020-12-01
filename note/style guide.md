@@ -70,9 +70,15 @@ TODO: How do we style keywords used in headers and subheaders?
 
 ## Punctuation
 
-*   Prose before a code snippet ends in `:` if the last sentence is not a
-    complete sentence or directly refers to the subsequent code. End in `.` if
-    it is a reasonable-sounding sentence on its own.
+*   Prose before a Java or C code snippet ends in `:` if the last sentence is
+    not a complete sentence or directly refers to the subsequent code. End in
+    `.` if it is a reasonable-sounding sentence on its own. This is mainly so
+    that we don't use a gratuitous amount of `:` at the end of nearly every
+    paragraph.
+
+*   On the other hand, prose before illustrations, Lox examples, and grammar
+    snippets can use `:` even when a complete sentence, if the sentence refers
+    to the subsequent code or picture.
 
 ### Hyphenation
 
