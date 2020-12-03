@@ -516,7 +516,6 @@ static void addLocal(Token name) {
 //< Local Variables add-local
 //> Local Variables declare-variable
 static void declareVariable() {
-  // Global variables are implicitly declared.
   if (current->scopeDepth == 0) return;
 
   Token* name = &parser.previous;
