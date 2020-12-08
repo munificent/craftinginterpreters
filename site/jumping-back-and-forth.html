@@ -122,21 +122,21 @@ discover that, even if it was useful, it was meaningless.</p>
 our virtual machine. In the tree-walk interpreter we built for jlox, we
 implemented Lox&rsquo;s control flow in terms of Java&rsquo;s. To execute a Lox if
 statement, we used a Java <code>if</code> statement to run the chosen branch. That works,
-but isn&rsquo;t entirely satisfying. By what magic does the <em>JVM</em> or a native CPU
-implement <code>if</code> statements? Now that we have our own bytecode VM to hack on, we
-can answer that.</p>
+but isn&rsquo;t entirely satisfying. By what magic does the <em>JVM itself</em> or a native
+CPU implement <code>if</code> statements? Now that we have our own bytecode VM to hack on,
+we can answer that.</p>
 <p>When we talk about &ldquo;control flow&rdquo;, what are we referring to? By &ldquo;flow&rdquo; we mean
 the way execution moves through the text of the program. Almost like there is a
-little robot inside the computer wandering through our program, executing each
-piece of code. Flow is the path that robot takes, and by <em>controlling</em> it, we
-drive which pieces of code it executes.</p>
+little robot inside the computer wandering through our code, executing bits and
+pieces here and there. Flow is the path that robot takes, and by <em>controlling</em>
+it, we drive which pieces of code it executes.</p>
 <p>In jlox, the robot&rsquo;s locus of attention<span class="em">&mdash;</span>the <em>current</em> bit of code<span class="em">&mdash;</span>was
 implicit based on which AST nodes were stored in various Java variables and what
 Java code we were in the middle of running. In clox, it is much more explicit.
 The VM&rsquo;s <code>ip</code> field stores the address of the current bytecode instruction. The
 value of that field is exactly &ldquo;where we are&rdquo; in the program.</p>
 <p>Execution proceeds normally by incrementing the <code>ip</code>. But we can mutate that
-value however we want to. So in order to implement control flow, all that&rsquo;s
+variable however we want to. In order to implement control flow, all that&rsquo;s
 necessary is to change the <code>ip</code> in more interesting ways. The simplest control
 flow construct is an <code>if</code> statement with no else clause:</p>
 <div class="codehilite"><pre>
@@ -172,7 +172,7 @@ get started with that.</p>
 <h2><a href="#if-statements" name="if-statements"><small>23&#8202;.&#8202;1</small>If Statements</a></h2>
 <p>This many chapters in, you know the drill. Any new feature starts in the front
 end and works its way through the pipeline. An <code>if</code> statement is, well, a
-statement, so that&rsquo;s where we hook it into the parser:</p>
+statement, so that&rsquo;s where we hook it into the parser.</p>
 <div class="codehilite"><pre class="insert-before">
   if (match(TOKEN_PRINT)) {
     printStatement();
@@ -233,12 +233,12 @@ operand, how do we know how far to jump? We haven&rsquo;t compiled the then bran
 yet, so we don&rsquo;t know how much bytecode it contains.</p>
 <p>To fix that, we use a classic trick called <span
 name="patch"><strong>backpatching</strong></span>. We emit the jump instruction first with a
-placeholder offset. We keep track of where that temporary instruction is. Next,
-we compile the then body. Once that&rsquo;s done, we know how far to jump. So we go
-back and replace that placeholder offset with the real one now that we can
-calculate it. Sort of like sewing a patch onto the existing fabric of the
-compiled code.</p><img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." />
-<p>We encode this trick into two helper functions:</p>
+placeholder offset operand. We keep track of where that half-finished
+instruction is. Next, we compile the then body. Once that&rsquo;s done, we know how
+far to jump. So we go back and replace that placeholder offset with the real one
+now that we can calculate it. Sort of like sewing a patch onto the existing
+fabric of the compiled code.</p><img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." />
+<p>We encode this trick into two helper functions.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
 <pre>
@@ -261,7 +261,7 @@ to 65,536 bytes of code, which should be plenty for our needs.</p>
 operands for when you need to jump a greater distance.</p>
 </aside>
 <p>The function returns the offset of the emitted instruction in the chunk. After
-compiling the then branch, we take that offset and pass it to:</p>
+compiling the then branch, we take that offset and pass it to this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitConstant</em>()</div>
 <pre>
@@ -285,7 +285,7 @@ next instruction that we want the jump to land on, so it uses the current
 bytecode count to determine how far to jump. In the case of an <code>if</code> statement,
 that means right after we compile the then branch and before we compile the next
 statement.</p>
-<p>That&rsquo;s all we need at compile time. Let&rsquo;s get the new instruction working:</p>
+<p>That&rsquo;s all we need at compile time. Let&rsquo;s define the new instruction.</p>
 <div class="codehilite"><pre class="insert-before">
   OP_PRINT,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -297,7 +297,7 @@ in enum <em>OpCode</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<p>Over in the VM, we interpret it like so:</p>
+<p>Over in the VM, we get it working like so:</p>
 <div class="codehilite"><pre class="insert-before">
       }
 
@@ -315,7 +315,7 @@ in <em>run</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>This is the first instruction we&rsquo;ve added that takes a 16-bit operand. To read
-that from the chunk, we use this new macro:</p>
+that from the chunk, we use a new macro.</p>
 <div class="codehilite"><pre class="insert-before">
 #define READ_CONSTANT() (vm.chunk-&gt;constants.values[READ_BYTE()])
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -329,7 +329,7 @@ in <em>run</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>It yanks the next two bytes from the chunk and builds a 16-bit unsigned integer
-out of them. As usual, we clean up our macro when we&rsquo;re done with it:</p>
+out of them. As usual, we clean up our macro when we&rsquo;re done with it.</p>
 <div class="codehilite"><pre class="insert-before">
 #undef READ_BYTE
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -343,8 +343,8 @@ in <em>run</em>()</div>
 
 <p>After reading the offset, we check the condition value on top of the stack.
 <span name="if">If</span> it&rsquo;s falsey, we apply this jump offset to the <code>ip</code>.
-Otherwise, we leave it alone and execution will automatically proceed to the
-next instruction following the jump instruction.</p>
+Otherwise, we leave the <code>ip</code> alone and execution will automatically proceed to
+the next instruction following the jump instruction.</p>
 <p>In the case where the condition is falsey, we don&rsquo;t need to do any other work.
 We&rsquo;ve offset the <code>ip</code>, so when the outer instruction dispatch loop turns again,
 it will pick up execution at that new instruction, past all of the code in the
@@ -375,7 +375,7 @@ support it at runtime in the VM.</p>
 <h3><a href="#else-clauses" name="else-clauses"><small>23&#8202;.&#8202;1&#8202;.&#8202;1</small>Else clauses</a></h3>
 <p>An <code>if</code> statement without support for <code>else</code> clauses is like Morticia Addams
 without Gomez. So, after we compile the then branch, we look for an <code>else</code>
-keyword. If we find one, we compile the else branch:</p>
+keyword. If we find one, we compile the else branch.</p>
 <div class="codehilite"><pre class="insert-before">
   patchJump(thenJump);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -395,7 +395,7 @@ not enough, though. Here&rsquo;s the flow that leads to:</p><img src="image/jump
 that, execution rolls right on through into the else branch. Oops! When the
 condition is true, after we run the then branch, we need to jump over the else
 branch. That way, in either case, we only execute a single branch, like this:</p><img src="image/jumping-back-and-forth/if-else.png" alt="Flowchart of the compiled bytecode for an if with an else clause." />
-<p>To implement that, we need another jump from the end of the then branch:</p>
+<p>To implement that, we need another jump from the end of the then branch.</p>
 <div class="codehilite"><pre class="insert-before">
   statement();
 
@@ -409,7 +409,7 @@ in <em>ifStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
 
-<p>We patch that offset after the end of the else body:</p>
+<p>We patch that offset after the end of the else body.</p>
 <div class="codehilite"><pre class="insert-before">
   if (match(TOKEN_ELSE)) statement();
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -423,7 +423,7 @@ in <em>ifStatement</em>()</div>
 
 <p>After executing the then branch this jumps to the next statement after the else.
 Unlike the other jump, this jump is unconditional. We always take it, so we need
-another instruction that expresses that:</p>
+another instruction that expresses that.</p>
 <div class="codehilite"><pre class="insert-before">
   OP_PRINT,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -465,7 +465,7 @@ want the condition popped. Instead, we&rsquo;ll have the compiler emit a couple 
 explicit <code>OP_POP</code> instructions when compiling an <code>if</code> statement. We need to take
 care that every execution path through the generated code pops the condition.</p>
 <p>When the condition is truthy, we pop it right before the code inside the then
-branch:</p>
+branch.</p>
 <div class="codehilite"><pre class="insert-before">
   int thenJump = emitJump(OP_JUMP_IF_FALSE);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -477,7 +477,7 @@ in <em>ifStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
 
-<p>Otherwise, we pop it at the beginning of the else branch:</p>
+<p>Otherwise, we pop it at the beginning of the else branch.</p>
 <div class="codehilite"><pre class="insert-before">
   patchJump(thenJump);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -496,7 +496,7 @@ where they left it off, all the branch does is discard the condition value.</p>
 <p>The full correct flow looks like this:</p><img src="image/jumping-back-and-forth/full-if-else.png" alt="Flowchart of the compiled bytecode including necessary pop instructions." />
 <p>If you trace through you can see that it always executes a single branch and
 ensures the condition is popped first. All that remains it a little disassembler
-support:</p>
+support.</p>
 <div class="codehilite"><pre class="insert-before">
       return simpleInstruction(&quot;OP_PRINT&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -512,7 +512,7 @@ in <em>disassembleInstruction</em>()</div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>These two instructions have a new format with a 16-bit operand, so we add a new
-utility function to disassemble them:</p>
+utility function to disassemble them.</p>
 <div class="codehilite"><div class="source-file"><em>debug.c</em><br>
 add after <em>byteInstruction</em>()</div>
 <pre>
@@ -554,7 +554,7 @@ replace 1 line</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
-<p>That hands off to:</p>
+<p>That hands off to a new parser function.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>defineVariable</em>()</div>
 <pre>
@@ -573,8 +573,8 @@ add after <em>defineVariable</em>()</div>
 compiled. That means at runtime, its value will be on top of the stack. If that
 value is falsey, then we know the entire <code>and</code> must be false, so we skip the
 right operand and leave the left-hand side value as the result of the entire
-expression. Otherwise, we discard the left-hand value and the result of the
-<code>and</code> expression is the result of evaluating the right operand.</p>
+expression. Otherwise, we discard the left-hand value and evaluate the right
+operand which becomes the result of the whole <code>and</code> expression.</p>
 <p>Those four lines of code right there produce exactly that. The flow looks like
 this:</p><img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an 'and' expression." />
 <p>Now you can see why <code>OP_JUMP_IF_FALSE</code> <span name="instr">leaves</span> the
@@ -588,7 +588,7 @@ VM, it&rsquo;s worth exploring adding more specialized instructions and see how 
 affect performance.</p>
 </aside>
 <h3><a href="#logical-or-operator" name="logical-or-operator"><small>23&#8202;.&#8202;2&#8202;.&#8202;1</small>Logical or operator</a></h3>
-<p>The <code>or</code> operator is a little more complex. First we add it to the parse table:</p>
+<p>The <code>or</code> operator is a little more complex. First we add it to the parse table.</p>
 <div class="codehilite"><pre class="insert-before">
   [TOKEN_NIL]           = {literal,  NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -600,7 +600,7 @@ replace 1 line</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
-<p>Which calls:</p>
+<p>When that parser consumes an infix <code>or</code> token, it calls this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>number</em>()</div>
 <pre>
@@ -638,8 +638,7 @@ and maybe a conditional expression like <code>?:</code>, but Lox keeps it simple
 <h2><a href="#while-statements" name="while-statements"><small>23&#8202;.&#8202;3</small>While Statements</a></h2>
 <p>That takes us to the <em>looping</em> statements, which jump <em>backwards</em> so that code
 can be executed more than once. Lox only has two loop constructs, <code>while</code> and
-<code>for</code>. A <code>while</code> loop is (much) simpler, so we kick off the party with its
-keyword:</p>
+<code>for</code>. A <code>while</code> loop is (much) simpler, so we start the party there.</p>
 <div class="codehilite"><pre class="insert-before">
     ifStatement();
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -652,7 +651,7 @@ in <em>statement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
 
-<p>That calls:</p>
+<p>When we reach a <code>while</code> token, we call:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>printStatement</em>()</div>
 <pre>
@@ -700,7 +699,7 @@ instruction needs to know how far back to jump. When jumping forward, we had to
 emit the instruction in two stages since we didn&rsquo;t know how far we were going to
 jump until after we emitted the jump instruction. We don&rsquo;t have that problem
 now. We&rsquo;ve already compiled the point in code that we want to jump back to<span class="em">&mdash;</span>it&rsquo;s right before the condition expression.</p>
-<p>All we need to do is capture that location as we compile it:</p>
+<p>All we need to do is capture that location as we compile it.</p>
 <div class="codehilite"><pre class="insert-before">
 static void whileStatement() {
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -715,9 +714,9 @@ in <em>whileStatement</em>()</div>
 
 <p>After executing the body of a <code>while</code> loop, we jump all the way back to before
 the condition. That way, we re-evaluate the condition expression on each
-iteration. We store chunk&rsquo;s current instruction count in <code>loopStart</code> to record
-the offset in the bytecode right before the condition expression we&rsquo;re about to
-compile. Then we pass that into this helper function:</p>
+iteration. We store the chunk&rsquo;s current instruction count in <code>loopStart</code> to
+record the offset in the bytecode right before the condition expression we&rsquo;re
+about to compile. Then we pass that into this helper function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
 <pre>
@@ -745,7 +744,7 @@ a single instruction for both and given it a signed offset operand. But I
 figured it was a little easier to sidestep the annoying bit twiddling required
 to manually pack a signed 16-bit integer into two bytes, and we&rsquo;ve got the
 opcode space available, so why not use it?</p>
-<p>The new instruction is:</p>
+<p>The new instruction is here:</p>
 <div class="codehilite"><pre class="insert-before">
   OP_JUMP_IF_FALSE,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -757,7 +756,7 @@ in enum <em>OpCode</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<p>And in the VM, its implementation is:</p>
+<p>And in the VM, we implement it thusly:</p>
 <div class="codehilite"><pre class="insert-before">
       }
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -775,7 +774,7 @@ in <em>run</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>The only difference from <code>OP_JUMP</code> is a subtraction instead of an addition.
-Disassembly is similar too:</p>
+Disassembly is similar too.</p>
 <div class="codehilite"><pre class="insert-before">
       return jumpInstruction(&quot;OP_JUMP_IF_FALSE&quot;, 1, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -789,7 +788,7 @@ in <em>disassembleInstruction</em>()</div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>That&rsquo;s our <code>while</code> statement. It contains two jumps<span class="em">&mdash;</span>a conditional forward one
-to escape the loop when the condition isn&rsquo;t met, and an unconditional loop
+to escape the loop when the condition is not met, and an unconditional loop
 backwards after we have executed the body. The flow looks like this:</p><img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." />
 <h2><a href="#for-statements" name="for-statements"><small>23&#8202;.&#8202;4</small>For Statements</a></h2>
 <p>The other looping statement in Lox is the venerable <code>for</code> loop, inherited from
@@ -818,7 +817,7 @@ loop with some extra stuff before it and at the end of the body. We&rsquo;ll do
 something similiar, though we won&rsquo;t go through anything like an AST. Instead,
 our bytecode compiler will use the jump and loop instructions we already have.</p>
 <p>We&rsquo;ll work our way through the implementation a piece at a time, starting with
-the <code>for</code> keyword:</p>
+the <code>for</code> keyword.</p>
 <div class="codehilite"><pre class="insert-before">
     printStatement();
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -861,8 +860,8 @@ implementation of <span name="infinite">infinite</span> loops now.</p>
 a runtime error.</p>
 </aside>
 <h3><a href="#initializer-clause" name="initializer-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;1</small>Initializer clause</a></h3>
-<p>Now, we&rsquo;ll add the first clause, the initializer. It only executes once, before
-the body, so it&rsquo;s straightforward:</p>
+<p>Now we&rsquo;ll add the first clause, the initializer. It only executes once, before
+the body, so compiling is straightforward.</p>
 <div class="codehilite"><pre class="insert-before">
   consume(TOKEN_LEFT_PAREN, &quot;Expect '(' after 'for'.&quot;);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -889,7 +888,7 @@ For the expression case, we call <code>expressionStatement()</code> instead of
 emits an <code>OP_POP</code> instruction to discard the value. We don&rsquo;t want the
 initializer to leave anything on the stack.</p>
 <p>If a <code>for</code> statement declares a variable, that variable should be scoped to the
-loop body. We ensure that by wrapping the whole statement in a scope:</p>
+loop body. We ensure that by wrapping the whole statement in a scope.</p>
 <div class="codehilite"><pre class="insert-before">
 static void forStatement() {
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -902,7 +901,7 @@ in <em>forStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
 
-<p>And closing it at the end:</p>
+<p>Then we close it at the end.</p>
 <div class="codehilite"><pre class="insert-before">
   emitLoop(loopStart);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -916,7 +915,7 @@ in <em>forStatement</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
 
 <h3><a href="#condition-clause" name="condition-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;2</small>Condition clause</a></h3>
-<p>Next, is the condition expression that can be used to exit the loop:</p>
+<p>Next, is the condition expression that can be used to exit the loop.</p>
 <div class="codehilite"><pre class="insert-before">
   int loopStart = currentChunk()-&gt;count;
 
@@ -945,8 +944,8 @@ tell. If there isn&rsquo;t a semicolon, there must be a condition expression.</p
 <p>In that case, we compile it. Then, just like with while, we emit a conditional
 jump that exits the loop if the condition is falsey. Since the jump leaves the
 value on the stack, we pop it before executing the body. That ensures we discard
-it when the condition is true.</p>
-<p>After the loop body, we need to patch that jump:</p>
+the value when the condition is true.</p>
+<p>After the loop body, we need to patch that jump.</p>
 <div class="codehilite"><pre class="insert-before">
 
   emitLoop(loopStart);
@@ -965,16 +964,16 @@ in <em>forStatement</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
 
 <p>We only do this when there is a condition clause. If there isn&rsquo;t, there&rsquo;s no
-jump to patch and no condition to pop.</p>
+jump to patch and no condition value on the stack to pop.</p>
 <h3><a href="#increment-clause" name="increment-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;3</small>Increment clause</a></h3>
 <p>I&rsquo;ve saved the best for last, the increment clause. It&rsquo;s pretty convoluted. It
 appears textually before the body, but executes <em>after</em> it. If we parsed to an
 AST and generated code in a separate pass, we could simply traverse into and
 compile the <code>for</code> statement AST&rsquo;s body field before its increment clause.</p>
 <p>Unfortunately, we can&rsquo;t compile the increment clause later, since our compiler
-only makes a single pass over the code. Instead, we&rsquo;ll jump over the increment,
-run the body, jump back up to the increment, run it, and then go to the next
-iteration.</p>
+only makes a single pass over the code. Instead, we&rsquo;ll <em>jump over</em> the
+increment, run the body, jump <em>back</em> up to the increment, run it, and then go to
+the next iteration.</p>
 <p>I know, a little weird, but, hey, it beats manually managing ASTs in memory in
 C, right? Here&rsquo;s the code:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -1017,15 +1016,17 @@ increment, since the increment executes at the end of each loop iteration.</p>
 <p>Then we change <code>loopStart</code> to point to the offset where the increment expression
 begins. Later, when we emit the loop instruction after the body statement, this
 will cause it to jump up to the <em>increment</em> expression instead of the top of the
-loop like it does when there is no increment. This is how we stitch the
+loop like it does when there is no increment. This is how we weave the
 increment in to run after the body.</p>
-<p>It&rsquo;s a little convoluted, but it all works out. A complete loop with all the
-clauses compiles to a flow like this:</p><img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." />
-<p>Again, we didn&rsquo;t need to touch the runtime. It&rsquo;s all in the compiler. We&rsquo;ve
-taken a big <span name="leap">leap</span> forward in our VM<span class="em">&mdash;</span>clox is now
-Turing complete. We&rsquo;ve also covered quite a bit of new syntax: three statements
-and two expression forms. Even so, it only took three new simple instructions.
-That&rsquo;s a pretty good effort-to-reward ratio for the architecture of our VM.</p>
+<p>It&rsquo;s convoluted, but it all works out. A complete loop with all the clauses
+compiles to a flow like this:</p><img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." />
+<p>As with implementing <code>for</code> loops in jlox, we didn&rsquo;t need to touch the runtime.
+It all gets compiled down to primitive control flow operations the VM already
+supports. In this chapter, we&rsquo;ve taken a big <span name="leap">leap</span>
+forward<span class="em">&mdash;</span>clox is now Turing complete. We&rsquo;ve also covered quite a bit of new
+syntax: three statements and two expression forms. Even so, it only took three
+new simple instructions. That&rsquo;s a pretty good effort-to-reward ratio for the
+architecture of our VM.</p>
 <aside name="leap">
 <p>I couldn&rsquo;t resist the pun. I regret nothing.</p>
 </aside>
@@ -1145,9 +1146,9 @@ an arbitrary point in its execution. What data would you need to send to the
 other computer to be able to stop it exactly as far along as the first one was?</p>
 <p>If your program only allows simple statements like assignment, it&rsquo;s easy. You
 just need to know the point after the last statement you executed. Basically a
-breakpoint, the <code>ip</code> in our VM, or the line number in an error message.</p>
-<p>Adding branching control flow like <code>if</code> and <code>switch</code> doesn&rsquo;t add any more to
-this. Even if the marker points inside a branch, we can still tell where we are.</p>
+breakpoint, the <code>ip</code> in our VM, or the line number in an error message. Adding
+branching control flow like <code>if</code> and <code>switch</code> doesn&rsquo;t add any more to this. Even
+if the marker points inside a branch, we can still tell where we are.</p>
 <p>Once you add function calls, you need something more. You could have paused the
 first computer in the middle of a function, but that function may be called from
 multiple places. To pause the second machine at exactly the same point in <em>the
