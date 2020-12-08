@@ -8,15 +8,15 @@ It's taken a while to get here, but we're finally ready to add control flow to
 our virtual machine. In the tree-walk interpreter we built for jlox, we
 implemented Lox's control flow in terms of Java's. To execute a Lox if
 statement, we used a Java `if` statement to run the chosen branch. That works,
-but isn't entirely satisfying. By what magic does the *JVM* or a native CPU
-implement `if` statements? Now that we have our own bytecode VM to hack on, we
-can answer that.
+but isn't entirely satisfying. By what magic does the *JVM itself* or a native
+CPU implement `if` statements? Now that we have our own bytecode VM to hack on,
+we can answer that.
 
 When we talk about "control flow", what are we referring to? By "flow" we mean
 the way execution moves through the text of the program. Almost like there is a
-little robot inside the computer wandering through our program, executing each
-piece of code. Flow is the path that robot takes, and by *controlling* it, we
-drive which pieces of code it executes.
+little robot inside the computer wandering through our code, executing bits and
+pieces here and there. Flow is the path that robot takes, and by *controlling*
+it, we drive which pieces of code it executes.
 
 In jlox, the robot's locus of attention -- the *current* bit of code -- was
 implicit based on which AST nodes were stored in various Java variables and what
@@ -25,7 +25,7 @@ The VM's `ip` field stores the address of the current bytecode instruction. The
 value of that field is exactly "where we are" in the program.
 
 Execution proceeds normally by incrementing the `ip`. But we can mutate that
-value however we want to. So in order to implement control flow, all that's
+variable however we want to. In order to implement control flow, all that's
 necessary is to change the `ip` in more interesting ways. The simplest control
 flow construct is an `if` statement with no else clause:
 
@@ -72,7 +72,7 @@ get started with that.
 
 This many chapters in, you know the drill. Any new feature starts in the front
 end and works its way through the pipeline. An `if` statement is, well, a
-statement, so that's where we hook it into the parser:
+statement, so that's where we hook it into the parser.
 
 ^code parse-if (2 before, 1 after)
 
@@ -124,15 +124,15 @@ yet, so we don't know how much bytecode it contains.
 
 To fix that, we use a classic trick called <span
 name="patch">**backpatching**</span>. We emit the jump instruction first with a
-placeholder offset. We keep track of where that temporary instruction is. Next,
-we compile the then body. Once that's done, we know how far to jump. So we go
-back and replace that placeholder offset with the real one now that we can
-calculate it. Sort of like sewing a patch onto the existing fabric of the
-compiled code.
+placeholder offset operand. We keep track of where that half-finished
+instruction is. Next, we compile the then body. Once that's done, we know how
+far to jump. So we go back and replace that placeholder offset with the real one
+now that we can calculate it. Sort of like sewing a patch onto the existing
+fabric of the compiled code.
 
 <img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." />
 
-We encode this trick into two helper functions:
+We encode this trick into two helper functions.
 
 ^code emit-jump
 
@@ -150,7 +150,7 @@ operands for when you need to jump a greater distance.
 </aside>
 
 The function returns the offset of the emitted instruction in the chunk. After
-compiling the then branch, we take that offset and pass it to:
+compiling the then branch, we take that offset and pass it to this:
 
 ^code patch-jump
 
@@ -161,28 +161,28 @@ bytecode count to determine how far to jump. In the case of an `if` statement,
 that means right after we compile the then branch and before we compile the next
 statement.
 
-That's all we need at compile time. Let's get the new instruction working:
+That's all we need at compile time. Let's define the new instruction.
 
 ^code jump-if-false-op (1 before, 1 after)
 
-Over in the VM, we interpret it like so:
+Over in the VM, we get it working like so:
 
 ^code op-jump-if-false (2 before, 1 after)
 
 This is the first instruction we've added that takes a 16-bit operand. To read
-that from the chunk, we use this new macro:
+that from the chunk, we use a new macro.
 
 ^code read-short (1 before, 1 after)
 
 It yanks the next two bytes from the chunk and builds a 16-bit unsigned integer
-out of them. As usual, we clean up our macro when we're done with it:
+out of them. As usual, we clean up our macro when we're done with it.
 
 ^code undef-read-short (1 before, 1 after)
 
 After reading the offset, we check the condition value on top of the stack.
 <span name="if">If</span> it's falsey, we apply this jump offset to the `ip`.
-Otherwise, we leave it alone and execution will automatically proceed to the
-next instruction following the jump instruction.
+Otherwise, we leave the `ip` alone and execution will automatically proceed to
+the next instruction following the jump instruction.
 
 In the case where the condition is falsey, we don't need to do any other work.
 We've offset the `ip`, so when the outer instruction dispatch loop turns again,
@@ -222,7 +222,7 @@ support it at runtime in the VM.
 
 An `if` statement without support for `else` clauses is like Morticia Addams
 without Gomez. So, after we compile the then branch, we look for an `else`
-keyword. If we find one, we compile the else branch:
+keyword. If we find one, we compile the else branch.
 
 ^code compile-else (1 before, 1 after)
 
@@ -239,17 +239,17 @@ branch. That way, in either case, we only execute a single branch, like this:
 
 <img src="image/jumping-back-and-forth/if-else.png" alt="Flowchart of the compiled bytecode for an if with an else clause." />
 
-To implement that, we need another jump from the end of the then branch:
+To implement that, we need another jump from the end of the then branch.
 
 ^code jump-over-else (2 before, 1 after)
 
-We patch that offset after the end of the else body:
+We patch that offset after the end of the else body.
 
 ^code patch-else (1 before, 1 after)
 
 After executing the then branch this jumps to the next statement after the else.
 Unlike the other jump, this jump is unconditional. We always take it, so we need
-another instruction that expresses that:
+another instruction that expresses that.
 
 ^code jump-op (1 before, 1 after)
 
@@ -272,11 +272,11 @@ explicit `OP_POP` instructions when compiling an `if` statement. We need to take
 care that every execution path through the generated code pops the condition.
 
 When the condition is truthy, we pop it right before the code inside the then
-branch:
+branch.
 
 ^code pop-then (1 before, 1 after)
 
-Otherwise, we pop it at the beginning of the else branch:
+Otherwise, we pop it at the beginning of the else branch.
 
 ^code pop-end (1 before, 2 after)
 
@@ -290,12 +290,12 @@ The full correct flow looks like this:
 
 If you trace through you can see that it always executes a single branch and
 ensures the condition is popped first. All that remains it a little disassembler
-support:
+support.
 
 ^code disassemble-jump (1 before, 1 after)
 
 These two instructions have a new format with a 16-bit operand, so we add a new
-utility function to disassemble them:
+utility function to disassemble them.
 
 ^code jump-instruction
 
@@ -324,7 +324,7 @@ it into the expression parsing table here:
 
 ^code table-and (1 before, 1 after)
 
-That hands off to:
+That hands off to a new parser function.
 
 ^code and
 
@@ -332,8 +332,8 @@ At the point this is called, the left-hand side expression has already been
 compiled. That means at runtime, its value will be on top of the stack. If that
 value is falsey, then we know the entire `and` must be false, so we skip the
 right operand and leave the left-hand side value as the result of the entire
-expression. Otherwise, we discard the left-hand value and the result of the
-`and` expression is the result of evaluating the right operand.
+expression. Otherwise, we discard the left-hand value and evaluate the right
+operand which becomes the result of the whole `and` expression.
 
 Those four lines of code right there produce exactly that. The flow looks like
 this:
@@ -356,11 +356,11 @@ affect performance.
 
 ### Logical or operator
 
-The `or` operator is a little more complex. First we add it to the parse table:
+The `or` operator is a little more complex. First we add it to the parse table.
 
 ^code table-or (1 before, 1 after)
 
-Which calls:
+When that parser consumes an infix `or` token, it calls this:
 
 ^code or
 
@@ -392,12 +392,11 @@ and maybe a conditional expression like `?:`, but Lox keeps it simple.
 
 That takes us to the *looping* statements, which jump *backwards* so that code
 can be executed more than once. Lox only has two loop constructs, `while` and
-`for`. A `while` loop is (much) simpler, so we kick off the party with its
-keyword:
+`for`. A `while` loop is (much) simpler, so we start the party there.
 
 ^code parse-while (1 before, 1 after)
 
-That calls:
+When we reach a `while` token, we call:
 
 ^code while-statement
 
@@ -425,15 +424,15 @@ jump until after we emitted the jump instruction. We don't have that problem
 now. We've already compiled the point in code that we want to jump back to --
 it's right before the condition expression.
 
-All we need to do is capture that location as we compile it:
+All we need to do is capture that location as we compile it.
 
 ^code loop-start (1 before, 1 after)
 
 After executing the body of a `while` loop, we jump all the way back to before
 the condition. That way, we re-evaluate the condition expression on each
-iteration. We store chunk's current instruction count in `loopStart` to record
-the offset in the bytecode right before the condition expression we're about to
-compile. Then we pass that into this helper function:
+iteration. We store the chunk's current instruction count in `loopStart` to
+record the offset in the bytecode right before the condition expression we're
+about to compile. Then we pass that into this helper function:
 
 ^code emit-loop
 
@@ -451,21 +450,21 @@ figured it was a little easier to sidestep the annoying bit twiddling required
 to manually pack a signed 16-bit integer into two bytes, and we've got the
 opcode space available, so why not use it?
 
-The new instruction is:
+The new instruction is here:
 
 ^code loop-op (1 before, 1 after)
 
-And in the VM, its implementation is:
+And in the VM, we implement it thusly:
 
 ^code op-loop (1 before, 1 after)
 
 The only difference from `OP_JUMP` is a subtraction instead of an addition.
-Disassembly is similar too:
+Disassembly is similar too.
 
 ^code disassemble-loop (1 before, 1 after)
 
 That's our `while` statement. It contains two jumps -- a conditional forward one
-to escape the loop when the condition isn't met, and an unconditional loop
+to escape the loop when the condition is not met, and an unconditional loop
 backwards after we have executed the body. The flow looks like this:
 
 <img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." />
@@ -501,7 +500,7 @@ something similiar, though we won't go through anything like an AST. Instead,
 our bytecode compiler will use the jump and loop instructions we already have.
 
 We'll work our way through the implementation a piece at a time, starting with
-the `for` keyword:
+the `for` keyword.
 
 ^code parse-for (1 before, 1 after)
 
@@ -524,8 +523,8 @@ a runtime error.
 
 ### Initializer clause
 
-Now, we'll add the first clause, the initializer. It only executes once, before
-the body, so it's straightforward:
+Now we'll add the first clause, the initializer. It only executes once, before
+the body, so compiling is straightforward.
 
 ^code for-initializer (1 before, 2 after)
 
@@ -537,17 +536,17 @@ emits an `OP_POP` instruction to discard the value. We don't want the
 initializer to leave anything on the stack.
 
 If a `for` statement declares a variable, that variable should be scoped to the
-loop body. We ensure that by wrapping the whole statement in a scope:
+loop body. We ensure that by wrapping the whole statement in a scope.
 
 ^code for-begin-scope (1 before, 1 after)
 
-And closing it at the end:
+Then we close it at the end.
 
 ^code for-end-scope (1 before, 1 after)
 
 ### Condition clause
 
-Next, is the condition expression that can be used to exit the loop:
+Next, is the condition expression that can be used to exit the loop.
 
 ^code for-exit (2 before, 1 after)
 
@@ -558,14 +557,14 @@ tell. If there isn't a semicolon, there must be a condition expression.
 In that case, we compile it. Then, just like with while, we emit a conditional
 jump that exits the loop if the condition is falsey. Since the jump leaves the
 value on the stack, we pop it before executing the body. That ensures we discard
-it when the condition is true.
+the value when the condition is true.
 
-After the loop body, we need to patch that jump:
+After the loop body, we need to patch that jump.
 
 ^code exit-jump (2 before, 2 after)
 
 We only do this when there is a condition clause. If there isn't, there's no
-jump to patch and no condition to pop.
+jump to patch and no condition value on the stack to pop.
 
 ### Increment clause
 
@@ -575,9 +574,9 @@ AST and generated code in a separate pass, we could simply traverse into and
 compile the `for` statement AST's body field before its increment clause.
 
 Unfortunately, we can't compile the increment clause later, since our compiler
-only makes a single pass over the code. Instead, we'll jump over the increment,
-run the body, jump back up to the increment, run it, and then go to the next
-iteration.
+only makes a single pass over the code. Instead, we'll *jump over* the
+increment, run the body, jump *back* up to the increment, run it, and then go to
+the next iteration.
 
 I know, a little weird, but, hey, it beats manually managing ASTs in memory in
 C, right? Here's the code:
@@ -602,19 +601,21 @@ increment, since the increment executes at the end of each loop iteration.
 Then we change `loopStart` to point to the offset where the increment expression
 begins. Later, when we emit the loop instruction after the body statement, this
 will cause it to jump up to the *increment* expression instead of the top of the
-loop like it does when there is no increment. This is how we stitch the
+loop like it does when there is no increment. This is how we weave the
 increment in to run after the body.
 
-It's a little convoluted, but it all works out. A complete loop with all the
-clauses compiles to a flow like this:
+It's convoluted, but it all works out. A complete loop with all the clauses
+compiles to a flow like this:
 
 <img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." />
 
-Again, we didn't need to touch the runtime. It's all in the compiler. We've
-taken a big <span name="leap">leap</span> forward in our VM -- clox is now
-Turing complete. We've also covered quite a bit of new syntax: three statements
-and two expression forms. Even so, it only took three new simple instructions.
-That's a pretty good effort-to-reward ratio for the architecture of our VM.
+As with implementing `for` loops in jlox, we didn't need to touch the runtime.
+It all gets compiled down to primitive control flow operations the VM already
+supports. In this chapter, we've taken a big <span name="leap">leap</span>
+forward -- clox is now Turing complete. We've also covered quite a bit of new
+syntax: three statements and two expression forms. Even so, it only took three
+new simple instructions. That's a pretty good effort-to-reward ratio for the
+architecture of our VM.
 
 <aside name="leap">
 
@@ -749,10 +750,9 @@ other computer to be able to stop it exactly as far along as the first one was?
 
 If your program only allows simple statements like assignment, it's easy. You
 just need to know the point after the last statement you executed. Basically a
-breakpoint, the `ip` in our VM, or the line number in an error message.
-
-Adding branching control flow like `if` and `switch` doesn't add any more to
-this. Even if the marker points inside a branch, we can still tell where we are.
+breakpoint, the `ip` in our VM, or the line number in an error message. Adding
+branching control flow like `if` and `switch` doesn't add any more to this. Even
+if the marker points inside a branch, we can still tell where we are.
 
 Once you add function calls, you need something more. You could have paused the
 first computer in the middle of a function, but that function may be called from
