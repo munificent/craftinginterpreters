@@ -36,31 +36,31 @@ This is roughly how compilation to native code works where you end up with one
 solid blob of machine code. But for our bytecode VM, we can do something a
 little higher level. I think a cleaner model is to give each function its own
 Chunk. We'll want some other metadata too, so let's go ahead and stuff it all in
-a struct now:
+a struct now.
 
 ^code obj-function (2 before, 2 after)
 
 Functions are first class in Lox, so they need to be actual Lox objects. Thus
-ObjFunction has the same `Obj obj` header all object types share. The `arity`
+ObjFunction has the same Obj header that all object types share. The `arity`
 field stores the number of parameters the function expects. Then, in addition to
 the chunk, we store the function's <span name="name">name</span>. That will be
 handy for reporting readable runtime errors.
 
 <aside name="name">
 
-For some reason, humans don't seem to find numeric bytecode offsets particularly
-illuminating in crash dumps.
+Humans don't seem to find numeric bytecode offsets particularly illuminating in
+crash dumps.
 
 </aside>
 
 This is the first time the "object" module has needed to reference Chunk, so we
-get an include:
+get an include.
 
 ^code object-include-chunk (1 before, 1 after)
 
-Like we did with the other object types, we need some accessories to make
-functions easier to work with in C. Sort of a poor man's object orientation.
-First, we'll declare a C function to create a new Lox function:
+Like we did strings, we define some accessories to make Lox functions easier to
+work with in C. Sort of a poor man's object orientation. First, we'll declare a
+C function to create a new Lox function.
 
 ^code new-function-h (3 before, 1 after)
 
@@ -70,16 +70,16 @@ The implementation is over here:
 
 It uses the same procedure we've seen to allocate memory and initialize the
 object's header so that the VM knows what type of object it is. Instead of
-passing in arguments to initialize the function like we do with other object
-types, we set it up in a sort of "blank" state -- zero arity, no name, and no
+passing in arguments to initialize the function like we did with ObjString, we
+set the function up in a sort of blank state -- zero arity, no name, and no
 code. That will get filled in later after the function is created.
 
-Since we have a new type of object, we need a new object type in the enum:
+Since we have a new kind of object, we need a new object type in the enum.
 
 ^code obj-type-function (1 before, 2 after)
 
 When we're done with a function object, we must return the bits it borrowed back
-to the operating system:
+to the operating system.
 
 ^code free-function (1 before, 1 after)
 
@@ -98,7 +98,7 @@ least, we'll be able to once we [implement a garbage collector][gc].
 </aside>
 
 Lox lets you print any object, and functions are first-class objects, so we
-need to handle them too:
+need to handle them too.
 
 ^code print-function (1 before, 1 after)
 
@@ -106,15 +106,15 @@ This calls out to:
 
 ^code print-function-helper
 
-Since functions know their name, they may as well say it.
+Since a function knows its name, it may as well say it.
 
 Finally, we have a couple of macros for converting values to functions. First,
-make sure your value actually *is* a function:
+make sure your value actually *is* a function.
 
 ^code is-function (2 before, 1 after)
 
-Assuming that returns true, you can then safely cast the Value to an ObjFunction
-pointer using:
+Assuming that evaluates to true, you can then safely cast the Value to an
+ObjFunction pointer using this:
 
 ^code as-function (2 before, 1 after)
 
@@ -124,9 +124,10 @@ up now. You ready for something a little harder?
 ## Compiling to Function Objects
 
 Right now, our compiler assumes it is always compiling to one single chunk. With
-each function's code living in separate chunks, the compiler needs to switch to
-the function's chunk before compiling its body. At the end of the function body,
-the compiler needs to return to the previous chunk it was working with.
+each function's code living in separate chunks, that gets more complex. When the
+compiler reaches a function declaration, it needs to emit code into the
+function's chunk when compiling its body. At the end of the function body, the
+compiler needs to return to the previous chunk it was working with.
 
 That's fine for code inside function bodies, but what about code that isn't? The
 "top level" of a Lox program is also imperative code and we need a chunk to
@@ -146,8 +147,8 @@ top level of a script isn't like a function body.
 
 Before we get to user-defined functions, then, let's do the reorganization to
 support that implicit top-level function. It starts with the Compiler struct.
-Instead of pointing directly to a Chunk that the compiler writes to, it will
-instead have a reference to the function object being built:
+Instead of pointing directly to a Chunk that the compiler writes to, it instead
+has a reference to the function object being built.
 
 ^code function-fields (1 before, 1 after)
 
@@ -159,10 +160,10 @@ two places the distinction is meaningful. We'll get to one later.
 ^code function-type-enum
 
 Every place in the compiler that was writing to the Chunk now needs to go
-through that function pointer. Fortunately, many <span
+through that `function` pointer. Fortunately, many <span
 name="current">chapters</span> ago, we encapsulated access to the chunk in the
 `currentChunk()` function. We only need to fix that and the rest of the compiler
-is happy:
+is happy.
 
 <aside name="current">
 
@@ -183,16 +184,16 @@ which is all we support right now -- of the user's program.
 ### Creating functions at compile time
 
 We start threading this through in `compile()`, which is the main entry point
-into the compiler:
+into the compiler.
 
 ^code call-init-compiler (1 before, 2 after)
 
-There are a bunch of changes in how the compiler is initialized. First, we clear
-out the new Compiler fields:
+There are a bunch of changes in how the compiler is initialized. First, we
+initialize the new Compiler fields.
 
 ^code init-compiler (1 after)
 
-Then we allocate a new function object to compile into:
+Then we allocate a new function object to compile into.
 
 ^code init-function (1 before, 1 after)
 
@@ -205,14 +206,14 @@ a value a few lines later. More garbage collection-related paranoia.
 
 </aside>
 
-This might seem a little strange. A function object is the *runtime*
-representation of a function, but here we are creating it at compile time. The
-way to think of it is that a function is similar to string and number literals.
-It forms a bridge between the compile time and runtime world. When we get to
-function declarations, those really *are* literals -- they are a notation that
-produces values of a built-in type. So the <span name="closure">compiler</span>
-creates function objects during compilation. Then, at runtime, they are simply
-invoked.
+Creating an ObjFunction in the compiler might seem a little strange. A function
+object is the *runtime* representation of a function, but here we are creating
+it at compile time. The way to think of it is that a function is similar to a
+string or number literal. It forms a bridge between the compile time and runtime
+world. When we get to function *declarations*, those really *are* literals
+-- they are a notation that produces values of a built-in type. So the <span
+name="closure">compiler</span> creates function objects during compilation.
+Then, at runtime, they are simply invoked.
 
 <aside name="closure">
 
@@ -236,24 +237,24 @@ empty name so that the user can't write an identifier that refers to it. I'll
 explain what this is about when it becomes useful.
 
 That's the initialization side. We also need a couple of changes on the other
-end when we finish compiling some code:
+end when we finish compiling some code.
 
 ^code end-compiler (1 after)
 
 Previously, when `interpret()` called into the compiler, it passed in a Chunk to
 be written to. Now that the compiler creates the function object itself, we
-return that function. We grab it from the current compiler:
+return that function. We grab it from the current compiler here:
 
 ^code end-function (1 before, 1 after)
 
-And then return it to `compile()`:
+And then return it to `compile()` like so:
 
 ^code return-function (1 before, 1 after)
 
 Now is a good time to make another tweak in this function. Earlier, we added
 some diagnostic code to have the VM dump the disassembled bytecode so we can
-debug the compiler. We should fix that now that the generated chunk is wrapped
-in a function:
+debug the compiler. We should fix that to keep working now that the generated
+chunk is wrapped in a function.
 
 ^code disassemble-end (2 before, 2 after)
 
@@ -265,10 +266,17 @@ Speaking of which:
 ^code print-script (1 before, 1 after)
 
 There's no way for a *user* to get a reference to the top-level function and try
-to print it, but our `DEBUG_TRACE_EXECUTION` diagnostic code that prints the
-entire stack can and does.
+to print it, but our `DEBUG_TRACE_EXECUTION` <span
+name="debug">diagnostic</span> code that prints the entire stack can and does.
 
-Bumping up a level to `compile()`, we adjust its signature:
+<aside name="debug">
+
+It is no fun if the diagnostic code we use to find bugs itself causes the VM to
+segfault!
+
+</aside>
+
+Bumping up a level to `compile()`, we adjust its signature.
 
 ^code compile-h (2 before, 2 after)
 
@@ -277,7 +285,8 @@ implementation:
 
 ^code compile-signature (1 after)
 
-Finally we get to some actual code. At the very end of the function:
+Finally we get to some actual code. We change the very end of the function to
+this:
 
 ^code call-end-compiler (4 before, 1 after)
 
@@ -320,7 +329,7 @@ middle of being called at any point in time, so sitting on unused memory for
 them is wasteful.
 
 The more fundamental problem, though, is recursion. With recursion, you can be
-"in" multiple calls of the same function at the same time. Each needs its <span
+"in" multiple calls to the same function at the same time. Each needs its <span
 name="fortran">own</span> memory for its local variables. In jlox, we solved
 this by dynamically allocating memory for an environment each time a function
 was called or a block entered. In clox, we don't want that kind of performance
@@ -422,8 +431,8 @@ runtime, but within and relative to that region, we know where to find things.
 <img src="image/calls-and-functions/window.png" alt="The stack at the two points when second() is called, with a window hovering over each one showing the pair of stack slots used by the function.." />
 
 The historical name for this recorded location where the function's locals start
-is a "frame pointer" because it points to the beginning of the function's call
-frame. Sometimes you hear "base pointer", because it points to the base stack
+is a **frame pointer** because it points to the beginning of the function's call
+frame. Sometimes you hear **base pointer**, because it points to the base stack
 slot on top of which all of the function's variables live.
 
 That's the first piece of data we need to track. Every time we call a function,
@@ -464,7 +473,7 @@ Sometimes the line between genius and madness is hair thin.
 So for each live function invocation -- each call that hasn't returned yet -- we
 need to track where on the stack that function's locals begin, and where the
 caller should resume. We'll put this, along with some other stuff, in a new
-struct:
+struct.
 
 ^code call-frame (1 before, 2 after)
 
@@ -491,13 +500,15 @@ calls have stack semantics. If `first()` calls `second()`, the call to
 <aside name="heap">
 
 Many Lisp implementations dynamically allocate stack frames because it
-simplifies implementing continuations. With continuations, function calls do
-*not* always have stack semantics.
+simplifies implementing [continuations][]. If your language supports
+continuations, then function calls do *not* always have stack semantics.
+
+[continuations]: https://en.wikipedia.org/wiki/Continuation
 
 </aside>
 
 So over in the VM, we create an array of these CallFrame structs up front and
-treat it as a stack, like we do with the value array:
+treat it as a stack, like we do with the value array.
 
 ^code frame-array (1 before, 1 after)
 
@@ -505,16 +516,16 @@ This array replaces the `chunk` and `ip` fields we used to have directly in the
 VM. Now each CallFrame has its own `ip` and its own pointer to the ObjFunction
 that it's executing. From there, we can get to the function's chunk.
 
-The new `frameCount` field in the VM stores the current height of the stack --
-the number of ongoing function calls. To keep clox simple, the array's capacity
-is fixed. This means, as in many language implementations, there is a maximum
-call depth we can handle. For clox, it's:
+The new `frameCount` field in the VM stores the current height of the CallFrame
+stack -- the number of ongoing function calls. To keep clox simple, the array's
+capacity is fixed. This means, as in many language implementations, there is a
+maximum call depth we can handle. For clox, it's defined here:
 
 ^code frame-max (2 before, 2 after)
 
 We also redefine the value stack's <span name="plenty">size</span> in terms of
 that to make sure we have plenty of stack slots even in very deep call trees.
-When the VM starts up, the CallFrame stack is empty:
+When the VM starts up, the CallFrame stack is empty.
 
 <aside name="plenty">
 
@@ -526,7 +537,7 @@ this, but I'm trying to keep things simple.
 
 ^code reset-frame-count (1 before, 1 after)
 
-The "vm.h" header needs access to ObjFunction, so we need an include:
+The "vm.h" header needs access to ObjFunction, so we add an include.
 
 ^code vm-include-object (2 before, 1 after)
 
@@ -536,7 +547,7 @@ CallFrame. We need to fix every line of code in the VM that touches `ip` to
 handle that. Also, the instructions that access local variables by stack slot
 need to be updated to do so relative to the current CallFrame's `slots` field.
 
-We'll start at the top and plow through it:
+We'll start at the top and plow through it.
 
 ^code run (1 before, 1 after)
 
@@ -555,7 +566,7 @@ will do this, but there's a good chance it will.
 
 </aside>
 
-Now onto each instruction that needs a little tender loving care:
+Now onto each instruction that needs a little tender loving care.
 
 ^code push-local (2 before, 1 after)
 
@@ -564,16 +575,16 @@ stack array, which meant it indexed the slot starting from the bottom of the
 stack. Now, it accesses the current frame's `slots` array, which means it
 accesses the given numbered slot relative to the beginning of that frame.
 
-Setting a local variable works the same way:
+Setting a local variable works the same way.
 
 ^code set-local (2 before, 1 after)
 
 The jump instructions used to modify the VM's `ip` field. Now, they do the same
-for the current frame's `ip`:
+for the current frame's `ip`.
 
 ^code jump (2 before, 1 after)
 
-And the conditional jump:
+Same with the conditional jump:
 
 ^code jump-if-false (2 before, 1 after)
 
@@ -582,7 +593,7 @@ And our backwards-jumping loop instruction:
 ^code loop (2 before, 1 after)
 
 We have some diagnostic code that prints each instruction as it executes to help
-us debug our VM. That needs to work with the new structure too:
+us debug our VM. That needs to work with the new structure too.
 
 ^code trace-execution (1 before, 1 after)
 
@@ -591,7 +602,7 @@ current CallFrame.
 
 You know, that wasn't too bad, actually. Most instructions just use the macros
 so didn't need to be touched. Next, we jump up a level to the code that calls
-`run()`:
+`run()`.
 
 ^code interpret-stub (1 before, 2 after)
 
@@ -610,12 +621,12 @@ value stack.
 
 This gets the interpreter ready to start executing code. After finishing, the VM
 used to free the hardcoded chunk. Now that the ObjFunction owns that code, we
-don't need to do that anymore, so the end of `interpret()` is simply:
+don't need to do that anymore, so the end of `interpret()` is simply this:
 
 ^code end-interpret (2 before, 1 after)
 
 The last piece of code referring to the old VM fields is `runtimeError()`. We'll
-revisit that later in the chapter, but for now, let's change it to:
+revisit that later in the chapter, but for now let's change it to this:
 
 ^code runtime-error-temp (2 before, 2 after)
 
@@ -626,13 +637,13 @@ and behaving as it did before.
 Assuming we did all of that correctly, we got clox back to a runnable
 state. Fire it up and it does... exactly what it did before. We haven't added
 any new features yet, so this is kind of a let down. But all of the
-infrastructure is there ready for us now. Let's take advantage of it.
+infrastructure is there and ready for us now. Let's take advantage of it.
 
 ## Function Declarations
 
 Before we can do call expressions, we need something to call, so we'll do
-function declarations first. The <span name="fun">fun</span> gets started with
-a keyword:
+function declarations first. The <span name="fun">fun</span> starts with a
+keyword.
 
 <aside name="fun">
 
@@ -642,7 +653,7 @@ Yes, I *am* proud of myself for this dumb joke, thank you for asking.
 
 ^code match-fun (1 before, 1 after)
 
-That passes off control to:
+That passes control to here:
 
 ^code fun-declaration
 
@@ -669,7 +680,7 @@ To make that work, we mark the function declaration's variable initialized as
 soon as we compile the name, before we compile the body. That way the name can
 be referenced inside the body without generating an error.
 
-We do need one check, though:
+We do need one check, though.
 
 ^code check-depth (1 before, 1 after)
 
@@ -703,6 +714,8 @@ followed by the body. The body starts with a left curly brace, which we parse
 here. Then we call our existing `block()` function which knows how to compile
 the rest of a block including the closing brace.
 
+### A stack of compilers
+
 The interesting parts are the compiler stuff at the top and bottom. The Compiler
 struct stores data like which slots are owned by which local variables, how many
 blocks of nesting we're currently in, etc. All of that is specific to a single
@@ -732,7 +745,7 @@ compiler pointer.
 We fix that by treating the series of nested Compiler structs as a stack. Unlike
 the Value and CallFrame stacks in the VM, we won't use an array. Instead, we use
 a linked list. Each Compiler points back to the Compiler for the function that
-encloses it, all the way back to the root Compiler for the top level code:
+encloses it, all the way back to the root Compiler for the top level code.
 
 ^code enclosing-field (2 before, 1 after)
 
@@ -741,12 +754,12 @@ declaration hasn't finished yet. Instead, we give a name to the struct itself
 and use that for the field's type. C is weird.
 
 When initializing a new Compiler, we capture the about-to-no-longer-be-current
-one in that pointer:
+one in that pointer.
 
 ^code store-enclosing (1 before, 1 after)
 
 Then when a Compiler finishes, it pops itself off the stack by restoring the
-previous compiler as the current one:
+previous compiler to be the new current one.
 
 ^code restore-enclosing (4 before, 1 after)
 
@@ -768,8 +781,10 @@ amount of function nesting it permits.
 
 </aside>
 
+### Function parameters
+
 Functions aren't very useful if you can't pass arguments to them, so let's do
-parameters next:
+parameters next.
 
 ^code parameters (1 before, 1 after)
 
@@ -780,11 +795,11 @@ local variables which have initializers, there's no code here to initialize the
 parameter's value. We'll see how they are initialized later when we do argument
 passing in function calls.
 
-We also keep track of the function's arity by counting how many parameters we
-parse. The other piece of metadata we store with a function is its name. When
+While we're at it, we note the function's arity by counting how many parameters
+we parse. The other piece of metadata we store with a function is its name. When
 compiling a function declaration, we call `initCompiler()` right after we parse
 the function's name. That means we can grab the name right then from the
-previous token:
+previous token.
 
 ^code init-function-name (1 before, 2 after)
 
@@ -794,7 +809,7 @@ freed once the code is finished compiling. The function object we create in the
 compiler outlives the compiler and persists until runtime. So it needs its own
 heap allocated name string that it can keep around.
 
-Rad. Now we can compile function declarations, like:
+Rad. Now we can compile function declarations, like this:
 
 ```lox
 fun areWeHavingItYet() {
@@ -822,12 +837,12 @@ single identifier. Then the `(` in the middle, followed by the argument
 expressions separated by commas, and a final `)` to wrap it up at the end.
 
 That odd grammatical perspective explains how to hook the syntax into our
-parsing table:
+parsing table.
 
 ^code infix-left-paren (1 before, 1 after)
 
 When the parser encounters a left parenthesis following an expression, it
-dispatches to:
+dispatches to a new parser function.
 
 ^code compile-call
 
@@ -849,14 +864,16 @@ Well, almost. Back in jlox, we added a compile-time check that you don't pass
 more than 255 arguments to a call. At the time, I said that was because clox
 would need a similar limit. Now you can see why -- since we stuff the argument
 count into the bytecode as a single-byte operand, we can only go up to 255. We
-need to verify that in this compiler too:
+need to verify that in this compiler too.
 
 ^code arg-limit (1 before, 1 after)
 
 That's the front end. Let's skip over to the back end, with a quick stop in the
-middle to declare the new instruction:
+middle to declare the new instruction.
 
 ^code op-call (1 before, 1 after)
+
+### Binding arguments to parameters
 
 Before we get to the implementation, we should think about what the stack looks
 like at the point of a call and what we need to do from there. When we reach the
@@ -916,20 +933,22 @@ virtual machine.
 This means that we don't need to do *any* work to "bind an argument to a
 parameter". There's no copying values between slots or across environments. The
 arguments are already exactly where they need to be. It's hard to beat that for
-performance. Time to implement it:
+performance.
+
+Time to implement the call instruction.
 
 ^code interpret-call (3 before, 1 after)
 
 We need to know the function being called and the number of arguments passed to
 it. We get the latter from the instruction's operand. That also tells us where
-to find the function on the stack since it appears right before the first
-operand. We hand that data off to a separate `callValue()` function. If that
-returns `false`, it means the call caused some sort of runtime error. When that
-happens, we abort the interpreter.
+to find the function on the stack by counting past the arguments slots from the
+top of the stack. We hand that data off to a separate `callValue()` function. If
+that returns `false`, it means the call caused some sort of runtime error. When
+that happens, we abort the interpreter.
 
 If `callValue()` is successful, there will be a new frame on the CallFrame stack
 for the called function. The `run()` function has its own cached pointer to the
-current frame, so we need to update that:
+current frame, so we need to update that.
 
 ^code update-frame-after-call (2 before, 1 after)
 
@@ -942,8 +961,8 @@ call begins here:
 
 <aside name="switch">
 
-Using a `switch` statement to check a single type is overkill right now, but
-will make more sense later as we add more cases to handle other callable types.
+Using a `switch` statement to check a single type is overkill now, but will make
+sense when we add cases to handle other callable types.
 
 </aside>
 
@@ -974,13 +993,13 @@ The funny little `- 1` is to skip over local slot zero, which contains the
 function being called. That slot isn't used right now, but will be when we get
 to methods.
 
-Before we move on, let's add the new instruction to our disassembler:
+Before we move on, let's add the new instruction to our disassembler.
 
 ^code disassemble-call (1 before, 1 after)
 
 And one more quick side trip. Now that we have a handy function for initiating a
 CallFrame, we may as well use it to set up the first frame for executing the top
-level code:
+level code.
 
 ^code interpret (2 before, 2 after)
 
@@ -997,16 +1016,16 @@ like so:
 ^code check-arity (1 before, 1 after)
 
 Pretty straightforward. This is why we store the arity of each function inside
-the FunctionObj for it.
+the ObjFunction for it.
 
 There's another error we need to report that's less to do with the user's
 foolishness than our own. Because the CallFrame array has a fixed size, we need
-to ensure a deep call chain doesn't overflow it:
+to ensure a deep call chain doesn't overflow it.
 
 ^code check-overflow (2 before, 1 after)
 
-In practice, if a program gets close to this limit, it's most likely to be a bug
-in some runaway recursive code.
+In practice, if a program gets anywhere close to this limit, it's most likely to
+be a bug in some runaway recursive code.
 
 ### Printing stack traces
 
@@ -1079,7 +1098,7 @@ We're getting close. We can call functions and the VM will execute them. But we
 can't *return* from them yet. We've had an `OP_RETURN` instruction for quite
 some time, but it's always had some kind of temporary code hanging out in it
 just to get us out of the bytecode loop. The time has arrived for a real
-implementation:
+implementation.
 
 ^code interpret-return (1 before, 1 after)
 
@@ -1129,19 +1148,19 @@ take parameters! It almost looks like we know what we're doing here.
 ## Return Statements
 
 If you want a function that returns something other than the implicit `nil`, you
-need a `return` statement:
+need a `return` statement. Let's get that working.
 
 ^code match-return (1 before, 1 after)
 
-That relies on:
+When the compiler sees a `return` keyword, it goes here:
 
 ^code return-statement
 
 The return value expression is optional, so the parser looks for a semicolon
 token to tell if a value was provided. If there is no return value, the
 statement implicitly returns `nil`. We implement that by calling `emitReturn()`,
-which implicitly emits an `OP_NIL` instruction. Otherwise, we compile the return
-value expression and return it with an `OP_RETURN` instruction.
+which emits an `OP_NIL` instruction. Otherwise, we compile the return value
+expression and return it with an `OP_RETURN` instruction.
 
 This is the same `OP_RETURN` instruction we've already implemented -- we don't
 need any new runtime code. This is quite a difference from jlox. There, we had
@@ -1174,7 +1193,7 @@ returned number to indicate the process's exit code.
 </aside>
 
 We've specified that it's a compile error to have a `return` statement outside
-of any function:
+of any function, which we implement like so:
 
 ^code return-from-script (1 before, 1 after)
 
@@ -1189,9 +1208,9 @@ user visible thing a Lox program can do, regardless of its complexity, is print.
 To add more capabilities, we need to expose them to the user.
 
 A programming language implementation reaches out and touches the material world
-through native functions. If you want to be able to write programs that check
-the time, read user input, or access the file system, we need to add native
-functions -- callable from Lox but implemented in C -- that expose those
+through **native functions.** If you want to be able to write programs that
+check the time, read user input, or access the file system, we need to add
+native functions -- callable from Lox but implemented in C -- that expose those
 capabilities.
 
 At the language level, Lox is fairly complete -- it's got closures, classes,
@@ -1213,7 +1232,7 @@ frame to point to. They have no bytecode chunk. Instead, they somehow reference
 a piece of native C code.
 
 We handle this in clox by defining native functions as an entirely different
-object type:
+object type.
 
 ^code obj-native (1 before, 2 after)
 
@@ -1224,26 +1243,26 @@ stack. It accesses the arguments through that pointer. Once it's done, it
 returns the result value.
 
 As always, a new object type carries some accoutrements with it. To create an
-ObjNative, we declare a constructor-like function:
+ObjNative, we declare a constructor-like function.
 
 ^code new-native-h (1 before, 1 after)
 
-And an implementation:
+We implement that like so:
 
 ^code new-native
 
 The constructor takes a C function pointer to wrap in an ObjNative. It sets up
 the object header and stores the function. For the header, we need a new object
-type:
+type.
 
 ^code obj-type-native (2 before, 2 after)
 
-The VM also needs to know how to deallocate a native function object:
+The VM also needs to know how to deallocate a native function object.
 
 ^code free-native (4 before, 1 after)
 
 There isn't much here since ObjNative doesn't own any extra memory. The other
-capability all Lox objects support is being printed:
+capability all Lox objects support is being printed.
 
 ^code print-native (2 before, 1 after)
 
@@ -1253,7 +1272,7 @@ native function:
 ^code is-native (1 before, 1 after)
 
 Assuming that returns true, this macro extracts the C function pointer from a
-Value representing a native function:
+Value representing a native function.
 
 ^code as-native (1 before, 1 after)
 
@@ -1262,7 +1281,7 @@ You can store them in variables, pass them around, throw them birthday parties,
 etc. Of course, the operation we actually care about is *calling* them -- using
 one as the left-hand operand in a call expression.
 
-Over in `callValue()` we add another type case:
+Over in `callValue()` we add another type case.
 
 ^code call-native (2 before, 2 after)
 
@@ -1274,7 +1293,7 @@ functions as fast as we can get.
 With this, users should be able to call native functions, but there aren't any
 to call. Without something like a foreign function interface, users can't define
 their own native functions. That's our job as VM implementers. We'll start with
-a helper to define a new native function exposed to Lox programs:
+a helper to define a new native function exposed to Lox programs.
 
 ^code define-native
 
@@ -1301,17 +1320,17 @@ get around to [implementing the GC][gc].
 </aside>
 
 It feels silly, but after all of that work, we're only going to add one
-little native function:
+little native function.
 
 ^code clock-native
 
 This returns the elapsed time since the program started running, in seconds. It's
-handy for benchmarking Lox programs. In Lox, we'll name it `clock()`:
+handy for benchmarking Lox programs. In Lox, we'll name it `clock()`.
 
 ^code define-native-clock (1 before, 1 after)
 
 To get to the C standard library `clock()` function, the "vm" module needs an
-include:
+include.
 
 ^code vm-include-time (1 before, 2 after)
 
@@ -1374,7 +1393,7 @@ optimizations we can do in our VM.
     In a real implementation, this is something we'd need to support because
     native functions live in the statically-typed world of C but are called
     from dynamically-typed Lox land. If a user, say, tries to pass a string to
-    `sin()`, that native function needs to report a runtime error.
+    `sqrt()`, that native function needs to report a runtime error.
 
     Extend the native function system to support that. How does this capability
     affect the performance of native calls?
