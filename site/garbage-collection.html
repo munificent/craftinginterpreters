@@ -131,12 +131,12 @@ for a working program, tedious to do by hand, and yet still error-prone. The
 inevitable mistakes can be catastrophic, leading to crashes, memory corruption
 or security violations. It&rsquo;s the kind of risky-yet-boring work that machines
 excel at over humans.</p>
-<p>This is why Lox is a &ldquo;managed&rdquo; language, which means that the language
+<p>This is why Lox is a <strong>managed language</strong>, which means that the language
 implementation manages memory allocation and freeing on the user&rsquo;s behalf. When
 a user performs an operation that requires some dynamic memory, the VM
 automatically allocates it. The programmer never worries about deallocating
-anything. As long as they use a piece of memory, the machine ensures that memory
-is still there.</p>
+anything. The machine ensures any memory the program is using sticks around as
+long as needed.</p>
 <p>Lox provides the illusion that the computer has an infinite amount of memory.
 Users can allocate and allocate and allocate and never once think about where
 all these bytes are coming from. Of course, computers do not yet <em>have</em> infinite
@@ -183,7 +183,8 @@ example:</p>
 string &ldquo;first value&rdquo; is still sitting in memory, but there is no way for the
 user&rsquo;s program to ever get to it. Once <code>a</code> got reassigned, the program lost any
 reference to that string. We can safely free it. A value is <strong>reachable</strong> if
-there is some way for a user program to reference it.</p>
+there is some way for a user program to reference it, otherwise, like the string
+&ldquo;first value&rdquo; here, it is <strong>unreachable</strong>.</p>
 <p>Many values can be directly accessed by the VM. Take a look at:</p>
 <div class="codehilite"><pre>
 <span class="k">var</span> <span class="i">global</span> = <span class="s">&quot;string&quot;</span>;
@@ -255,8 +256,8 @@ full set of reachable objects.</p>
 </ol>
 <p>Many <span name="handbook">different</span> garbage collection algorithms are in
 use today, but they all roughly follow that same structure. Some may interleave
-the steps or mix them, but the three fundamental operations are there. They
-mostly differ in <em>how</em> they perform each step.</p>
+the steps or mix them, but the two fundamental operations are there. They mostly
+differ in <em>how</em> they perform each step.</p>
 <aside name="handbook">
 <p>If you want to explore other GC algorithms, <a href="http://gchandbook.org/">&ldquo;The Garbage Collection
 Handbook&rdquo;</a> is the canonical reference. For a large book on such a deep,
@@ -307,7 +308,8 @@ different strategy for tracking the reachable objects.</p>
 bytes, we&rsquo;ll trace everything and mark all the reachable objects, free what
 didn&rsquo;t get marked, and then resume the user&rsquo;s program.</p>
 <h3><a href="#collecting-garbage" name="collecting-garbage"><small>26&#8202;.&#8202;1&#8202;.&#8202;1</small>Collecting garbage</a></h3>
-<p>This entire chapter is about implementing one <span name="one">function</span>:</p>
+<p>This entire chapter is about implementing this one <span
+name="one">function</span>:</p>
 <aside name="one">
 <p>Of course, we&rsquo;ll end up adding a bunch of helper functions too.</p>
 </aside>
@@ -334,7 +336,7 @@ add after <em>freeObject</em>()</div>
 <p>The first question you might ask is, &ldquo;When does this function get called?&rdquo; It
 turns out that&rsquo;s a subtle question that we&rsquo;ll spend some time on later in the
 chapter. For now we&rsquo;ll sidestep the issue and build ourselves a handy diagnostic
-tool in the process:</p>
+tool in the process.</p>
 <div class="codehilite"><pre class="insert-before">
 #define DEBUG_TRACE_EXECUTION
 </pre><div class="source-file"><em>common.h</em></div>
@@ -392,7 +394,7 @@ challenge I&rsquo;ve found with garbage collectors is that they are opaque. We&r
 running lots of Lox programs just fine without any GC <em>at all</em> so far. Once we
 add one, how do we tell if it&rsquo;s doing anything useful? Can we only tell if we
 write programs that plow through acres of memory? How do we debug that?</p>
-<p>An easy way to shine a light into the GC&rsquo;s inner workings is with some logging:</p>
+<p>An easy way to shine a light into the GC&rsquo;s inner workings is with some logging.</p>
 <div class="codehilite"><pre class="insert-before">
 #define DEBUG_STRESS_GC
 </pre><div class="source-file"><em>common.h</em></div>
@@ -405,7 +407,7 @@ write programs that plow through acres of memory? How do we debug that?</p>
 <div class="source-file-narrow"><em>common.h</em></div>
 
 <p>When this is enabled, clox prints information to the console when it does
-something with dynamic memory. We need a couple of includes:</p>
+something with dynamic memory. We need a couple of includes.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;vm.h&quot;
 </pre><div class="source-file"><em>memory.c</em></div>
@@ -422,7 +424,7 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
 <div class="source-file-narrow"><em>memory.c</em></div>
 
 <p>We don&rsquo;t have a collector yet, but we can start putting in some of the logging
-now. We&rsquo;ll want to know when a collection run starts:</p>
+now. We&rsquo;ll want to know when a collection run starts.</p>
 <div class="codehilite"><pre class="insert-before">
 void collectGarbage() {
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -438,7 +440,7 @@ void freeObjects() {
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
 <p>Eventually we will log some other operations during the collection, so we&rsquo;ll
-also want to know when the show&rsquo;s over:</p>
+also want to know when the show&rsquo;s over.</p>
 <div class="codehilite"><pre class="insert-before">
   printf(&quot;-- gc begin\n&quot;);
 #endif
@@ -455,7 +457,7 @@ in <em>collectGarbage</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
 <p>We don&rsquo;t have any code for the collector yet, but we do have functions for
-allocating and freeing, so we can instrument those now:</p>
+allocating and freeing, so we can instrument those now.</p>
 <div class="codehilite"><pre class="insert-before">
   vm.objects = object;
 </pre><div class="source-file"><em>object.c</em><br>
@@ -471,7 +473,7 @@ in <em>allocateObject</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateObject</em>()</div>
 
-<p>And at the end of an object&rsquo;s lifespan:</p>
+<p>And at the end of an object&rsquo;s lifespan.</p>
 <div class="codehilite"><pre class="insert-before">
 static void freeObject(Obj* object) {
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -491,7 +493,7 @@ work through the rest of the chapter.</p>
 <h2><a href="#marking-the-roots" name="marking-the-roots"><small>26&#8202;.&#8202;2</small>Marking the Roots</a></h2>
 <p>Objects are scattered across the heap like stars in the inky night sky. A
 reference from one object to another forms a connection and these constellations
-are the graph that the mark phase traverses. Marking begins at the roots:</p>
+are the graph that the mark phase traverses. Marking begins at the roots.</p>
 <div class="codehilite"><pre class="insert-before">
 #ifdef DEBUG_LOG_GC
   printf(&quot;-- gc begin\n&quot;);
@@ -508,7 +510,7 @@ in <em>collectGarbage</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
 <p>Most roots are local variables or temporaries sitting right in the VM&rsquo;s stack,
-so we start by walking that:</p>
+so we start by walking that.</p>
 <div class="codehilite"><div class="source-file"><em>memory.c</em><br>
 add after <em>freeObject</em>()</div>
 <pre>
@@ -532,7 +534,7 @@ void collectGarbage();
 </pre></div>
 <div class="source-file-narrow"><em>memory.h</em>, add after <em>reallocate</em>()</div>
 
-<p>Its implementation is:</p>
+<p>Its implementation is here:</p>
 <div class="codehilite"><div class="source-file"><em>memory.c</em><br>
 add after <em>reallocate</em>()</div>
 <pre>
@@ -574,7 +576,7 @@ some kind of Obj type will always have a valid pointer. But later we will call
 this function directly from other code and in some of those places, the object
 being pointed to is optional.</p>
 <p>Assuming we do have a valid object, we mark it by setting a flag. That new field
-lives in the Obj header struct all objects share:</p>
+lives in the Obj header struct all objects share.</p>
 <div class="codehilite"><pre class="insert-before">
   ObjType type;
 </pre><div class="source-file"><em>object.h</em><br>
@@ -587,7 +589,7 @@ in struct <em>Obj</em></div>
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>Obj</em></div>
 
 <p>Every new object begins life unmarked because we haven&rsquo;t determined if it is
-reachable or not yet:</p>
+reachable or not yet.</p>
 <div class="codehilite"><pre class="insert-before">
   object-&gt;type = type;
 </pre><div class="source-file"><em>object.c</em><br>
@@ -600,7 +602,7 @@ in <em>allocateObject</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateObject</em>()</div>
 
-<p>Before we go any farther, let&rsquo;s add some logging to <code>markObject()</code>:</p>
+<p>Before we go any farther, let&rsquo;s add some logging to <code>markObject()</code>.</p>
 <div class="codehilite"><pre class="insert-before">
 void markObject(Obj* object) {
   if (object == NULL) return;
@@ -618,8 +620,9 @@ in <em>markObject</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markObject</em>()</div>
 
-<p>Marking the stack covers local variables and temporaries. The other main source
-of roots are the global variables:</p>
+<p>This way we can see what the mark phase is doing. Marking the stack takes care
+of local variables and temporaries. The other main source of roots are the
+global variables.</p>
 <div class="codehilite"><pre class="insert-before">
     markValue(*slot);
   }
@@ -634,7 +637,7 @@ in <em>markRoots</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markRoots</em>()</div>
 
 <p>Those live in a hash table owned by the VM, so we&rsquo;ll declare another helper
-function for marking all of the objects in a table:</p>
+function for marking all of the objects in a table.</p>
 <div class="codehilite"><pre class="insert-before">
 ObjString* tableFindString(Table* table, const char* chars,
                            int length, uint32_t hash);
@@ -648,7 +651,7 @@ add after <em>tableFindString</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em>, add after <em>tableFindString</em>()</div>
 
-<p>We implement that in the &ldquo;table&rdquo; module:</p>
+<p>We implement that in the &ldquo;table&rdquo; module here:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>tableFindString</em>()</div>
 <pre>
@@ -672,7 +675,7 @@ references to values that it directly accesses.</p>
 <p>Most function call state lives in the value stack, but the VM maintains a
 separate stack of CallFrames. Each CallFrame contains a pointer to the closure
 being called. The VM uses those pointers to access constants and upvalues, so
-those closures need to be kept around too:</p>
+those closures need to be kept around too.</p>
 <div class="codehilite"><pre class="insert-before">
   }
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -689,7 +692,7 @@ in <em>markRoots</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markRoots</em>()</div>
 
 <p>Speaking of upvalues, the open upvalue list is another set of values that the
-VM can directly reach:</p>
+VM can directly reach.</p>
 <div class="codehilite"><pre class="insert-before">
   for (int i = 0; i &lt; vm.frameCount; i++) {
     markObject((Obj*)vm.frames[i].closure);
@@ -715,7 +718,7 @@ itself periodically grabs memory from the heap for literals and the constant
 table. If the GC runs while we&rsquo;re in the middle of compiling, then any values
 the compiler directly accesses need to be treated as roots too.</p>
 <p>To keep the compiler module cleanly separated from the rest of the VM, we&rsquo;ll do
-that in a separate function:</p>
+that in a separate function.</p>
 <div class="codehilite"><pre class="insert-before">
   markTable(&amp;vm.globals);
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -740,7 +743,7 @@ add after <em>compile</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.h</em>, add after <em>compile</em>()</div>
 
-<p>Which means the &ldquo;memory&rdquo; module needs an include:</p>
+<p>Which means the &ldquo;memory&rdquo; module needs an include.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &lt;stdlib.h&gt;
 
@@ -770,7 +773,7 @@ add after <em>compile</em>()</div>
 only object it uses is the ObjFunction it is compiling into. Since function
 declarations can nest, the compiler has a linked list of those and we walk the
 whole list.</p>
-<p>Since the &ldquo;compiler&rdquo; module is calling <code>markObject()</code>, it also needs an include:</p>
+<p>Since the &ldquo;compiler&rdquo; module is calling <code>markObject()</code>, it also needs an include.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;compiler.h&quot;
 </pre><div class="source-file"><em>compiler.c</em></div>
@@ -835,16 +838,16 @@ This color means we have not reached or processed the object at all.</p>
 <li>
 <p><strong>Gray</strong> <img src="image/garbage-collection/gray.png" class="dot" /> &ndash;
 During marking, when we first reach an object, we darken it gray. This color
-means we know it is reachable and should not be collected. But we have not
-yet traced <em>through</em> it to see what <em>other</em> objects it references. In graph
-algorithm terms, this is the <em>worklist</em><span class="em">&mdash;</span>the set of objects we know about
-but haven&rsquo;t processed yet.</p>
+means we know the object itself is reachable and should not be collected.
+But we have not yet traced <em>through</em> it to see what <em>other</em> objects it
+references. In graph algorithm terms, this is the <em>worklist</em><span class="em">&mdash;</span>the set of
+objects we know about but haven&rsquo;t processed yet.</p>
 </li>
 <li>
 <p><strong>Black</strong> <img src="image/garbage-collection/black.png" class="dot" />
 &ndash; When we take a gray object and mark all of the objects it
-references, we then turn it black. This color means the mark phase is done
-with that object.</p>
+references, we then turn the gray object black. This color means the mark
+phase is done processing that object.</p>
 </li>
 </ul>
 <p>In terms of that abstraction, the marking process now looks like this:</p>
@@ -891,7 +894,7 @@ have any easy way to find them. We set a field on the object, but that&rsquo;s i
 don&rsquo;t want to have to traverse the entire object list looking for objects with
 that field set.</p>
 <p>Instead, we&rsquo;ll create a separate worklist to keep track of all of the gray
-objects. When an object turns gray<span class="em">&mdash;</span>in addition to setting the mark field<span class="em">&mdash;</span>we&rsquo;ll also add it to the worklist:</p>
+objects. When an object turns gray<span class="em">&mdash;</span>in addition to setting the mark field<span class="em">&mdash;</span>we&rsquo;ll also add it to the worklist.</p>
 <div class="codehilite"><pre class="insert-before">
   object-&gt;isMarked = true;
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -918,7 +921,7 @@ own <code>reallocate()</code> wrapper. The memory for the gray stack itself is <
 managed by the garbage collector. We don&rsquo;t want growing the gray stack during a
 GC to cause the GC to recursively start a new GC. That could tear a hole in the
 space-time continuum.</p>
-<p>We&rsquo;ll manage its memory ourselves, explicitly. The VM owns the gray stack:</p>
+<p>We&rsquo;ll manage its memory ourselves, explicitly. The VM owns the gray stack.</p>
 <div class="codehilite"><pre class="insert-before">
   Obj* objects;
 </pre><div class="source-file"><em>vm.h</em><br>
@@ -932,7 +935,7 @@ in struct <em>VM</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
-<p>It starts out empty:</p>
+<p>It starts out empty.</p>
 <div class="codehilite"><pre class="insert-before">
   vm.objects = NULL;
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -948,7 +951,7 @@ in <em>initVM</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
-<p>And we need to free it when the VM shuts down:</p>
+<p>And we need to free it when the VM shuts down.</p>
 <div class="codehilite"><pre class="insert-before">
     object = next;
   }
@@ -990,7 +993,7 @@ in <em>markObject</em>()</div>
 <h3><a href="#processing-gray-objects" name="processing-gray-objects"><small>26&#8202;.&#8202;3&#8202;.&#8202;3</small>Processing gray objects</a></h3>
 <p>OK, now when we&rsquo;re done marking the roots we have both set a bunch of fields
 and filled our work list with objects to chew through. It&rsquo;s time for the next
-phase:</p>
+phase.</p>
 <div class="codehilite"><pre class="insert-before">
   markRoots();
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1053,7 +1056,7 @@ the gray stack.</p>
 <p>You may rightly wonder why we have the <code>isMarked</code> field at all. All in good
 time, friend.</p>
 </aside>
-<p>Now let&rsquo;s start adding in the other object types. The simplest is upvalues:</p>
+<p>Now let&rsquo;s start adding in the other object types. The simplest is upvalues.</p>
 <div class="codehilite"><pre class="insert-before">
 static void blackenObject(Obj* object) {
   switch (object-&gt;type) {
@@ -1072,7 +1075,7 @@ in <em>blackenObject</em>()</div>
 <p>When an upvalue is closed, it contains a reference to the closed-over value.
 Since the value is no longer on the stack, we need to make sure we trace the
 reference to it from the upvalue.</p>
-<p>Next are functions:</p>
+<p>Next are functions.</p>
 <div class="codehilite"><pre class="insert-before">
   switch (object-&gt;type) {
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1105,7 +1108,7 @@ add after <em>markValue</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, add after <em>markValue</em>()</div>
 
 <p>The last object type we have now<span class="em">&mdash;</span>we&rsquo;ll add more in later chapters<span class="em">&mdash;</span>is
-closures:</p>
+closures.</p>
 <div class="codehilite"><pre class="insert-before">
   switch (object-&gt;type) {
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1126,9 +1129,9 @@ in <em>blackenObject</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
 <p>Each closure has a reference to the bare function it wraps, as well as an array
-of pointers to the upvalues it captures.</p>
+of pointers to the upvalues it captures. We trace all of those.</p>
 <p>That&rsquo;s the basic mechanism for processing a gray object, but there are two loose
-ends to tie off. First, some logging:</p>
+ends to tie off. First, some logging.</p>
 <div class="codehilite"><pre class="insert-before">
 static void blackenObject(Obj* object) {
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1151,7 +1154,7 @@ that doesn&rsquo;t mean they&rsquo;re <em>acyclic!</em> It&rsquo;s entirely poss
 objects. When that happens, we need to ensure our collector doesn&rsquo;t get stuck in
 an infinite loop as it continually re-adds the same series of objects to the
 gray stack.</p>
-<p>The fix is easy:</p>
+<p>The fix is easy.</p>
 <div class="codehilite"><pre class="insert-before">
   if (object == NULL) return;
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1167,13 +1170,13 @@ in <em>markObject</em>()</div>
 <p>If the object is already marked, we don&rsquo;t mark it again and thus don&rsquo;t add it to
 the gray stack. This ensures that an already-gray object is not redundantly
 added and that a black object is not inadvertently turned back to gray. In other
-words, it keeps the wavefront moving forward through the white objects.</p>
+words, it keeps the wavefront moving forward through only the white objects.</p>
 <h2><a href="#sweeping-unused-objects" name="sweeping-unused-objects"><small>26&#8202;.&#8202;4</small>Sweeping Unused Objects</a></h2>
 <p>When the loop in <code>traceReferences()</code> exits, we have processed all the objects we
 could get our hands on. The gray stack is empty and every object in the heap is
 either black or white. The black objects are reachable and we want to hang on to
 them. Anything still white never got touched by the trace and is thus garbage.
-All that&rsquo;s left is to reclaim them:</p>
+All that&rsquo;s left is to reclaim them.</p>
 <div class="codehilite"><pre class="insert-before">
   traceReferences();
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1186,7 +1189,7 @@ in <em>collectGarbage</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
-<p>All of the logic lives in one function:</p>
+<p>All of the logic lives in one function.</p>
 <div class="codehilite"><div class="source-file"><em>memory.c</em><br>
 add after <em>traceReferences</em>()</div>
 <pre>
@@ -1199,7 +1202,6 @@ add after <em>traceReferences</em>()</div>
       <span class="i">object</span> = <span class="i">object</span>-&gt;<span class="i">next</span>;
     } <span class="k">else</span> {
       <span class="t">Obj</span>* <span class="i">unreached</span> = <span class="i">object</span>;
-
       <span class="i">object</span> = <span class="i">object</span>-&gt;<span class="i">next</span>;
       <span class="k">if</span> (<span class="i">previous</span> != <span class="a">NULL</span>) {
         <span class="i">previous</span>-&gt;<span class="i">next</span> = <span class="i">object</span>;
@@ -1216,13 +1218,14 @@ add after <em>traceReferences</em>()</div>
 
 <p>I know that&rsquo;s kind of a lot of code and pointer shenanigans but there isn&rsquo;t much
 to it once you work through it. The outer <code>while</code> loop walks the linked list of
-every object in the heap, checking their mark bits. If an object is unmarked
-(white), we unlink it from the list and free it using the <code>freeObject()</code>
-function we already wrote.</p>
+every object in the heap, checking their mark bits. If an object is marked
+(black), we leave it alone and continue past it. If it is unmarked (white), we
+unlink it from the list and free it using the <code>freeObject()</code> function we already
+wrote.</p><img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." />
 <p>Most of the other code in here deals with the fact that removing a node from a
 singly-linked list is cumbersome. We have to continuously remember the previous
 node so we can unlink its next pointer, and we have to handle the edge case
-where we are freeing the first node. But, otherwise, it&rsquo;s pretty simple<span class="em">&mdash;</span>delete every node in a linked list that doesn&rsquo;t have a bit set in it.</p><img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." />
+where we are freeing the first node. But, otherwise, it&rsquo;s pretty simple<span class="em">&mdash;</span>delete every node in a linked list that doesn&rsquo;t have a bit set in it.</p>
 <p>There&rsquo;s one little addition:</p>
 <div class="codehilite"><pre class="insert-before">
     if (object-&gt;isMarked) {
@@ -1275,7 +1278,7 @@ out any dangling pointers for strings that are freed.</p>
 <p>To remove references to unreachable strings, we need to know which strings <em>are</em>
 unreachable. We don&rsquo;t know that until after the mark phase has completed. But we
 can&rsquo;t wait until after the sweep phase is done because by then the objects<span class="em">&mdash;</span>and their mark bits<span class="em">&mdash;</span>are no longer around to check. So the right time is
-exactly between the marking and sweeping phases:</p>
+exactly between the marking and sweeping phases.</p>
 <div class="codehilite"><pre class="insert-before">
   traceReferences();
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1288,7 +1291,7 @@ in <em>collectGarbage</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
 <p>The logic for removing the about-to-be-deleted strings exists in a new function
-in the &ldquo;table&rdquo; module:</p>
+in the &ldquo;table&rdquo; module.</p>
 <div class="codehilite"><pre class="insert-before">
 ObjString* tableFindString(Table* table, const char* chars,
                            int length, uint32_t hash);
@@ -1343,9 +1346,9 @@ when physical memory gets full. You never really &ldquo;run out&rdquo; of memory
 get slower and slower.</p>
 <h3><a href="#latency-and-throughput" name="latency-and-throughput"><small>26&#8202;.&#8202;5&#8202;.&#8202;1</small>Latency and throughput</a></h3>
 <p>It no longer makes sense to wait until you &ldquo;have to&rdquo;, to run the GC, so we need
-a more subtle timing strategy. To reason about this more precisely, it&rsquo;s time
-to introduce two fundamental numbers used when measuring a memory manager&rsquo;s
-performance: <strong>throughput</strong> and <strong>latency</strong>.</p>
+a more subtle timing strategy. To reason about this more precisely, it&rsquo;s time to
+introduce two fundamental numbers used when measuring a memory manager&rsquo;s
+performance: <em>throughput</em> and <em>latency</em>.</p>
 <p>Every managed language pays a performance price compared to explicit,
 user-authored deallocation. The time spent actually freeing memory is the same,
 but the GC spends cycles figuring out <em>which</em> memory to free. That is time <em>not</em>
@@ -1433,15 +1436,15 @@ seconds while the GC mucks around in the heap.</p>
 throughput and latency by your choice of collection algorithm. But even within a
 single algorithm, we have a lot of control over <em>how frequently</em> the collector
 runs.</p>
-<p>Our collector is a <span name="incremental">&ldquo;stop-the-world&rdquo;</span> GC which
+<p>Our collector is a <span name="incremental"><strong>stop-the-world</strong></span> GC which
 means the user&rsquo;s program is paused until the entire garbage collection process
 has completed. If we wait a long time before we run the collector, then a large
 number of dead objects will accumulate. That leads to a very long pause while
 the collector runs and thus high latency. So, clearly, we want to run the
 collector really frequently.</p>
 <aside name="incremental">
-<p>An <strong>incremental garbage collector</strong> can do a little collection, then run some
-user code, then collect a little more, and so on.</p>
+<p>In contrast, an <strong>incremental garbage collector</strong> can do a little collection,
+then run some user code, then collect a little more, and so on.</p>
 </aside>
 <p>But every time the collector runs, it spends some time visiting live objects.
 That doesn&rsquo;t really <em>do</em> anything useful (aside from ensuring that they don&rsquo;t
@@ -1476,7 +1479,7 @@ we adjust the threshold to some value larger than that.</p>
 frequently in order to avoid sacrificing throughput by re-traversing the growing
 pile of live objects. As the amount of live memory goes down, we collect more
 frequently so that we don&rsquo;t lose too much latency by waiting too long.</p>
-<p>The implementation requires two new bookkeeping fields in the VM:</p>
+<p>The implementation requires two new bookkeeping fields in the VM.</p>
 <div class="codehilite"><pre class="insert-before">
   ObjUpvalue* openUpvalues;
 </pre><div class="source-file"><em>vm.h</em><br>
@@ -1493,7 +1496,7 @@ in struct <em>VM</em></div>
 
 <p>The first is a running total of the number of bytes of managed memory the VM has
 allocated. The second is the threshold that triggers the next collection. We
-initialize them when the VM starts up:</p>
+initialize them when the VM starts up.</p>
 <div class="codehilite"><pre class="insert-before">
   vm.objects = NULL;
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -1518,7 +1521,7 @@ discover the best practices in an isolated lab environment. You don&rsquo;t see 
 collector actually performs unless you run it on the kind of large, messy
 real-world programs it is actually intended for. It&rsquo;s like tuning a rally car<span class="em">&mdash;</span>you need to take it out on the course.</p>
 </aside>
-<p>Every time we allocate or free some memory, we adjust the counter by that delta:</p>
+<p>Every time we allocate or free some memory, we adjust the counter by that delta.</p>
 <div class="codehilite"><pre class="insert-before">
 void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1531,7 +1534,7 @@ in <em>reallocate</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>reallocate</em>()</div>
 
-<p>When the total crosses the limit, we run the collector:</p>
+<p>When the total crosses the limit, we run the collector.</p>
 <div class="codehilite"><pre class="insert-before">
   if (newSize &gt; oldSize) {
 #ifdef DEBUG_STRESS_GC
@@ -1553,7 +1556,7 @@ in <em>reallocate</em>()</div>
 program without our hidden diagnostic flag enabled. The sweep phase frees
 objects by calling <code>reallocate()</code>, which lowers the value of <code>bytesAllocated</code>,
 so after the collection completes we know how many live bytes remain. We adjust
-the threshold of the next GC based on that:</p>
+the threshold of the next GC based on that.</p>
 <div class="codehilite"><pre class="insert-before">
   sweep();
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1570,7 +1573,7 @@ in <em>collectGarbage</em>()</div>
 <p>The threshold is a multiple of the heap size. This way, as the amount of memory
 the program uses grows, the threshold moves farther out to limit the total time
 spent re-traversing the larger live set. Like other numbers in this chapter, the
-scaling factor is basically arbitrary:</p>
+scaling factor is basically arbitrary.</p>
 <div class="codehilite"><pre class="insert-before">
 #endif
 </pre><div class="source-file"><em>memory.c</em></div>
@@ -1625,8 +1628,7 @@ grossest invertebrates out there.</p>
 easy to make in both directions. If the VM fails to free objects that aren&rsquo;t
 needed, it slowly leaks memory. If it frees an object that is in use, the user&rsquo;s
 program can access invalid memory. These failures often don&rsquo;t immediately cause
-a crash, which makes it harder for us to trace backwards in time to find the
-bug.</p>
+a crash, which makes it hard for us to trace backwards in time to find the bug.</p>
 <p>This is made harder by the fact that we don&rsquo;t know when the collector will run.
 Any call that eventually allocates some memory is a place in the VM where a
 collection could happen. It&rsquo;s like musical chairs. At any point, the GC might
@@ -1640,10 +1642,10 @@ CallFrame stacks, but the C stack is <span name="c">hidden</span> to it.</p>
 <aside name="c">
 <p>Our GC can&rsquo;t find addresses in the C stack, but many can. Conservative garbage
 collectors look all through memory, including the native stack. The most
-well-known of this variety is the <a href="https://en.wikipedia.org/wiki/Boehm_garbage_collector">Boehm–Demers–Weiser garbage
-collector</a>, usually just called the &ldquo;Boehm collector&rdquo;. (The shortest path
-to fame in CS is a last name that&rsquo;s alphabetically early so that it shows up
-first in sorted lists of names.)</p>
+well-known of this variety is the <a href="https://en.wikipedia.org/wiki/Boehm_garbage_collector"><strong>Boehm–Demers–Weiser garbage
+collector</strong></a>, usually just called the <strong>Boehm collector</strong>. (The shortest
+path to fame in CS is a last name that&rsquo;s alphabetically early so that it shows
+up first in sorted lists of names.)</p>
 <p>Many precise GCs walk the C stack too. Even those have to be careful about
 pointers to live objects that exist only in <em>CPU registers</em>.</p>
 </aside>
@@ -1661,6 +1663,7 @@ of this chapter and a pretty good test suite were very helpful.</p>
 hint of what it&rsquo;s like to encounter these bugs in the wild. If you enable the
 stress test flag and run some toy Lox programs, you can probably stumble onto a
 few. Give it a try and <em>see if you can fix any yourself.</em></p>
+<h3><a href="#adding-to-the-constant-table" name="adding-to-the-constant-table"><small>26&#8202;.&#8202;6&#8202;.&#8202;1</small>Adding to the constant table</a></h3>
 <p>You are very likely to hit the first bug. The constant table each chunk owns is
 a dynamic array. When the compiler adds a new constant to the current function&rsquo;s
 table, that array may need to grow. The constant itself may also be some
@@ -1672,7 +1675,7 @@ table doesn&rsquo;t have enough capacity and needs to grow, it calls <code>reall
 That in turn triggers a GC, which fails to mark the new constant object and
 thus sweeps it right before we have a chance to add it to the table. Crash.</p>
 <p>The fix, as you&rsquo;ve seen in other places, is to push the constant onto the stack
-temporarily:</p>
+temporarily.</p>
 <div class="codehilite"><pre class="insert-before">
 int addConstant(Chunk* chunk, Value value) {
 </pre><div class="source-file"><em>chunk.c</em><br>
@@ -1684,7 +1687,7 @@ in <em>addConstant</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>addConstant</em>()</div>
 
-<p>Once the constant table contains the object, we pop it off the stack:</p>
+<p>Once the constant table contains the object, we pop it off the stack.</p>
 <div class="codehilite"><pre class="insert-before">
   writeValueArray(&amp;chunk-&gt;constants, value);
 </pre><div class="source-file"><em>chunk.c</em><br>
@@ -1698,7 +1701,7 @@ in <em>addConstant</em>()</div>
 
 <p>When the GC is marking roots, it walks the chain of compilers and marks each of
 their functions, so the new constant is reachable now. We do need an include
-to call into the VM from the &ldquo;chunk&rdquo; module:</p>
+to call into the VM from the &ldquo;chunk&rdquo; module.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;memory.h&quot;
 </pre><div class="source-file"><em>chunk.c</em></div>
@@ -1710,11 +1713,12 @@ void initChunk(Chunk* chunk) {
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em></div>
 
+<h3><a href="#interning-strings" name="interning-strings"><small>26&#8202;.&#8202;6&#8202;.&#8202;2</small>Interning strings</a></h3>
 <p>Here&rsquo;s another similar one. All strings are interned in clox so whenever we
 create a new string we also add it to the intern table. You can see where this
 is going. Since the string is brand new, it isn&rsquo;t reachable anywhere. And
 resizing the string pool can trigger a collection. Again, we go ahead and stash
-the string on the stack first:</p>
+the string on the stack first.</p>
 <div class="codehilite"><pre class="insert-before">
   string-&gt;hash = hash;
 
@@ -1727,7 +1731,7 @@ in <em>allocateString</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
 
-<p>And then pop it back off once it&rsquo;s safely nestled in the table:</p>
+<p>And then pop it back off once it&rsquo;s safely nestled in the table.</p>
 <div class="codehilite"><pre class="insert-before">
   tableSet(&amp;vm.strings, string, NIL_VAL);
 </pre><div class="source-file"><em>object.c</em><br>
@@ -1744,6 +1748,7 @@ in <em>allocateString</em>()</div>
 survives that, <code>allocateString()</code> will return it to some caller which can then
 take responsibility for ensuring the string is still reachable before the next
 heap allocation occurs.</p>
+<h3><a href="#concatenating-strings" name="concatenating-strings"><small>26&#8202;.&#8202;6&#8202;.&#8202;3</small>Concatenating strings</a></h3>
 <p>One last example: Over in the interpreter, the <code>OP_ADD</code> instruction can be used
 to concatenate two strings. As it does with numbers, it pops the two operands
 from the stack, computes the result, and pushes that new value back onto the
@@ -1751,7 +1756,7 @@ stack. For numbers that&rsquo;s perfectly safe.</p>
 <p>But concatenating two strings requires allocating a new character array on the
 heap, which can in turn trigger a GC. Since we&rsquo;ve already popped the operand
 strings by that point, they can potentially be missed by the mark phase and get
-swept away. Instead of popping them off the stack eagerly, we <em>peek</em> them:</p>
+swept away. Instead of popping them off the stack eagerly, we <em>peek</em> them.</p>
 <div class="codehilite"><pre class="insert-before">
 static void concatenate() {
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -1768,7 +1773,7 @@ replace 2 lines</div>
 
 <p>That way, they are still hanging out on the stack when we create the result
 string. Once that&rsquo;s done, we can safely pop them off and replace them with the
-result:</p>
+result.</p>
 <div class="codehilite"><pre class="insert-before">
   ObjString* result = takeString(chars, length);
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -1819,7 +1824,7 @@ accumulates a large pile of garbage to wade through. If only there were some way
 to tell which objects were likely to be long-lived and which weren&rsquo;t. Then the
 GC could avoid revisiting the long-lived ones as often and clean up the
 ephemeral ones more frequently.</p>
-<p>Spoiler alert: there kind of is. Many years ago, GC researchers gathered metrics
+<p>It turns out there kind of is. Many years ago, GC researchers gathered metrics
 on the lifetime of objects in real-world running programs. They tracked every
 object when it was allocated and eventually when it was no longer needed and
 then graphed out how long objects tended to live.</p>

@@ -15,12 +15,12 @@ inevitable mistakes can be catastrophic, leading to crashes, memory corruption
 or security violations. It's the kind of risky-yet-boring work that machines
 excel at over humans.
 
-This is why Lox is a "managed" language, which means that the language
+This is why Lox is a **managed language**, which means that the language
 implementation manages memory allocation and freeing on the user's behalf. When
 a user performs an operation that requires some dynamic memory, the VM
 automatically allocates it. The programmer never worries about deallocating
-anything. As long as they use a piece of memory, the machine ensures that memory
-is still there.
+anything. The machine ensures any memory the program is using sticks around as
+long as needed.
 
 Lox provides the illusion that the computer has an infinite amount of memory.
 Users can allocate and allocate and allocate and never once think about where
@@ -82,7 +82,8 @@ Say we run the GC after the assignment has completed on the second line. The
 string "first value" is still sitting in memory, but there is no way for the
 user's program to ever get to it. Once `a` got reassigned, the program lost any
 reference to that string. We can safely free it. A value is **reachable** if
-there is some way for a user program to reference it.
+there is some way for a user program to reference it, otherwise, like the string
+"first value" here, it is **unreachable**.
 
 Many values can be directly accessed by the VM. Take a look at:
 
@@ -166,8 +167,8 @@ up unneeded memory:
 
 Many <span name="handbook">different</span> garbage collection algorithms are in
 use today, but they all roughly follow that same structure. Some may interleave
-the steps or mix them, but the three fundamental operations are there. They
-mostly differ in *how* they perform each step.
+the steps or mix them, but the two fundamental operations are there. They mostly
+differ in *how* they perform each step.
 
 <aside name="handbook">
 
@@ -235,7 +236,8 @@ didn't get marked, and then resume the user's program.
 
 ### Collecting garbage
 
-This entire chapter is about implementing one <span name="one">function</span>:
+This entire chapter is about implementing this one <span
+name="one">function</span>:
 
 <aside name="one">
 
@@ -252,7 +254,7 @@ We'll work our way up to a full implementation starting with this empty shell:
 The first question you might ask is, "When does this function get called?" It
 turns out that's a subtle question that we'll spend some time on later in the
 chapter. For now we'll sidestep the issue and build ourselves a handy diagnostic
-tool in the process:
+tool in the process.
 
 ^code define-stress-gc (1 before, 2 after)
 
@@ -294,31 +296,31 @@ running lots of Lox programs just fine without any GC *at all* so far. Once we
 add one, how do we tell if it's doing anything useful? Can we only tell if we
 write programs that plow through acres of memory? How do we debug that?
 
-An easy way to shine a light into the GC's inner workings is with some logging:
+An easy way to shine a light into the GC's inner workings is with some logging.
 
 ^code define-log-gc (1 before, 2 after)
 
 When this is enabled, clox prints information to the console when it does
-something with dynamic memory. We need a couple of includes:
+something with dynamic memory. We need a couple of includes.
 
 ^code debug-log-includes (1 before, 2 after)
 
 We don't have a collector yet, but we can start putting in some of the logging
-now. We'll want to know when a collection run starts:
+now. We'll want to know when a collection run starts.
 
 ^code log-before-collect (1 before, 2 after)
 
 Eventually we will log some other operations during the collection, so we'll
-also want to know when the show's over:
+also want to know when the show's over.
 
 ^code log-after-collect (2 before, 1 after)
 
 We don't have any code for the collector yet, but we do have functions for
-allocating and freeing, so we can instrument those now:
+allocating and freeing, so we can instrument those now.
 
 ^code debug-log-allocate (1 before, 1 after)
 
-And at the end of an object's lifespan:
+And at the end of an object's lifespan.
 
 ^code log-free-object (1 before, 1 after)
 
@@ -329,12 +331,12 @@ work through the rest of the chapter.
 
 Objects are scattered across the heap like stars in the inky night sky. A
 reference from one object to another forms a connection and these constellations
-are the graph that the mark phase traverses. Marking begins at the roots:
+are the graph that the mark phase traverses. Marking begins at the roots.
 
 ^code call-mark-roots (3 before, 2 after)
 
 Most roots are local variables or temporaries sitting right in the VM's stack,
-so we start by walking that:
+so we start by walking that.
 
 ^code mark-roots
 
@@ -342,7 +344,7 @@ To mark a Lox value, we use this new function:
 
 ^code mark-value-h (1 before, 1 after)
 
-Its implementation is:
+Its implementation is here:
 
 ^code mark-value
 
@@ -363,30 +365,31 @@ this function directly from other code and in some of those places, the object
 being pointed to is optional.
 
 Assuming we do have a valid object, we mark it by setting a flag. That new field
-lives in the Obj header struct all objects share:
+lives in the Obj header struct all objects share.
 
 ^code is-marked-field (1 before, 1 after)
 
 Every new object begins life unmarked because we haven't determined if it is
-reachable or not yet:
+reachable or not yet.
 
 ^code init-is-marked (1 before, 2 after)
 
-Before we go any farther, let's add some logging to `markObject()`:
+Before we go any farther, let's add some logging to `markObject()`.
 
 ^code log-mark-object (2 before, 1 after)
 
-Marking the stack covers local variables and temporaries. The other main source
-of roots are the global variables:
+This way we can see what the mark phase is doing. Marking the stack takes care
+of local variables and temporaries. The other main source of roots are the
+global variables.
 
 ^code mark-globals (2 before, 1 after)
 
 Those live in a hash table owned by the VM, so we'll declare another helper
-function for marking all of the objects in a table:
+function for marking all of the objects in a table.
 
 ^code mark-table-h (2 before, 2 after)
 
-We implement that in the "table" module:
+We implement that in the "table" module here:
 
 ^code mark-table
 
@@ -403,12 +406,12 @@ references to values that it directly accesses.
 Most function call state lives in the value stack, but the VM maintains a
 separate stack of CallFrames. Each CallFrame contains a pointer to the closure
 being called. The VM uses those pointers to access constants and upvalues, so
-those closures need to be kept around too:
+those closures need to be kept around too.
 
 ^code mark-closures (1 before, 2 after)
 
 Speaking of upvalues, the open upvalue list is another set of values that the
-VM can directly reach:
+VM can directly reach.
 
 ^code mark-open-upvalues (3 before, 2 after)
 
@@ -419,7 +422,7 @@ table. If the GC runs while we're in the middle of compiling, then any values
 the compiler directly accesses need to be treated as roots too.
 
 To keep the compiler module cleanly separated from the rest of the VM, we'll do
-that in a separate function:
+that in a separate function.
 
 ^code call-mark-compiler-roots (1 before, 1 after)
 
@@ -427,7 +430,7 @@ It's declared here:
 
 ^code mark-compiler-roots-h (1 before, 2 after)
 
-Which means the "memory" module needs an include:
+Which means the "memory" module needs an include.
 
 ^code memory-include-compiler (2 before, 1 after)
 
@@ -440,7 +443,7 @@ only object it uses is the ObjFunction it is compiling into. Since function
 declarations can nest, the compiler has a linked list of those and we walk the
 whole list.
 
-Since the "compiler" module is calling `markObject()`, it also needs an include:
+Since the "compiler" module is calling `markObject()`, it also needs an include.
 
 ^code compiler-include-memory (1 before, 1 after)
 
@@ -512,15 +515,15 @@ publication.
 
 *   **Gray** <img src="image/garbage-collection/gray.png" class="dot" /> &ndash;
     During marking, when we first reach an object, we darken it gray. This color
-    means we know it is reachable and should not be collected. But we have not
-    yet traced *through* it to see what *other* objects it references. In graph
-    algorithm terms, this is the *worklist* -- the set of objects we know about
-    but haven't processed yet.
+    means we know the object itself is reachable and should not be collected.
+    But we have not yet traced *through* it to see what *other* objects it
+    references. In graph algorithm terms, this is the *worklist* -- the set of
+    objects we know about but haven't processed yet.
 
 *   **Black** <img src="image/garbage-collection/black.png" class="dot" />
     &ndash; When we take a gray object and mark all of the objects it
-    references, we then turn it black. This color means the mark phase is done
-    with that object.
+    references, we then turn the gray object black. This color means the mark
+    phase is done processing that object.
 
 In terms of that abstraction, the marking process now looks like this:
 
@@ -568,7 +571,7 @@ that field set.
 
 Instead, we'll create a separate worklist to keep track of all of the gray
 objects. When an object turns gray -- in addition to setting the mark field --
-we'll also add it to the worklist:
+we'll also add it to the worklist.
 
 ^code add-to-gray-stack (1 before, 1 after)
 
@@ -581,15 +584,15 @@ managed by the garbage collector. We don't want growing the gray stack during a
 GC to cause the GC to recursively start a new GC. That could tear a hole in the
 space-time continuum.
 
-We'll manage its memory ourselves, explicitly. The VM owns the gray stack:
+We'll manage its memory ourselves, explicitly. The VM owns the gray stack.
 
 ^code vm-gray-stack (1 before, 1 after)
 
-It starts out empty:
+It starts out empty.
 
 ^code init-gray-stack (1 before, 2 after)
 
-And we need to free it when the VM shuts down:
+And we need to free it when the VM shuts down.
 
 ^code free-gray-stack (2 before, 1 after)
 
@@ -615,7 +618,7 @@ gray stack, finish the GC, and free up more memory.
 
 OK, now when we're done marking the roots we have both set a bunch of fields
 and filled our work list with objects to chew through. It's time for the next
-phase:
+phase.
 
 ^code call-trace-references (1 before, 2 after)
 
@@ -659,7 +662,7 @@ time, friend.
 
 </aside>
 
-Now let's start adding in the other object types. The simplest is upvalues:
+Now let's start adding in the other object types. The simplest is upvalues.
 
 ^code blacken-upvalue (2 before, 1 after)
 
@@ -667,7 +670,7 @@ When an upvalue is closed, it contains a reference to the closed-over value.
 Since the value is no longer on the stack, we need to make sure we trace the
 reference to it from the upvalue.
 
-Next are functions:
+Next are functions.
 
 ^code blacken-function (1 before, 1 after)
 
@@ -678,15 +681,15 @@ other objects. We trace all of those using this helper:
 ^code mark-array
 
 The last object type we have now -- we'll add more in later chapters -- is
-closures:
+closures.
 
 ^code blacken-closure (1 before, 1 after)
 
 Each closure has a reference to the bare function it wraps, as well as an array
-of pointers to the upvalues it captures.
+of pointers to the upvalues it captures. We trace all of those.
 
 That's the basic mechanism for processing a gray object, but there are two loose
-ends to tie off. First, some logging:
+ends to tie off. First, some logging.
 
 ^code log-blacken-object (1 before, 1 after)
 
@@ -697,14 +700,14 @@ objects. When that happens, we need to ensure our collector doesn't get stuck in
 an infinite loop as it continually re-adds the same series of objects to the
 gray stack.
 
-The fix is easy:
+The fix is easy.
 
 ^code check-is-marked (1 before, 1 after)
 
 If the object is already marked, we don't mark it again and thus don't add it to
 the gray stack. This ensures that an already-gray object is not redundantly
 added and that a black object is not inadvertently turned back to gray. In other
-words, it keeps the wavefront moving forward through the white objects.
+words, it keeps the wavefront moving forward through only the white objects.
 
 ## Sweeping Unused Objects
 
@@ -712,27 +715,28 @@ When the loop in `traceReferences()` exits, we have processed all the objects we
 could get our hands on. The gray stack is empty and every object in the heap is
 either black or white. The black objects are reachable and we want to hang on to
 them. Anything still white never got touched by the trace and is thus garbage.
-All that's left is to reclaim them:
+All that's left is to reclaim them.
 
 ^code call-sweep (1 before, 2 after)
 
-All of the logic lives in one function:
+All of the logic lives in one function.
 
 ^code sweep
 
 I know that's kind of a lot of code and pointer shenanigans but there isn't much
 to it once you work through it. The outer `while` loop walks the linked list of
-every object in the heap, checking their mark bits. If an object is unmarked
-(white), we unlink it from the list and free it using the `freeObject()`
-function we already wrote.
+every object in the heap, checking their mark bits. If an object is marked
+(black), we leave it alone and continue past it. If it is unmarked (white), we
+unlink it from the list and free it using the `freeObject()` function we already
+wrote.
+
+<img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." />
 
 Most of the other code in here deals with the fact that removing a node from a
 singly-linked list is cumbersome. We have to continuously remember the previous
 node so we can unlink its next pointer, and we have to handle the edge case
 where we are freeing the first node. But, otherwise, it's pretty simple --
 delete every node in a linked list that doesn't have a bit set in it.
-
-<img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." />
 
 There's one little addition:
 
@@ -792,12 +796,12 @@ To remove references to unreachable strings, we need to know which strings *are*
 unreachable. We don't know that until after the mark phase has completed. But we
 can't wait until after the sweep phase is done because by then the objects --
 and their mark bits -- are no longer around to check. So the right time is
-exactly between the marking and sweeping phases:
+exactly between the marking and sweeping phases.
 
 ^code sweep-strings (1 before, 1 after)
 
 The logic for removing the about-to-be-deleted strings exists in a new function
-in the "table" module:
+in the "table" module.
 
 ^code table-remove-white-h (2 before, 2 after)
 
@@ -836,9 +840,9 @@ get slower and slower.
 ### Latency and throughput
 
 It no longer makes sense to wait until you "have to", to run the GC, so we need
-a more subtle timing strategy. To reason about this more precisely, it's time
-to introduce two fundamental numbers used when measuring a memory manager's
-performance: **throughput** and **latency**.
+a more subtle timing strategy. To reason about this more precisely, it's time to
+introduce two fundamental numbers used when measuring a memory manager's
+performance: *throughput* and *latency*.
 
 Every managed language pays a performance price compared to explicit,
 user-authored deallocation. The time spent actually freeing memory is the same,
@@ -949,7 +953,7 @@ throughput and latency by your choice of collection algorithm. But even within a
 single algorithm, we have a lot of control over *how frequently* the collector
 runs.
 
-Our collector is a <span name="incremental">"stop-the-world"</span> GC which
+Our collector is a <span name="incremental">**stop-the-world**</span> GC which
 means the user's program is paused until the entire garbage collection process
 has completed. If we wait a long time before we run the collector, then a large
 number of dead objects will accumulate. That leads to a very long pause while
@@ -958,8 +962,8 @@ collector really frequently.
 
 <aside name="incremental">
 
-An **incremental garbage collector** can do a little collection, then run some
-user code, then collect a little more, and so on.
+In contrast, an **incremental garbage collector** can do a little collection,
+then run some user code, then collect a little more, and so on.
 
 </aside>
 
@@ -1003,13 +1007,13 @@ frequently in order to avoid sacrificing throughput by re-traversing the growing
 pile of live objects. As the amount of live memory goes down, we collect more
 frequently so that we don't lose too much latency by waiting too long.
 
-The implementation requires two new bookkeeping fields in the VM:
+The implementation requires two new bookkeeping fields in the VM.
 
 ^code vm-fields (1 before, 2 after)
 
 The first is a running total of the number of bytes of managed memory the VM has
 allocated. The second is the threshold that triggers the next collection. We
-initialize them when the VM starts up:
+initialize them when the VM starts up.
 
 ^code init-gc-fields (1 before, 2 after)
 
@@ -1029,11 +1033,11 @@ real-world programs it is actually intended for. It's like tuning a rally car
 
 </aside>
 
-Every time we allocate or free some memory, we adjust the counter by that delta:
+Every time we allocate or free some memory, we adjust the counter by that delta.
 
 ^code updated-bytes-allocated (1 before, 1 after)
 
-When the total crosses the limit, we run the collector:
+When the total crosses the limit, we run the collector.
 
 ^code collect-on-next (4 before, 1 after)
 
@@ -1041,14 +1045,14 @@ Now, finally, our garbage collector actually does something when the user runs a
 program without our hidden diagnostic flag enabled. The sweep phase frees
 objects by calling `reallocate()`, which lowers the value of `bytesAllocated`,
 so after the collection completes we know how many live bytes remain. We adjust
-the threshold of the next GC based on that:
+the threshold of the next GC based on that.
 
 ^code update-next-gc (1 before, 2 after)
 
 The threshold is a multiple of the heap size. This way, as the amount of memory
 the program uses grows, the threshold moves farther out to limit the total time
 spent re-traversing the larger live set. Like other numbers in this chapter, the
-scaling factor is basically arbitrary:
+scaling factor is basically arbitrary.
 
 ^code heap-grow-factor (1 before, 2 after)
 
@@ -1080,8 +1084,7 @@ The collector's job is to free dead objects and preserve live ones. Mistakes are
 easy to make in both directions. If the VM fails to free objects that aren't
 needed, it slowly leaks memory. If it frees an object that is in use, the user's
 program can access invalid memory. These failures often don't immediately cause
-a crash, which makes it harder for us to trace backwards in time to find the
-bug.
+a crash, which makes it hard for us to trace backwards in time to find the bug.
 
 This is made harder by the fact that we don't know when the collector will run.
 Any call that eventually allocates some memory is a place in the VM where a
@@ -1099,10 +1102,10 @@ CallFrame stacks, but the C stack is <span name="c">hidden</span> to it.
 
 Our GC can't find addresses in the C stack, but many can. Conservative garbage
 collectors look all through memory, including the native stack. The most
-well-known of this variety is the [Boehm–Demers–Weiser garbage
-collector][boehm], usually just called the "Boehm collector". (The shortest path
-to fame in CS is a last name that's alphabetically early so that it shows up
-first in sorted lists of names.)
+well-known of this variety is the [**Boehm–Demers–Weiser garbage
+collector**][boehm], usually just called the **Boehm collector**. (The shortest
+path to fame in CS is a last name that's alphabetically early so that it shows
+up first in sorted lists of names.)
 
 [boehm]: https://en.wikipedia.org/wiki/Boehm_garbage_collector
 
@@ -1128,6 +1131,9 @@ hint of what it's like to encounter these bugs in the wild. If you enable the
 stress test flag and run some toy Lox programs, you can probably stumble onto a
 few. Give it a try and *see if you can fix any yourself.*
 
+
+### Adding to the constant table
+
 You are very likely to hit the first bug. The constant table each chunk owns is
 a dynamic array. When the compiler adds a new constant to the current function's
 table, that array may need to grow. The constant itself may also be some
@@ -1141,29 +1147,31 @@ That in turn triggers a GC, which fails to mark the new constant object and
 thus sweeps it right before we have a chance to add it to the table. Crash.
 
 The fix, as you've seen in other places, is to push the constant onto the stack
-temporarily:
+temporarily.
 
 ^code add-constant-push (1 before, 1 after)
 
-Once the constant table contains the object, we pop it off the stack:
+Once the constant table contains the object, we pop it off the stack.
 
 ^code add-constant-pop (1 before, 1 after)
 
 When the GC is marking roots, it walks the chain of compilers and marks each of
 their functions, so the new constant is reachable now. We do need an include
-to call into the VM from the "chunk" module:
+to call into the VM from the "chunk" module.
 
 ^code chunk-include-vm (1 before, 2 after)
+
+### Interning strings
 
 Here's another similar one. All strings are interned in clox so whenever we
 create a new string we also add it to the intern table. You can see where this
 is going. Since the string is brand new, it isn't reachable anywhere. And
 resizing the string pool can trigger a collection. Again, we go ahead and stash
-the string on the stack first:
+the string on the stack first.
 
 ^code push-string (2 before, 1 after)
 
-And then pop it back off once it's safely nestled in the table:
+And then pop it back off once it's safely nestled in the table.
 
 ^code pop-string (1 before, 2 after)
 
@@ -1171,6 +1179,8 @@ This ensures the string is safe while the table is being resized. Once it
 survives that, `allocateString()` will return it to some caller which can then
 take responsibility for ensuring the string is still reachable before the next
 heap allocation occurs.
+
+### Concatenating strings
 
 One last example: Over in the interpreter, the `OP_ADD` instruction can be used
 to concatenate two strings. As it does with numbers, it pops the two operands
@@ -1180,13 +1190,13 @@ stack. For numbers that's perfectly safe.
 But concatenating two strings requires allocating a new character array on the
 heap, which can in turn trigger a GC. Since we've already popped the operand
 strings by that point, they can potentially be missed by the mark phase and get
-swept away. Instead of popping them off the stack eagerly, we *peek* them:
+swept away. Instead of popping them off the stack eagerly, we *peek* them.
 
 ^code concatenate-peek (1 before, 2 after)
 
 That way, they are still hanging out on the stack when we create the result
 string. Once that's done, we can safely pop them off and replace them with the
-result:
+result.
 
 ^code concatenate-pop (1 before, 1 after)
 
@@ -1231,7 +1241,7 @@ to tell which objects were likely to be long-lived and which weren't. Then the
 GC could avoid revisiting the long-lived ones as often and clean up the
 ephemeral ones more frequently.
 
-Spoiler alert: there kind of is. Many years ago, GC researchers gathered metrics
+It turns out there kind of is. Many years ago, GC researchers gathered metrics
 on the lifetime of objects in real-world running programs. They tracked every
 object when it was allocated and eventually when it was no longer needed and
 then graphed out how long objects tended to live.
