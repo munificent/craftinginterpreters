@@ -144,7 +144,7 @@ define what sorts of objects exist in the program and are the factories used to
 produce new instances. Going bottom-up, we&rsquo;ll start with their runtime
 representation and then hook that into the language.</p>
 <p>By this point, we&rsquo;re well-acquainted with the process of adding a new object
-type to the VM. We start with a struct:</p>
+type to the VM. We start with a struct.</p>
 <div class="codehilite"><pre class="insert-before">
 } ObjClosure;
 </pre><div class="source-file"><em>object.h</em><br>
@@ -164,7 +164,7 @@ ObjClosure* newClosure(ObjFunction* function);
 <p>After the Obj header, we store the class&rsquo;s name. This isn&rsquo;t strictly needed for
 the user&rsquo;s program, but it lets us show the name at runtime for things like
 stack traces.</p>
-<p>The new type needs a corresponding case in the ObjType enum:</p>
+<p>The new type needs a corresponding case in the ObjType enum.</p>
 <div class="codehilite"><pre class="insert-before">
 typedef enum {
 </pre><div class="source-file"><em>object.h</em><br>
@@ -255,7 +255,7 @@ in <em>freeObject</em>()</div>
 we add some more code to the switch case.</p>
 </aside>
 <p>We have a memory manager now, so we also need to support tracing through class
-objects:</p>
+objects.</p>
 <div class="codehilite"><pre class="insert-before">
   switch (object-&gt;type) {
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -272,9 +272,9 @@ in <em>blackenObject</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
-<p>When the GC reaches a class object, we mark its name to keep that string alive
-too.</p>
-<p>The last operation the VM can perform on a class is printing it:</p>
+<p>When the GC reaches a class object, it marks the class&rsquo;s name to keep that
+string alive too.</p>
+<p>The last operation the VM can perform on a class is printing it.</p>
 <div class="codehilite"><pre class="insert-before">
   switch (OBJ_TYPE(value)) {
 </pre><div class="source-file"><em>object.c</em><br>
@@ -288,10 +288,10 @@ in <em>printObject</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
-<p>A class simply prints its own name.</p>
+<p>A class simply says its own name.</p>
 <h2><a href="#class-declarations" name="class-declarations"><small>27&#8202;.&#8202;2</small>Class Declarations</a></h2>
 <p>Runtime representation in hand, we are ready to add support for classes to the
-language. As usual, we start in the parser:</p>
+language. Next, we move into the parser.</p>
 <div class="codehilite"><pre class="insert-before">
 static void declaration() {
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -334,11 +334,10 @@ way to do that.</p>
 object to a variable of the same name. So we declare a variable with that
 identifier right after consuming its token.</p>
 <aside name="variable">
-<p>We could have made class declarations be <em>expressions</em> instead of statements.
-Then users would have to explicitly bind the class to a variable themselves
-like:</p>
+<p>We could have made class declarations be <em>expressions</em> instead of statements<span class="em">&mdash;</span>they are essentially a literal that produces a value after all. Then users would
+have to explicitly bind the class to a variable themselves like:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="t">Pie</span> = <span class="k">class</span> <span class="t">Pie</span> {}
+<span class="k">var</span> <span class="t">Pie</span> = <span class="k">class</span> {}
 </pre></div>
 <p>Sort of like lambda functions but for classes. But since we generally want
 classes to be named anyway, it makes sense to treat them as declarations.</p>
@@ -350,12 +349,12 @@ operand.</p>
 for the class&rsquo;s name. <em>Declaring</em> the variable adds it to the scope but recall
 from <a href="local-variables.html#another-scope-edge-case">a previous chapter</a> that we can&rsquo;t <em>use</em> the variable until it&rsquo;s
 <em>defined</em>. For classes, we define the variable before the body. That way, users
-can refer to the containing class inside the bodies of methods. That&rsquo;s useful
-for things like factory methods.</p>
+can refer to the containing class inside the bodies of its own methods. That&rsquo;s
+useful for things like factory methods that produce new instances of the class.</p>
 <p>Finally, we compile the body. We don&rsquo;t have methods yet, so right now it&rsquo;s
 simply an empty pair of braces. Lox doesn&rsquo;t require fields to be declared in the
 class, so we&rsquo;re done with the body<span class="em">&mdash;</span>and the parser<span class="em">&mdash;</span>for now.</p>
-<p>The compiler is emitting a new instruction, so let&rsquo;s define that:</p>
+<p>The compiler is emitting a new instruction, so let&rsquo;s define that.</p>
 <div class="codehilite"><pre class="insert-before">
   OP_RETURN,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -367,7 +366,7 @@ in enum <em>OpCode</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<p>And add it to the disassembler:</p>
+<p>And add it to the disassembler.</p>
 <div class="codehilite"><pre class="insert-before">
     case OP_RETURN:
       return simpleInstruction(&quot;OP_RETURN&quot;, offset);
@@ -381,7 +380,7 @@ in <em>disassembleInstruction</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
-<p>For such a large-seeming feature, the interpreter support is easy:</p>
+<p>For such a large-seeming feature, the interpreter support is minimal.</p>
 <div class="codehilite"><pre class="insert-before">
         frame = &amp;vm.frames[vm.frameCount - 1];
         break;
@@ -421,7 +420,7 @@ can declare classes in there too.</p>
 making them more useful.</p>
 <h2><a href="#instances-of-classes" name="instances-of-classes"><small>27&#8202;.&#8202;3</small>Instances of Classes</a></h2>
 <p>Classes serve two main purposes in a language:</p>
-<ol>
+<ul>
 <li>
 <p><strong>They are how you create new instances.</strong> Sometimes this involves a <code>new</code>
 keyword, other times it&rsquo;s a method call on the class object, but you usually
@@ -431,10 +430,10 @@ mention the class by name <em>somehow</em> to get a new instance.</p>
 <p><strong>They contain methods.</strong> These define how all instances of the class
 behave.</p>
 </li>
-</ol>
+</ul>
 <p>We won&rsquo;t get to methods until the next chapter, so for now we will only worry
 about the first part. Before classes can create instances, we need a
-representation for them:</p>
+representation for them.</p>
 <div class="codehilite"><pre class="insert-before">
 } ObjClass;
 </pre><div class="source-file"><em>object.h</em><br>
@@ -452,8 +451,8 @@ ObjClass* newClass(ObjString* name);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjClass</em></div>
 
-<p>Each instance has a pointer to the class that it is an instance of. Instances
-know their class. We won&rsquo;t use this much in this chapter, but it will become
+<p>Instances know their class<span class="em">&mdash;</span>each instance has a pointer to the class that it
+is an instance of.  We won&rsquo;t use this much in this chapter, but it will become
 critical when we add methods.</p>
 <p>More important to this chapter is how instances store their state. Lox lets
 users freely add fields to an instance at runtime. This means we need a storage
@@ -472,7 +471,7 @@ each field can be found.</p>
 lookup. Constant time, but still pretty heavyweight. In a language like C++,
 accessing a field is as fast as offsetting a pointer by an integer constant.</p>
 </aside>
-<p>We only need to add an include and we&rsquo;ve got it:</p>
+<p>We only need to add an include and we&rsquo;ve got it.</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;chunk.h&quot;
 </pre><div class="source-file"><em>object.h</em></div>
@@ -483,7 +482,7 @@ accessing a field is as fast as offsetting a pointer by an integer constant.</p>
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<p>This new struct gets a new object type:</p>
+<p>This new struct gets a new object type.</p>
 <div class="codehilite"><pre class="insert-before">
   OBJ_FUNCTION,
 </pre><div class="source-file"><em>object.h</em><br>
@@ -495,18 +494,18 @@ in enum <em>ObjType</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
-<p>I want to slow down a bit here because Lox&rsquo;s notion of &ldquo;type&rdquo; and the VM&rsquo;s
-<em>implementation</em> notion of type brush against each other in ways that can be
-confusing. Inside the C code that makes clox, there are a number of different
-types of Obj<span class="em">&mdash;</span>ObjString, ObjClosure, etc. Each has its own internal
+<p>I want to slow down a bit here because the Lox <em>language&rsquo;s</em> notion of &ldquo;type&rdquo; and
+the VM <em>implementation&rsquo;s</em> notion of type brush against each other in ways that
+can be confusing. Inside the C code that makes clox, there are a number of
+different types of Obj<span class="em">&mdash;</span>ObjString, ObjClosure, etc. Each has its own internal
 representation and semantics.</p>
 <p>In the Lox <em>language</em>, users can define their own classes<span class="em">&mdash;</span>say Cake and Pie<span class="em">&mdash;</span>and then create instances of those classes. From the user&rsquo;s perspective, an
-instance of Cake is a different &ldquo;type&rdquo; of object than an instance of Pie. But,
-from the VM&rsquo;s perspective every class the user defines is simply another value
+instance of Cake is a different type of object than an instance of Pie. But,
+from the VM&rsquo;s perspective, every class the user defines is simply another value
 of type ObjClass. Likewise, each instance in the user&rsquo;s program, no matter what
 class it is an instance of, is an ObjInstance. That one VM object type covers
 instances of all classes. The two worlds map to each other something like this:</p><img src="image/classes-and-instances/lox-clox.png" alt="A set of class declarations and instances, and the runtime representations each maps to."/>
-<p>Got it? OK, back to the implementation. We also get our usual macros:</p>
+<p>Got it? OK, back to the implementation. We also get our usual macros.</p>
 <div class="codehilite"><pre class="insert-before">
 #define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
 </pre><div class="source-file"><em>object.h</em></div>
@@ -529,7 +528,7 @@ instances of all classes. The two worlds map to each other something like this:<
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Since fields are added after the instance is created, the &ldquo;constructor&rdquo; function
-only needs to know the class:</p>
+only needs to know the class.</p>
 <div class="codehilite"><pre class="insert-before">
 ObjFunction* newFunction();
 </pre><div class="source-file"><em>object.h</em><br>
@@ -556,7 +555,7 @@ add after <em>newFunction</em>()</div>
 
 <p>We store a reference to the instance&rsquo;s class. Then we initialize the field
 table to an empty hash table. A new baby object is born!</p>
-<p>At the sadder end of the instance&rsquo;s lifespan, it gets freed:</p>
+<p>At the sadder end of the instance&rsquo;s lifespan, it gets freed.</p>
 <div class="codehilite"><pre class="insert-before">
       FREE(ObjFunction, object);
       break;
@@ -578,9 +577,11 @@ in <em>freeObject</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>The instance owns its field table so when freeing the instance, we also free the
-table.</p>
-<p>Speaking of memory management, we also need to support instances in the garbage
-collector:</p>
+table. We don&rsquo;t explicitly free the entries <em>in</em> the table, because there may
+be other references to those objects. The garbage collector will take care of
+those for us. Here we only free the entry array of the table itself.</p>
+<p>Speaking of the garbage collector, it needs support for tracing through
+instances.</p>
 <div class="codehilite"><pre class="insert-before">
       markArray(&amp;function-&gt;chunk.constants);
       break;
@@ -603,10 +604,10 @@ in <em>blackenObject</em>()</div>
 
 <p>If the instance is alive, we need to keep its class around. Also, we need to
 keep every object referenced by the instance&rsquo;s fields. Most live objects that
-are not roots are reachable because some instance references the object in a
+are not roots are reachable because some instance refers to the object in a
 field. Fortunately, we already have a nice <code>markTable()</code> function to make
 tracing them easy.</p>
-<p>Less critical but still important is printing:</p>
+<p>Less critical but still important is printing.</p>
 <div class="codehilite"><pre class="insert-before">
     case OBJ_FUNCTION:
       printFunction(AS_FUNCTION(value));
@@ -637,7 +638,7 @@ The way to create an instance of a class is to invoke the class itself as if it
 were a function. The runtime already supports function calls and it checks the
 type of object being called to make sure the user doesn&rsquo;t try to invoke a number
 or other invalid type.</p>
-<p>We extend that with a new valid case:</p>
+<p>We extend that runtime checking with a new case.</p>
 <div class="codehilite"><pre class="insert-before">
     switch (OBJ_TYPE(callee)) {
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -656,10 +657,10 @@ in <em>callValue</em>()</div>
 <p>If the value being called<span class="em">&mdash;</span>the object that results when evaluating the
 expression to the left of the opening parenthesis<span class="em">&mdash;</span>is a class, then we treat
 it as a constructor call. We <span name="args">create</span> a new instance of
-the called class and store the result in the stack.</p>
+the called class and store the result on the stack.</p>
 <aside name="args">
-<p>We ignore any arguments passed to the call for now. We&rsquo;ll revisit this in the
-<a href="methods-and-initializers.html">next chapter</a> when we add support for initializers.</p>
+<p>We ignore any arguments passed to the call for now. We&rsquo;ll revisit this code in
+the <a href="methods-and-initializers.html">next chapter</a> when we add support for initializers.</p>
 </aside>
 <p>We&rsquo;re one step farther. Now we can define classes and create instances of them:</p>
 <div class="codehilite"><pre>
@@ -681,7 +682,7 @@ uses the classic &ldquo;dot&rdquo; syntax:</p>
 name="sort">sort</span> of like an infix operator. There is an expression to the
 left that is evaluated first and produces an instance. After that is the <code>.</code>
 followed by a field name. Since there is a preceding operand, we hook this into
-the parse table as an infix expression:</p>
+the parse table as an infix expression.</p>
 <aside name="sort">
 <p>I say &ldquo;sort of&rdquo; because the right-hand side after the <code>.</code> is not an expression,
 but a single identifier whose semantics are handled by the get or set expression
@@ -700,7 +701,7 @@ replace 1 line</div>
 
 <p>As in other languages, the <code>.</code> operator binds tightly, with precedence as high
 as the parentheses in a function call. After the parser consumes the dot token,
-it dispatches to:</p>
+it dispatches to a new parse function.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>call</em>()</div>
 <pre>
@@ -749,8 +750,8 @@ token appears when <code>canAssign</code> is false, <code>dot()</code> leaves it
 that case, the compiler will eventually unwind up to <code>parsePrecedence()</code> which
 stops at the unexpected <code>=</code> still sitting as the next token and reports an
 error.</p>
-<p>If we found an <code>=</code> in a context where it <em>is</em> allowed, then we compile the
-right-hand expression being stored in the field. After that, we emit a new <span
+<p>If we find an <code>=</code> in a context where it <em>is</em> allowed, then we compile the
+expression that follows. After that, we emit a new <span
 name="set"><code>OP_SET_PROPERTY</code></span> instruction. That takes a single operand for
 the index of the property name in the constant table. If we didn&rsquo;t compile a set
 expression, we assume it&rsquo;s a getter and emit an <code>OP_GET_PROPERTY</code> instruction,
@@ -760,7 +761,7 @@ which also takes an operand for the property name.</p>
 been <code>OP_SET_FIELD</code>, but I thought it looked nicer to be consistent with the get
 instruction.</p>
 </aside>
-<p>Now is a good time to define these two new instructions:</p>
+<p>Now is a good time to define these two new instructions.</p>
 <div class="codehilite"><pre class="insert-before">
   OP_SET_UPVALUE,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -773,7 +774,7 @@ in enum <em>OpCode</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<p>And add support for disassembling them:</p>
+<p>And add support for disassembling them.</p>
 <div class="codehilite"><pre class="insert-before">
       return byteInstruction(&quot;OP_SET_UPVALUE&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -790,7 +791,7 @@ in <em>disassembleInstruction</em>()</div>
 
 <h3><a href="#interpreting-getter-and-setter-expressions" name="interpreting-getter-and-setter-expressions"><small>27&#8202;.&#8202;4&#8202;.&#8202;1</small>Interpreting getter and setter expressions</a></h3>
 <p>Sliding over to the runtime, we&rsquo;ll start with get expressions since those are a
-little simpler:</p>
+little simpler.</p>
 <div class="codehilite"><pre class="insert-before">
         *frame-&gt;closure-&gt;upvalues[slot]-&gt;location = peek(0);
         break;
@@ -817,12 +818,12 @@ in <em>run</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>When the interpreter reaches this instruction, the expression to the left of the
-<code>.</code> has already been executed and the resulting instance is on top of the stack.
+dot has already been executed and the resulting instance is on top of the stack.
 We read the field name from the constant pool and look it up in the instance&rsquo;s
 field table. If the hash table contains an entry with that name, we pop the
 instance and push the entry&rsquo;s value as the result.</p>
 <p>Of course, the field might not exist. In Lox, we&rsquo;ve defined that to be a runtime
-error. So we add a check for that and abort if it happens:</p>
+error. So we add a check for that and abort if it happens.</p>
 <div class="codehilite"><pre class="insert-before">
           push(value);
           break;
@@ -843,7 +844,7 @@ in <em>run</em>()</div>
 <p><span name="field">There</span> is another failure mode to handle which you&rsquo;ve
 probably noticed. The above code assumes the expression to the left of the dot
 did evaluate to an ObjInstance. But there&rsquo;s nothing preventing a user from
-writing:</p>
+writing this:</p>
 <div class="codehilite"><pre>
 <span class="k">var</span> <span class="i">obj</span> = <span class="s">&quot;not an instance&quot;</span>;
 <span class="k">print</span> <span class="i">obj</span>.<span class="i">field</span>;
@@ -853,7 +854,7 @@ Right now, it will misinterpret the bits of the ObjString as an ObjInstance and,
 I don&rsquo;t know, catch on fire or something definitely not graceful.</p>
 <p>In Lox, only instances are allowed to have fields. You can&rsquo;t stuff a field onto
 a string or number. So we need to check that the value is an instance before
-accessing any fields on it:</p>
+accessing any fields on it.</p>
 <aside name="field">
 <p>Lox <em>could</em> support adding fields to values of other types. It&rsquo;s our language
 and we can do what we want. But it&rsquo;s likely a bad idea. It significantly
@@ -882,7 +883,7 @@ in <em>run</em>()</div>
 <p>If the value on the stack isn&rsquo;t an instance, we report a runtime error and
 safely exit.</p>
 <p>Of course, get expressions are not very useful when no instances have any
-fields. For that we need setters:</p>
+fields. For that we need setters.</p>
 <div class="codehilite"><pre class="insert-before">
         runtimeError(&quot;Undefined property '%s'.&quot;, name-&gt;chars);
         return INTERPRET_RUNTIME_ERROR;
@@ -906,11 +907,11 @@ in <em>run</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
-<p>This is a little more complex than <code>OP_GET_PROPERTY</code>. On top of the stack, we
-first have the instance whose field is being set and then above that is the
-value to be stored in the instance&rsquo;s field. Like before, we read the
-instruction&rsquo;s operand and find the field name string. Using that, we store the
-value on top of the stack into the instance&rsquo;s field table.</p>
+<p>This is a little more complex than <code>OP_GET_PROPERTY</code>. When this executes, the
+top of the stack has the instance whose field is being set and above that the
+value to be stored. Like before, we read the instruction&rsquo;s operand and find the
+field name string. Using that, we store the value on top of the stack into the
+instance&rsquo;s field table.</p>
 <p>After that is a little <span name="stack">stack</span> juggling. We pop the
 stored value off, then pop the instance, and finally push the value back on. In
 other words, we remove the <em>second</em> element from the stack while leaving the top
@@ -927,7 +928,7 @@ we need to leave that value on the stack. Here&rsquo;s what I mean:</p>
 <p>Unlike when reading a field, we don&rsquo;t need to worry about the hash table not
 containing the field. A setter implicitly creates the field if needed. We do
 need to handle the user incorrectly trying to store a field on a value that
-isn&rsquo;t an instance:</p>
+isn&rsquo;t an instance.</p>
 <div class="codehilite"><pre class="insert-before">
       case OP_SET_PROPERTY: {
 </pre><div class="source-file"><em>vm.c</em><br>
