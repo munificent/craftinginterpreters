@@ -43,7 +43,7 @@ produce new instances. Going bottom-up, we'll start with their runtime
 representation and then hook that into the language.
 
 By this point, we're well-acquainted with the process of adding a new object
-type to the VM. We start with a struct:
+type to the VM. We start with a struct.
 
 ^code obj-class (1 before, 2 after)
 
@@ -51,7 +51,7 @@ After the Obj header, we store the class's name. This isn't strictly needed for
 the user's program, but it lets us show the name at runtime for things like
 stack traces.
 
-The new type needs a corresponding case in the ObjType enum:
+The new type needs a corresponding case in the ObjType enum.
 
 ^code obj-type-class (1 before, 1 after)
 
@@ -98,23 +98,23 @@ we add some more code to the switch case.
 </aside>
 
 We have a memory manager now, so we also need to support tracing through class
-objects:
+objects.
 
 ^code blacken-class (1 before, 1 after)
 
-When the GC reaches a class object, we mark its name to keep that string alive
-too.
+When the GC reaches a class object, it marks the class's name to keep that
+string alive too.
 
-The last operation the VM can perform on a class is printing it:
+The last operation the VM can perform on a class is printing it.
 
 ^code print-class (1 before, 1 after)
 
-A class simply prints its own name.
+A class simply says its own name.
 
 ## Class Declarations
 
 Runtime representation in hand, we are ready to add support for classes to the
-language. As usual, we start in the parser:
+language. Next, we move into the parser.
 
 ^code match-class (1 before, 1 after)
 
@@ -135,12 +135,12 @@ identifier right after consuming its token.
 
 <aside name="variable">
 
-We could have made class declarations be *expressions* instead of statements.
-Then users would have to explicitly bind the class to a variable themselves
-like:
+We could have made class declarations be *expressions* instead of statements --
+they are essentially a literal that produces a value after all. Then users would
+have to explicitly bind the class to a variable themselves like:
 
 ```lox
-var Pie = class Pie {}
+var Pie = class {}
 ```
 
 Sort of like lambda functions but for classes. But since we generally want
@@ -156,8 +156,8 @@ After that, but before compiling the body of the class, we define the variable
 for the class's name. *Declaring* the variable adds it to the scope but recall
 from [a previous chapter][scope] that we can't *use* the variable until it's
 *defined*. For classes, we define the variable before the body. That way, users
-can refer to the containing class inside the bodies of methods. That's useful
-for things like factory methods.
+can refer to the containing class inside the bodies of its own methods. That's
+useful for things like factory methods that produce new instances of the class.
 
 [scope]: local-variables.html#another-scope-edge-case
 
@@ -165,15 +165,15 @@ Finally, we compile the body. We don't have methods yet, so right now it's
 simply an empty pair of braces. Lox doesn't require fields to be declared in the
 class, so we're done with the body -- and the parser -- for now.
 
-The compiler is emitting a new instruction, so let's define that:
+The compiler is emitting a new instruction, so let's define that.
 
 ^code class-op (1 before, 1 after)
 
-And add it to the disassembler:
+And add it to the disassembler.
 
 ^code disassemble-class (2 before, 1 after)
 
-For such a large-seeming feature, the interpreter support is easy:
+For such a large-seeming feature, the interpreter support is minimal.
 
 ^code interpret-class (3 before, 1 after)
 
@@ -209,21 +209,21 @@ making them more useful.
 
 Classes serve two main purposes in a language:
 
-1.  **They are how you create new instances.** Sometimes this involves a `new`
+*   **They are how you create new instances.** Sometimes this involves a `new`
     keyword, other times it's a method call on the class object, but you usually
     mention the class by name *somehow* to get a new instance.
 
-2.  **They contain methods.** These define how all instances of the class
+*   **They contain methods.** These define how all instances of the class
     behave.
 
 We won't get to methods until the next chapter, so for now we will only worry
 about the first part. Before classes can create instances, we need a
-representation for them:
+representation for them.
 
 ^code obj-instance (1 before, 2 after)
 
-Each instance has a pointer to the class that it is an instance of. Instances
-know their class. We won't use this much in this chapter, but it will become
+Instances know their class -- each instance has a pointer to the class that it
+is an instance of.  We won't use this much in this chapter, but it will become
 critical when we add methods.
 
 More important to this chapter is how instances store their state. Lox lets
@@ -249,31 +249,31 @@ accessing a field is as fast as offsetting a pointer by an integer constant.
 
 </aside>
 
-We only need to add an include and we've got it:
+We only need to add an include and we've got it.
 
 ^code object-include-table (1 before, 1 after)
 
-This new struct gets a new object type:
+This new struct gets a new object type.
 
 ^code obj-type-instance (1 before, 1 after)
 
-I want to slow down a bit here because Lox's notion of "type" and the VM's
-*implementation* notion of type brush against each other in ways that can be
-confusing. Inside the C code that makes clox, there are a number of different
-types of Obj -- ObjString, ObjClosure, etc. Each has its own internal
+I want to slow down a bit here because the Lox *language's* notion of "type" and
+the VM *implementation's* notion of type brush against each other in ways that
+can be confusing. Inside the C code that makes clox, there are a number of
+different types of Obj -- ObjString, ObjClosure, etc. Each has its own internal
 representation and semantics.
 
 In the Lox *language*, users can define their own classes -- say Cake and Pie --
 and then create instances of those classes. From the user's perspective, an
-instance of Cake is a different "type" of object than an instance of Pie. But,
-from the VM's perspective every class the user defines is simply another value
+instance of Cake is a different type of object than an instance of Pie. But,
+from the VM's perspective, every class the user defines is simply another value
 of type ObjClass. Likewise, each instance in the user's program, no matter what
 class it is an instance of, is an ObjInstance. That one VM object type covers
 instances of all classes. The two worlds map to each other something like this:
 
 <img src="image/classes-and-instances/lox-clox.png" alt="A set of class declarations and instances, and the runtime representations each maps to."/>
 
-Got it? OK, back to the implementation. We also get our usual macros:
+Got it? OK, back to the implementation. We also get our usual macros.
 
 ^code is-instance (1 before, 1 after)
 
@@ -282,7 +282,7 @@ And:
 ^code as-instance (1 before, 1 after)
 
 Since fields are added after the instance is created, the "constructor" function
-only needs to know the class:
+only needs to know the class.
 
 ^code new-instance-h (1 before, 1 after)
 
@@ -293,25 +293,27 @@ We implement that function here:
 We store a reference to the instance's class. Then we initialize the field
 table to an empty hash table. A new baby object is born!
 
-At the sadder end of the instance's lifespan, it gets freed:
+At the sadder end of the instance's lifespan, it gets freed.
 
 ^code free-instance (4 before, 1 after)
 
 The instance owns its field table so when freeing the instance, we also free the
-table.
+table. We don't explicitly free the entries *in* the table, because there may
+be other references to those objects. The garbage collector will take care of
+those for us. Here we only free the entry array of the table itself.
 
-Speaking of memory management, we also need to support instances in the garbage
-collector:
+Speaking of the garbage collector, it needs support for tracing through
+instances.
 
 ^code blacken-instance (4 before, 1 after)
 
 If the instance is alive, we need to keep its class around. Also, we need to
 keep every object referenced by the instance's fields. Most live objects that
-are not roots are reachable because some instance references the object in a
+are not roots are reachable because some instance refers to the object in a
 field. Fortunately, we already have a nice `markTable()` function to make
 tracing them easy.
 
-Less critical but still important is printing:
+Less critical but still important is printing.
 
 ^code print-instance (3 before, 1 after)
 
@@ -334,19 +336,19 @@ were a function. The runtime already supports function calls and it checks the
 type of object being called to make sure the user doesn't try to invoke a number
 or other invalid type.
 
-We extend that with a new valid case:
+We extend that runtime checking with a new case.
 
 ^code call-class (1 before, 1 after)
 
 If the value being called -- the object that results when evaluating the
 expression to the left of the opening parenthesis -- is a class, then we treat
 it as a constructor call. We <span name="args">create</span> a new instance of
-the called class and store the result in the stack.
+the called class and store the result on the stack.
 
 <aside name="args">
 
-We ignore any arguments passed to the call for now. We'll revisit this in the
-[next chapter][next] when we add support for initializers.
+We ignore any arguments passed to the call for now. We'll revisit this code in
+the [next chapter][next] when we add support for initializers.
 
 [next]: methods-and-initializers.html
 
@@ -378,7 +380,7 @@ The period -- full stop for my English friends -- works <span
 name="sort">sort</span> of like an infix operator. There is an expression to the
 left that is evaluated first and produces an instance. After that is the `.`
 followed by a field name. Since there is a preceding operand, we hook this into
-the parse table as an infix expression:
+the parse table as an infix expression.
 
 <aside name="sort">
 
@@ -392,7 +394,7 @@ itself. It's really closer to a postfix expression.
 
 As in other languages, the `.` operator binds tightly, with precedence as high
 as the parentheses in a function call. After the parser consumes the dot token,
-it dispatches to:
+it dispatches to a new parse function.
 
 ^code compile-dot
 
@@ -436,8 +438,8 @@ that case, the compiler will eventually unwind up to `parsePrecedence()` which
 stops at the unexpected `=` still sitting as the next token and reports an
 error.
 
-If we found an `=` in a context where it *is* allowed, then we compile the
-right-hand expression being stored in the field. After that, we emit a new <span
+If we find an `=` in a context where it *is* allowed, then we compile the
+expression that follows. After that, we emit a new <span
 name="set">`OP_SET_PROPERTY`</span> instruction. That takes a single operand for
 the index of the property name in the constant table. If we didn't compile a set
 expression, we assume it's a getter and emit an `OP_GET_PROPERTY` instruction,
@@ -451,36 +453,36 @@ instruction.
 
 </aside>
 
-Now is a good time to define these two new instructions:
+Now is a good time to define these two new instructions.
 
 ^code property-ops (1 before, 1 after)
 
-And add support for disassembling them:
+And add support for disassembling them.
 
 ^code disassemble-property-ops (1 before, 1 after)
 
 ### Interpreting getter and setter expressions
 
 Sliding over to the runtime, we'll start with get expressions since those are a
-little simpler:
+little simpler.
 
 ^code interpret-get-property (3 before, 2 after)
 
 When the interpreter reaches this instruction, the expression to the left of the
-`.` has already been executed and the resulting instance is on top of the stack.
+dot has already been executed and the resulting instance is on top of the stack.
 We read the field name from the constant pool and look it up in the instance's
 field table. If the hash table contains an entry with that name, we pop the
 instance and push the entry's value as the result.
 
 Of course, the field might not exist. In Lox, we've defined that to be a runtime
-error. So we add a check for that and abort if it happens:
+error. So we add a check for that and abort if it happens.
 
 ^code get-undefined (3 before, 3 after)
 
 <span name="field">There</span> is another failure mode to handle which you've
 probably noticed. The above code assumes the expression to the left of the dot
 did evaluate to an ObjInstance. But there's nothing preventing a user from
-writing:
+writing this:
 
 ```lox
 var obj = "not an instance";
@@ -493,7 +495,7 @@ I don't know, catch on fire or something definitely not graceful.
 
 In Lox, only instances are allowed to have fields. You can't stuff a field onto
 a string or number. So we need to check that the value is an instance before
-accessing any fields on it:
+accessing any fields on it.
 
 <aside name="field">
 
@@ -515,15 +517,15 @@ If the value on the stack isn't an instance, we report a runtime error and
 safely exit.
 
 Of course, get expressions are not very useful when no instances have any
-fields. For that we need setters:
+fields. For that we need setters.
 
 ^code interpret-set-property (3 before, 2 after)
 
-This is a little more complex than `OP_GET_PROPERTY`. On top of the stack, we
-first have the instance whose field is being set and then above that is the
-value to be stored in the instance's field. Like before, we read the
-instruction's operand and find the field name string. Using that, we store the
-value on top of the stack into the instance's field table.
+This is a little more complex than `OP_GET_PROPERTY`. When this executes, the
+top of the stack has the instance whose field is being set and above that the
+value to be stored. Like before, we read the instruction's operand and find the
+field name string. Using that, we store the value on top of the stack into the
+instance's field table.
 
 After that is a little <span name="stack">stack</span> juggling. We pop the
 stored value off, then pop the instance, and finally push the value back on. In
@@ -548,7 +550,7 @@ print toast.jam = "grape"; // Prints "grape".
 Unlike when reading a field, we don't need to worry about the hash table not
 containing the field. A setter implicitly creates the field if needed. We do
 need to handle the user incorrectly trying to store a field on a value that
-isn't an instance:
+isn't an instance.
 
 ^code set-not-instance (1 before, 1 after)
 
