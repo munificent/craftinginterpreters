@@ -354,7 +354,7 @@ That macro seemed like overkill a [few chapters ago][], but we get the benefit
 from it today. It lets us add the necessary type checking and conversions in one
 place.
 
-[few chapters ago]: a-virtual-machine.html
+[few chapters ago]: a-virtual-machine.html#binary-operators
 
 ^code binary-op (2 before, 2 after)
 
