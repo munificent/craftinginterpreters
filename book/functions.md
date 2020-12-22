@@ -558,7 +558,7 @@ body of the function so that we can execute it.
 That's basically what the Stmt.Function class is. Could we just use that?
 Almost, but not quite. We also need a class that implements LoxCallable so that
 we can call it. We don't want the runtime phase of the interpreter to bleed into
-the front-end's syntax classes so we don't want Stmt.Function itself to
+the front end's syntax classes so we don't want Stmt.Function itself to
 implement that. Instead, we wrap it in a new class.
 
 ^code lox-function

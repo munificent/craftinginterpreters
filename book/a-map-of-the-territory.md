@@ -210,7 +210,7 @@ match those to get every combination.
 
 If you've ever wondered how [GCC][] supports so many crazy languages and
 architectures, like Modula-3 on Motorola 68k, now you know. Language front ends
-target one of a handful of IRs, mainly [GIMPLE][] and [RTL][]. Target backends
+target one of a handful of IRs, mainly [GIMPLE][] and [RTL][]. Target back ends
 like the one for 68k then take those IRs and produce native code.
 
 [gcc]: https://en.wikipedia.org/wiki/GNU_Compiler_Collection
