@@ -48,7 +48,7 @@ class Cruller < Doughnut {
 
 Here, the Cruller class inherits from Doughnut and thus instances of Cruller
 inherit the `cook()` method. I don't know why I'm belaboring this. You know how
-inheritance works. Let's start compiling the new syntax:
+inheritance works. Let's start compiling the new syntax.
 
 ^code compile-superclass (2 before, 1 after)
 
@@ -76,7 +76,7 @@ The result is this bytecode:
 <img src="image/superclasses/inherit-stack.png" alt="The series of bytecode instructions for a Cruller class inheriting from Doughnut." />
 
 Before we implement the new `OP_INHERIT` instruction, we have an edge case to
-detect:
+detect.
 
 ^code inherit-self (1 before, 1 after)
 
@@ -94,27 +94,27 @@ anything *useful*, but I don't think it would cause a crash or infinite loop.
 
 ### Executing inheritance
 
-Now onto the new instruction:
+Now onto the new instruction.
 
 ^code inherit-op (1 before, 1 after)
 
 There are no operands to worry about. The two values we need -- superclass and
-subclass -- are both found on the stack. That means disassembling is easy:
+subclass -- are both found on the stack. That means disassembling is easy.
 
 ^code disassemble-inherit (1 before, 1 after)
 
-The interpreter is where the action happens:
+The interpreter is where the action happens.
 
 ^code interpret-inherit (1 before, 2 after)
 
-The top of the stack contains the superclass with the subclass on top. We grab
-both of those and then do the inherit-y bit. This is where clox takes a
+From the top of the stack down, we have the subclass then the superclass. We
+grab both of those and then do the inherit-y bit. This is where clox takes a
 different path than jlox. In our first interpreter, each subclass stored a
-reference to its superclass. When a method was accessed, if we didn't find it in
+reference to its superclass. On method access, if we didn't find the method in
 the subclass's method table, we recursed through the inheritance chain looking
 at each ancestor's method table until we found it.
 
-For example, calling `cook()` on an instance of Cruller sends the VM on this
+For example, calling `cook()` on an instance of Cruller sends jlox on this
 journey:
 
 <img src="image/superclasses/jlox-resolve.png" alt="Resolving a call to cook() in an instance of Cruller means walking the superclass chain." />
@@ -192,7 +192,7 @@ class OhNo < NotClass {}
 
 Obviously, no self-respecting programmer would write that, but we have to guard
 against potential Lox users who have no self respect. A simple runtime check
-fixes that:
+fixes that.
 
 ^code inherit-non-class (1 before, 2 after)
 
@@ -259,7 +259,7 @@ instance. The superclass used to look up the method is a static -- practically
 lexical -- property of where the call occurs. When we added inheritance to jlox,
 we took advantage of that static aspect by storing the superclass in the same
 Environment structure we used for all lexical scopes. Almost as if the
-interpreter saw the above program like:
+interpreter saw the above program like this:
 
 ```lox
 class A {
@@ -285,8 +285,8 @@ class C < B {}
 C().test();
 ```
 
-Each subclass gets a hidden variable storing a reference to its superclass.
-Whenever we need to perform a super call, we find the superclass in that
+Each subclass has a hidden variable storing a reference to its superclass.
+Whenever we need to perform a super call, we access the superclass from that
 variable and tell the runtime to start looking for methods there.
 
 We'll take the same path with clox. The difference is that instead of jlox's
@@ -294,11 +294,13 @@ heap-allocated Environment class, we have the bytecode VM's value stack and
 upvalue system. The machinery is a little different, but the overall effect is
 the same.
 
+---
+
 ### A superclass local variable
 
-Over in the front end, compiling the superclass clause emits bytecode that loads
-the superclass onto the stack. Instead of leaving that slot as a temporary, we
-create a new scope and make it a local variable:
+Our compiler already emits code to load the superclass onto the stack. Instead
+of leaving that slot as a temporary, we create a new scope and make it a local
+variable.
 
 ^code superclass-variable (2 before, 2 after)
 
@@ -315,7 +317,7 @@ with a user-defined one.
 The difference is that when compiling `this` expressions, we conveniently have a
 token sitting around whose lexeme is "this". We aren't so lucky here. Instead,
 we add a little helper function to create a synthetic token for the given <span
-name="constant">constant</span> string:
+name="constant">constant</span> string.
 
 ^code synthetic-token
 
@@ -329,28 +331,28 @@ fine.
 
 </aside>
 
-Since we opened a local scope for the superclass variable, we need to close it:
+Since we opened a local scope for the superclass variable, we need to close it.
 
 ^code end-superclass-scope (1 before, 2 after)
 
 We pop the scope and discard the "super" variable after compiling the class body
 and its methods. That way, the variable is accessible in all of the methods of
 the subclass. It's a somewhat pointless optimization, but we only create the
-scope if there *is* a superclass clause. Thus we need to only close the scope if
+scope if there *is* a superclass clause. Thus we only need to close the scope if
 there is one.
 
 To track that, we could declare a little local variable in `classDeclaration()`.
 But soon other functions in the compiler will need to know whether the
 surrounding class is a subclass or not. So we may as well give our future selves
-a hand and store this fact as a field in the ClassCompiler now:
+a hand and store this fact as a field in the ClassCompiler now.
 
 ^code has-superclass (3 before, 1 after)
 
-When we first initialize a ClassCompiler, we assume it is not a subclass:
+When we first initialize a ClassCompiler, we assume it is not a subclass.
 
 ^code init-has-superclass (1 before, 1 after)
 
-Then, if we see a superclass clause, we know we are compiling a subclass:
+Then, if we see a superclass clause, we know we are compiling a subclass.
 
 ^code set-has-superclass (1 before, 1 after)
 
@@ -365,7 +367,7 @@ method.
 
 With that runtime support in place, we are ready to implement super calls. As
 usual, we go front to back, starting with the new syntax. A super call <span
-name="last">begins</span>, naturally enough, with the `super` keyword:
+name="last">begins</span>, naturally enough, with the `super` keyword.
 
 <aside name="last">
 
@@ -376,7 +378,7 @@ This is it, friend. The very last entry you'll add to the parsing table.
 ^code table-super (1 before, 1 after)
 
 When the expression parser lands on a `super` token, control jumps to a new
-parsing function which starts off like so:
+parsing function which starts off like so.
 
 ^code super
 
@@ -428,7 +430,7 @@ stored in the hidden variable "this" and push it onto the stack. The second
 variable and push that on top.
 
 Finally, we emit a new `OP_GET_SUPER` instruction with an operand for the
-constant table index of the method named. That's a lot to hold in your head. To
+constant table index of the method name. That's a lot to hold in your head. To
 make it tangible, consider this example program:
 
 ```lox
@@ -460,17 +462,19 @@ The first three instructions give the runtime access to the three pieces of
 information it needs to perform the super access:
 
 1.  The first instruction loads **the instance** onto the stack.
+
 2.  The second instruction loads **the superclass where the method is
     resolved**.
+
 3.  Then the new `OP_GET_SUPER` instuction encodes **the name of the method to
     access** as an operand.
 
-The remaining instructions are the normal bytecode for executing an argument
+The remaining instructions are the normal bytecode for evaluating an argument
 list and calling a function.
 
 We're almost ready to implement the new `OP_GET_SUPER` instruction in the
 interpreter. But before we do, the compiler has some errors it is responsible
-for reporting:
+for reporting.
 
 ^code super-errors (1 before, 1 after)
 
@@ -483,16 +487,16 @@ that's `NULL` or points to a class with no superclass, we report those errors.
 
 Assuming the user didn't put a `super` expression where it's not allowed, their
 code passes from the compiler over to the runtime. We've got ourselves a new
-instruction:
+instruction.
 
 ^code get-super-op (1 before, 1 after)
 
-We disassemble it like other opcodes that take a constant table index operand:
+We disassemble it like other opcodes that take a constant table index operand.
 
 ^code disassemble-get-super (1 before, 1 after)
 
 You might anticipate something harder, but interpreting the new instruction is
-similar to executing a normal property access:
+similar to executing a normal property access.
 
 ^code interpret-get-super (1 before, 2 after)
 
@@ -571,17 +575,17 @@ I... I'm sorry for this terrible joke.
 Otherwise, if we don't find a `(`, we continue to compile the expression as a
 super access like we did before and emit an `OP_GET_SUPER`.
 
-Drifting down the compilation pipeline, our first stop is a new instruction:
+Drifting down the compilation pipeline, our first stop is a new instruction.
 
 ^code super-invoke-op (1 before, 1 after)
 
-And just past that, its disassembler support:
+And just past that, its disassembler support.
 
 ^code disassemble-super-invoke (1 before, 1 after)
 
 A super invocation instruction has the same set of operands as `OP_INVOKE`, so
 we reuse the same helper to disassemble it. Finally, the pipeline dumps us into
-the interpreter:
+the interpreter.
 
 ^code interpret-super-invoke (2 before, 1 after)
 
