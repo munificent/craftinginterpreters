@@ -150,7 +150,7 @@ refresh your memory, Lox inheritance syntax looks like this:</p>
 </pre></div>
 <p>Here, the Cruller class inherits from Doughnut and thus instances of Cruller
 inherit the <code>cook()</code> method. I don&rsquo;t know why I&rsquo;m belaboring this. You know how
-inheritance works. Let&rsquo;s start compiling the new syntax:</p>
+inheritance works. Let&rsquo;s start compiling the new syntax.</p>
 <div class="codehilite"><pre class="insert-before">
   currentClass = &amp;classCompiler;
 
@@ -186,7 +186,7 @@ existing class and applies the effect of inheritance to it.</p>
 </pre></div>
 <p>The result is this bytecode:</p><img src="image/superclasses/inherit-stack.png" alt="The series of bytecode instructions for a Cruller class inheriting from Doughnut." />
 <p>Before we implement the new <code>OP_INHERIT</code> instruction, we have an edge case to
-detect:</p>
+detect.</p>
 <div class="codehilite"><pre class="insert-before">
     variable(false);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -211,7 +211,7 @@ allowing cycles would actually cause any problems in clox. It wouldn&rsquo;t do
 anything <em>useful</em>, but I don&rsquo;t think it would cause a crash or infinite loop.</p>
 </aside>
 <h3><a href="#executing-inheritance" name="executing-inheritance"><small>29&#8202;.&#8202;1&#8202;.&#8202;1</small>Executing inheritance</a></h3>
-<p>Now onto the new instruction:</p>
+<p>Now onto the new instruction.</p>
 <div class="codehilite"><pre class="insert-before">
   OP_CLASS,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -224,7 +224,7 @@ in enum <em>OpCode</em></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>There are no operands to worry about. The two values we need<span class="em">&mdash;</span>superclass and
-subclass<span class="em">&mdash;</span>are both found on the stack. That means disassembling is easy:</p>
+subclass<span class="em">&mdash;</span>are both found on the stack. That means disassembling is easy.</p>
 <div class="codehilite"><pre class="insert-before">
       return constantInstruction(&quot;OP_CLASS&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -237,7 +237,7 @@ in <em>disassembleInstruction</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
-<p>The interpreter is where the action happens:</p>
+<p>The interpreter is where the action happens.</p>
 <div class="codehilite"><pre class="insert-before">
         break;
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -258,13 +258,13 @@ in <em>run</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
-<p>The top of the stack contains the superclass with the subclass on top. We grab
-both of those and then do the inherit-y bit. This is where clox takes a
+<p>From the top of the stack down, we have the subclass then the superclass. We
+grab both of those and then do the inherit-y bit. This is where clox takes a
 different path than jlox. In our first interpreter, each subclass stored a
-reference to its superclass. When a method was accessed, if we didn&rsquo;t find it in
+reference to its superclass. On method access, if we didn&rsquo;t find the method in
 the subclass&rsquo;s method table, we recursed through the inheritance chain looking
 at each ancestor&rsquo;s method table until we found it.</p>
-<p>For example, calling <code>cook()</code> on an instance of Cruller sends the VM on this
+<p>For example, calling <code>cook()</code> on an instance of Cruller sends jlox on this
 journey:</p><img src="image/superclasses/jlox-resolve.png" alt="Resolving a call to cook() in an instance of Cruller means walking the superclass chain." />
 <p>That&rsquo;s a lot of work to perform during method <em>invocation</em> time. It&rsquo;s slow and,
 worse, the farther an inherited method is up the ancestor chain, the slower it
@@ -318,7 +318,7 @@ isn&rsquo;t a class at all:</p>
 </pre></div>
 <p>Obviously, no self-respecting programmer would write that, but we have to guard
 against potential Lox users who have no self respect. A simple runtime check
-fixes that:</p>
+fixes that.</p>
 <div class="codehilite"><pre class="insert-before">
         Value superclass = peek(1);
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -386,7 +386,7 @@ instance. The superclass used to look up the method is a static<span class="em">
 lexical<span class="em">&mdash;</span>property of where the call occurs. When we added inheritance to jlox,
 we took advantage of that static aspect by storing the superclass in the same
 Environment structure we used for all lexical scopes. Almost as if the
-interpreter saw the above program like:</p>
+interpreter saw the above program like this:</p>
 <div class="codehilite"><pre>
 <span class="k">class</span> <span class="t">A</span> {
   <span class="i">method</span>() {
@@ -410,17 +410,18 @@ interpreter saw the above program like:</p>
 
 <span class="t">C</span>().<span class="i">test</span>();
 </pre></div>
-<p>Each subclass gets a hidden variable storing a reference to its superclass.
-Whenever we need to perform a super call, we find the superclass in that
+<p>Each subclass has a hidden variable storing a reference to its superclass.
+Whenever we need to perform a super call, we access the superclass from that
 variable and tell the runtime to start looking for methods there.</p>
 <p>We&rsquo;ll take the same path with clox. The difference is that instead of jlox&rsquo;s
 heap-allocated Environment class, we have the bytecode VM&rsquo;s value stack and
 upvalue system. The machinery is a little different, but the overall effect is
 the same.</p>
+<hr />
 <h3><a href="#a-superclass-local-variable" name="a-superclass-local-variable"><small>29&#8202;.&#8202;2&#8202;.&#8202;1</small>A superclass local variable</a></h3>
-<p>Over in the front end, compiling the superclass clause emits bytecode that loads
-the superclass onto the stack. Instead of leaving that slot as a temporary, we
-create a new scope and make it a local variable:</p>
+<p>Our compiler already emits code to load the superclass onto the stack. Instead
+of leaving that slot as a temporary, we create a new scope and make it a local
+variable.</p>
 <div class="codehilite"><pre class="insert-before">
     }
 
@@ -448,7 +449,7 @@ with a user-defined one.</p>
 <p>The difference is that when compiling <code>this</code> expressions, we conveniently have a
 token sitting around whose lexeme is &ldquo;this&rdquo;. We aren&rsquo;t so lucky here. Instead,
 we add a little helper function to create a synthetic token for the given <span
-name="constant">constant</span> string:</p>
+name="constant">constant</span> string.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>variable</em>()</div>
 <pre>
@@ -468,7 +469,7 @@ memory because it never gets freed. But the memory for C string literals lives
 in the executable&rsquo;s constant data section and never needs to be freed, so we&rsquo;re
 fine.</p>
 </aside>
-<p>Since we opened a local scope for the superclass variable, we need to close it:</p>
+<p>Since we opened a local scope for the superclass variable, we need to close it.</p>
 <div class="codehilite"><pre class="insert-before">
   emitByte(OP_POP);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -487,12 +488,12 @@ in <em>classDeclaration</em>()</div>
 <p>We pop the scope and discard the &ldquo;super&rdquo; variable after compiling the class body
 and its methods. That way, the variable is accessible in all of the methods of
 the subclass. It&rsquo;s a somewhat pointless optimization, but we only create the
-scope if there <em>is</em> a superclass clause. Thus we need to only close the scope if
+scope if there <em>is</em> a superclass clause. Thus we only need to close the scope if
 there is one.</p>
 <p>To track that, we could declare a little local variable in <code>classDeclaration()</code>.
 But soon other functions in the compiler will need to know whether the
 surrounding class is a subclass or not. So we may as well give our future selves
-a hand and store this fact as a field in the ClassCompiler now:</p>
+a hand and store this fact as a field in the ClassCompiler now.</p>
 <div class="codehilite"><pre class="insert-before">
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
@@ -506,7 +507,7 @@ in struct <em>ClassCompiler</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in struct <em>ClassCompiler</em></div>
 
-<p>When we first initialize a ClassCompiler, we assume it is not a subclass:</p>
+<p>When we first initialize a ClassCompiler, we assume it is not a subclass.</p>
 <div class="codehilite"><pre class="insert-before">
   classCompiler.name = parser.previous;
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -518,7 +519,7 @@ in <em>classDeclaration</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
-<p>Then, if we see a superclass clause, we know we are compiling a subclass:</p>
+<p>Then, if we see a superclass clause, we know we are compiling a subclass.</p>
 <div class="codehilite"><pre class="insert-before">
     emitByte(OP_INHERIT);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -539,7 +540,7 @@ method.</p>
 <h2><a href="#super-calls" name="super-calls"><small>29&#8202;.&#8202;3</small>Super Calls</a></h2>
 <p>With that runtime support in place, we are ready to implement super calls. As
 usual, we go front to back, starting with the new syntax. A super call <span
-name="last">begins</span>, naturally enough, with the <code>super</code> keyword:</p>
+name="last">begins</span>, naturally enough, with the <code>super</code> keyword.</p>
 <aside name="last">
 <p>This is it, friend. The very last entry you&rsquo;ll add to the parsing table.</p>
 </aside>
@@ -555,7 +556,7 @@ replace 1 line</div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>When the expression parser lands on a <code>super</code> token, control jumps to a new
-parsing function which starts off like so:</p>
+parsing function which starts off like so.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>syntheticToken</em>()</div>
 <pre>
@@ -619,7 +620,7 @@ stored in the hidden variable &ldquo;this&rdquo; and push it onto the stack. The
 <code>namedVariable()</code> call emits code to look up the superclass from its &ldquo;super&rdquo;
 variable and push that on top.</p>
 <p>Finally, we emit a new <code>OP_GET_SUPER</code> instruction with an operand for the
-constant table index of the method named. That&rsquo;s a lot to hold in your head. To
+constant table index of the method name. That&rsquo;s a lot to hold in your head. To
 make it tangible, consider this example program:</p>
 <div class="codehilite"><pre>
 <span class="k">class</span> <span class="t">Doughnut</span> {
@@ -645,17 +646,23 @@ like this:</p><img src="image/superclasses/super-instructions.png" alt="The seri
 <p>The first three instructions give the runtime access to the three pieces of
 information it needs to perform the super access:</p>
 <ol>
-<li>The first instruction loads <strong>the instance</strong> onto the stack.</li>
-<li>The second instruction loads <strong>the superclass where the method is
-resolved</strong>.</li>
-<li>Then the new <code>OP_GET_SUPER</code> instuction encodes <strong>the name of the method to
-access</strong> as an operand.</li>
+<li>
+<p>The first instruction loads <strong>the instance</strong> onto the stack.</p>
+</li>
+<li>
+<p>The second instruction loads <strong>the superclass where the method is
+resolved</strong>.</p>
+</li>
+<li>
+<p>Then the new <code>OP_GET_SUPER</code> instuction encodes <strong>the name of the method to
+access</strong> as an operand.</p>
+</li>
 </ol>
-<p>The remaining instructions are the normal bytecode for executing an argument
+<p>The remaining instructions are the normal bytecode for evaluating an argument
 list and calling a function.</p>
 <p>We&rsquo;re almost ready to implement the new <code>OP_GET_SUPER</code> instruction in the
 interpreter. But before we do, the compiler has some errors it is responsible
-for reporting:</p>
+for reporting.</p>
 <div class="codehilite"><pre class="insert-before">
 static void super_(bool canAssign) {
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -679,7 +686,7 @@ that&rsquo;s <code>NULL</code> or points to a class with no superclass, we repor
 <h3><a href="#executing-super-accesses" name="executing-super-accesses"><small>29&#8202;.&#8202;3&#8202;.&#8202;1</small>Executing super accesses</a></h3>
 <p>Assuming the user didn&rsquo;t put a <code>super</code> expression where it&rsquo;s not allowed, their
 code passes from the compiler over to the runtime. We&rsquo;ve got ourselves a new
-instruction:</p>
+instruction.</p>
 <div class="codehilite"><pre class="insert-before">
   OP_SET_PROPERTY,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -691,7 +698,7 @@ in enum <em>OpCode</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<p>We disassemble it like other opcodes that take a constant table index operand:</p>
+<p>We disassemble it like other opcodes that take a constant table index operand.</p>
 <div class="codehilite"><pre class="insert-before">
       return constantInstruction(&quot;OP_SET_PROPERTY&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -705,7 +712,7 @@ in <em>disassembleInstruction</em>()</div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>You might anticipate something harder, but interpreting the new instruction is
-similar to executing a normal property access:</p>
+similar to executing a normal property access.</p>
 <div class="codehilite"><pre class="insert-before">
       }
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -802,7 +809,7 @@ I&hellip; I&rsquo;m sorry for this terrible joke.</p>
 </aside>
 <p>Otherwise, if we don&rsquo;t find a <code>(</code>, we continue to compile the expression as a
 super access like we did before and emit an <code>OP_GET_SUPER</code>.</p>
-<p>Drifting down the compilation pipeline, our first stop is a new instruction:</p>
+<p>Drifting down the compilation pipeline, our first stop is a new instruction.</p>
 <div class="codehilite"><pre class="insert-before">
   OP_INVOKE,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -814,7 +821,7 @@ in enum <em>OpCode</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<p>And just past that, its disassembler support:</p>
+<p>And just past that, its disassembler support.</p>
 <div class="codehilite"><pre class="insert-before">
       return invokeInstruction(&quot;OP_INVOKE&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -829,7 +836,7 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>A super invocation instruction has the same set of operands as <code>OP_INVOKE</code>, so
 we reuse the same helper to disassemble it. Finally, the pipeline dumps us into
-the interpreter:</p>
+the interpreter.</p>
 <div class="codehilite"><pre class="insert-before">
       }
 
