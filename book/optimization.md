@@ -3,24 +3,23 @@
 >
 > <cite>Kazuo Ishiguro, <em>The Remains of the Day</em></cite>
 
-If I still lived in New Orleans, I'd call this chapter a *lagniappe* -- a little
+If I still lived in New Orleans, I'd call this chapter a *lagniappe*, a little
 something extra given for free to a customer. You've got a whole book and a
 complete virtual machine already, but I want you to have some more fun hacking
-on clox -- this time purely for performance. We'll apply two very different
-optimizations to our virtual machine.  In the process, you'll get a feel for
-measuring and improving the performance of a language implementation or any
-program, really.
+on clox. This time, we're going for pure performance. We'll apply two very
+different optimizations to our virtual machine.  In the process, you'll get a
+feel for measuring and improving the performance of a language implementation --
+or any program, really.
 
 ## Measuring Performance
 
 **Optimization** means taking a working application and improving its
-performance along any number of axes. In contrast with other programming, it
-doesn't aim to change *what* the program does, instead, it reduces the number of
-resources it takes to do so. We usually assume optimization is for runtime
-speed. That tends to be the main metric we optimize, but it's often important to
-reduce memory usage, startup time, persistent storage size, or network
-bandwidth. All physical resources have some cost -- even if the cost is mostly
-in wasted human time -- so optimization work often pays off.
+performance. An optimized program does the same thing, it just takes less
+resources to do so. The resource we usually think of when optimizing is runtime
+speed, but it can also be important to reduce memory usage, startup time,
+persistent storage size, or network bandwidth. All physical resources have some
+cost -- even if the cost is mostly in wasted human time -- so optimization work
+often pays off.
 
 There was a time in the early days of computing that a skilled programmer could
 hold the entire hardware architecture and compiler pipeline in their head and
@@ -36,11 +35,10 @@ end faster, we can't just sit and ruminate on canine physiology until
 enlightenment strikes. Instead, we need to *observe* her performance, see where
 she stumbles, and then find faster paths for her to take.
 
-Much of that process is particular to one dog on one obstacle course. When we
-write optimizations for our virtual machine, we also can't assume that we will
-make *all* Lox programs run faster on *all* hardware. Different Lox programs
-stress different areas of the VM, and different architectures have their own
-strengths and weaknesses.
+Much like agility training is particular to one dog and one obstacle course, we
+can't assume that our virtual machine optimizations will make *all* Lox programs
+run faster on *all* hardware. Different Lox programs stress different areas of
+the VM, and different architectures have their own strengths and weaknesses.
 
 ### Benchmarks
 
@@ -148,7 +146,7 @@ slightly out of scope for this book.
 </aside>
 
 There are many profilers out there for various operating systems and languages.
-On whatever platform you program, it is worth getting familiar with a decent
+On whatever platform you program, it's worth getting familiar with a decent
 profiler. You don't need to be a master. I have learned things within minutes of
 throwing a program at a profiler that would have taken me *days* to discover on
 my own through trial and error. Profilers are wonderful, magical tools.
@@ -163,7 +161,7 @@ change we'll have to deal with, but the main optimization itself is pint-sized.
 When I first got the bytecode virtual machine that clox is descended from
 working, I did what any self-respecting VM hacker would do. I cobbled together a
 couple of benchmarks, fired up a profiler, and ran those scripts through my
-interpreter. In a dynamically-typed language like Lox, a large fraction of user
+interpreter. In a dynamically typed language like Lox, a large fraction of user
 code is field accesses and method calls, so one of my benchmarks looked
 something like this:
 
@@ -254,7 +252,7 @@ execution time, `OP_GET_PROPERTY` at 12%, and `OP_INVOKE` which takes a whopping
 So we've got three hotspots to optimize? Actually, no. Because it turns out
 those three instructions spend almost all of their time inside calls to the same
 function: `tableGet()`. That function claims a whole 72% of the execution time
-(again, inclusive). Now, in a dynamically-typed language, we expect to spend a
+(again, inclusive). Now, in a dynamically typed language, we expect to spend a
 fair bit of time looking stuff up in hash tables -- it's sort of the price of
 dynamism. But, still, *wow.*
 
@@ -269,7 +267,7 @@ static Entry* findEntry(Entry* entries, int capacity,
                         ObjString* key) {
   uint32_t index = key->hash % capacity;
   Entry* tombstone = NULL;
-
+  
   for (;;) {
     Entry* entry = &entries[index];
 
@@ -367,39 +365,41 @@ in the interest of expedience, I left the name alone.
 
 </aside>
 
-With that interpretation, to wrap a key, we simply apply the mask:
+With that interpretation, to wrap a key, we simply apply the mask.
 
 ^code initial-index (1 before, 1 after)
 
 CPUs love bitwise operators, so it's hard to improve on that. 
 
 Our linear probing search may need to wrap around the end of the array, so there
-is another modulo in `findEntry()` to update:
+is another modulo in `findEntry()` to update.
 
 ^code next-index (4 before, 1 after)
 
-This line didn't show up in the profile since most searches don't wrap. Before
-we can try out these changes and see how they affect the performance, we have to
-fix every piece of code that uses the `capacity` field and update it to work
-with the new value it represents. This is going to be kind of a chore. Sorry.
+This line didn't show up in the profile since most searches don't wrap.
+
+Before we can try out these changes and see how they affect the performance, we
+have to fix every piece of code that uses the `capacity` field and update it to
+work with the new value it represents. This is going to be kind of a chore.
+Sorry.
 
 ### Hash table changes
 
 There are a few changes to make in `adjustCapacity()`. First, when we allocate
-the new array, we calculate the size from the mask:
+the new array, we calculate the size from the mask.
 
 ^code adjust-alloc (1 before, 1 after)
 
-Then we iterate over the array to initialize the empty entries:
+Then we iterate over the array to initialize the empty entries.
 
 ^code adjust-init (1 before, 1 after)
 
-The difference here is that the `<` checking to exit the loop has become a `<=`.
+The difference here is that the `<` check to exit the loop has become a `<=`.
 
 ^code re-hash (1 before, 1 after)
 
 When we free the old array, the garbage collector wants to track how many bytes
-are released:
+are released.
 
 ^code adjust-free (3 before, 1 after)
 
@@ -409,21 +409,20 @@ don't get stung.
 
 Moving up the abstraction stack, we get to the main hash table operations that
 call `adjustCapacity()` and `findEntry()`. When we grow the array before
-inserting a new entry into it, we need to calculate the capacity:
+inserting a new entry into it, we need to calculate the capacity.
 
 ^code table-set-grow (1 before, 1 after)
 
-All the way at the beginning, when we first initialize the field:
+All the way at the beginning, we initialize the field.
 
 ^code init-capacity-mask (1 before, 1 after)
 
-As you've seen, when we need to calculate the actual array size from the
-`capacity` field we get that by adding one. When the hash table is empty, the
-size is zero, so initializing `capacity` to -1 correctly yields zero when we
-increment it.
+As you've seen, to calculate the actual array size from the `capacity` mask, we
+add one. When the hash table is empty, the size is zero, so initializing
+`capacity` to -1 correctly yields zero when we increment it.
 
 When copying all of the entries from one hash table to another, we iterate over
-the source table's array:
+the source table's array.
 
 ^code add-all-loop (1 before, 1 after)
 
@@ -432,15 +431,15 @@ That's another `<` to `<=` change.
 The `findEntry()` function has a sister function, `tableFindString()` that does
 a hash table lookup for interning strings. We need to make the same changes
 there that we made in `findEntry()`. We use `capacity` as a mask when wrapping
-the string's hash key:
+the string's hash key.
 
 ^code find-string-index (4 before, 2 after)
 
-And also when the linear probing wraps around:
+And also when the linear probing wraps around.
 
 ^code find-string-next (3 before, 1 after)
 
-These are actual optimizations. This function is only called when interning
+These are real optimizations. This function is only called when interning
 strings, which wasn't heavily stressed by our benchmark. But a Lox program that
 created lots of strings might noticeably benefit from this change.
 
@@ -448,26 +447,26 @@ created lots of strings might noticeably benefit from this change.
 
 There are a few places in the memory management code where we access a hash
 table's capacity. First, using a `<=` in the loop when we mark all of the
-entries in a table:
+entries in a table.
 
 ^code mark-table (1 before, 1 after)
 
-And another one in the loop to remove unmarked entries from the string table:
+And another one in the loop to remove unmarked entries from the string table.
 
 ^code remove-white (1 before, 1 after)
 
 Finally, the garbage collector tracks the amount of memory freed, so it needs an
-accurate count of the entry array size:
+accurate count of the entry array size.
 
 ^code free-table (1 before, 1 after)
 
 That's our last `+ 1`! That was a lot of plumbing just to turn a couple of `%`
-operators into a `&`.
+operators into `&`.
 
 Let's see if it was worth it. I tweaked that zoological benchmark to count how
 many <span name="batch">batches</span> of 10,000 calls it can run in ten
 seconds. More batches equals faster performance. On my machine using the
-unoptimized code, the benchmark gets through 3,192 batches. With this
+unoptimized code, the benchmark gets through 3,192 batches. After this
 optimization, that jumps to 6,249.
 
 <img src="image/optimization/hash-chart.png" alt="Bar chart comparing the performance before and after the optimization." />
@@ -483,11 +482,11 @@ the board. Almost every Lox program benefits.
 
 Our original benchmark fixed the amount of *work* and then measured the *time*.
 Changing the script to count how many batches of calls it can do in ten seconds
-fixes the time and measures the work. For performance comparisons, I like that
-style of benchmark because the reported number represents *speed*. You can
-directly compare the numbers before and after an optimization. When measuring
-execution time, you have to do a little arithmetic to get to a good relative
-measure of performance.
+fixes the time and measures the work. For performance comparisons, I like the
+latter measure because the reported number represents *speed*. You can directly
+compare the numbers before and after an optimization. When measuring execution
+time, you have to do a little arithmetic to get to a good relative measure of
+performance.
 
 </aside>
 
@@ -505,10 +504,10 @@ toolbox.
 To reinforce that point, let's go ahead and run the same benchmark in our
 now-optimized VM and see what the profiler shows us. On my machine, `tableGet()`
 is still a fairly large chunk of execution time. That's to be expected for a
-dynamically-typed language. But it has dropped from 72% of the total execution
+dynamically typed language. But it has dropped from 72% of the total execution
 time down to 35%. That's much more in line with what we'd like to see and shows
 that our optimization didn't just make the program faster, but made it faster
-*in the way we expected*. Profilers are useful for verifying solutions just as
+*in the way we expected*. Profilers are as useful for verifying solutions as
 they are for discovering problems.
 
 ## NaN Boxing
@@ -564,7 +563,7 @@ number is already using the full 8 bytes, where could we squirrel away a couple
 of extra bits to tell the runtime "this is a number"?
 
 This is one of the perennial problems for dynamic language hackers. It
-particularly bugs them because statically-typed languages don't generally have
+particularly bugs them because statically typed languages don't generally have
 this problem. The type of each value is known at compile time, so no extra
 memory is needed at runtime to track it. When your C compiler compiles a 32-bit
 int, the resulting variable gets *exactly* 32 bits of storage.
@@ -573,7 +572,7 @@ Dynamic language folks hate losing ground to the static camp, so they've come up
 with a number of very clever ways to pack type information and a payload into a
 small number of bits. NaN boxing is one of those. It's a particularly good fit
 for languages like JavaScript and Lua where all numbers are double-precision
-floating point. Lox is in that same boat.
+floating point. Lox is in that same camp.
 
 ### What is (and is not) a number?
 
@@ -621,7 +620,7 @@ indeed, IEEE 754 does distinguish those.
 The important part for our purposes is that the spec carves out a special case
 exponent. When all of the exponent bits are set, then instead of just
 representing a really big number, the value has a different meaning. These
-values are "not a number" (hence, "NaN") values. They represent concepts like
+values are "Not a Number" (hence, **NaN**) values. They represent concepts like
 infinity or the result of division by zero.
 
 *Any* double whose exponent bits are all set is a NaN, regardless of the
@@ -716,7 +715,7 @@ Values -- vary based on whether this flag is set. The rest of the VM can
 continue along its merry way.
 
 Most of the work happens in the "value" module where we add a section for the
-new type:
+new type.
 
 ^code nan-boxing (2 before, 1 after)
 
@@ -727,7 +726,7 @@ bitwise operations and uint64_t is a much friendlier type for that. Outside of
 this module, the rest of the VM doesn't really care one way or the other.
 
 Before we start re-implementing those macros, we close the `#else` branch of the
-`#ifdef` at the end of the definitions for the old representation:
+`#ifdef` at the end of the definitions for the old representation.
 
 ^code end-if-nan-boxing (1 before, 2 after)
 
@@ -776,7 +775,7 @@ Here's the first macro:
 
 ^code number-val (1 before, 2 after)
 
-That macro passes the double to:
+That macro passes the double here:
 
 ^code num-to-value (1 before, 2 after)
 
@@ -788,7 +787,9 @@ bytes as the input.
 
 Fortunately, because this *is* the supported idiom for type punning, most
 compilers recognize the pattern and <span name="union">optimize</span> away the
-`memcpy()` entirely. "Unwrapping" a Lox number is the mirror image:
+`memcpy()` entirely.
+
+"Unwrapping" a Lox number is the mirror image.
 
 <aside name="union" class="bottom">
 
@@ -817,15 +818,14 @@ That macro calls this function:
 It works exactly the same except we swap the types. Again, the compiler will
 eliminate all of it. Even though those calls to `memcpy()` will disappear, we
 still need to show the compiler *which* `memcpy()` we're calling so we also need
-an include:
+an include.
 
 ^code include-string (1 before, 2 after)
 
 That was a lot of code to ultimately do nothing but silence the C type checker.
 Doing a runtime type *test* on a Lox number is a little more interesting. If all
 we have are exactly the bits for a double, how do we tell that it *is* a double?
-
-It's time to get bit twiddling:
+It's time to get bit twiddling.
 
 ^code is-number (1 before, 2 after)
 
@@ -839,6 +839,7 @@ more for good measure, we can be <span name="certain">pretty certain</span> it
 is one of the bit patterns we ourselves have set aside for other types. To check
 that, we mask out all of the bits except for our set of quiet NaN bits. If *all*
 of those bits are set, it must be a NaN-boxed value of some other Lox type.
+Otherwise, it is actually a number.
 
 <aside name="certain">
 
@@ -854,7 +855,7 @@ The set of quiet NaN bits are declared like this:
 ^code qnan (1 before, 2 after)
 
 It would be nice if C supported binary literals. But if you do the conversion,
-you'll see that value is the same as:
+you'll see that value is the same as this:
 
 <img src="image/optimization/qnan.png" alt="The quiet NaN bits." />
 
@@ -865,8 +866,8 @@ to dodge that Intel value.
 
 The next type to handle is `nil`. That's pretty simple since there's only one
 `nil` value and thus we only need a single bit pattern to represent it. There
-are two other singleton values, the two Booleans `true` and `false`. This calls
-for three unique bit patterns.
+are two other singleton values, the two Booleans `true` and `false` which calls
+for three total unique bit patterns.
 
 Two bits gives us four different combinations, which is plenty. We claim the two
 lowest bits of our unused mantissa space as a "type tag" to determine which of
@@ -880,7 +881,7 @@ quiet NaN representation along with the `nil` type tag bits:
 
 <img src="image/optimization/nil.png" alt="The bit representation of the nil value." />
 
-In code, that's:
+In code, we check the bits like so:
 
 ^code nil-val (2 before, 1 after)
 
@@ -888,39 +889,39 @@ We simply bitwise or the quiet NaN bits and the type tag, and then do a little
 cast dance to teach the C compiler what we want those bits to mean.
 
 Since `nil` has only a single bit representation, we can use equality on
-uint64_t to see if a Value is `nil`:
+uint64_t to see if a Value is `nil`.
 
 <span name="equal"></span>
 
 ^code is-nil (2 before, 1 after)
 
-You can guess how we define the `true` and `false` values:
+You can guess how we define the `true` and `false` values.
 
 ^code false-true-vals (2 before, 1 after)
 
-The bits look like this:
+The bits look like this.
 
 <img src="image/optimization/bools.png" alt="The bit representation of the true and false values." />
 
 To convert a C bool into a Lox Boolean, we rely on these two singleton values
-and the good old conditional operator:
+and the good old conditional operator.
 
 ^code bool-val (2 before, 1 after)
 
-There's probably a more clever bitwise way to do this, but my hunch is that the
+There's probably a cleverer bitwise way to do this, but my hunch is that the
 compiler can figure one out faster than I can. Going the other direction is
-simpler:
+simpler.
 
 ^code as-bool (2 before, 1 after)
 
 Since we know there are exactly two Boolean bit representations in Lox -- unlike
 in C where any non-zero value can be considered "true" -- if it ain't `true`, it
 must be `false`. This macro does assume you only call it on a Value that you
-know *is* a Lox Boolean. To check that, there's one more macro:
+know *is* a Lox Boolean. To check that, there's one more macro.
 
 ^code is-bool (2 before, 1 after)
 
-That looks a little strange. A more obvious macro would look like:
+That looks a little strange. A more obvious macro would look like this:
 
 ```c
 #define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)
@@ -934,7 +935,9 @@ Instead, we bitwise or a 1 onto the value to merge the only two valid Boolean
 bit patterns. That leaves three potential states the value could be in:
 
 1. It was `FALSE_VAL` and has now been converted to `TRUE_VAL`.
+
 2. It was `TRUE_VAL` and the `| 1` did nothing and it's still `TRUE_VAL`.
+
 3. It's some other non-Boolean value.
 
 At that point, we can simply compare the result to `TRUE_VAL` to see if we're
@@ -973,8 +976,8 @@ Obj:
 
 <img src="image/optimization/obj.png" alt="Bit representation of an Obj* stored in a Value." />
 
-To convert a raw Obj pointer to a Value, we simply take the pointer and set all
-of the quiet NaN bits and the sign bit:
+To convert a raw Obj pointer to a Value, we take the pointer and set all of the
+quiet NaN bits and the sign bit.
 
 ^code obj-val (1 before, 2 after)
 
@@ -1001,7 +1004,7 @@ We define the sign bit like so:
 
 ^code sign-bit (2 before, 2 after)
 
-To get the Obj pointer back out, we simply mask off all of those extra bits:
+To get the Obj pointer back out, we simply mask off all of those extra bits.
 
 ^code as-obj (1 before, 2 after)
 
@@ -1029,7 +1032,7 @@ encoding directly. We need to fix those too.
 
 The first is `printValue()`. It has separate code for each value type. We no
 longer have an explicit type enum we can switch on so instead we use a series
-of type tests to handle each kind of value:
+of type tests to handle each kind of value.
 
 ^code print-value (1 before, 1 after)
 
@@ -1037,11 +1040,11 @@ This is technically a tiny bit slower than a switch, but compared to the
 overhead of actually writing to a stream, it's negligible.
 
 We still support the original tagged union representation, so we keep the old
-code and enclose it in the `#else` conditional section:
+code and enclose it in the `#else` conditional section.
 
 ^code end-print-value (1 before, 1 after)
 
-The other operation is testing two values for equality:
+The other operation is testing two values for equality.
 
 ^code values-equal (1 before, 1 after)
 
@@ -1072,7 +1075,7 @@ with our old tagged union representation because the `VAL_NUMBER` case applies
 generates the right CPU instruction to perform an IEEE floating-point equality.
 
 Our new representation breaks that by defining Value to be a uint64_t. If we
-want to be *fully* compliant with IEEE 754, we need to handle this case:
+want to be *fully* compliant with IEEE 754, we need to handle this case.
 
 ^code nan-equality (1 before, 1 after)
 
@@ -1091,7 +1094,7 @@ Object and compare them using `equals()`, which is how jlox implements equality.
 </aside>
 
 Finally, we close the conditional compilation section around the old
-implementation:
+implementation.
 
 ^code end-values-equal (1 before, 1 after)
 
@@ -1170,10 +1173,11 @@ journey?
 
 Most of you probably won't spend a significant part of your career working in
 compilers or interpreters. It's a pretty small slice of the computer science
-pie, and an even smaller segment of software engineering in industry. That's OK.
-Even if you never work on a compiler again in your life, you will certainly
-*use* one, and I hope this book has equipped you with a better understanding of
-how the programming languages you use are designed and implemented.
+academia pie, and an even smaller segment of software engineering in industry.
+That's OK. Even if you never work on a compiler again in your life, you will
+certainly *use* one, and I hope this book has equipped you with a better
+understanding of how the programming languages you use are designed and
+implemented.
 
 You have also learned a handful of important, fundamental data structures, and
 gotten some practice doing low-level profiling and optimization work. That kind
@@ -1240,8 +1244,8 @@ are some suggestions for which branches in the tunnel to explore:
     do whatever you want with them. Go to town.
 
     If you make significant changes to the language, it would be good to also
-    change the name, mostly to avoid confusing people about what "Lox" refers
-    to.
+    change the name, mostly to avoid confusing people about what the name "Lox"
+    represents.
 
     </aside>
 
@@ -1259,8 +1263,7 @@ way you go, or don't go, there is one lesson I hope to lodge in your heart. Like
 I was, you may have initially been intimidated by programming languages. But in
 these chapters, you've seen that even really challenging material can be tackled
 by us mortals if we get our hands dirty and take it a step at a time. If you can
-handle compilers and interpreters, you can do that with anything you put your
-mind to.
+handle compilers and interpreters, you can do anything you put your mind to.
 
 [mit license]: https://en.wikipedia.org/wiki/MIT_License
 [source]: https://github.com/munificent/craftinginterpreters
@@ -1294,6 +1297,6 @@ something to do during your summer vacation:
 
     The more you understand your personal learning style, the more effectively
     you can upload knowledge into your head. You can specifically target
-    material that teaches the way you learn best.
+    material that teaches you the way you learn best.
 
 </div>

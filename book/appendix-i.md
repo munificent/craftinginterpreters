@@ -6,7 +6,7 @@ place.
 
 The syntactic grammar is used to parse the linear sequence of tokens into the
 nested syntax tree structure. It starts with the first rule that matches an
-entire Lox program (or a single REPL entry):
+entire Lox program (or a single REPL entry).
 
 ```ebnf
 program        → declaration* EOF ;
@@ -15,7 +15,7 @@ program        → declaration* EOF ;
 ### Declarations
 
 A program is a series of declarations, which are the statements that bind new
-identifiers or any of the other statement types:
+identifiers or any of the other statement types.
 
 ```ebnf
 declaration    → classDecl
@@ -32,7 +32,7 @@ varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 ### Statements
 
 The remaining statement rules produce side effects, but do not introduce
-bindings:
+bindings.
 
 ```ebnf
 statement      → exprStmt
@@ -63,7 +63,7 @@ couple of other rules for things like function bodies.
 Expressions produce values. Lox has a number of unary and binary operators with
 different levels of precedence. Some grammars for languages do not directly
 encode the precedence relationships and specify that elsewhere. Here, we use a
-separate rule for each precedence level to make it explicit:
+separate rule for each precedence level to make it explicit.
 
 ```ebnf
 expression     → assignment ;
@@ -88,7 +88,7 @@ primary        → "true" | "false" | "nil" | "this"
 ### Utility Rules
 
 In order to keep the above rules a little cleaner, some of the grammar is
-split out into a few reused helper rules:
+split out into a few reused helper rules.
 
 ```ebnf
 function       → IDENTIFIER "(" parameters? ")" block ;
