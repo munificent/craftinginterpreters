@@ -203,7 +203,7 @@ type. Any time we call one of the `AS_` macros, we need to guard it behind a
 call to one of these first. With these eight macros, we can now safely shuttle
 data between Lox's dynamic world and C's static one.
 
-<aside name="universe">
+<aside name="universe" class="negate">
 
 <img src="image/types-of-values/universe.png" alt="The earthly C firmament with the Lox heavens above.">
 
