@@ -985,7 +985,7 @@ in some -- arbitrary at this point -- line number.
 
 ^code main-chunk-line (1 before, 2 after)
 
-Once we have a read front end, of course, the compiler will track the current
+Once we have a real front end, of course, the compiler will track the current
 line as it parses and pass that in.
 
 Now that we have line information for every instruction, let's put it to good
