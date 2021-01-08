@@ -350,11 +350,11 @@ underlying C operator they use. To minimize redundant code between the four
 operators, we wrapped up the commonality in a big preprocessor macro that takes
 the operator token as a parameter.
 
-That macro seemed like overkill in the [last chapter][], but we get the benefit
+That macro seemed like overkill a [few chapters ago][], but we get the benefit
 from it today. It lets us add the necessary type checking and conversions in one
 place.
 
-[last chapter]: compiling-expressions.html
+[few chapters ago]: a-virtual-machine.html#binary-operators
 
 ^code binary-op (2 before, 2 after)
 
