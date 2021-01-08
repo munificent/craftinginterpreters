@@ -414,8 +414,8 @@ to get the performance we want, the important part is that it *scales* based on
 the old size. We grow by a factor of two, which is pretty typical. 1.5&times; is
 another common choice.
 
-We also handle the when the current capacity is zero. In that case, we jump
-straight to eight elements instead of starting at one. That <span
+We also handle when the current capacity is zero. In that case, we jump straight
+to eight elements instead of starting at one. That <span
 name="profile">avoids</span> a little extra memory churn when the array is very
 small, at the expense of wasting a few bytes on very small chunks.
 
