@@ -1008,7 +1008,7 @@ OK, now back to calls...
 ### Runtime error checking
 
 The overlapping stack windows work based on the assumption that a call passes
-exactly as many arguments as the function declare parameters. But, again,
+exactly as many arguments as the function declares parameters. But, again,
 because Lox ain't statically typed, a foolish user could pass too many or too
 few arguments. In Lox, we've defined that to be a runtime error, which we report
 like so:
