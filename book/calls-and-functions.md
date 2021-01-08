@@ -989,9 +989,9 @@ already on the stack line up with the function's parameters:
 
 <img src="image/calls-and-functions/arithmetic.png" alt="The arithmetic to calculate frame-&gt;slots from stackTop and argCount." />
 
-The funny little `- 1` is to skip over local slot zero, which contains the
-function being called. That slot isn't used right now, but will be when we get
-to methods.
+The funny little `- 1` is to account for stack slot zero which the compiler set
+aside for when we add methods later. The parameters start at slot one so we
+make the window start one slot earlier to align them with the arguments.
 
 Before we move on, let's add the new instruction to our disassembler.
 
