@@ -270,19 +270,22 @@ terminal, so we add that. Now our string looks like:
 ```
 
 The next non-terminal is `breakfast` again. The first `breakfast` production we
-chose recursively refers back to the `breakfast` rule. Recursion like this
-usually indicates that the language is context-free instead of regular. In
-particular, this kind of nested recursion where the recursive nonterminal has
-productions on <span name="nest">both</span> sides of it means that it's not
-regular.
+chose recursively refers back to the `breakfast` rule. Recursion in the grammar
+is a good sign that the language being defined is context-free instead of
+regular. In particular, recursion where the recursive nonterminal has
+productions on <span name="nest">both</span> sides implies that the language is
+not regular.
 
 <aside name="nest">
 
 Imagine that we've recursively expanded the `breakfast` rule here several times,
-like "bacon with bacon with bacon with bacon ...". In order to complete the
-string, we'll need to add an *equal* number of "on the side" bits to the end.
-Keeping track of that number of trailing parts is beyond the capabilities of a
-simple regular grammar. A regular grammar can *repeat*, but it can't *count*.
+like "bacon with bacon with bacon with...". In order to complete the string
+correctly, we need to add an *equal* number of "on the side" bits to the end.
+Keeping track of the number of required trailing parts is beyond the
+capabilities of a regular grammar. Regular grammars can express *repetition*,
+but they can't *keep count* of how many repetitions there are, which is
+necessary to ensure that the string has the same number of `with` and `on the
+side` parts.
 
 </aside>
 
