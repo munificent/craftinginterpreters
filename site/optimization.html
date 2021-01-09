@@ -945,23 +945,8 @@ slow. Create a local variable. Pass its address to the operating system through
 a syscall to copy a few bytes. Then return the result, which is the exact same
 bytes as the input.</p>
 <p>Fortunately, because this <em>is</em> the supported idiom for type punning, most
-compilers recognize the pattern and <span name="union">optimize</span> away the
-<code>memcpy()</code> entirely.</p>
+compilers recognize the pattern and optimize away the <code>memcpy()</code> entirely.</p>
 <p>&ldquo;Unwrapping&rdquo; a Lox number is the mirror image.</p>
-<aside name="union" class="bottom">
-<p>On the off chance you find yourself with a compiler that does not optimize this
-away, try this trick instead:</p>
-<div class="codehilite"><pre>
-<span class="t">double</span> <span class="i">valueToNum</span>(<span class="t">Value</span> <span class="i">value</span>) {
-  <span class="k">union</span> {
-    <span class="t">uint64_t</span> <span class="i">bits</span>;
-    <span class="t">double</span> <span class="i">num</span>;
-  } <span class="i">data</span>;
-  <span class="i">data</span>.<span class="i">bits</span> = <span class="i">value</span>;
-  <span class="k">return</span> <span class="i">data</span>.<span class="i">num</span>;
-}
-</pre></div>
-</aside>
 <div class="codehilite"><pre class="insert-before">
 typedef uint64_t Value;
 </pre><div class="source-file"><em>value.h</em></div>
@@ -992,9 +977,23 @@ static inline Value numToValue(double num) {
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>It works exactly the same except we swap the types. Again, the compiler will
-eliminate all of it. Even though those calls to <code>memcpy()</code> will disappear, we
-still need to show the compiler <em>which</em> <code>memcpy()</code> we&rsquo;re calling so we also need
-an include.</p>
+eliminate all of it. Even though those calls to
+<code>memcpy()</code> will disappear, we still need to show the compiler <em>which</em> <code>memcpy()</code>
+we&rsquo;re calling so we also need an <span name="union">include</span>.</p>
+<aside name="union" class="bottom">
+<p>If you find yourself with a compiler that does not optimize the <code>memcpy()</code> away,
+try this instead:</p>
+<div class="codehilite"><pre>
+<span class="t">double</span> <span class="i">valueToNum</span>(<span class="t">Value</span> <span class="i">value</span>) {
+  <span class="k">union</span> {
+    <span class="t">uint64_t</span> <span class="i">bits</span>;
+    <span class="t">double</span> <span class="i">num</span>;
+  } <span class="i">data</span>;
+  <span class="i">data</span>.<span class="i">bits</span> = <span class="i">value</span>;
+  <span class="k">return</span> <span class="i">data</span>.<span class="i">num</span>;
+}
+</pre></div>
+</aside>
 <div class="codehilite"><pre class="insert-before">
 #define clox_value_h
 </pre><div class="source-file"><em>value.h</em></div>

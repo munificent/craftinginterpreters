@@ -786,15 +786,25 @@ a syscall to copy a few bytes. Then return the result, which is the exact same
 bytes as the input.
 
 Fortunately, because this *is* the supported idiom for type punning, most
-compilers recognize the pattern and <span name="union">optimize</span> away the
-`memcpy()` entirely.
+compilers recognize the pattern and optimize away the `memcpy()` entirely.
 
 "Unwrapping" a Lox number is the mirror image.
 
+^code as-number (1 before, 2 after)
+
+That macro calls this function:
+
+^code value-to-num (1 before, 2 after)
+
+It works exactly the same except we swap the types. Again, the compiler will
+eliminate all of it. Even though those calls to
+`memcpy()` will disappear, we still need to show the compiler *which* `memcpy()`
+we're calling so we also need an <span name="union">include</span>.
+
 <aside name="union" class="bottom">
 
-On the off chance you find yourself with a compiler that does not optimize this
-away, try this trick instead:
+If you find yourself with a compiler that does not optimize the `memcpy()` away,
+try this instead:
 
 ```c
 double valueToNum(Value value) {
@@ -808,17 +818,6 @@ double valueToNum(Value value) {
 ```
 
 </aside>
-
-^code as-number (1 before, 2 after)
-
-That macro calls this function:
-
-^code value-to-num (1 before, 2 after)
-
-It works exactly the same except we swap the types. Again, the compiler will
-eliminate all of it. Even though those calls to `memcpy()` will disappear, we
-still need to show the compiler *which* `memcpy()` we're calling so we also need
-an include.
 
 ^code include-string (1 before, 2 after)
 
