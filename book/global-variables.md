@@ -536,8 +536,8 @@ onto the stack.
 
 ^code disassemble-get-global (1 before, 1 after)
 
-A little bit of disassembling, and we're done. Our interpreter now able to run
-code like this:
+A little bit of disassembling, and we're done. Our interpreter is now able to
+run code like this:
 
 ```lox
 var beverage = "cafe au lait";
