@@ -517,8 +517,8 @@ publication.
     During marking, when we first reach an object, we darken it gray. This color
     means we know the object itself is reachable and should not be collected.
     But we have not yet traced *through* it to see what *other* objects it
-    references. In graph algorithm terms, this is the *worklist* -- the set of
-    objects we know about but haven't processed yet.
+    references. In graph algorithm terms, gray objects form the *worklist* --
+    the set of objects we know about but haven't processed yet.
 
 *   **Black** <img src="image/garbage-collection/black.png" class="dot" />
     &ndash; When we take a gray object and mark all of the objects it
