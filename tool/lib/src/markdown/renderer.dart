@@ -132,9 +132,6 @@ class XmlRenderer implements NodeVisitor {
       _pushTag("aside");
     } else if (text.startsWith("</aside>")) {
       _popTag();
-    // } else if (text.startsWith("<location")) {
-      // _endBlock();
-      // _buffer.write(text);
     } else if (text.startsWith("<cite>")) {
       // End the <quote> block and push placeholder <cite> tag. This way when
       // the blockquote is popped, there is a tag to pop.
