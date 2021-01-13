@@ -165,8 +165,26 @@ $ make test_java  # Every chapter's version of jlox.
 $ make test_all   # All of the above.
 ```
 
-You are more than welcome to use the test suite and the test runner to test
-your own Lox implementation.
+### Testing your implementation
+
+You are welcome to use the test suite and the test runner to test your own Lox
+implementation. The test runner is at `tool/bin/test.dart` and can be given a
+custom interpreter executable to run using `--interpreter`. For example, if you
+had an interpreter executable at `my_code/boblox`, you could test it like:
+
+```sh
+$ dart tool/bin/test.dart clox --interpreter my_code/boblox
+```
+
+You still need to tell it which suite of tests to run because that determines
+the test expectations. If your interpreter should behave like jlox, use "jlox"
+as the suite name. If it behaves like clox, use "clox". If your interpreter is
+only complete up to the end of one of the chapters in the book, you can use
+that chapter as the suite, like "chap10_functions". See the Makefile for the
+names of all of the chapters.
+
+If your interpreter needs other command line arguments passed to use, pass them
+to the test runner using `--arguments` and it will forward to your interpreter.
 
 ## Repository Layout
 

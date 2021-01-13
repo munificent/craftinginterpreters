@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
@@ -21,45 +22,81 @@ var _failed = 0;
 var _skipped = 0;
 var _expectations = 0;
 
-Interpreter _interpreter;
+Suite _suite;
 String _filterPath;
+String _customInterpreter;
+List<String> _customArguments;
 
-final _allSuites = <String, Interpreter>{};
+final _allSuites = <String, Suite>{};
 final _cSuites = <String>[];
 final _javaSuites = <String>[];
 
-class Interpreter {
+class Suite {
   final String name;
   final String language;
   final String executable;
   final List<String> args;
   final Map<String, String> tests;
 
-  Interpreter(this.name, this.language, this.executable, this.args, this.tests);
+  Suite(this.name, this.language, this.executable, this.args, this.tests);
 }
 
 void main(List<String> arguments) {
   _defineTestSuites();
 
-  if (arguments.length < 1 || arguments.length > 2) {
-    print("Usage: test.dart <interpreter> [filter]");
-    exit(1);
+  var parser = ArgParser();
+
+  parser.addOption("interpreter", abbr: "i", help: "Path to interpreter.");
+  parser.addMultiOption("arguments",
+      abbr: "a", help: "Additional interpreter arguments.");
+
+  var options = parser.parse(arguments);
+
+  if (options.rest.isEmpty) {
+    _usageError(parser, "Missing suite name.");
+  } else if (options.rest.length > 2) {
+    _usageError(
+        parser, "Unexpected arguments '${options.rest.skip(2).join(' ')}'.");
   }
 
-  if (arguments.length == 2) _filterPath = arguments[1];
+  var suite = options.rest[0];
+  if (options.rest.length == 2) _filterPath = arguments[1];
 
-  if (arguments[0] == "all") {
+  if (options.wasParsed("interpreter")) {
+    _customInterpreter = options["interpreter"] as String;
+  }
+
+  if (options.wasParsed("arguments")) {
+    _customArguments = options["arguments"] as List<String>;
+
+    if (_customInterpreter == null) {
+      _usageError(parser,
+          "Must pass an interpreter path if providing custom arguments.");
+    }
+  }
+
+  if (suite == "all") {
     _runSuites(_allSuites.keys.toList());
-  } else if (arguments[0] == "c") {
+  } else if (suite == "c") {
     _runSuites(_cSuites);
-  } else if (arguments[0] == "java") {
+  } else if (suite == "java") {
     _runSuites(_javaSuites);
-  } else if (!_allSuites.containsKey(arguments[0])) {
-    print("Unknown interpreter '${arguments[0]}'");
+  } else if (!_allSuites.containsKey(suite)) {
+    print("Unknown interpreter '$suite'");
     exit(1);
-  } else if (!_runSuite(arguments[0])) {
+  } else if (!_runSuite(suite)) {
     exit(1);
   }
+}
+
+void _usageError(ArgParser parser, String message) {
+  print(message);
+  print("");
+  print("Usage: test.dart <suites> [filter] [custom interpreter...]");
+  print("");
+  print("Optional custom interpreter options:");
+  print(parser.usage);
+  exit(1);
 }
 
 void _runSuites(List<String> names) {
@@ -73,7 +110,7 @@ void _runSuites(List<String> names) {
 }
 
 bool _runSuite(String name) {
-  _interpreter = _allSuites[name];
+  _suite = _allSuites[name];
 
   _passed = 0;
   _failed = 0;
@@ -178,8 +215,8 @@ class Test {
       if (subpath.isNotEmpty) subpath += "/";
       subpath += part;
 
-      if (_interpreter.tests.containsKey(subpath)) {
-        state = _interpreter.tests[subpath];
+      if (_suite.tests.containsKey(subpath)) {
+        state = _suite.tests[subpath];
       }
     }
 
@@ -223,7 +260,7 @@ class Test {
         // the tests can indicate if an error line should only appear for a
         // certain interpreter.
         var language = match[2];
-        if (language == null || language == _interpreter.language) {
+        if (language == null || language == _suite.language) {
           _expectedErrors.add("[${match[3]}] ${match[4]}");
 
           // If we expect a compile error, it should exit with EX_DATAERR.
@@ -256,8 +293,11 @@ class Test {
 
   /// Invoke the interpreter and run the test.
   List<String> run() {
-    var args = [..._interpreter.args, _path];
-    var result = Process.runSync(_interpreter.executable, args);
+    var args = [
+      if (_customArguments != null) ...?_customArguments else ..._suite.args,
+      _path
+    ];
+    var result = Process.runSync(_customInterpreter ?? _suite.executable, args);
 
     // Normalize Windows line endings.
     var outputLines = const LineSplitter().convert(result.stdout as String);
@@ -391,13 +431,13 @@ class Test {
 void _defineTestSuites() {
   void c(String name, Map<String, String> tests) {
     var executable = name == "clox" ? "build/cloxd" : "build/$name";
-    _allSuites[name] = Interpreter(name, "c", executable, [], tests);
+    _allSuites[name] = Suite(name, "c", executable, [], tests);
     _cSuites.add(name);
   }
 
   void java(String name, Map<String, String> tests) {
     var dir = name == "jlox" ? "build/java" : "build/gen/$name";
-    _allSuites[name] = Interpreter(name, "java", "java",
+    _allSuites[name] = Suite(name, "java", "java",
         ["-cp", dir, "com.craftinginterpreters.lox.Lox"], tests);
     _javaSuites.add(name);
   }

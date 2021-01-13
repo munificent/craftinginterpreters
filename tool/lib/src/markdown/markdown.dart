@@ -21,8 +21,7 @@ String renderMarkdown(Book book, Page page, List<String> lines,
     ApostropheSyntax(xml: xml),
     SmartQuoteSyntax(xml: xml),
     EmDashSyntax(xml: xml),
-    if (xml)
-      NewlineSyntax(),
+    if (xml) NewlineSyntax(),
   ], extensionSet: ExtensionSet.gitHubFlavored);
 
   var ast = document.parseLines(lines);
