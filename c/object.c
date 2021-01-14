@@ -213,16 +213,16 @@ static void printFunction(ObjFunction* function) {
 //> print-object
 void printObject(Value value) {
   switch (OBJ_TYPE(value)) {
-//> Classes and Instances print-class
-    case OBJ_CLASS:
-      printf("%s", AS_CLASS(value)->name->chars);
-      break;
-//< Classes and Instances print-class
 //> Methods and Initializers print-bound-method
     case OBJ_BOUND_METHOD:
       printFunction(AS_BOUND_METHOD(value)->method->function);
       break;
 //< Methods and Initializers print-bound-method
+//> Classes and Instances print-class
+    case OBJ_CLASS:
+      printf("%s", AS_CLASS(value)->name->chars);
+      break;
+//< Classes and Instances print-class
 //> Closures print-closure
     case OBJ_CLOSURE:
       printFunction(AS_CLOSURE(value)->function);
