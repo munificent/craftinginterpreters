@@ -16,7 +16,7 @@ final _endChapterPattern = RegExp(r"^//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)$");
 // Hacky regexes that matches various declarations.
 final _constructorPattern = RegExp(r"^  ([A-Z][a-z]\w+)\(");
 final _functionPattern = RegExp(r"(\w+)>*\*? (\w+)\(([^)]*)");
-final _modulePattern = RegExp(r"^(\w+) (\w+);");
+final _variablePattern = RegExp(r"^\w+\*? (\w+)(;| = )");
 final _structPattern = RegExp(r"^struct (\w+)? {$");
 final _typePattern =
     RegExp(r"(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)");
@@ -162,7 +162,7 @@ class SourceFileParser {
       return;
     }
 
-    match = _modulePattern.firstMatch(line);
+    match = _variablePattern.firstMatch(line);
     if (match != null) {
       _location = Location(_location, "variable", match[1]);
       return;
