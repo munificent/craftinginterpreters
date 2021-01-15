@@ -294,8 +294,6 @@ heap-allocated Environment class, we have the bytecode VM's value stack and
 upvalue system. The machinery is a little different, but the overall effect is
 the same.
 
----
-
 ### A superclass local variable
 
 Our compiler already emits code to load the superclass onto the stack. Instead
