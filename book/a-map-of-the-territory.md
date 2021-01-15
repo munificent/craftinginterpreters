@@ -565,10 +565,10 @@ vegetables, like tomatoes.
 
 <aside name="veg">
 
-Peanuts (which are not even nuts) and cereals like wheat are actually fruit, but
-I got this drawing wrong. What can I say, I'm a software engineer, not a
-botanist. I should probably erase the little peanut guy, but he's so cute that I
-can't bear to.
+Peanuts (which are not even true nuts) and cereals like wheat are actually
+fruit, but I got this drawing wrong. What can I say, I'm a software engineer,
+not a botanist. I should probably erase the little peanut guy, but he's so cute
+that I can't bear to.
 
 Now *pine nuts*, on the other hand, are plant-based foods that are neither
 fruits nor vegetables. At least as far as I can tell.
