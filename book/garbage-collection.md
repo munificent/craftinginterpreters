@@ -129,9 +129,11 @@ fun makeClosure() {
   return f;
 }
 
-var closure = makeClosure();
-// GC here.
-closure();
+{
+  var closure = makeClosure();
+  // GC here.
+  closure();
+}
 ```
 
 Say we pause the program on the marked line and run the garbage collector. When
