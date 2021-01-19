@@ -330,8 +330,8 @@ numbers, the first evaluates to `0.006`, while the second yields
 
 </aside>
 
-All of this is correct, but the fact that the first nonterminal in the body of
-the rule is the same as the head of the rule means this production is
+All of this is correct, but the fact that the first symbol in the body of the
+rule is the same as the head of the rule means this production is
 **left-recursive**. Some parsing techniques, including the one we're going to
 use, have trouble with left recursion. (Recursion elsewhere, like we have in
 `unary` and the indirect recursion for grouping in `primary` are not a problem.)
