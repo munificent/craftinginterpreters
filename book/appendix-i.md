@@ -85,7 +85,7 @@ primary        → "true" | "false" | "nil" | "this"
                | "super" "." IDENTIFIER ;
 ```
 
-### Utility Rules
+### Utility rules
 
 In order to keep the above rules a little cleaner, some of the grammar is
 split out into a few reused helper rules.
