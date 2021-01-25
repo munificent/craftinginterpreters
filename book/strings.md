@@ -522,7 +522,7 @@ is to do.
 
 <aside name="borrowed">
 
-I've seen a number of people implement large swathes of their language before
+I've seen a number of people implement large swaths of their language before
 trying to start on the GC. For the kind of toy programs you typically run while
 a language is being developed, you actually don't run out of memory before
 reaching the end of the program, so this gets you surprisingly far.
