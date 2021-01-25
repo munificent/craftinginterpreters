@@ -7,8 +7,8 @@ reaching the end. If this book is your first entry into the country, welcome.
 The pages of this book give you a guided tour through some of the world of
 languages. But before we strap on our hiking boots and venture out, we should
 familiarize ourselves with the territory. The chapters in this part introduce
-you to the basic concepts used by programming languages and how they are
-organized.
+you to the basic concepts used by programming languages and how those concepts
+are organized.
 
 We will also get acquainted with Lox, the language we'll spend the rest of the
-book implementing (twice). Let's go!
+book implementing (twice).
