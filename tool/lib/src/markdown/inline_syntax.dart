@@ -6,10 +6,14 @@ class EllipseSyntax extends InlineSyntax {
 
   EllipseSyntax({bool xml = false})
       : _isXml = xml,
-        super(r"\.\.\.", startCharacter: $dot);
+        super(r"\.\.\. ?", startCharacter: $dot);
 
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Text(_isXml ? "&#8230;" : "&hellip;"));
+    // A Unicode ellipsis doesn't have as much space between the dots as
+    // Chicago style mandates so do our own thing.
+    parser.addNode(Text(_isXml
+        ? "&#8230;"
+        : '<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>'));
     return true;
   }
 }
