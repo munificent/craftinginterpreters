@@ -53,7 +53,7 @@ their virtues.
 
 I'm surely biased, but I think Lox's syntax is pretty clean. C's most egregious
 grammar problems are around types. Dennis Ritchie had this idea called
-"[declaration reflects use][use]" where variable declarations mirror the
+"[declaration reflects use][use]", where variable declarations mirror the
 operations you would have to perform on the variable to get to a value of the
 base type. Clever idea, but I don't think it worked out great in practice.
 
@@ -63,7 +63,7 @@ Lox doesn't have static types, so we avoid that.
 
 </aside>
 
-What C-like syntax has instead is something you'll find is often more valuable
+What C-like syntax has instead is something you'll often find more valuable
 in a language: *familiarity*. I know you are already comfortable with that style
 because the two languages we'll be using to *implement* Lox -- Java and C --
 also inherit it. Using a similar syntax for Lox gives you one less thing to
@@ -94,7 +94,7 @@ but it was once a cute little language.
 
 Because Eich slapped JS together with roughly the same raw materials and time as
 an episode of MacGyver, it has some weird semantic corners where the duct tape
-and paper clips show through. Things like variable hoisting, dynamically-bound
+and paper clips show through. Things like variable hoisting, dynamically bound
 `this`, holes in arrays, and implicit conversions.
 
 I had the luxury of taking my time on Lox, so it should be a little cleaner.
@@ -125,7 +125,7 @@ statically typed.
 
 ### Automatic memory management
 
-High-level languages exist to eliminate error-prone, low-level drudgery and what
+High-level languages exist to eliminate error-prone, low-level drudgery, and what
 could be more tedious than manually managing the allocation and freeing of
 storage? No one rises and greets the morning sun with, "I can't wait to figure
 out the correct place to call `free()` for every byte of memory I allocate
@@ -133,11 +133,11 @@ today!"
 
 There are two main <span name="gc">techniques</span> for managing memory:
 **reference counting** and **tracing garbage collection** (usually just called
-**"garbage collection"** or **"GC"**). Ref counters are much simpler to
-implement -- I think that's why Perl, PHP, and Python all started out using
-them. But, over time, the limitations of ref counting become too troublesome.
-All of those languages eventually ended up adding a full tracing GC or at least
-enough of one to clean up object cycles.
+**garbage collection** or **GC**). Ref counters are much simpler to implement --
+I think that's why Perl, PHP, and Python all started out using them. But, over
+time, the limitations of ref counting become too troublesome. All of those
+languages eventually ended up adding a full tracing GC, or at least enough of
+one to clean up object cycles.
 
 <aside name="gc">
 
@@ -164,7 +164,7 @@ implement.
 In Lox's little universe, the atoms that make up all matter are the built-in
 data types. There are only a few:
 
-*   **<span name="bool">Booleans</span> –** You can't code without logic and you
+*   **<span name="bool">Booleans</span>.** You can't code without logic and you
     can't logic without Boolean values. "True" and "false", the yin and yang of
     software. Unlike some ancient languages that repurpose an existing type to
     represent truth and falsehood, Lox has a dedicated Boolean type. We may
@@ -180,28 +180,28 @@ data types. There are only a few:
 
     </aside>
 
-    There are two Boolean values, obviously, and a literal for each one:
+    There are two Boolean values, obviously, and a literal for each one.
 
     ```lox
     true;  // Not false.
     false; // Not *not* false.
     ```
 
-*   **Numbers –** Lox only has one kind of number: double-precision floating
-    point. Since floating point numbers can also represent a wide range of
+*   **Numbers.** Lox has only one kind of number: double-precision floating
+    point. Since floating-point numbers can also represent a wide range of
     integers, that covers a lot of territory, while keeping things simple.
 
     Full-featured languages have lots of syntax for numbers -- hexadecimal,
     scientific notation, octal, all sorts of fun stuff. We'll settle for basic
-    integer and decimal literals:
+    integer and decimal literals.
 
     ```lox
     1234;  // An integer.
     12.34; // A decimal number.
     ```
 
-*   **Strings –** We've already seen one string literal in the first example.
-    Like most languages, they are enclosed in double quotes:
+*   **Strings.** We've already seen one string literal in the first example.
+    Like most languages, they are enclosed in double quotes.
 
     ```lox
     "I am a string";
@@ -216,12 +216,12 @@ data types. There are only a few:
     <aside name="char">
 
     Even that word "character" is a trickster. Is it ASCII? Unicode? A
-    code point, or a "grapheme cluster"? How are characters encoded? Is each
+    code point or a "grapheme cluster"? How are characters encoded? Is each
     character a fixed size, or can they vary?
 
     </aside>
 
-*   **Nil –** There's one last built-in value who's never invited to the party
+*   **Nil.** There's one last built-in value who's never invited to the party
     but always seems to show up. It represents "no value". It's called "null" in
     many other languages. In Lox we spell it `nil`. (When we get to implementing
     it, that will help distinguish when we're talking about Lox's `nil` versus
@@ -229,8 +229,8 @@ data types. There are only a few:
 
     There are good arguments for not having a null value in a language since
     null pointer errors are the scourge of our industry. If we were doing a
-    statically-typed language, it would be worth trying to ban it. In a
-    dynamically-typed one, though, eliminating it is often more annoying
+    statically typed language, it would be worth trying to ban it. In a
+    dynamically typed one, though, eliminating it is often more annoying
     than having it.
 
 ## Expressions
@@ -254,14 +254,14 @@ The subexpressions on either side of the operator are **operands**. Because
 there are *two* of them, these are called **binary** operators. (It has nothing
 to do with the ones-and-zeroes use of "binary".) Because the operator is <span
 name="fixity">fixed</span> *in* the middle of the operands, these are also
-called **infix** operators as opposed to **prefix** operators where the operator
-comes before and **postfix** where it follows the operand.
+called **infix** operators (as opposed to **prefix** operators where the
+operator comes before the operands, and **postfix** where it comes after).
 
 <aside name="fixity">
 
-There are some operators that have more than two operands and where the
-operators are interleaved between them. The only one in wide usage is the
-"conditional" or "ternary" operator of C and friends:
+There are some operators that have more than two operands and the operators are
+interleaved between them. The only one in wide usage is the "conditional" or
+"ternary" operator of C and friends:
 
 ```c
 condition ? thenArm : elseArm;
@@ -273,7 +273,7 @@ operators and control how they are positioned -- their "fixity".
 </aside>
 
 One arithmetic operator is actually *both* an infix and a prefix one. The `-`
-operator can also be used to negate a number:
+operator can also be used to negate a number.
 
 ```lox
 -negateMe;
@@ -286,7 +286,7 @@ strings to concatenate them.
 ### Comparison and equality
 
 Moving along, we have a few more operators that always return a Boolean result.
-We can compare numbers (and only numbers), using Ye Olde Comparison Operators:
+We can compare numbers (and only numbers), using Ye Olde Comparison Operators.
 
 ```lox
 less < than;
@@ -295,20 +295,20 @@ greater > than;
 greaterThan >= orEqual;
 ```
 
-We can test two values of any kind for equality or inequality:
+We can test two values of any kind for equality or inequality.
 
 ```lox
 1 == 2;         // false.
 "cat" != "dog"; // true.
 ```
 
-Even different types:
+Even different types.
 
 ```lox
 314 == "pi"; // false.
 ```
 
-Values of different types are *never* equivalent:
+Values of different types are *never* equivalent.
 
 ```lox
 123 == "123"; // false.
@@ -319,7 +319,7 @@ I'm generally against implicit conversions.
 ### Logical operators
 
 The not operator, a prefix `!`, returns `false` if its operand is true, and vice
-versa:
+versa.
 
 ```lox
 !true;  // false.
@@ -329,7 +329,7 @@ versa:
 The other two logical operators really are control flow constructs in the guise
 of expressions. An <span name="and">`and`</span> expression determines if two
 values are *both* true. It returns the left operand if it's false, or the
-right operand otherwise:
+right operand otherwise.
 
 ```lox
 true and false; // false.
@@ -337,7 +337,7 @@ true and true;  // true.
 ```
 
 And an `or` expression determines if *either* of two values (or both) are true.
-It returns the left operand if it is true and the right operand otherwise:
+It returns the left operand if it is true and the right operand otherwise.
 
 ```lox
 false or false; // false.
@@ -355,10 +355,10 @@ structures and not simple operators.
 
 </aside>
 
-The reason `and` and `or` are like control flow structures is because they
+The reason `and` and `or` are like control flow structures is that they
 **short-circuit**. Not only does `and` return the left operand if it is false,
-it doesn't even *evaluate* the right one in that case. Conversely,
-("contrapositively"?) if the left operand of an `or` is true, the right is
+it doesn't even *evaluate* the right one in that case. Conversely
+(contrapositively?), if the left operand of an `or` is true, the right is
 skipped.
 
 ### Precedence and grouping
@@ -366,7 +366,7 @@ skipped.
 All of these operators have the same precedence and associativity that you'd
 expect coming from C. (When we get to parsing, we'll get *way* more precise
 about that.) In cases where the precedence isn't what you want, you can use `()`
-to group stuff:
+to group stuff.
 
 ```lox
 var average = (min + max) / 2;
@@ -414,7 +414,7 @@ statement-hood. This is called (imaginatively enough), an **expression
 statement**.
 
 If you want to pack a series of statements where a single one is expected, you
-can wrap them up in a block:
+can wrap them up in a block.
 
 ```lox
 {
@@ -428,7 +428,7 @@ Blocks also affect scoping, which leads us to the next section...
 ## Variables
 
 You declare variables using `var` statements. If you <span
-name="omit">omit</span> the initializer, the variable's value defaults to `nil`:
+name="omit">omit</span> the initializer, the variable's value defaults to `nil`.
 
 <aside name="omit">
 
@@ -443,7 +443,7 @@ var imAVariable = "here is my value";
 var iAmNil;
 ```
 
-Once declared, you can, naturally, access and assign a variable using its name:
+Once declared, you can, naturally, access and assign a variable using its name.
 
 <span name="breakfast"></span>
 
@@ -463,12 +463,12 @@ anything to eat?
 
 I won't get into the rules for variable scope here, because we're going to spend
 a surprising amount of time in later chapters mapping every square inch of the
-rules. In most cases, it works like you expect coming from C or Java.
+rules. In most cases, it works like you would expect coming from C or Java.
 
 ## Control Flow
 
 It's hard to write <span name="flow">useful</span> programs if you can't skip
-some code, or execute some more than once. That means control flow. In addition
+some code or execute some more than once. That means control flow. In addition
 to the logical operators we already covered, Lox lifts three statements straight
 from C.
 
@@ -484,7 +484,7 @@ relies on dynamic dispatch for selectively executing code.
 
 </aside>
 
-An `if` statement executes one of two statements based on some condition:
+An `if` statement executes one of two statements based on some condition.
 
 ```lox
 if (condition) {
@@ -495,7 +495,7 @@ if (condition) {
 ```
 
 A `while` <span name="do">loop</span> executes the body repeatedly as long as
-the condition expression evaluates to true:
+the condition expression evaluates to true.
 
 ```lox
 var a = 1;
@@ -513,7 +513,7 @@ it to your implementation if it makes you happy. It's your party.
 
 </aside>
 
-Finally, we have `for` loops:
+Finally, we have `for` loops.
 
 ```lox
 for (var a = 1; a < 10; a = a + 1) {
@@ -539,28 +539,28 @@ later, but I didn't think doing so would teach you anything super interesting.
 
 ## Functions
 
-A function call expression looks the same as it does in C:
+A function call expression looks the same as it does in C.
 
 ```lox
 makeBreakfast(bacon, eggs, toast);
 ```
 
-You can also call a function without passing anything to it:
+You can also call a function without passing anything to it.
 
 ```lox
 makeBreakfast();
 ```
 
-Unlike, say, Ruby, the parentheses are mandatory in this case. If you leave them
+Unlike in, say, Ruby, the parentheses are mandatory in this case. If you leave them
 off, it doesn't *call* the function, it just refers to it.
 
 A language isn't very fun if you can't define your own functions. In Lox, you do
-that with <span name="fun">`fun`</span>:
+that with <span name="fun">`fun`</span>.
 
 <aside name="fun">
 
 I've seen languages that use `fn`, `fun`, `func`, and `function`. I'm still
-hoping to discover a `funct`, `functi` or `functio` somewhere.
+hoping to discover a `funct`, `functi`, or `functio` somewhere.
 
 </aside>
 
@@ -585,11 +585,11 @@ of downy hairs around semantics, so let's sharpen our words. From here on out:
 
 <aside name="define">
 
-Speaking of terminology, some statically-typed languages like C make a
-distinction between *declaring* a function and *defining* it. The declaration
-binds the function's type to its name so calls can be type-checked but does not
-provide a body. The definition also fills in the body of the function so that it
-can be compiled.
+Speaking of terminology, some statically typed languages like C make a
+distinction between *declaring* a function and *defining* it. A declaration
+binds the function's type to its name so that calls can be type-checked but does
+not provide a body. A definition declares the function and also fills in the
+body so that the function can be compiled.
 
 Since Lox is dynamically typed, this distinction isn't meaningful. A function
 declaration fully specifies the function including its body.
@@ -597,7 +597,7 @@ declaration fully specifies the function including its body.
 </aside>
 
 The body of a function is always a block. Inside it, you can return a value
-using a `return` statement:
+using a `return` statement.
 
 ```lox
 fun returnSum(a, b) {
@@ -632,7 +632,7 @@ print identity(addPair)(1, 2); // Prints "3".
 ```
 
 Since function declarations are statements, you can declare local functions
-inside another function:
+inside another function.
 
 ```lox
 fun outerFunction() {
@@ -675,23 +675,23 @@ happen to close over any variables.
 
 <aside name="closure">
 
-Peter J. Landin coined the term. Yes, he coined damn near half the terms in
-programming languages. Most of them came out of one incredible paper, "[The Next
-700 Programming Languages][svh]".
+Peter J. Landin coined the term "closure". Yes, he invented damn near half the
+terms in programming languages. Most of them came out of one incredible paper,
+"[The Next 700 Programming Languages][svh]".
 
 [svh]: https://homepages.inf.ed.ac.uk/wadler/papers/papers-we-love/landin-next-700.pdf
 
 In order to implement these kind of functions, you need to create a data
-structure that bundles together the function's code, and the surrounding
-variables it needs. He called this a "closure" because it "closes over" and
-holds onto the variables it needs.
+structure that bundles together the function's code and the surrounding
+variables it needs. He called this a "closure" because it *closes over* and
+holds on to the variables it needs.
 
 </aside>
 
 As you can imagine, implementing these adds some complexity because we can no
 longer assume variable scope works strictly like a stack where local variables
 evaporate the moment the function returns. We're going to have a fun time
-learning how to make these work and do so efficiently.
+learning how to make these work correctly and efficiently.
 
 ## Classes
 
@@ -709,14 +709,14 @@ Now that object-oriented languages like Java have sold out and only play arena
 shows, it's not cool to like them anymore. Why would anyone make a *new*
 language with objects? Isn't that like releasing music on 8-track?
 
-It is true that the "all inheritance all the time" binge of the 90s produced
-some monstrous class hierarchies, but object-oriented programming is still
-pretty rad. Billions of lines of successful code have been written in OOP
-languages, shipping millions of apps to happy users. Likely a majority of
-working programmers today are using an object-oriented language. They can't all
-be *that* wrong.
+It is true that the "all inheritance all the time" binge of the &rsquo;90s
+produced some monstrous class hierarchies, but **object-oriented programming**
+(**OOP**) is still pretty rad. Billions of lines of successful code have been
+written in OOP languages, shipping millions of apps to happy users. Likely a
+majority of working programmers today are using an object-oriented language.
+They can't all be *that* wrong.
 
-In particular, for a dynamically-typed language, objects are pretty handy. We
+In particular, for a dynamically typed language, objects are pretty handy. We
 need *some* way of defining compound data types to bundle blobs of stuff
 together.
 
@@ -739,7 +739,7 @@ world could use a little documentation on how to *make* one. As you'll see, it
 turns out to be pretty interesting. Not as hard as you might fear, but not as
 simple as you might presume, either.
 
-### Classes or prototypes?
+### Classes or prototypes
 
 When it comes to objects, there are actually two approaches to them, [classes][]
 and [prototypes][]. Classes came first, and are more common thanks to C++, Java,
@@ -749,7 +749,7 @@ accidentally took over the world.
 [classes]: https://en.wikipedia.org/wiki/Class-based_programming
 [prototypes]: https://en.wikipedia.org/wiki/Prototype-based_programming
 
-In a class-based language, there are two core concepts: instances and classes.
+In class-based languages, there are two core concepts: instances and classes.
 Instances store the state for each object and have a reference to the instance's
 class. Classes contain the methods and inheritance chain. To call a method on an
 instance, there is always a level of indirection. You look up the instance's
@@ -775,19 +775,19 @@ happy to let you attach methods to individual instances.
 
 <img src="image/the-lox-language/prototype-lookup.png" alt="How fields and methods are looked up in a prototypal system" />
 
-This means prototypal languages are more fundamental in some way than classes.
-They are really neat to implement because they're *so* simple. Also, they can
-express lots of unusual patterns that classes steer you away from.
+This means that in some ways prototypal languages are more fundamental than
+classes. They are really neat to implement because they're *so* simple. Also,
+they can express lots of unusual patterns that classes steer you away from.
 
 But I've looked at a *lot* of code written in prototypal languages -- including
 [some of my own devising][finch]. Do you know what people generally do with all
-of the power and flexibility of prototypes? ...They use it to reinvent
+of the power and flexibility of prototypes? ...They use them to reinvent
 classes.
 
 [finch]: http://finch.stuffwithstuff.com/
 
 I don't know *why* that is, but people naturally seem to prefer a class-based
-("Classic"? "Classy"?) style. Prototypes *are* simpler in the language, but they
+(Classic? Classy?) style. Prototypes *are* simpler in the language, but they
 seem to accomplish that only by <span name="waterbed">pushing</span> the
 complexity onto the user. So, for Lox, we'll save our users the trouble and bake
 classes right in.
@@ -796,7 +796,7 @@ classes right in.
 
 Larry Wall, Perl's inventor/prophet calls this the "[waterbed theory][]". Some
 complexity is essential and cannot be eliminated. If you push it down in one
-place it swells up in another.
+place, it swells up in another.
 
 [waterbed theory]: http://wiki.c2.com/?WaterbedTheory
 
@@ -828,7 +828,7 @@ The body of a class contains its methods. They look like function declarations
 but without the `fun` <span name="method">keyword</span>. When the class
 declaration is executed, Lox creates a class object and stores that in a
 variable named after the class. Just like functions, classes are first class in
-Lox:
+Lox.
 
 <aside name="method">
 
@@ -846,8 +846,8 @@ someFunction(Breakfast);
 
 Next, we need a way to create instances. We could add some sort of `new`
 keyword, but to keep things simple, in Lox the class itself is a factory
-function for instances. Call a class like a function and it produces a new
-instance of itself:
+function for instances. Call a class like a function, and it produces a new
+instance of itself.
 
 ```lox
 var breakfast = Breakfast();
@@ -858,8 +858,8 @@ print breakfast; // "Breakfast instance".
 
 Classes that only have behavior aren't super useful. The idea behind
 object-oriented programming is encapsulating behavior *and state* together. To
-do that, you need fields. Lox, like other dynamically-typed languages, lets you
-freely add properties onto objects:
+do that, you need fields. Lox, like other dynamically typed languages, lets you
+freely add properties onto objects.
 
 ```lox
 breakfast.meat = "sausage";
@@ -869,7 +869,7 @@ breakfast.bread = "sourdough";
 Assigning to a field creates it if it doesn't already exist.
 
 If you want to access a field or method on the current object from within a
-method, you use good old `this`:
+method, you use good old `this`.
 
 ```lox
 class Breakfast {
@@ -886,7 +886,7 @@ Part of encapsulating data within an object is ensuring the object is in a valid
 state when it's created. To do that, you can define an initializer. If your
 class has a method named `init()`, it is called automatically when the object is
 constructed. Any parameters passed to the class are forwarded to its
-initializer:
+initializer.
 
 ```lox
 class Breakfast {
@@ -908,7 +908,7 @@ baconAndToast.serve("Dear Reader");
 Every object-oriented language lets you not only define methods, but reuse them
 across multiple classes or objects. For that, Lox supports single inheritance.
 When you declare a class, you can specify a class that it inherits from using a less-than
-<span name="less">(`<`)</span> operator:
+<span name="less">(`<`)</span> operator.
 
 ```lox
 class Brunch < Breakfast {
@@ -933,8 +933,9 @@ than the superclass's set, though type nerds usually use `<:` for that relation.
 </aside>
 
 Here, Brunch is the **derived class** or **subclass**, and Breakfast is the
-**base class** or **superclass**. Every method defined in the superclass is also
-available to its subclasses:
+**base class** or **superclass**.
+
+Every method defined in the superclass is also available to its subclasses.
 
 ```lox
 var benedict = Brunch("ham", "English muffin");
@@ -949,12 +950,12 @@ our own *methods*.
 
 <aside name="init">
 
-Lox is different from C++, Java, and C# which do not inherit constructors, but
-similar to Smalltalk and Ruby which do.
+Lox is different from C++, Java, and C#, which do not inherit constructors, but
+similar to Smalltalk and Ruby, which do.
 
 </aside>
 
-As in Java, you use `super` for that:
+As in Java, you use `super` for that.
 
 ```lox
 class Brunch < Breakfast {
@@ -989,7 +990,7 @@ that, we already have the built-in `print` statement.
 
 Later, when we start optimizing, we'll write some benchmarks and see how long it
 takes to execute code. That means we need to track time, so we'll define one
-built-in function `clock()` that returns the number of seconds since the
+built-in function, `clock()`, that returns the number of seconds since the
 program started.
 
 And... that's it. I know, right? It's embarrassing.
@@ -998,7 +999,7 @@ If you wanted to turn Lox into an actual useful language, the very first thing
 you should do is flesh this out. String manipulation, trigonometric functions,
 file I/O, networking, heck, even *reading input from the user* would help. But we
 don't need any of that for this book, and adding it wouldn't teach you anything
-interesting, so I left it out.
+interesting, so I've left it out.
 
 Don't worry, we'll have plenty of exciting stuff in the language itself to keep
 us busy.
