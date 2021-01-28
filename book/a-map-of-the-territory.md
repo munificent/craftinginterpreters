@@ -1,12 +1,12 @@
 > You must have a map, no matter how rough. Otherwise you wander all over the
-> place. In "The Lord of the Rings" I never made anyone go farther than he could
+> place. In *The Lord of the Rings* I never made anyone go farther than he could
 > on a given day.
 >
-> <cite>J.R.R. Tolkien</cite>
+> <cite>J. R. R. Tolkien</cite>
 
 We don't want to wander all over the place, so before we set off, let's scan
 the territory charted by previous language implementers. It will help us
-understand where we are going and alternate routes others take.
+understand where we are going and the alternate routes others have taken.
 
 First, let me establish a shorthand. Much of this book is about a language's
 *implementation*, which is distinct from the *language itself* in some sort of
@@ -31,9 +31,9 @@ storage, the way we build programming languages is virtually unchanged.
 Though the area explored by language designers is vast, the trails they've
 carved through it are <span name="dead">few</span>. Not every language takes the
 exact same path -- some take a shortcut or two -- but otherwise they are
-reassuringly similar from Rear Admiral Grace Hopper's first COBOL compiler all
-the way to some hot new transpile-to-JavaScript language whose "documentation"
-consists entirely of a single poorly-edited README in a Git repository
+reassuringly similar, from Rear Admiral Grace Hopper's first COBOL compiler all
+the way to some hot, new, transpile-to-JavaScript language whose "documentation"
+consists entirely of a single, poorly edited README in a Git repository
 somewhere.
 
 <aside name="dead">
@@ -48,9 +48,9 @@ I visualize the network of paths an implementation may choose as climbing a
 mountain. You start off at the bottom with the program as raw source text,
 literally just a string of characters. Each phase analyzes the program and
 transforms it to some higher-level representation where the semantics -- what
-the author wants the computer to do -- becomes more apparent.
+the author wants the computer to do -- become more apparent.
 
-Eventually we reach the peak. We have a bird's-eye view of the users's program
+Eventually we reach the peak. We have a bird's-eye view of the user's program
 and can see what their code *means*. We begin our descent down the other side of
 the mountain. We transform this highest-level representation down to
 successively lower-level forms to get closer and closer to something we know how
@@ -85,7 +85,7 @@ and identifiers (`min`).
 </aside>
 
 Some characters in a source file don't actually mean anything. Whitespace is
-often insignificant and comments, by definition, are ignored by the language.
+often insignificant, and comments, by definition, are ignored by the language.
 The scanner usually discards these, leaving a clean sequence of meaningful
 tokens.
 
@@ -101,10 +101,10 @@ overflowing cornucopia of ambiguity. Programming languages are much simpler.
 
 A **parser** takes the flat sequence of tokens and builds a tree structure that
 mirrors the nested nature of the grammar. These trees have a couple of different
-names -- **"parse tree"** or **"abstract syntax tree"** -- depending on how
+names -- **parse tree** or **abstract syntax tree** -- depending on how
 close to the bare syntactic structure of the source language they are. In
-practice, language hackers usually call them **"syntax trees"**, **"ASTs"**, or
-often just **"trees"**.
+practice, language hackers usually call them **syntax trees**, **ASTs**, or
+often just **trees**.
 
 <img src="image/a-map-of-the-territory/ast.png" alt="An abstract syntax tree." />
 
@@ -113,7 +113,7 @@ artificial intelligence community. Many of the techniques used today to parse
 programming languages were originally conceived to parse *human* languages by AI
 researchers who were trying to get computers to talk to us.
 
-It turns out human languages are too messy for the rigid grammars those parsers
+It turns out human languages were too messy for the rigid grammars those parsers
 could handle, but they were a perfect fit for the simpler artificial grammars of
 programming languages. Alas, we flawed humans still manage to use those simple
 grammars incorrectly, so the parser's job also includes letting us know when we
@@ -124,14 +124,14 @@ do by reporting **syntax errors**.
 The first two stages are pretty similar across all implementations. Now, the
 individual characteristics of each language start coming into play. At this
 point, we know the syntactic structure of the code -- things like which
-expressions are nested in which others -- but we don't know much more than that.
+expressions are nested in which -- but we don't know much more than that.
 
 In an expression like `a + b`, we know we are adding `a` and `b`, but we don't
 know what those names refer to. Are they local variables? Global? Where are they
 defined?
 
 The first bit of analysis that most languages do is called **binding** or
-**resolution**. For each **identifier** we find out where that name is defined
+**resolution**. For each **identifier**, we find out where that name is defined
 and wire the two together. This is where **scope** comes into play -- the region
 of source code where a certain name can be used to refer to a certain
 declaration.
@@ -157,7 +157,7 @@ away:
   itself -- extra fields in the nodes that aren't initialized during parsing
   but get filled in later.
 
-* Other times, we may store data in a look-up table off to the side. Typically,
+* Other times, we may store data in a lookup table off to the side. Typically,
   the keys to this table are identifiers -- names of variables and declarations.
   In that case, we call it a **symbol table** and the values it associates with
   each key tell us what that identifier refers to.
@@ -171,8 +171,8 @@ implementation. You might guess everything after this is the **back end**, but
 no. Back in the days of yore when "front end" and "back end" were coined,
 compilers were much simpler. Later researchers invented new phases to stuff
 between the two halves. Rather than discard the old terms, William Wulf and
-company lumped them into the charming but spatially paradoxical name **middle
-end**.
+company lumped those new phases into the charming but spatially paradoxical name
+**middle end**.
 
 ### Intermediate representations
 
@@ -183,9 +183,9 @@ source language the program is written in. The back end is concerned with the
 final architecture where the program will run.
 
 In the middle, the code may be stored in some <span name="ir">**intermediate
-representation**</span> (or **IR**) that isn't tightly tied to either the source
-or destination forms (hence "intermediate"). Instead, the IR acts as an
-interface between these two languages.
+representation**</span> (**IR**) that isn't tightly tied to either the source or
+destination forms (hence "intermediate"). Instead, the IR acts as an interface
+between these two languages.
 
 <aside name="ir">
 
@@ -196,7 +196,7 @@ of choice and look for "control flow graph", "static single-assignment",
 </aside>
 
 This lets you support multiple source languages and target platforms with less
-effort. Say you want to implement Pascal, C and Fortran compilers and you want
+effort. Say you want to implement Pascal, C, and Fortran compilers, and you want
 to target x86, ARM, and, I dunno, SPARC. Normally, that means you're signing up
 to write *nine* full compilers: Pascal&rarr;x86, C&rarr;ARM, and every other
 combination.
@@ -230,13 +230,13 @@ efficiently -- we can **optimize** it.
 
 A simple example is **constant folding**: if some expression always evaluates to
 the exact same value, we can do the evaluation at compile time and replace the
-code for the expression with its result. If the user typed in:
+code for the expression with its result. If the user typed in this:
 
 ```java
 pennyArea = 3.14159 * (0.75 / 2) * (0.75 / 2);
 ```
 
-We can do all of that arithmetic in the compiler and change the code to:
+we could do all of that arithmetic in the compiler and change the code to:
 
 ```java
 pennyArea = 0.4417860938;
@@ -265,7 +265,7 @@ replacement of aggregates", "dead code elimination", and "loop unrolling".
 
 We have applied all of the optimizations we can think of to the user's program.
 The last step is converting it to a form the machine can actually run. In other
-words **generating code** (or **code gen**), where "code" here usually refers to
+words, **generating code** (or **code gen**), where "code" here usually refers to
 the kind of primitive assembly-like instructions a CPU runs and not the kind of
 "source code" a human might want to read.
 
@@ -283,15 +283,15 @@ luggage bay.
 
 Speaking the chip's language also means your compiler is tied to a specific
 architecture. If your compiler targets [x86][] machine code, it's not going to
-run on an [ARM][] device. All the way back in the 60s, during the Cambrian
-explosion of computer architectures, that lack of portability was a real
-obstacle.
+run on an [ARM][] device. All the way back in the &rsquo;60s, during the
+Cambrian explosion of computer architectures, that lack of portability was a
+real obstacle.
 
 <aside name="aad">
 
 For example, the [AAD][] ("ASCII Adjust AX Before Division") instruction lets
-you perform division, which sounds useful. Except that instruction takes as
-operands two binary-coded decimal digits packed into a single 16-bit register.
+you perform division, which sounds useful. Except that instruction takes, as
+operands, two binary-coded decimal digits packed into a single 16-bit register.
 When was the last time *you* needed BCD on a 16-bit machine?
 
 [aad]: http://www.felixcloutier.com/x86/AAD.html
@@ -304,7 +304,7 @@ When was the last time *you* needed BCD on a 16-bit machine?
 To get around that, hackers like Martin Richards and Niklaus Wirth, of BCPL and
 Pascal fame, respectively, made their compilers produce *virtual* machine code.
 Instead of instructions for some real chip, they produced code for a
-hypothetical, idealized machine. Wirth called this **"p-code"** for "portable",
+hypothetical, idealized machine. Wirth called this **p-code** for *portable*,
 but today, we generally call it **bytecode** because each instruction is often a
 single byte long.
 
@@ -436,8 +436,8 @@ first interpreter rolls this way.
 <aside name="ruby">
 
 A notable exception is early versions of Ruby, which were tree walkers. At 1.9,
-the canonical implementation of Ruby switched from the original MRI ("Matz' Ruby
-Interpreter") to Koichi Sasada's YARV ("Yet Another Ruby VM"). YARV is a
+the canonical implementation of Ruby switched from the original MRI (Matz's Ruby
+Interpreter) to Koichi Sasada's YARV (Yet Another Ruby VM). YARV is a
 bytecode virtual machine.
 
 </aside>
@@ -471,14 +471,14 @@ then efficiently map it to the register set of the 8086.
 
 It was written by Gary Kildall, a tragic hero of computer science if there
 ever was one. One of the first people to recognize the promise of
-microcomputers, he created PL/M and CP/M, the first high level language and OS
+microcomputers, he created PL/M and CP/M, the first high-level language and OS
 for them.
 
-He was a sea captain, business owner, licensed pilot, and motorcyclist. A TV host
-with the Kris Kristofferson-esque look sported by dashing bearded dudes in the
-80s. He took on Bill Gates and, like many, lost, before meeting his end
-in a biker bar under mysterious circumstances. He died too young, but sure as
-hell lived before he did.
+He was a sea captain, business owner, licensed pilot, and motorcyclist. A TV
+host with the Kris Kristofferson-esque look sported by dashing bearded dudes in
+the &rsquo;80s. He took on Bill Gates and, like many, lost, before meeting his
+end in a biker bar under mysterious circumstances. He died too young, but sure
+as hell lived before he did.
 
 </aside>
 
@@ -499,10 +499,10 @@ your code running in a browser.
 <aside name="js">
 
 JS used to be the *only* way to execute code in a browser. Thanks to
-[Web Assembly][], compilers now have a second, lower-level language they can
+[WebAssembly][], compilers now have a second, lower-level language they can
 target that runs on the web.
 
-[web assembly]: https://github.com/webassembly/
+[webassembly]: https://github.com/webassembly/
 
 </aside>
 
@@ -511,28 +511,28 @@ compilers. Then, if the source language is only a simple syntactic skin over the
 target language, it may skip analysis entirely and go straight to outputting the
 analogous syntax in the destination language.
 
-If the two languages are more semantically different, then you'll see more of
-the typical phases of a full compiler including analysis and possibly even
+If the two languages are more semantically different, you'll see more of the
+typical phases of a full compiler including analysis and possibly even
 optimization. Then, when it comes to code generation, instead of outputting some
 binary language like machine code, you produce a string of grammatically correct
 source (well, destination) code in the target language.
 
 Either way, you then run that resulting code through the output language's
-existing compilation pipeline and you're good to go.
+existing compilation pipeline, and you're good to go.
 
 ### Just-in-time compilation
 
-This last one is less of a shortcut and more a dangerous alpine scramble best
+This last one is less a shortcut and more a dangerous alpine scramble best
 reserved for experts. The fastest way to execute code is by compiling it to
 machine code, but you might not know what architecture your end user's machine
 supports. What to do?
 
-You can do the same thing that the HotSpot JVM, Microsoft's CLR and most
+You can do the same thing that the HotSpot JVM, Microsoft's CLR, and most
 JavaScript interpreters do. On the end user's machine, when the program is
 loaded -- either from source in the case of JS, or platform-independent bytecode
 for the JVM and CLR -- you compile it to native for the architecture their
 computer supports. Naturally enough, this is called **just-in-time
-compilation.** Most hackers just say "JIT", pronounced like it rhymes with
+compilation**. Most hackers just say "JIT", pronounced like it rhymes with
 "fit".
 
 The most sophisticated JITs insert profiling hooks into the generated code to
@@ -550,13 +550,13 @@ This is, of course, exactly where the HotSpot JVM gets its name.
 
 Now that I've stuffed your head with a dictionary's worth of programming
 language jargon, we can finally address a question that's plagued coders since
-time immemorial: "What's the difference between a compiler and an interpreter?"
+time immemorial: What's the difference between a compiler and an interpreter?
 
 It turns out this is like asking the difference between a fruit and a vegetable.
 That seems like a binary either-or choice, but actually "fruit" is a *botanical*
 term and "vegetable" is *culinary*. One does not strictly imply the negation of
 the other. There are fruits that aren't vegetables (apples) and vegetables that
-are not fruits (carrots), but also edible plants that are both fruits *and*
+aren't fruits (carrots), but also edible plants that are both fruits *and*
 vegetables, like tomatoes.
 
 <span name="veg"></span></span>
@@ -565,10 +565,10 @@ vegetables, like tomatoes.
 
 <aside name="veg">
 
-Peanuts (which are not even true nuts) and cereals like wheat are actually
-fruit, but I got this drawing wrong. What can I say, I'm a software engineer,
-not a botanist. I should probably erase the little peanut guy, but he's so cute
-that I can't bear to.
+Peanuts (which are not even nuts) and cereals like wheat are actually fruit, but
+I got this drawing wrong. What can I say, I'm a software engineer, not a
+botanist. I should probably erase the little peanut guy, but he's so cute that I
+can't bear to.
 
 Now *pine nuts*, on the other hand, are plant-based foods that are neither
 fruits nor vegetables. At least as far as I can tell.
@@ -580,7 +580,7 @@ So, back to languages:
 * **Compiling** is an *implementation technique* that involves translating a
   source language to some other -- usually lower-level -- form. When you
   generate bytecode or machine code, you are compiling. When you transpile to
-  another high-level language you are compiling too.
+  another high-level language, you are compiling too.
 
 * When we say a language implementation "is a **compiler**", we mean it
   translates source code to some other form but doesn't execute it. The user has
@@ -595,7 +595,7 @@ interpreters. GCC and Clang take your C code and compile it to machine code. An
 end user runs that executable directly and may never even know which tool was
 used to compile it. So those are *compilers* for C.
 
-In older versions of Matz' canonical implementation of Ruby, the user ran Ruby
+In older versions of Matz's canonical implementation of Ruby, the user ran Ruby
 from source. The implementation parsed it and executed it directly by traversing
 the syntax tree. No other translation occurred, either internally or in any
 user-visible form. So this was definitely an *interpreter* for Ruby.
@@ -614,7 +614,7 @@ this way, as you can see:
 
 The [Go tool][go] is even more of a horticultural curiosity. If you run `go
 build`, it compiles your Go source code to machine code and stops. If you type
-`go run`, it does that then immediately executes the generated executable.
+`go run`, it does that, then immediately executes the generated executable.
 
 So `go` *is* a compiler (you can use it as a tool to compile code without
 running it), *is* an interpreter (you can invoke it to immediately run a program
@@ -657,12 +657,12 @@ Henceforth, I promise to tone down the whole mountain metaphor thing.
 
 1. Pick an open source implementation of a language you like. Download the
    source code and poke around in it. Try to find the code that implements the
-   scanner and parser. Are they hand-written, or generated using tools like
+   scanner and parser. Are they handwritten, or generated using tools like
    Lex and Yacc? (`.l` or `.y` files usually imply the latter.)
 
-1. Just-in-time compilation tends to be the fastest way to implement a
-   dynamically-typed language, but not all of them use it. What reasons are
-   there to *not* JIT?
+1. Just-in-time compilation tends to be the fastest way to implement dynamically
+   typed languages, but not all of them use it. What reasons are there to *not*
+   JIT?
 
 1. Most Lisp implementations that compile to C also contain an interpreter that
    lets them execute Lisp code on the fly as well. Why?
