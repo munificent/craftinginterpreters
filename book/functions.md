@@ -92,7 +92,7 @@ other expressions, each preceded by a comma. To handle zero-argument calls, the
 
 I admit, this seems more grammatically awkward than you'd expect for the
 incredibly common "zero or more comma-separated things" pattern. There are some
-sophisticated metasyntaxes that handle this better, but in our EBNF and many
+sophisticated metasyntaxes that handle this better, but in our BNF and many
 language specs I've seen, it is this cumbersome.
 
 Over in our syntax tree generator, we add a <span name="call-ast">new

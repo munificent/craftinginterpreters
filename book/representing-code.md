@@ -4,8 +4,8 @@
 
 In the [last chapter][scanning], we took the raw source code as a string and
 transformed it into a slightly higher-level representation: a series of tokens.
-The parser we'll write in [the next chapter][parsing] takes those tokens and
-transforms them yet again to an even richer, more complex representation.
+The parser we'll write in the [next chapter][parsing] takes those tokens and
+transforms them yet again, into an even richer, more complex representation.
 
 [scanning]: scanning.html
 [parsing]: parsing-expressions.html
@@ -122,19 +122,19 @@ Oof. Maybe a table will help:
 </thead>
 <tbody>
 <tr>
-  <td>The &ldquo;alphabet&rdquo; is&hellip;</td>
+  <td>The &ldquo;alphabet&rdquo; is<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></td>
   <td>&rarr;&ensp;</td>
   <td>Characters</td>
   <td>Tokens</td>
 </tr>
 <tr>
-  <td>A &ldquo;string&rdquo; is&hellip;</td>
+  <td>A &ldquo;string&rdquo; is<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></td>
   <td>&rarr;&ensp;</td>
   <td>Lexeme or token</td>
   <td>Expression</td>
 </tr>
 <tr>
-  <td>It&apos;s implemented by the&hellip;</td>
+  <td>It&apos;s implemented by the<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></td>
   <td>&rarr;&ensp;</td>
   <td>Scanner</td>
   <td>Parser</td>
@@ -156,13 +156,13 @@ directions.
 
 If you start with the rules, you can use them to *generate* strings that are in
 the grammar. Strings created this way are called **derivations** because each is
-"derived" from the rules of the grammar. In each step of the game, you pick a
+*derived* from the rules of the grammar. In each step of the game, you pick a
 rule and follow what it tells you to do. Most of the lingo around formal
 grammars comes from playing them in this direction. Rules are called
 **productions** because they *produce* strings in the grammar.
 
 Each production in a context-free grammar has a **head** -- its <span
-name="name">name</span> -- and a **body** which describes what it generates. In
+name="name">name</span> -- and a **body**, which describes what it generates. In
 its pure form, the body is simply a list of symbols. Symbols come in two
 delectable flavors:
 
@@ -198,8 +198,8 @@ these production rules. People have been trying to crystallize grammar all the
 way back to Pāṇini's *Ashtadhyayi*, which codified Sanskrit grammar a mere
 couple thousand years ago. Not much progress happened until John Backus and
 company needed a notation for specifying ALGOL 58 and came up with [Backus-Naur
-form][bnf]. Since then, nearly everyone uses some flavor of BNF, tweaked to
-their own tastes.
+form][bnf] (**BNF**). Since then, nearly everyone uses some flavor of BNF,
+tweaked to their own tastes.
 
 [bnf]: https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 
@@ -279,19 +279,18 @@ not regular.
 <aside name="nest">
 
 Imagine that we've recursively expanded the `breakfast` rule here several times,
-like "bacon with bacon with bacon with...". In order to complete the string
+like "bacon with bacon with bacon with..." In order to complete the string
 correctly, we need to add an *equal* number of "on the side" bits to the end.
-Keeping track of the number of required trailing parts is beyond the
-capabilities of a regular grammar. Regular grammars can express *repetition*,
-but they can't *keep count* of how many repetitions there are, which is
-necessary to ensure that the string has the same number of `with` and `on the
-side` parts.
+Tracking the number of required trailing parts is beyond the capabilities of a
+regular grammar. Regular grammars can express *repetition*, but they can't *keep
+count* of how many repetitions there are, which is necessary to ensure that the
+string has the same number of `with` and `on the side` parts.
 
 </aside>
 
 We could keep picking the first production for `breakfast` over and over again
 yielding all manner of breakfasts like "bacon with sausage with scrambled eggs
-with bacon ...". We won't though. This time we'll pick `bread`. There are three
+with bacon..." We won't though. This time we'll pick `bread`. There are three
 rules for that, each of which contains only a terminal. We'll pick "English
 muffin".
 
@@ -318,14 +317,14 @@ expressions in the body of a rule:
 
 *   Instead of repeating the rule name each time we want to add another
     production for it, we'll allow a series of productions separated by a pipe
-    (`|`):
+    (`|`).
 
     ```ebnf
     bread → "toast" | "biscuits" | "English muffin" ;
     ```
 
 *   Further, we'll allow parentheses for grouping and then allow `|` within that
-    to select one from a series of options within the middle of a production:
+    to select one from a series of options within the middle of a production.
 
     ```ebnf
     protein → ( "scrambled" | "poached" | "fried" ) "eggs" ;
@@ -384,9 +383,9 @@ single characters.
 [regex]: https://en.wikipedia.org/wiki/Regular_expression#Standards
 
 We'll use this notation throughout the rest of the book to precisely describe
-Lox's grammar. As you work on programming languages, you'll find context-free
-grammars (using this or [EBNF][] or some other notation) help you crystallize
-your informal syntax design ideas. They are also a handy medium for
+Lox's grammar. As you work on programming languages, you'll find that
+context-free grammars (using this or [EBNF][] or some other notation) help you
+crystallize your informal syntax design ideas. They are also a handy medium for
 communicating with other language hackers about syntax.
 
 [ebnf]: https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
@@ -406,17 +405,17 @@ get our interpreter up and running.
 Instead, we'll crank through a subset of the language in the next couple of
 chapters. Once we have that mini-language represented, parsed, and interpreted,
 then later chapters will progressively add new features to it, including the new
-syntax. For now, we are only going to worry about a handful of expressions:
+syntax. For now, we are going to worry about only a handful of expressions:
 
-*   **Literals** &ndash; Numbers, strings, Booleans, and `nil`.
+*   **Literals.** Numbers, strings, Booleans, and `nil`.
 
-*   **Unary expressions** &ndash; A prefix `!` to perform a logical not, and `-`
-    to negate a number.
+*   **Unary expressions.** A prefix `!` to perform a logical not, and `-` to
+    negate a number.
 
-*   **Binary expressions** &ndash; The infix arithmetic (`+`, `-`, `*`, `/`)
-    and logic (`==`, `!=`, `<`, `<=`, `>`, `>=`) operators we know and love.
+*   **Binary expressions.** The infix arithmetic (`+`, `-`, `*`, `/`) and logic
+    operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) we know and love.
 
-*   **Parentheses** &ndash; A pair of `(` and `)` wrapped around an expression.
+*   **Parentheses.** A pair of `(` and `)` wrapped around an expression.
 
 That gives us enough syntax for expressions like:
 
@@ -461,13 +460,13 @@ right to you? Can you make it generate anything wrong like `1 + / 3`?
 
 Finally, we get to write some code. That little expression grammar is our
 skeleton. Since the grammar is recursive -- note how `grouping`, `unary`, and
-`binary` all refer back to `expression`, our data structure will form a tree.
+`binary` all refer back to `expression` -- our data structure will form a tree.
 Since this structure represents the syntax of our language, it's called a <span
 name="ast">**syntax tree**</span>.
 
 <aside name="ast">
 
-In particular, we're defining an ***abstract* syntax tree** (**AST**). In a
+In particular, we're defining an **abstract syntax tree** (**AST**). In a
 **parse tree**, every single grammar production becomes a node in the tree. An
 AST elides productions that aren't needed by later phases.
 
@@ -489,7 +488,7 @@ expression.
 
 <aside name="token-data">
 
-Tokens aren't entirely homogeneous either. Tokens for literals store the value
+Tokens aren't entirely homogeneous either. Tokens for literals store the value,
 but other kinds of lexemes don't need that state. I have seen scanners that use
 different classes for literals and other kinds of lexemes, but I figured I'd
 keep things simpler.
@@ -534,12 +533,12 @@ for this, but it lets us cram all of the classes into a single Java file.
 
 You'll note that, much like the Token class, there aren't any methods here. It's
 a dumb structure. Nicely typed, but merely a bag of data. This feels strange in
-an object-oriented language like Java. Shouldn't the class *do stuff?*
+an object-oriented language like Java. Shouldn't the class *do stuff*?
 
 The problem is that these tree classes aren't owned by any single domain. Should
 they have methods for parsing since that's where the trees are created? Or
 interpreting since that's where they are consumed? Trees span the border between
-those territories, which mean they are really owned by *neither.*
+those territories, which means they are really owned by *neither*.
 
 In fact, these types exist to enable the parser and interpreter to
 *communicate*. That lends itself to types that are simply data with no
@@ -576,14 +575,14 @@ Picture me doing an awkward robot dance when you read that. "AU-TO-MATE."
 
 </aside>
 
-Instead of tediously hand-writing each class definition, field declaration,
+Instead of tediously handwriting each class definition, field declaration,
 constructor, and initializer, we'll hack together a <span
 name="python">script</span> that does it for us. It has a description of each
 tree type -- its name and fields -- and it prints out the Java code needed to
 define a class with that name and state.
 
 This script is a tiny Java command-line app that generates a file named
-"Expr.java".
+"Expr.java":
 
 <aside name="python">
 
@@ -610,7 +609,7 @@ fields.
 
 For brevity's sake, I jammed the descriptions of the expression types into
 strings. Each is the name of the class followed by `:` and the list of fields,
-separated by commas. Each field has a type and name.
+separated by commas. Each field has a type and a name.
 
 The first thing `defineAst()` needs to do is output the base Expr class.
 
@@ -627,13 +626,13 @@ Inside the base class, we define each subclass.
 
 <aside name="robust">
 
-This isn't the world's most elegant string munging code, but that's fine. It
-only runs on the exact set of class definitions we give it. Robustness ain't a
-priority.
+This isn't the world's most elegant string manipulation code, but that's fine.
+It only runs on the exact set of class definitions we give it. Robustness ain't
+a priority.
 
 </aside>
 
-That code in turn calls:
+That code, in turn, calls:
 
 ^code define-type
 
@@ -675,19 +674,20 @@ if (expr instanceof Expr.Binary) {
 
 But all of those sequential type tests are slow. Expression types whose names
 are alphabetically later would take longer to execute because they'd fall
-through more if cases before finding the right type. That's not my idea of an
+through more `if` cases before finding the right type. That's not my idea of an
 elegant solution.
 
 We have a family of classes and we need to associate a chunk of behavior with
 each one. The natural solution in an object-oriented language like Java is to
-put that behavior into methods on the classes themselves. We could add an
+put those behaviors into methods on the classes themselves. We could add an
 abstract <span name="interpreter-pattern">`interpret()`</span> method on Expr
-which each subclass then implements to interpret itself.
+which each subclass would then implement to interpret itself.
 
 <aside name="interpreter-pattern">
 
 This exact thing is literally called the ["Interpreter pattern"][interp] in
-"Design Patterns: Elements of Reusable Object-Oriented Software".
+*Design Patterns: Elements of Reusable Object-Oriented Software*, by Erich
+Gamma, et al.
 
 [interp]: https://en.wikipedia.org/wiki/Interpreter_pattern
 
@@ -703,17 +703,17 @@ type checking pass.
 
 If we added instance methods to the expression classes for every one of those
 operations, that would smush a bunch of different domains together. That
-violates [separation of concerns][] and leads to hard to maintain code.
+violates [separation of concerns][] and leads to hard-to-maintain code.
 
 [separation of concerns]: https://en.wikipedia.org/wiki/Separation_of_concerns
 
-### The Expression Problem
+### The expression problem
 
 This problem is more fundamental than it may seem at first. We have a handful of
-types, and a handful of high level operations like "interpret". For each pair of
+types, and a handful of high-level operations like "interpret". For each pair of
 type and operation, we need a specific implementation. Picture a table:
 
-<img src="image/representing-code/table.png" alt="A table where rows are labeled with expression classes and columns are function names." />
+<img src="image/representing-code/table.png" alt="A table where rows are labeled with expression classes, and columns are function names." />
 
 Rows are types, and columns are operations. Each cell represents the unique
 piece of code to implement that operation on that type.
@@ -760,7 +760,7 @@ case to all of the pattern matches in all of the existing functions.
 Each style has a certain "grain" to it. That's what the paradigm name literally
 says -- an object-oriented language wants you to *orient* your code along the
 rows of types. A functional language instead encourages you to lump each
-column's worth of code together into *functions*.
+column's worth of code together into a *function*.
 
 A bunch of smart language nerds noticed that neither style made it easy to add
 *both* rows and columns to the <span name="multi">table</span>. They called this
@@ -776,7 +776,7 @@ sacrifice is either static type checking, or separate compilation.
 
 </aside>
 
-People have thrown all sorts of language features, design patterns and
+People have thrown all sorts of language features, design patterns, and
 programming tricks to try to knock that problem down but no perfect language has
 finished it off yet. In the meantime, the best we can do is try to pick a
 language whose orientation matches the natural architectural seams in the
@@ -789,10 +789,10 @@ can bring to bear on it.
 ### The Visitor pattern
 
 The **Visitor pattern** is the most widely misunderstood pattern in all of
-Design Patterns, which is really saying something when you look at the software
-architecture excesses of the past couple of decades.
+*Design Patterns*, which is really saying something when you look at the
+software architecture excesses of the past couple of decades.
 
-The trouble starts with terminology. The pattern isn't about "visiting" and the
+The trouble starts with terminology. The pattern isn't about "visiting", and the
 "accept" method in it doesn't conjure up any helpful imagery either. Many think
 the pattern has to do with traversing trees, which isn't the case at all. We
 *are* going to use it on a set of classes that are tree-like, but that's a
@@ -826,16 +826,16 @@ previous night's revelry.
 
 We want to be able to define new pastry operations -- cooking them, eating them,
 decorating them, etc. -- without having to add a new method to each class every
-time. Here's how we do it. First, we define a separate interface:
+time. Here's how we do it. First, we define a separate interface.
 
 ^code pastry-visitor (no location)
 
 <aside name="overload">
 
-In Design Patterns, both of these methods are confusingly named `visit()`, and
+In *Design Patterns*, both of these methods are confusingly named `visit()`, and
 they rely on overloading to distinguish them. This leads some readers to think
 that the correct visit method is chosen *at runtime* based on its parameter
-type. That isn't the case. Unlike over-*riding*, over-*loading* is statically
+type. That isn't the case. Unlike over*riding*, over*loading* is statically
 dispatched at compile time.
 
 Using distinct names for each method makes the dispatch more obvious, and also
@@ -852,7 +852,7 @@ on its type? Polymorphism to the rescue! We add this method to Pastry:
 
 ^code pastry-accept (1 before, 1 after, no location)
 
-Each subclass implements it:
+Each subclass implements it.
 
 ^code beignet-accept (1 before, 1 after, no location)
 
@@ -991,7 +991,7 @@ with trees.
 
 We don't have a parser yet, so it's hard to see this in action. For now, we'll
 hack together a little `main()` method that manually instantiates a tree and
-prints it:
+prints it.
 
 ^code printer-main
 
@@ -1013,7 +1013,7 @@ maintain AstPrinter, feel free to delete it. We won't need it again.
 ## Challenges
 
 1.  Earlier, I said that the `|`, `*`, and `+` forms we added to our grammar
-    metasyntax were just syntactic sugar. Given this grammar:
+    metasyntax were just syntactic sugar. Take this grammar:
 
     ```ebnf
     expr → expr ( "(" ( expr ( "," expr )* )? ")" | "." IDENTIFIER )+
