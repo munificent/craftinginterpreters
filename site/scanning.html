@@ -145,8 +145,8 @@ string of Lox source code and produce the tokens that we&rsquo;ll feed into the 
 in the next chapter.</p>
 <h2><a href="#the-interpreter-framework" name="the-interpreter-framework"><small>4&#8202;.&#8202;1</small>The Interpreter Framework</a></h2>
 <p>Since this is our first real chapter, before we get to actually scanning some
-code, we need to sketch out the basic shape of our interpreter, jlox. Everything
-starts with a class in Java:</p>
+code we need to sketch out the basic shape of our interpreter, jlox. Everything
+starts with a class in Java.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
 create new file</div>
 <pre>
@@ -264,7 +264,7 @@ back to where they are trying to go. Doing that well means thinking about error
 handling all through the implementation of our interpreter, starting now.</p>
 <aside name="errors">
 <p>Having said all that, for <em>this</em> interpreter, what we&rsquo;ll build is pretty bare
-bones. I&rsquo;d love to talk about interactive debuggers, static analyzers and other
+bones. I&rsquo;d love to talk about interactive debuggers, static analyzers, and other
 fun stuff, but there&rsquo;s only so much ink in the pen.</p>
 </aside>
 <div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
@@ -298,10 +298,10 @@ Even better than <em>that</em> is to <em>show</em> the user the offending line, 
                                ^-- Here.
 </pre></div>
 <p>I&rsquo;d love to implement something like that in this book but the honest truth is
-that it&rsquo;s a lot of grungy string munging code. Very useful for users, but not
-super fun to read in a book and not very technically interesting. So we&rsquo;ll stick
-with just a line number. In your own interpreters, please do as I say and not as
-I do.</p>
+that it&rsquo;s a lot of grungy string manipulation code. Very useful for users, but
+not super fun to read in a book and not very technically interesting. So we&rsquo;ll
+stick with just a line number. In your own interpreters, please do as I say and
+not as I do.</p>
 <p>The primary reason we&rsquo;re sticking this error reporting function in the main Lox
 class is because of that <code>hadError</code> field. It&rsquo;s defined here:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -343,8 +343,8 @@ in <em>runPrompt</em>()</div>
 <div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>runPrompt</em>()</div>
 
 <p>The other reason I pulled the error reporting out here instead of stuffing it
-into the scanner and other phases where the error occurs is to remind you that
-it&rsquo;s a good engineering practice to separate the code that <em>generates</em> the
+into the scanner and other phases where the error might occur is to remind you
+that it&rsquo;s good engineering practice to separate the code that <em>generates</em> the
 errors from the code that <em>reports</em> them.</p>
 <p>Various phases of the front end will detect errors, but it&rsquo;s not really their
 job to know how to present that to a user. In a full-featured language
@@ -429,7 +429,7 @@ object that will be used by the interpreter later.</p>
 <h3><a href="#location-information" name="location-information"><small>4&#8202;.&#8202;2&#8202;.&#8202;3</small>Location information</a></h3>
 <p>Back when I was preaching the gospel about error handling, we saw that we need
 to tell users <em>where</em> errors occurred. Tracking that starts here. In our simple
-interpreter, we only note which line the token appears on, but more
+interpreter, we note only which line the token appears on, but more
 sophisticated implementations include the column and length too.</p>
 <aside name="location">
 <p>Some token implementations store the location as two numbers: the offset from
@@ -438,8 +438,8 @@ of the lexeme. The scanner needs to know these anyway, so there&rsquo;s no overh
 calculate them.</p>
 <p>An offset can be converted to line and column positions later by looking back at
 the source file and counting the preceding newlines. That sounds slow, and it
-is. However, you only need to do it <em>when you need to actually display a line
-and column to the user.</em> Most tokens never appear in an error message. For
+is. However, you need to do it <em>only when you need to actually display a line
+and column to the user</em>. Most tokens never appear in an error message. For
 those, the less time you spend calculating position information ahead of time,
 the better.</p>
 </aside>
@@ -486,22 +486,22 @@ excreting tokens, until it reaches the end of the input.</p>
 </aside>
 <p>The part of the loop where we look at a handful of characters to figure out
 which kind of lexeme it &ldquo;matches&rdquo; may sound familiar. If you know regular
-expressions, you might consider defining a regex for each kind of lexeme and use
-those to match characters. For example, Lox has the same rules as C for
+expressions, you might consider defining a regex for each kind of lexeme and
+using those to match characters. For example, Lox has the same rules as C for
 identifiers (variable names and the like). This regex matches one:</p>
 <div class="codehilite"><pre>[a-zA-Z_][a-zA-Z_0-9]*
 </pre></div>
 <p>If you did think of regular expressions, your intuition is a deep one. The rules
 that determine how a particular language groups characters into lexemes are
 called its <span name="theory"><strong>lexical grammar</strong></span>. In Lox, as in most
-programming languages, the rules of that grammar are simple enough to be
-classified a <strong><a href="https://en.wikipedia.org/wiki/Regular_language">regular language</a></strong>. That&rsquo;s the same &ldquo;regular&rdquo; as in regular
-expressions.</p>
+programming languages, the rules of that grammar are simple enough for the
+language to be classified a <strong><a href="https://en.wikipedia.org/wiki/Regular_language">regular language</a></strong>. That&rsquo;s the same &ldquo;regular&rdquo;
+as in regular expressions.</p>
 <aside name="theory">
 <p>It pains me to gloss over the theory so much, especially when it&rsquo;s as
 interesting as I think the <a href="https://en.wikipedia.org/wiki/Chomsky_hierarchy">Chomsky hierarchy</a> and <a href="https://en.wikipedia.org/wiki/Finite-state_machine">finite-state machines</a>
 are. But the honest truth is other books cover this better than I could.
-<a href="https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools">Compilers: Principles, Techniques, and Tools</a> (universally known as
+<a href="https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools"><em>Compilers: Principles, Techniques, and Tools</em></a> (universally known as
 &ldquo;the Dragon Book&rdquo;) is the canonical reference.</p>
 </aside>
 <p>You very precisely <em>can</em> recognize all of the different lexemes for Lox using
@@ -512,11 +512,11 @@ at them, and they give you a complete scanner <span name="lex">back</span>.</p>
 <aside name="lex">
 <p>Lex was created by Mike Lesk and Eric Schmidt. Yes, the same Eric Schmidt who
 was executive chairman of Google. I&rsquo;m not saying programming languages are a
-sure-fire path to wealth and fame, but we <em>can</em> count at least one
-mega-billionaire among us.</p>
+surefire path to wealth and fame, but we <em>can</em> count at least one
+mega billionaire among us.</p>
 </aside>
 <p>Since our goal is to understand how a scanner does what it does, we won&rsquo;t be
-delegating that task. We&rsquo;re about hand-crafted goods.</p>
+delegating that task. We&rsquo;re about handcrafted goods.</p>
 <h2><a href="#the-scanner-class" name="the-scanner-class"><small>4&#8202;.&#8202;4</small>The Scanner Class</a></h2>
 <p>Without further ado, let&rsquo;s make ourselves a scanner.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
@@ -602,9 +602,9 @@ add after <em>scanTokens</em>()</div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>scanTokens</em>()</div>
 
 <h2><a href="#recognizing-lexemes" name="recognizing-lexemes"><small>4&#8202;.&#8202;5</small>Recognizing Lexemes</a></h2>
-<p>Each turn of the loop, we scan a single token. This is the real heart of the
-scanner. We&rsquo;ll start simple. Imagine if every lexeme is only a single character
-long. All you need to do is consume the next character and pick a token type for
+<p>In each turn of the loop, we scan a single token. This is the real heart of the
+scanner. We&rsquo;ll start simple. Imagine if every lexeme were only a single character
+long. All you would need to do is consume the next character and pick a token type for
 it. Several lexemes <em>are</em> only a single character in Lox, so let&rsquo;s start with
 those.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
@@ -658,7 +658,7 @@ other overload to handle tokens with literal values soon.</p>
 <h3><a href="#lexical-errors" name="lexical-errors"><small>4&#8202;.&#8202;5&#8202;.&#8202;1</small>Lexical errors</a></h3>
 <p>Before we get too far in, let&rsquo;s take a moment to think about errors at the
 lexical level. What happens if a user throws a source file containing some
-characters Lox doesn&rsquo;t use, like <code>@#^</code> at our interpreter? Right now, those
+characters Lox doesn&rsquo;t use, like <code>@#^</code>, at our interpreter? Right now, those
 characters get silently discarded. They aren&rsquo;t used by the Lox language, but
 that doesn&rsquo;t mean the interpreter can pretend they aren&rsquo;t there. Instead, we
 report an error.</p>
@@ -682,7 +682,7 @@ in <em>scanToken</em>()</div>
 other errors later in the program. It gives our users a better experience if we
 detect as many of those as possible in one go. Otherwise, they see one tiny
 error and fix it, only to have the next error appear, and so on. Syntax error
-Whack-a-mole is no fun.</p>
+Whac-A-Mole is no fun.</p>
 <p>(Don&rsquo;t worry. Since <code>hadError</code> gets set, we&rsquo;ll never try to <em>execute</em> any of the
 code, even though we keep going and scan the rest of it.)</p>
 <aside name="shotgun">
@@ -745,7 +745,7 @@ example, <code>!</code>, we jump to its switch case. That means we know the lexe
 with <code>!</code>. Then we look at the next character to determine if we&rsquo;re on a <code>!=</code> or
 merely a <code>!</code>.</p>
 <h2><a href="#longer-lexemes" name="longer-lexemes"><small>4&#8202;.&#8202;6</small>Longer Lexemes</a></h2>
-<p>We&rsquo;re still missing one operator, <code>/</code> for division. That character needs a
+<p>We&rsquo;re still missing one operator: <code>/</code> for division. That character needs a
 little special handling because comments begin with a slash too.</p>
 <div class="codehilite"><pre class="insert-before">
         break;
@@ -788,7 +788,7 @@ add after <em>match</em>()</div>
 unconsumed character, we have <em>one character of lookahead</em>. The smaller this
 number is, generally, the faster the scanner runs. The rules of the lexical
 grammar dictate how much lookahead we need. Fortunately, most languages in wide
-use only peek one or two characters ahead.</p>
+use peek only one or two characters ahead.</p>
 <aside name="match">
 <p>Technically, <code>match()</code> is doing lookahead too. <code>advance()</code> and <code>peek()</code> are the
 fundamental operators and <code>match()</code> combines them.</p>
@@ -834,7 +834,7 @@ that newline to get us here so we can update <code>line</code>.)</p>
 </pre></div>
 <h3><a href="#string-literals" name="string-literals"><small>4&#8202;.&#8202;6&#8202;.&#8202;1</small>String literals</a></h3>
 <p>Now that we&rsquo;re comfortable with longer lexemes, we&rsquo;re ready to tackle literals.
-We&rsquo;ll do strings first, since they always begin with a specific character, <code>"</code>:</p>
+We&rsquo;ll do strings first, since they always begin with a specific character, <code>"</code>.</p>
 <div class="codehilite"><pre class="insert-before">
         break;
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
@@ -885,12 +885,12 @@ produce the actual string <em>value</em> that will be used later by the interpre
 Here, that conversion only requires a <code>substring()</code> to strip off the surrounding
 quotes. If Lox supported escape sequences like <code>\n</code>, we&rsquo;d unescape those here.</p>
 <h3><a href="#number-literals" name="number-literals"><small>4&#8202;.&#8202;6&#8202;.&#8202;2</small>Number literals</a></h3>
-<p>All numbers in Lox are floating point at runtime, but it supports both integer
-and decimal literals. A number literal is a series of <span
+<p>All numbers in Lox are floating point at runtime, but both integer and decimal
+literals are supported. A number literal is a series of <span
 name="minus">digits</span> optionally followed by a <code>.</code> and one or more trailing
-digits:</p>
+digits.</p>
 <aside name="minus">
-<p>Since we only look for a digit to start a number, that means <code>-123</code> is not a
+<p>Since we look only for a digit to start a number, that means <code>-123</code> is not a
 number <em>literal</em>. Instead, <code>-123</code>, is an <em>expression</em> that applies <code>-</code> to the
 number literal <code>123</code>. In practice, the result is the same, though it has one
 interesting edge case if we were to add method calls on numbers. Consider:</p>
@@ -947,9 +947,9 @@ add after <em>peek</em>()</div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>peek</em>()</div>
 
 <aside name="is-digit">
-<p>The Java standard library provides <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Character.html#isDigit(char)"><code>Character.isDigit()</code></a> which seems
+<p>The Java standard library provides <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Character.html#isDigit(char)"><code>Character.isDigit()</code></a>, which seems
 like a good fit. Alas, that method allows things like Devanagari digits,
-fullwidth numbers, and other funny stuff we don&rsquo;t want.</p>
+full-width numbers, and other funny stuff we don&rsquo;t want.</p>
 </aside>
 <p>Once we know we are in a number, we branch to a separate method to consume the
 rest of the literal, like we do with strings.</p>
@@ -993,8 +993,8 @@ add after <em>peek</em>()</div>
 <aside name="peek-next">
 <p>I could have made <code>peek()</code> take a parameter for the number of characters ahead
 to look instead of defining two functions, but that would allow <em>arbitrarily</em>
-far lookahead. Only providing these two functions makes it clearer to a reader
-of the code that our scanner only looks ahead at most two characters.</p>
+far lookahead. Providing these two functions makes it clearer to a reader of the
+code that our scanner looks ahead at most two characters.</p>
 </aside>
 <p>Finally, we convert the lexeme to its numeric value. Our interpreter uses Java&rsquo;s
 <code>Double</code> type to represent numbers, so we produce a value of that type. We&rsquo;re
@@ -1007,7 +1007,7 @@ which gets us to<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></
 <p>Our scanner is almost done. The only remaining pieces of the lexical grammar to
 implement are identifiers and their close cousins, the reserved words. You might
 think we could match keywords like <code>or</code> in the same way we handle
-multiple-character operators like <code>&lt;=</code>:</p>
+multiple-character operators like <code>&lt;=</code>.</p>
 <div class="codehilite"><pre>
 <span class="k">case</span> <span class="s">&#39;o&#39;</span>:
   <span class="k">if</span> (<span class="i">peek</span>() == <span class="s">&#39;r&#39;</span>) {
@@ -1022,15 +1022,15 @@ name="maximal"><strong>maximal munch</strong></span>. When two lexical grammar r
 match a chunk of code that the scanner is looking at, <em>whichever one matches the
 most characters wins</em>.</p>
 <p>That rule states that if we can match <code>orchid</code> as an identifier and <code>or</code> as a
-keyword, then the former wins. This is also why we tacitly assumed previously
+keyword, then the former wins. This is also why we tacitly assumed, previously,
 that <code>&lt;=</code> should be scanned as a single <code>&lt;=</code> token and not <code>&lt;</code> followed by <code>=</code>.</p>
 <aside name="maximal">
 <p>Consider this nasty bit of C code:</p>
 <div class="codehilite"><pre>
 ---<span class="i">a</span>;
 </pre></div>
-<p>Is it valid? That depends on how the scanner splits the lexemes. If the scanner
-sees it like:</p>
+<p>Is it valid? That depends on how the scanner splits the lexemes. What if the scanner
+sees it like this:</p>
 <div class="codehilite"><pre>
 - --<span class="i">a</span>;
 </pre></div>
@@ -1095,7 +1095,7 @@ add after <em>peekNext</em>()</div>
 
 <p>That gets identifiers working. To handle keywords, we see if the identifier&rsquo;s
 lexeme is one of the reserved words. If so, we use a token type specific to that
-keyword. We define the set of reserved words in a map:</p>
+keyword. We define the set of reserved words in a map.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
 in class <em>Scanner</em></div>
 <pre>
@@ -1124,7 +1124,7 @@ in class <em>Scanner</em></div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, in class <em>Scanner</em></div>
 
 <p>Then, after we scan an identifier, we check to see if it matches anything in the
-map:</p>
+map.</p>
 <div class="codehilite"><pre class="insert-before">
     while (isAlphaNumeric(peek())) advance();
 
@@ -1216,7 +1216,7 @@ detect, but there are a handful of nasty ones:</p>
 </ul>
 <p>In all of these, either treating the newline as a separator or not would both
 produce valid code, but possibly not the code the user wants. Across languages,
-there is an unsettling variety of rules they use to decide which newlines are
+there is an unsettling variety of rules used to decide which newlines are
 separators. Here are a couple:</p>
 <ul>
 <li>
@@ -1250,7 +1250,7 @@ ignored. Idiomatic style strongly prefers the latter.</p>
 language. In particular, Python&rsquo;s grammar ensures a statement never appears
 inside an expression. C does the same, but many other languages which have a
 &ldquo;lambda&rdquo; or function literal syntax do not.</p>
-<p>For example, in JavaScript:</p>
+<p>An example in JavaScript:</p>
 <div class="codehilite"><pre>
 <span class="i">console</span>.<span class="i">log</span>(<span class="k">function</span>() {
   <span class="i">statement</span>();
@@ -1264,7 +1264,7 @@ newlines should become meaningful while still nested inside brackets.</p>
 </li>
 </ul>
 <aside name="lambda">
-<p>And now you know why Python&rsquo;s <code>lambda</code> only allows a single expression body.</p>
+<p>And now you know why Python&rsquo;s <code>lambda</code> allows only a single expression body.</p>
 </aside>
 <ul>
 <li>
@@ -1282,7 +1282,7 @@ every statement even though the language theoretically lets you elide them.</p>
 </li>
 </ul>
 <p>If you&rsquo;re designing a new language, you almost surely <em>should</em> avoid an explicit
-statement terminator. Programmers are creatures of fashion like other humans and
+statement terminator. Programmers are creatures of fashion like other humans, and
 semicolons are as passé as ALL CAPS KEYWORDS. Just make sure you pick a set of
 rules that make sense for your language&rsquo;s particular grammar and idioms. And
 don&rsquo;t do what JavaScript did.</p>
