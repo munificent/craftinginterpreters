@@ -367,9 +367,9 @@ under the hood, and you've got static types to see what data structures you're
 working with.
 
 I also chose Java specifically because it is an object-oriented language. That
-paradigm swept the programming world in the &rsquo;90s and is now the dominant
-way of thinking for millions of programmers. Odds are good you're already used
-to organizing code into classes and methods, so we'll keep you in that comfort
+paradigm swept the programming world in the '90s and is now the dominant way of
+thinking for millions of programmers. Odds are good you're already used to
+organizing code into classes and methods, so we'll keep you in that comfort
 zone.
 
 While academic language folks sometimes look down on object-oriented languages,

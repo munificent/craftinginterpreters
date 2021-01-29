@@ -709,12 +709,12 @@ Now that object-oriented languages like Java have sold out and only play arena
 shows, it's not cool to like them anymore. Why would anyone make a *new*
 language with objects? Isn't that like releasing music on 8-track?
 
-It is true that the "all inheritance all the time" binge of the &rsquo;90s
-produced some monstrous class hierarchies, but **object-oriented programming**
-(**OOP**) is still pretty rad. Billions of lines of successful code have been
-written in OOP languages, shipping millions of apps to happy users. Likely a
-majority of working programmers today are using an object-oriented language.
-They can't all be *that* wrong.
+It is true that the "all inheritance all the time" binge of the '90s produced
+some monstrous class hierarchies, but **object-oriented programming** (**OOP**)
+is still pretty rad. Billions of lines of successful code have been written in
+OOP languages, shipping millions of apps to happy users. Likely a majority of
+working programmers today are using an object-oriented language. They can't all
+be *that* wrong.
 
 In particular, for a dynamically typed language, objects are pretty handy. We
 need *some* way of defining compound data types to bundle blobs of stuff
