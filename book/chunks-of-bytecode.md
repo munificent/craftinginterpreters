@@ -1067,9 +1067,9 @@ exactly that.
     }
     ```
 
-    It adds `value` to `chunk`&rsquo;s constant array and then writes an
-    appropriate instruction to load the constant. Also add support to the
-    disassembler for `OP_CONSTANT_LONG` instructions.
+    It adds `value` to `chunk`'s constant array and then writes an appropriate
+    instruction to load the constant. Also add support to the disassembler for
+    `OP_CONSTANT_LONG` instructions.
 
     Defining two instructions seems to be the best of both worlds. What
     sacrifices, if any, does it force on us?

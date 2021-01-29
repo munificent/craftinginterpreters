@@ -283,7 +283,7 @@ luggage bay.
 
 Speaking the chip's language also means your compiler is tied to a specific
 architecture. If your compiler targets [x86][] machine code, it's not going to
-run on an [ARM][] device. All the way back in the &rsquo;60s, during the
+run on an [ARM][] device. All the way back in the '60s, during the
 Cambrian explosion of computer architectures, that lack of portability was a
 real obstacle.
 
@@ -476,9 +476,9 @@ for them.
 
 He was a sea captain, business owner, licensed pilot, and motorcyclist. A TV
 host with the Kris Kristofferson-esque look sported by dashing bearded dudes in
-the &rsquo;80s. He took on Bill Gates and, like many, lost, before meeting his
-end in a biker bar under mysterious circumstances. He died too young, but sure
-as hell lived before he did.
+the '80s. He took on Bill Gates and, like many, lost, before meeting his end in
+a biker bar under mysterious circumstances. He died too young, but sure as hell
+lived before he did.
 
 </aside>
 

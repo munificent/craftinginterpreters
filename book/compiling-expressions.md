@@ -647,8 +647,8 @@ We want to parse it like:
 ```
 
 Thus, when parsing the right-hand operand to the first `+`, we want to consume
-the `2`, but not the rest, so we use one level above `+`&rsquo;s precedence. But
-if our operator was *right*-associative, this would be wrong. Given:
+the `2`, but not the rest, so we use one level above `+`'s precedence. But if
+our operator was *right*-associative, this would be wrong. Given:
 
 ```lox
 a = b = c = d

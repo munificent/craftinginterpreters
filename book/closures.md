@@ -1049,8 +1049,8 @@ type in Lox, my options were limited.
 What does the call to `globalGet()` print? If closures capture *values* then
 each closure gets its own copy of `a` with the value that `a` had at the point
 in time that the closure's function declaration executed. The call to
-`globalSet()` will modify `set()`&rsquo;s copy of `a`, but `get()`&rsquo;s copy
-will be unaffected. Thus, the call to `globalGet()` will print "initial".
+`globalSet()` will modify `set()`'s copy of `a`, but `get()`'s copy will be
+unaffected. Thus, the call to `globalGet()` will print "initial".
 
 If closures close over variables, then `get()` and `set()` will both capture --
 reference -- the *same mutable variable*. When `set()` changes `a`, it changes

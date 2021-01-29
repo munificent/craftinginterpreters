@@ -30,8 +30,12 @@ class ApostropheSyntax extends InlineSyntax {
     if (parser.pos > 0) {
       before = parser.charAt(parser.pos - 1);
     }
+    var after = -1;
+    if (parser.pos < parser.source.length - 1) {
+      after = parser.charAt(parser.pos + 1);
+    }
 
-    var isRight = _isRight(before);
+    var isRight = _isRight(before, after);
     String quote;
     if (_isXml) {
       quote = isRight ? "#8217" : "#8216";
@@ -42,7 +46,13 @@ class ApostropheSyntax extends InlineSyntax {
     return true;
   }
 
-  bool _isRight(int before) {
+  bool _isRight(int before, int after) {
+    // Years like "the '60s".
+    if (before == $space && after >= $0 && after <= $9) return true;
+
+    // Possessive after code.
+    if (before == $backquote && after == $s) return true;
+
     if (before == $space) return false;
     if (before == $lf) return false;
 

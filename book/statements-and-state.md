@@ -631,7 +631,7 @@ negative number to them). Bear with me.
 The `isEven()` function isn't defined by the <span name="declare">time</span> we
 are looking at the body of `isOdd()` where it's called. If we swap the order of
 the two functions, then `isOdd()` isn't defined when we're looking at
-`isEven()`&rsquo;s body.
+`isEven()`'s body.
 
 <aside name="declare">
 

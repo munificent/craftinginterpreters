@@ -208,17 +208,16 @@ parent of that environment is the function's closure -- the outer block
 environment.
 
 Inside the body of `showA()`, we print the value of `a`. The interpreter looks
-up `a`&rsquo;s value by walking the chain of environments. It gets all the way
-to the global environment before finding it there and printing `"global"`.
-Great.
+up `a`'s value by walking the chain of environments. It gets all the way to the
+global environment before finding it there and printing `"global"`. Great.
 
 Next, we declare the second `a`, this time inside the block:
 
 <img src="image/resolving-and-binding/environment-4.png" alt="The block environment has both 'a' and 'showA' now." />
 
 It's in the same block -- the same scope -- as `showA()`, so it goes into the
-same environment, which is also the same environment `showA()`&rsquo;s closure
-refers to. This is where it gets interesting. We call `showA()` again:
+same environment, which is also the same environment `showA()`'s closure refers
+to. This is where it gets interesting. We call `showA()` again:
 
 <img src="image/resolving-and-binding/environment-5.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the block environment." />
 
