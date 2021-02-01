@@ -1,5 +1,5 @@
 > All my life, my heart has yearned for a thing I cannot name.
-> <cite>Andre Breton, <em>Mad Love</em></cite>
+> <cite>Andr&eacute; Breton, <em>Mad Love</em></cite>
 
 The interpreter we have so far feels less like programming a real language and
 more like punching buttons on a calculator. "Programming" to me means building
@@ -25,10 +25,10 @@ other named entities.
 <aside name="expr">
 
 You could make a language that treats variable declarations as expressions that
-both create a binding and produce a value, but I'm not aware of any widely-used
-languages that do. Scheme seems like a contender, but note that after a `let`
-expression is evaluated, the variable it bound is forgotten. The `define` syntax
-is not an expression.
+both create a binding and produce a value, but I'm not aware of any widely used
+languages that do that. Scheme seems like a contender, but note that after a
+`let` expression is evaluated, the variable it bound is forgotten. The `define`
+syntax is not an expression.
 
 </aside>
 
@@ -54,7 +54,7 @@ from expressions. We start with the two simplest kinds:
     Pascal is an outlier. It distinguishes between *procedures* and *functions*.
     Functions return values, but procedures cannot. There is a statement form
     for calling a procedure, but functions can only be called where an
-    expression is expected. There are no expression statements.
+    expression is expected. There are no expression statements in Pascal.
 
     </aside>
 
@@ -76,7 +76,7 @@ from expressions. We start with the two simplest kinds:
     </aside>
 
 New syntax means new grammar rules. In this chapter, we finally gain the ability
-to parse an entire Lox script. Since Lox is an imperative, dynamically-typed
+to parse an entire Lox script. Since Lox is an imperative, dynamically typed
 language, the "top level" of a script is simply a list of statements. The new
 rules are:
 
@@ -103,7 +103,7 @@ syntax trees.
 
 ### Statement syntax trees
 
-There is no place in the grammar where both an expression and a statement is
+There is no place in the grammar where both an expression and a statement are
 allowed. The operands of, say, `+` are always expressions, never statements. The
 body of a `while` loop is always a statement.
 
@@ -159,8 +159,8 @@ statement types.
 
 This parses a series of statements, as many as it can find until it hits the end
 of the input. This is a pretty direct translation of the `program` rule into
-recursive descent style. We must also chant a minor prayer to the Java Verbosity
-Gods since we are using ArrayList now.
+recursive descent style. We must also chant a minor prayer to the Java verbosity
+gods since we are using ArrayList now.
 
 ^code parser-imports (2 before, 1 after)
 
@@ -178,7 +178,7 @@ must be an expression statement. That's the typical final fallthrough case when
 parsing a statement, since it's hard to proactively recognize an expression from
 its first token.
 
-Each statement kind gets its own method. First print:
+Each statement kind gets its own method. First `print`:
 
 ^code parse-print-statement
 
@@ -275,8 +275,8 @@ print true;
 print 2 + 1;
 ```
 
-It almost looks like a real program! Note that the REPL too now requires you to
-enter a full statement instead of a simple expression. Don't forget your
+It almost looks like a real program! Note that the REPL, too, now requires you
+to enter a full statement instead of a simple expression. Don't forget your
 semicolons.
 
 ## Global Variables
@@ -285,7 +285,7 @@ Now that we have statements, we can start working on state. Before we get into
 all of the complexity of lexical scoping, we'll start off with the easiest kind
 of variables -- <span name="globals">globals</span>. We need two new constructs.
 
-1.  A **variable declaration** statement brings a new variable into the world:
+1.  A **variable declaration** statement brings a new variable into the world.
 
     ```lox
     var beverage = "espresso";
@@ -296,7 +296,7 @@ of variables -- <span name="globals">globals</span>. We need two new constructs.
 
 2.  Once that's done, a **variable expression** accesses that binding. When the
     identifier "beverage" is used as an expression, it looks up the value bound
-    to that name and returns it:
+    to that name and returns it.
 
     ```lox
     print beverage; // "espresso".
@@ -348,14 +348,13 @@ days?
 Code like this is weird, so C, Java, and friends all disallow it. It's as if
 there are two levels of <span name="brace">"precedence"</span> for statements.
 Some places where a statement is allowed -- like inside a block or at the top
-level -- allow any kind of statement, including declarations. Others only allow
+level -- allow any kind of statement, including declarations. Others allow only
 the "higher" precedence statements that don't declare names.
 
 <aside name="brace">
 
-In this analogy, a block statement, where you stuff a series of statements
-inside a pair of curly braces, works sort of like parentheses for expressions. A
-block statement is itself in the "higher" precedence level and can be used
+In this analogy, blocks statement work sort of like parentheses do for
+expressions. A block is itself in the "higher" precedence level and can be used
 anywhere, like in the clauses of an `if` statement. But the statements it
 *contains* can be lower precedence. You're allowed to declare variables and
 other names inside the block. The curlies let you escape back into the full
@@ -393,7 +392,7 @@ Then an identifier token for the name of the variable being declared, followed
 by an optional initializer expression. Finally, we put a bow on it with the
 semicolon.
 
-To access a variable, we define a new kind of primary expression:
+To access a variable, we define a new kind of primary expression.
 
 ```ebnf
 primary        → "true" | "false" | "nil"
@@ -407,7 +406,7 @@ to be the name of the variable being accessed.
 
 These new grammar rules get their corresponding syntax trees. Over in the AST
 generator, we add a <span name="var-stmt-ast">new statement</span> tree for a
-variable declaration:
+variable declaration.
 
 ^code var-stmt-ast (1 before, 1 after)
 
@@ -422,7 +421,7 @@ The generated code for the new node is in [Appendix II][appendix-var-stmt].
 It stores the name token so we know what it's declaring, along with the
 initializer expression. (If there isn't an initializer, that field is `null`.)
 
-Then we add an expression node for accessing a variable:
+Then we add an expression node for accessing a variable.
 
 ^code var-expr (1 before, 1 after)
 
@@ -488,7 +487,7 @@ required semicolon at the end of the statement. All this gets wrapped in a
 Stmt.Var syntax tree node and we're groovy.
 
 Parsing a variable expression is even easier. In `primary()`, we look for an
-identifier token:
+identifier token.
 
 ^code parse-identifier (2 before, 2 after)
 
@@ -553,7 +552,7 @@ print a; // "after".
 ```
 
 A variable statement doesn't just define a *new* variable, it can also be used
-to *re*-define an existing variable. We could <span name="scheme">choose</span>
+to *re*define an existing variable. We could <span name="scheme">choose</span>
 to make this an error instead. The user may not intend to redefine an existing
 variable. (If they did mean to, they probably would have used assignment, not
 `var`.) Making redefinition an error would help them find that bug.
@@ -561,12 +560,12 @@ variable. (If they did mean to, they probably would have used assignment, not
 However, doing so interacts poorly with the REPL. In the middle of a REPL
 session, it's nice to not have to mentally track which variables you've already
 defined. We could allow redefinition in the REPL but not in scripts, but then
-users have to learn two sets of rules, and code copied and pasted from one form
-to the other might not work.
+users would have to learn two sets of rules, and code copied and pasted from one
+form to the other might not work.
 
 <aside name="scheme">
 
-My rule about variables and scoping is, "When in doubt, do what Scheme does."
+My rule about variables and scoping is, "When in doubt, do what Scheme does".
 The Scheme folks have probably spent more time thinking about variable scope
 than we ever will -- one of the main goals of Scheme was to introduce lexical
 scoping to the world -- so it's hard to go wrong if you follow in their
@@ -583,7 +582,7 @@ variables. Once a variable exists, we need a way to look it up.
 
 This is a little more semantically interesting. If the variable is found, it
 simply returns the value bound to it. But what if it's not? Again, we have a
-choice.
+choice:
 
 * Make it a syntax error.
 
@@ -592,11 +591,11 @@ choice.
 * Allow it and return some default value like `nil`.
 
 Lox is pretty lax, but the last option is a little *too* permissive to me.
-Making it a syntax error -- a compile time error -- seems like a smart choice.
+Making it a syntax error -- a compile-time error -- seems like a smart choice.
 Using an undefined variable is a bug, and the sooner you detect the mistake, the
 better.
 
-The problem is that *using* a variable isn't the same as *referring to it*. You
+The problem is that *using* a variable isn't the same as *referring* to it. You
 can refer to a variable in a chunk of code without immediately evaluating it if
 that chunk of code is wrapped inside a function. If we make it a static error to
 *mention* a variable before it's been declared, it becomes much harder to define
@@ -635,7 +634,7 @@ the two functions, then `isOdd()` isn't defined when we're looking at
 
 <aside name="declare">
 
-Some statically-typed languages like Java and C# solve this by specifying that
+Some statically typed languages like Java and C# solve this by specifying that
 the top level of a program isn't a sequence of imperative statements. Instead, a
 program is a set of declarations which all come into being simultaneously. The
 implementation declares *all* of the names before looking at the bodies of *any*
@@ -684,7 +683,7 @@ choice to make. We could have made this a syntax error in the parser by
 harsh to do so in Lox.
 
 We could make it a runtime error. We'd let you define an uninitialized variable,
-but if you accessed before assigning to it, a runtime error would occur. It's
+but if you accessed it before assigning to it, a runtime error would occur. It's
 not a bad idea, but most dynamically typed languages don't do that. Instead,
 we'll keep it simple and say that Lox sets a variable to `nil` if it isn't
 explicitly initialized.
@@ -698,7 +697,7 @@ Thus, if there isn't an initializer, we set the value to `null`, which is the
 Java representation of Lox's `nil` value. Then we tell the environment to bind
 the variable to that value.
 
-Next, to evaluate a variable expression.
+Next, we evaluate a variable expression.
 
 ^code visit-variable
 
@@ -718,9 +717,9 @@ We can't reuse *code* yet, but we can start to build up programs that reuse
 ## Assignment
 
 It's possible to create a language that has variables but does not let you
-reassign -- or **mutate** -- them. Haskell is one example. SML only supports
-mutable references and arrays -- variables cannot be re-assigned. Rust steers
-you away from mutation by requiring a `mut` modifier to enable assignment.
+reassign -- or **mutate** -- them. Haskell is one example. SML supports only
+mutable references and arrays -- variables cannot be reassigned. Rust steers you
+away from mutation by requiring a `mut` modifier to enable assignment.
 
 Mutating a variable is a side effect and, as the name suggests, some language
 folks think side effects are <span name="pure">dirty</span> or inelegant. Code
@@ -731,7 +730,7 @@ into shape, one imperative grunt at a time.
 <aside name="pure">
 
 I find it delightful that the same group of people who pride themselves on
-dispassionate logic are also the ones who can't resist emotionally-loaded terms
+dispassionate logic are also the ones who can't resist emotionally loaded terms
 for their work: "pure", "side effect", "lazy", "persistent", "first-class",
 "higher-order".
 
@@ -747,8 +746,8 @@ Mainly, we're missing an explicit assignment notation.
 That little `=` syntax is more complex than it might seem. Like most C-derived
 languages, assignment is an <span name="assign">expression</span> and not a
 statement. As in C, it is the lowest precedence expression form. That means the
-rule slots between `expression` and `equality`, the next lowest precedence
-expression.
+rule slots between `expression` and `equality` (the next lowest precedence
+expression).
 
 <aside name="assign">
 
@@ -798,7 +797,7 @@ until after we've finished parsing the left operand.
 
 The difference is that the left-hand side of an assignment isn't an expression
 that evaluates to a value. It's a sort of pseudo-expression that evaluates to a
-"thing" you can assign to. In:
+"thing" you can assign to. Consider:
 
 ```lox
 var a = "before";
@@ -825,7 +824,7 @@ We want the syntax tree to reflect that an l-value isn't evaluated like a normal
 expression. That's why the Expr.Assign node has a *Token* for the left-hand
 side, not an Expr. The problem is that the parser doesn't know it's parsing an
 l-value until it hits the `=`. In a complex l-value, that may occur <span
-name="many">many</span> tokens later:
+name="many">many</span> tokens later.
 
 ```lox
 makeList().head.next = node;
@@ -839,15 +838,15 @@ tokens of lookahead to find the `=`.
 
 </aside>
 
-We only have a single token of lookahead, so what do we do? We use a little
+We have only a single token of lookahead, so what do we do? We use a little
 trick, and it looks like this:
 
 ^code parse-assignment
 
-Most of the code for parsing an assignment expression looks similar to the other
-binary operators like `+`. We parse the left-hand side, which can be any
-expression of higher precedence. If we find an `=`, we parse the right-hand side
-and then wrap it all up in an assignment expression tree node.
+Most of the code for parsing an assignment expression looks similar to that of
+the other binary operators like `+`. We parse the left-hand side, which can be
+any expression of higher precedence. If we find an `=`, we parse the right-hand
+side and then wrap it all up in an assignment expression tree node.
 
 <aside name="no-throw">
 
@@ -865,15 +864,15 @@ The trick is that right before we create the assignment expression node, we look
 at the left-hand side expression and figure out what kind of assignment target
 it is. We convert the r-value expression node into an l-value representation.
 
-This trick works because it turns out that every valid assignment target happens
-to also be <span name="converse">valid syntax</span> as a normal expression.
-Consider a complex field assignment like:
+This conversion works because it turns out that every valid assignment target
+happens to also be <span name="converse">valid syntax</span> as a normal
+expression. Consider a complex field assignment like:
 
 <aside name="converse">
 
 You can still use this trick even if there are assignment targets that are not
 valid expressions. Define a **cover grammar**, a looser grammar that accepts
-both all of the valid expression *and* assignment target syntaxes. When you hit
+all of the valid expression *and* assignment target syntaxes. When you hit
 an `=`, report an error if the left-hand side isn't within the valid assignment
 target grammar. Conversely, if you *don't* hit an `=`, report an error if the
 left-hand side isn't a valid *expression*.
@@ -884,19 +883,19 @@ left-hand side isn't a valid *expression*.
 newPoint(x + 2, 0).y = 3;
 ```
 
-The left-hand side of that assignment could also work as a valid expression:
+The left-hand side of that assignment could also work as a valid expression.
 
 ```lox
 newPoint(x + 2, 0).y;
 ```
 
-(Where the first example sets the field, the second gets it.)
+The first example sets the field, the second gets it.
 
-This means we can parse the left-hand side as *if it were* an expression and
+This means we can parse the left-hand side *as if it were* an expression and
 then after the fact produce a syntax tree that turns it into an assignment
 target. If the left-hand side expression isn't a <span name="paren">valid</span>
 assignment target, we fail with a syntax error. That ensures we report an error
-on code like:
+on code like this:
 
 ```lox
 a + b = c;
@@ -904,9 +903,9 @@ a + b = c;
 
 <aside name="paren">
 
-Do you remember way back in the parsing chapter when I said we represent
-parenthesized expressions in the syntax tree because we'll need them later? This
-is why. We need to keep track of them so that we can distinguish between:
+Way back in the parsing chapter, I said we represent parenthesized expressions
+in the syntax tree because we'll need them later. This is why. We need to be
+able to distinguish these cases:
 
 ```lox
 a = 3;   // OK.
@@ -963,7 +962,7 @@ it's time for *scope*.
 <aside name="basic">
 
 Maybe a little better than that. Unlike some old BASICs, Lox can handle variable
-names longer than two characters
+names longer than two characters.
 
 </aside>
 
@@ -994,8 +993,8 @@ true. If anything, it's the opposite.
 
 Dynamic scope for variables lives on in some corners. Emacs Lisp defaults to
 dynamic scope for variables. The [`binding`][binding] macro in Clojure provides
-it. The widely-disliked [`with` statement][with] in JavaScript turns properties
-on an object into dynamically-scoped variables.
+it. The widely disliked [`with` statement][with] in JavaScript turns properties
+on an object into dynamically scoped variables.
 
 [binding]: http://clojuredocs.org/clojure.core/binding
 [with]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/with
@@ -1016,16 +1015,16 @@ For example:
 }
 ```
 
-Here, we have two blocks and a variable `a` is declared in each of them. You and
+Here, we have two blocks with a variable `a` declared in each of them. You and
 I can tell just from looking at the code that the use of `a` in the first
 `print` statement refers to the first `a`, and the second one refers to the
 second.
 
 <img src="image/statements-and-state/blocks.png" alt="An environment for each 'a'." />
 
-This is in contrast with **dynamic scope** where you don't know what a name
-refers to until you execute the code. Lox doesn't have dynamically scoped
-*variables*, but methods and fields on objects are dynamically scoped.
+This is in contrast to **dynamic scope** where you don't know what a name refers
+to until you execute the code. Lox doesn't have dynamically scoped *variables*,
+but methods and fields on objects are dynamically scoped.
 
 ```lox
 class Saxophone {
@@ -1046,14 +1045,14 @@ fun playIt(thing) {
 ```
 
 When `playIt()` calls `thing.play()`, we don't know if we're about to hear
-"Careless Whisper" or "Fore!". It depends on whether you pass a Saxophone or a
+"Careless Whisper" or "Fore!" It depends on whether you pass a Saxophone or a
 GolfClub to the function, and we don't know that until runtime.
 
 Scope and environments are close cousins. The former is the theoretical concept,
-and the latter machinery implements it. As our interpreter works its way through
-code, syntax tree nodes that affect scope will change the environment. In a
-C-ish syntax like Lox's, scope is controlled by curly-braced <span
-name="block">blocks</span>. (That's why we call it **block scope**.)
+and the latter is the machinery that implements it. As our interpreter works its
+way through code, syntax tree nodes that affect scope will change the
+environment. In a C-ish syntax like Lox's, scope is controlled by curly-braced
+<span name="block">blocks</span>. (That's why we call it **block scope**.)
 
 ```lox
 {
@@ -1076,9 +1075,9 @@ A first cut at implementing block scope might work like this:
 2.  After the last statement is executed, tell the environment to delete all of
     those variables.
 
-That would work for the previous example. But, remember, one motivation for
+That would work for the previous example. But remember, one motivation for
 local scope is encapsulation -- a block of code in one corner of the program
-shouldn't interfere with some other one. Check this out:
+shouldn't interfere with some other block. Check this out:
 
 ```lox
 // How loud?
@@ -1099,7 +1098,7 @@ declaration of `volume`. After the block exits, the interpreter will delete the
 *global* `volume` variable. That ain't right. When we exit the block, we should
 remove any variables declared inside the block, but if there is a variable with
 the same name declared outside of the block, *that's a different variable*. It
-doesn't get touched.
+shouldn't get touched.
 
 When a local variable has the same name as a variable in an enclosing scope, it
 **shadows** the outer one. Code inside the block can't see it any more -- it is
@@ -1157,7 +1156,7 @@ its enclosing one.
 
 ^code enclosing-field (1 before, 1 after)
 
-This field needs to be initialized, so we add a couple of constructors:
+This field needs to be initialized, so we add a couple of constructors.
 
 ^code environment-constructors
 
@@ -1168,7 +1167,7 @@ given outer one.
 We don't have to touch the `define()` method -- a new variable is always
 declared in the current innermost scope. But variable lookup and assignment work
 with existing variables and they need to walk the chain to find them. First,
-lookup.
+lookup:
 
 ^code environment-get-enclosing (2 before, 3 after)
 
@@ -1240,7 +1239,7 @@ We <span name="list">create</span> an empty list and then parse statements and
 add them to the list until we reach the end of the block, marked by the closing
 `}`. Note that the loop also has an explicit check for `isAtEnd()`. We have to
 be careful to avoid infinite loops, even when parsing invalid code. If the user
-forgot a closing `}`, the parser needs to not get stuck.
+forgets a closing `}`, the parser needs to not get stuck.
 
 <aside name="list">
 
@@ -1256,7 +1255,7 @@ That's it for syntax. For semantics, we add another visit method to Interpreter.
 ^code visit-block
 
 To execute a block, we create a new environment for the block's scope and pass
-it off to this other method.
+it off to this other method:
 
 ^code execute-block
 
@@ -1381,8 +1380,8 @@ shadowing, and which scope an implicitly declared variable goes into.
     the function.
 
 *   Ruby avoids some ambiguity by having different naming rules for local and
-    global variables. However, blocks (which are more like closures than like
-    "blocks" in C) in Ruby have their own scope, so it still has the problem.
+    global variables. However, blocks in Ruby (which are more like closures than
+    like "blocks" in C) have their own scope, so it still has the problem.
     Assignment in Ruby assigns to an existing variable outside of the current
     block if there is one with the same name. Otherwise, it creates a new
     variable in the current block's scope.
@@ -1400,9 +1399,9 @@ The main advantage to implicit declaration is simplicity. There's less syntax
 and no "declaration" concept to learn. Users can just start assigning stuff and
 the language figures it out.
 
-Older statically-typed languages like C benefit from explicit declaration
+Older, statically typed languages like C benefit from explicit declaration
 because they give the user a place to tell the compiler what type each variable
-has and how much storage to allocate for it. In a dynamically-typed,
+has and how much storage to allocate for it. In a dynamically typed,
 garbage-collected language, that isn't really necessary, so you can get away
 with making declarations implicit. It feels a little more "scripty", more "you
 know what I mean".
@@ -1434,9 +1433,9 @@ adding more features and complexity to deal with these problems.
     error.
 
 *   Python added a `global` statement to let you explicitly assign to a global
-    variable from within a function. Later, as a functional programming style
-    and nested functions became more popular, they added a similar `nonlocal`
-    statement to assign to variables in enclosing functions.
+    variable from within a function. Later, as functional programming and nested
+    functions became more popular, they added a similar `nonlocal` statement to
+    assign to variables in enclosing functions.
 
 *   Ruby extended its block syntax to allow declaring certain variables to be
     explicitly local to the block even if the same name exists in an outer
@@ -1448,11 +1447,11 @@ that less compelling.
 
 My opinion is that implicit declaration made sense in years past when most
 scripting languages were heavily imperative and code was pretty flat. As
-programmers got more comfortable with deep nesting, functional programming, and
-closures, it's become much more common to want access to variables in outer
-scopes. That makes it more likely that users will run into the tricky cases
-where it's not clear whether they intend their assignment to create a new
-variable or reuse a surrounding one.
+programmers have gotten more comfortable with deep nesting, functional
+programming, and closures, it's become much more common to want access to
+variables in outer scopes. That makes it more likely that users will run into
+the tricky cases where it's not clear whether they intend their assignment to
+create a new variable or reuse a surrounding one.
 
 So I prefer explicitly declaring variables, which is why Lox requires it.
 
