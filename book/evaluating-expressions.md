@@ -19,12 +19,12 @@ A decrepit Victorian mansion is optional, but adds to the ambiance.
 
 There are all manner of ways that language implementations make a computer do
 what the user's source code commands. They can compile it to machine code,
-translate it to another high level language, or reduce it to some bytecode
+translate it to another high-level language, or reduce it to some bytecode
 format for a virtual machine to run. For our first interpreter, though, we are
 going to take the simplest, shortest path and execute the syntax tree itself.
 
 Right now, our parser only supports expressions. So, to "execute" code, we will
-evaluate the expression and produce a value. For each kind of expression syntax
+evaluate an expression and produce a value. For each kind of expression syntax
 we can parse -- literal, operator, etc. -- we need a corresponding chunk of code
 that knows how to evaluate that tree and produce a result. That raises two
 questions:
@@ -117,9 +117,9 @@ the main reasons we're writing our first interpreter in Java.
 ## Evaluating Expressions
 
 Next, we need blobs of code to implement the evaluation logic for each kind of
-expression we can parse. We could stuff those into the syntax tree classes
-directly in something like an `interpret()` method. In effect, we could tell
-each syntax tree node, "Interpret thyself." This is the Gang of Four's
+expression we can parse. We could stuff that code into the syntax tree classes
+in something like an `interpret()` method. In effect, we could tell each syntax
+tree node, "Interpret thyself". This is the Gang of Four's
 [Interpreter design pattern][]. It's a neat pattern, but like I mentioned
 earlier, it gets messy if we jam all sorts of logic into the tree classes.
 
@@ -137,10 +137,11 @@ We start with a new class.
 
 ^code interpreter-class
 
-It declares that it's a visitor. The return type of the visit methods is Object,
-the root class that we use to refer to a Lox value in our Java code. To satisfy
-the Visitor interface, we need to define visit methods for each of the four
-expression tree classes our parser produces. We'll start with the simplest...
+The class declares that it's a visitor. The return type of the visit methods
+will be Object, the root class that we use to refer to a Lox value in our Java
+code. To satisfy the Visitor interface, we need to define visit methods for each
+of the four expression tree classes our parser produces. We'll start with the
+simplest...
 
 ### Evaluating literals
 
@@ -232,7 +233,7 @@ The other unary operator is logical not.
 
 The implementation is simple, but what is this "truthy" thing about? We need to
 make a little side trip to one of the great questions of Western philosophy:
-*what is truth?*
+*What is truth?*
 
 ### Truthiness and falsiness
 
@@ -242,7 +243,7 @@ something other than `true` or `false` in a logic operation like `!` or any
 other place where a Boolean is expected.
 
 We *could* just say it's an error because we don't roll with implicit
-conversions, but most dynamically-typed languages aren't that ascetic. Instead,
+conversions, but most dynamically typed languages aren't that ascetic. Instead,
 they take the universe of values of all types and partition them into two sets,
 one of which they define to be "true", or "truthful", or (my favorite) "truthy",
 and the rest which are "false" or "falsey". This partitioning is somewhat
@@ -254,7 +255,7 @@ In JavaScript, strings are truthy, but empty strings are not. Arrays are truthy
 but empty arrays are... also truthy. The number `0` is falsey, but the *string*
 `"0"` is truthy.
 
-In Python, empty strings are falsey like JS, but other empty sequences are
+In Python, empty strings are falsey like in JS, but other empty sequences are
 falsey too.
 
 In PHP, both the number `0` and the string `"0"` are falsey. Most other
@@ -264,15 +265,15 @@ Get all that?
 
 </aside>
 
-Lox follows Ruby's simple rule: `false` and `nil` are falsey and everything else
+Lox follows Ruby's simple rule: `false` and `nil` are falsey, and everything else
 is truthy. We implement that like so:
 
 ^code is-truthy
 
 ### Evaluating binary operators
 
-Onto the last expression tree class, binary operators. There's a handful of
-them, and we'll start with the arithmetic ones:
+On to the last expression tree class, binary operators. There's a handful of
+them, and we'll start with the arithmetic ones.
 
 ^code visit-binary
 
@@ -303,13 +304,13 @@ we need our object representation to support `instanceof`.
 <aside name="plus">
 
 We could have defined an operator specifically for string concatenation. That's
-what Perl (`.`), Lua (`..`), Smalltalk (`,`), Haskell (`++`) and others do.
+what Perl (`.`), Lua (`..`), Smalltalk (`,`), Haskell (`++`), and others do.
 
 I thought it would make Lox a little more approachable to use the same syntax as
 Java, JavaScript, Python, and others. This means that the `+` operator is
 **overloaded** to support both adding numbers and concatenating strings. Even in
 languages that don't use `+` for strings, they still often overload it for
-adding both integers and floating point numbers.
+adding both integers and floating-point numbers.
 
 </aside>
 
@@ -341,7 +342,7 @@ Like truthiness, the equality logic is hoisted out into a separate method.
 ^code is-equal
 
 This is one of those corners where the details of how we represent Lox objects
-in terms of Java matters. We need to correctly implement *Lox's* notion of
+in terms of Java matter. We need to correctly implement *Lox's* notion of
 equality, which may be different from Java's.
 
 Fortunately, the two are pretty similar. Lox doesn't do implicit conversions in
@@ -358,7 +359,7 @@ What do you expect this to evaluate to:
 (0 / 0) == (0 / 0)
 ```
 
-According to [IEEE 754][], which specifies the behavior of double precision
+According to [IEEE 754][], which specifies the behavior of double-precision
 numbers, dividing a zero by zero gives you the special **NaN** ("not a number")
 value. Strangely enough, NaN is *not* equal to itself.
 
@@ -391,14 +392,14 @@ you cast a pointer to some type that doesn't match the data that is actually
 being pointed to. C gains flexibility and speed by allowing that, but is
 also famously dangerous. Once you misinterpret bits in memory, all bets are off.
 
-Few modern languages accept unsafe operations like this. Instead, most are
+Few modern languages accept unsafe operations like that. Instead, most are
 **memory safe** and ensure -- through a combination of static and runtime checks
 -- that a program can never incorrectly interpret the value stored in a piece of
 memory.
 
 </aside>
 
-It's time for us to talk about **runtime errors.** I spilled a lot of ink in the
+It's time for us to talk about **runtime errors**. I spilled a lot of ink in the
 previous chapters talking about error handling, but those were all *syntax* or
 *static* errors. Those are detected and reported before *any* code is executed.
 Runtime errors are failures that the language semantics demand we detect and
@@ -412,7 +413,7 @@ implemented in Java should be a detail hidden from the user. Instead, we want
 them to understand that a *Lox* runtime error occurred, and give them an error
 message relevant to our language and their program.
 
-The Java behavior does have one thing going for it, though -- it correctly stops
+The Java behavior does have one thing going for it, though. It correctly stops
 executing any code when the error occurs. Let's say the user enters some
 expression like:
 
@@ -422,9 +423,9 @@ expression like:
 
 You can't negate a <span name="muffin">muffin</span>, so we need to report a
 runtime error at that inner `-` expression. That in turn means we can't evaluate
-the `/` expression since it has no meaningful right operand. Likewise the `*`.
-So when a runtime error occurs deep in some expression, we need to escape all
-the way out.
+the `/` expression since it has no meaningful right operand. Likewise for the
+`*`. So when a runtime error occurs deep in some expression, we need to escape
+all the way out.
 
 <aside name="muffin">
 
@@ -439,9 +440,9 @@ application entirely. That has a certain melodramatic flair. Sort of the
 programming language interpreter equivalent of a mic drop.
 
 Tempting as that is, we should probably do something a little less cataclysmic.
-While a runtime error needs to stop evaluating the expression, it shouldn't kill
-the *interpreter*. If a user is running the REPL and has a typo in a line of
-code, they should still be able to keep the session going and enter more code
+While a runtime error needs to stop evaluating the *expression*, it shouldn't
+kill the *interpreter*. If a user is running the REPL and has a typo in a line
+of code, they should still be able to keep the session going and enter more code
 after that.
 
 ### Detecting runtime errors
@@ -477,7 +478,7 @@ wait until we support Lox classes.
 
 </aside>
 
-We need similar checking to the binary operators. Since I promised you every
+We need similar checking for the binary operators. Since I promised you every
 single line of code needed to implement the interpreters, I'll run through them
 all.
 
@@ -510,7 +511,7 @@ Multiplication:
 ^code check-star-operand (1 before, 1 after)
 
 All of those rely on this validator, which is virtually the same as the unary
-one.
+one:
 
 ^code check-operands
 
@@ -518,15 +519,15 @@ one.
 
 Another subtle semantic choice: We evaluate *both* operands before checking the
 type of *either*. Imagine we have a function `say()` that prints its argument
-then returns it. In:
+then returns it. Using that, we write:
 
 ```lox
 say("left") - say("right");
 ```
 
-Our implementation prints both "left" and "right" before reporting the runtime
-error. We could have instead specified that the left operand is checked before
-even evaluating the right.
+Our interpreter prints "left" and "right" before reporting the runtime error. We
+could have instead specified that the left operand is checked before even
+evaluating the right.
 
 </aside>
 
@@ -545,7 +546,7 @@ drives it.
 
 The visit methods are sort of the guts of the Interpreter class, where the real
 work happens. We need to wrap a skin around them to interface with the rest of
-the program. The Interpreter's public API is simply one method:
+the program. The Interpreter's public API is simply one method.
 
 ^code interpret
 
@@ -587,7 +588,7 @@ on different interpreters.
 If a runtime error is thrown while evaluating the expression, `interpret()`
 catches it. This lets us report the error to the user and then gracefully
 continue. All of our existing error reporting code lives in the Lox class, so we
-put this method there too.
+put this method there too:
 
 ^code runtime-error-method
 
@@ -638,7 +639,7 @@ We have an entire language pipeline now: scanning, parsing, and
 execution. Congratulations, you now have your very own arithmetic calculator.
 
 As you can see, the interpreter is pretty bare bones. But the Interpreter class
-and the visitor pattern we've set up today form the skeleton that later chapters
+and the Visitor pattern we've set up today form the skeleton that later chapters
 will stuff full of interesting guts -- variables, functions, etc. Right now, the
 interpreter doesn't do very much, but it's alive!
 
@@ -665,7 +666,7 @@ interpreter doesn't do very much, but it's alive!
 
 3.  What happens right now if you divide a number by zero? What do you think
     should happen? Justify your choice. How do other languages you know handle
-    division by zero and why do they make the choices they do?
+    division by zero, and why do they make the choices they do?
 
     Change the implementation in `visitBinaryExpr()` to detect and report a
     runtime error for this case.
@@ -682,7 +683,7 @@ are dynamically typed and defer checking for type errors until runtime right
 before an operation is attempted. We tend to consider this a black-and-white
 choice, but there is actually a continuum between them.
 
-It turns out even most statically-typed languages do *some* type checks at
+It turns out even most statically typed languages do *some* type checks at
 runtime. The type system checks most type rules statically, but inserts runtime
 checks in the generated code for other operations.
 
@@ -690,7 +691,7 @@ For example, in Java, the *static* type system assumes a cast expression will
 always safely succeed. After you cast some value, you can statically treat it as
 the destination type and not get any compile errors. But downcasts can fail,
 obviously. The only reason the static checker can presume that casts always
-succeed without violating the language's soundness guarantees is because the
+succeed without violating the language's soundness guarantees, is because the
 cast is checked *at runtime* and throws an exception on failure.
 
 A more subtle example is [covariant arrays][] in Java and C#. The static
@@ -722,13 +723,13 @@ James Gosling and the other Java designers traded off a little static safety and
 performance -- those array store checks take time -- in return for some
 flexibility.
 
-There are few modern statically-typed languages that don't make that trade-off
+There are few modern statically typed languages that don't make that trade-off
 *somewhere*. Even Haskell will let you run code with non-exhaustive matches. If
-you find yourself designing a statically-typed language, keep in mind that you
+you find yourself designing a statically typed language, keep in mind that you
 can sometimes give users more flexibility without sacrificing *too* many of the
 benefits of static safety by deferring some type checks until runtime.
 
-On the other hand, a key reason users choose statically-typed languages is
+On the other hand, a key reason users choose statically typed languages is
 because of the confidence the language gives them that certain kinds of errors
 can *never* occur when their program is run. Defer too many type checks until
 runtime, and you erode that confidence.
