@@ -3,7 +3,7 @@
 >
 > <cite>Edward John Moreton Drax Plunkett, Lord Dunsany</cite>
 
-Compared to [last chapter][statements]&rsquo;s grueling marathon, today is a
+Compared to [last chapter's][statements] grueling marathon, today is a
 lighthearted frolic through a daisy meadow. But while the work is easy, the
 reward is surprisingly large.
 
@@ -12,14 +12,14 @@ reward is surprisingly large.
 Right now, our interpreter is little more than a calculator. A Lox program can
 only do a fixed amount of work before completing. To make it run twice as long
 you have to make the source code twice as lengthy. We're about to fix that. In
-this chapter, our interpreter takes a big step toward the programming
+this chapter, our interpreter takes a big step towards the programming
 language major leagues: *Turing-completeness*.
 
 ## Turing Machines (Briefly)
 
 In the early part of last century, mathematicians stumbled into a series of
 confusing <span name="paradox">paradoxes</span> that led them to doubt the
-stability of the foundation they built their work upon. To address that
+stability of the foundation they had built their work upon. To address that
 [crisis][], they went back to square one. Starting from a handful of axioms,
 logic, and set theory, they hoped to rebuild mathematics on top of an
 impervious foundation.
@@ -30,7 +30,7 @@ impervious foundation.
 
 The most famous is [**Russell's paradox**][russell]. Initially, set theory
 allowed you to define any sort of set. If you could describe it in English, it
-was valid. Naturally, given mathematicians' predilection for self reference,
+was valid. Naturally, given mathematicians' predilection for self-reference,
 sets can contain other sets. So Russell, rascal that he was, came up with:
 
 *R is the set of all sets that do not contain themselves.*
@@ -46,19 +46,19 @@ Cue mind exploding.
 They wanted to rigorously answer questions like, "Can all true statements be
 proven?", "Can we [compute][] all functions that we can define?", or even the
 more general question, "What do we mean when we claim a function is
-'computable'?".
+'computable'?"
 
 [compute]: https://en.wikipedia.org/wiki/Computable_function
 
 They presumed the answer to the first two questions would be "yes". All that
-remained was to prove it. It turns out that the answer to both is "no" and,
+remained was to prove it. It turns out that the answer to both is "no", and
 astonishingly, the two questions are deeply intertwined. This is a fascinating
 corner of mathematics that touches fundamental questions about what brains are
 able to do and how the universe works. I can't do it justice here.
 
-What I do want to note is that in the process of proving that those questions
-are false, Alan Turing and Alonzo Church devised a precise answer to the last
-question -- a definition of what kinds of functions are <span
+What I do want to note is that in the process of proving that the answer to the
+first two questions is "no", Alan Turing and Alonzo Church devised a precise
+answer to the last question -- a definition of what kinds of functions are <span
 name="uncomputable">computable</span>. They each crafted a tiny system with a
 minimum set of machinery that is still powerful enough to compute any of a
 (very) large class of functions.
@@ -80,8 +80,8 @@ calculus at their core.
 <aside name="turing">
 
 Turing called his inventions "a-machines" for "automatic". He wasn't so
-self-aggrandizing to put his *own* name on them. Later mathematicians did that
-for him. That's how you get famous while still retaining some modesty.
+self-aggrandizing as to put his *own* name on them. Later mathematicians did
+that for him. That's how you get famous while still retaining some modesty.
 
 </aside>
 
@@ -119,11 +119,11 @@ to access parts of a string.
 Enough history, let's jazz up our language. We can divide control flow roughly
 into two kinds:
 
-*   **Conditional** or **branching** control flow is used to *not* execute
+*   **Conditional** or **branching control flow** is used to *not* execute
     some piece of code. Imperatively, you can think of it as jumping *ahead*
     over a region of code.
 
-*   **Looping** control flow executes a chunk of code more than once. It jumps
+*   **Looping control flow** executes a chunk of code more than once. It jumps
     *back* so that you can do something again. Since you don't usually want
     *infinite* loops, it typically has some conditional logic to know when to
     stop looping as well.
@@ -160,12 +160,12 @@ ifStmt         → "if" "(" expression ")" statement
 
 The semicolons in the rules aren't quoted, which means they are part of the
 grammar metasyntax, not Lox's syntax. A block does not have a `;` at the end and
-an `if` statement doesn't either unless the then or else statement happens to be
-one that ends in a semicolon.
+an `if` statement doesn't either, unless the then or else statement happens to
+be one that ends in a semicolon.
 
 </aside>
 
-An `if` statement has an expression for the condition then a statement to execute
+An `if` statement has an expression for the condition, then a statement to execute
 if the condition is truthy. Optionally, it may also have an `else` keyword and a
 statement to execute if the condition is falsey. The <span name="if-ast">syntax
 tree node</span> has fields for each of those three pieces.
@@ -209,8 +209,8 @@ As usual, the parsing code hews closely to the grammar. It detects an else
 clause by looking for the preceding `else` keyword. If there isn't one, the
 `elseBranch` field in the syntax tree is `null`.
 
-That seemingly innocuous optional else has in fact opened up an ambiguity in our
-grammar. Consider:
+That seemingly innocuous optional else has, in fact, opened up an ambiguity in
+our grammar. Consider:
 
 ```lox
 if (first) if (second) whenTrue(); else whenFalse();
@@ -218,7 +218,7 @@ if (first) if (second) whenTrue(); else whenFalse();
 
 Here's the riddle: Which `if` statement does that else clause belong to? This
 isn't just a theoretical question about how we notate our grammar. It actually
-affects how the code executes.
+affects how the code executes:
 
 *   If we attach the else to the first `if` statement, then `whenFalse()` is
     called if `first` is falsey, regardless of what value `second` has.
@@ -269,7 +269,7 @@ If you compare this code to how the interpreter handles other syntax we've
 implemented, the part that makes control flow special is that Java `if`
 statement. Most other syntax trees always evaluate their subtrees. Here, we may
 not evaluate the then or else statement. If either of those has a side effect,
-the choice not to evaluate it becomes user-visible.
+the choice not to evaluate it becomes user visible.
 
 ## Logical Operators
 
@@ -299,7 +299,7 @@ right between `assignment` and `equality`.
 
 <aside name="logical">
 
-I've always wondered why they don't have the same precedence like the various
+I've always wondered why they don't have the same precedence, like the various
 comparison or equality operators do.
 
 </aside>
@@ -354,14 +354,14 @@ Its operands are the next higher level of precedence, the new `and` expression.
 
 ^code and
 
-That calls `equality()` for its operands and with that the expression parser is
-all tied back together again. We're ready to interpret.
+That calls `equality()` for its operands, and with that, the expression parser
+is all tied back together again. We're ready to interpret.
 
 ^code visit-logical
 
 If you compare this to the [earlier chapter's][evaluating] `visitBinaryExpr()`
 method, you can see the difference. Here, we evaluate the left operand first. We
-look at its value to see if we can short circuit. If not, and only then, do we
+look at its value to see if we can short-circuit. If not, and only then, do we
 evaluate the right operand.
 
 [evaluating]: evaluating-expressions.html
@@ -373,7 +373,7 @@ result. Instead of promising to literally return `true` or `false`, a logic
 operator merely guarantees it will return a value with appropriate truthiness.
 
 Fortunately, we have values with proper truthiness right at hand -- the results
-of the operands itself. So we use those. For example:
+of the operands themselves. So we use those. For example:
 
 ```lox
 print "hi" or 2; // "hi".
@@ -391,7 +391,7 @@ reference to... oh, forget it.
 ## While Loops
 
 Lox features two looping control flow statements, `while` and `for`. The `while`
-loop is the simpler one so we'll start there. Its grammar is the same as in C.
+loop is the simpler one, so we'll start there. Its grammar is the same as in C.
 
 ```ebnf
 statement      → exprStmt
@@ -499,7 +499,7 @@ Inside the parentheses, you have three clauses separated by semicolons:
     discarded, so it must have a side effect to be useful. In practice, it
     usually increments a variable.
 
-Any of these clauses can be omitted. Following the three header clauses is a
+Any of these clauses can be omitted. Following the closing parenthesis is a
 statement for the body, which is typically a block.
 
 ### Desugaring
@@ -539,7 +539,7 @@ sweetener sprinkled over the more fundamental -- but presumably less palatable
 This script has the exact same semantics as the previous one, though it's not as
 easy on the eyes. Syntactic sugar features like Lox's `for` loop make a language
 more pleasant and productive to work in. But, especially in sophisticated
-language implementations, every language feature that requires back end support
+language implementations, every language feature that requires back-end support
 and optimization is expensive.
 
 We can have our cake and eat it too by <span
@@ -605,7 +605,7 @@ closing parenthesis. All that remains is the <span name="body">body</span>.
 
 <aside name="body">
 
-Is it just me or does that sound morbid? "All that remained... was the *body."*
+Is it just me or does that sound morbid? "All that remained... was the *body*".
 
 </aside>
 
@@ -662,8 +662,8 @@ for (var b = 1; a < 10000; b = temp + b) {
 ## Challenges
 
 1.  A few chapters from now, when Lox supports first-class functions and dynamic
-    dispatch, then we technically won't *need* branching statements built into
-    the language. Show how conditional execution can be implemented in terms of
+    dispatch, we technically won't *need* branching statements built into the
+    language. Show how conditional execution can be implemented in terms of
     those. Name a language that uses this technique for its control flow.
 
 2.  Likewise, looping can be implemented using those same tools, provided our
@@ -705,7 +705,7 @@ and the kind of syntactic extensibility of the previous category. They want the
 syntax to get out of the way of the semantics, so they focus on keeping both the
 grammar and libraries simple. Code should be obvious more than beautiful.
 
-Somewhere in the middle you have languages like Java, C# and Python. Eventually
+Somewhere in the middle you have languages like Java, C#, and Python. Eventually
 you reach Ruby, C++, Perl, and D -- languages which have stuffed so much syntax
 into their grammar, they are running out of punctuation characters on the
 keyboard.
