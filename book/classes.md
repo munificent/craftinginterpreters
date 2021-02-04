@@ -8,11 +8,11 @@
 We're eleven chapters in, and the interpreter sitting on your machine is nearly
 a complete scripting language. It could use a couple of built-in data structures
 like lists and maps, and it certainly needs a core library for file I/O, user
-input etc. But the language itself is sufficient. We've got a little procedural
+input, etc. But the language itself is sufficient. We've got a little procedural
 language in the same vein as BASIC, Tcl, Scheme (minus macros), and early
 versions of Python and Lua.
 
-If this was the 80's, we'd stop here. But, today, many popular languages support
+If this were the '80s, we'd stop here. But today, many popular languages support
 "object-oriented programming". Adding that to Lox will give users a familiar set
 of tools for writing larger programs. Even if you personally don't <span
 name="hate">like</span> OOP, this chapter and [the next][inheritance] will help
@@ -62,17 +62,17 @@ Common Lisp), [Dylan][], [Julia][], or [Perl 6][].
 Since you've written about a thousand lines of Java code with me already, I'm
 assuming you don't need a detailed introduction to object orientation. The main
 goal is to bundle data with the code that acts on it. Users do that by declaring
-a **class** that:
+a *class* that:
 
 <span name="circle"></span>
 
-1. Exposes a **constructor** to create and initialize new **instances** of the
-   class.
+1. Exposes a *constructor* to create and initialize new *instances* of the
+   class
 
-1. Provides a way to store and access **fields** on instances.
+1. Provides a way to store and access *fields* on instances
 
-1. Defines a set of **methods** shared by all instances of the class that
-   operate on the instances' state.
+1. Defines a set of *methods* shared by all instances of the class that
+   operate on each instances' state.
 
 That's about as minimal as it gets. Most object-oriented languages, all the way
 back to Simula, also do inheritance to reuse behavior across classes. We'll add
@@ -115,7 +115,7 @@ parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 ```
 
 In plain English, a class declaration is the `class` keyword, followed by the
-class's name, then a curly brace body. Inside that body is a list of method
+class's name, then a curly-braced body. Inside that body is a list of method
 declarations. Unlike function declarations, methods don't have a leading <span
 name="fun">`fun`</span> keyword. Each method is a name, parameter list, and
 body. Here's an example:
@@ -138,7 +138,7 @@ class Breakfast {
 }
 ```
 
-Like most dynamically-typed languages, fields are not explicitly listed in the
+Like most dynamically typed languages, fields are not explicitly listed in the
 class declaration. Instances are loose bags of data and you can freely add
 fields to them as you see fit using normal imperative code.
 
@@ -185,8 +185,8 @@ infinite loop if the user has a syntax error and forgets to correctly end the
 class body.
 
 We wrap the name and list of methods into a Stmt.Class node and we're done.
-Previous, we would jump straight into the interpreter, but now we need to plumb
-the node through the resolver first.
+Previously, we would jump straight into the interpreter, but now we need to
+plumb the node through the resolver first.
 
 ^code resolver-visit-class
 
@@ -195,7 +195,7 @@ all we need to do is declare the class using its name. It's not common to
 declare a class as a local variable, but Lox permits it, so we need to handle it
 correctly.
 
-Now we interpret the class declaration:
+Now we interpret the class declaration.
 
 ^code interpreter-visit-class
 
@@ -212,7 +212,7 @@ like this:
 
 Literally a wrapper around a name. We don't even store the methods yet. Not
 super useful, but it does have a `toString()` method so we can write a trivial
-script and test that class objects are actually being parsed and executed:
+script and test that class objects are actually being parsed and executed.
 
 ```lox
 class DevonshireCream {
@@ -233,14 +233,14 @@ instances, classes are useless. Thus instances are the next step.
 While some syntax and semantics are fairly standard across OOP languages, the
 way you create new instances isn't. Ruby, following Smalltalk, creates instances
 by calling a method on the class object itself, a <span
-name="turtles">recursively</span> graceful approach. Some, like C++ and Java
+name="turtles">recursively</span> graceful approach. Some, like C++ and Java,
 have a `new` keyword dedicated to birthing a new object. Python has you "call"
 the class itself like a function. (JavaScript, ever weird, sort of does both.)
 
 <aside name="turtles">
 
 In Smalltalk, even *classes* are created by calling methods on an existing
-object, usually the desired superclass. It's sort of a turtles-all-the-way down
+object, usually the desired superclass. It's sort of a turtles-all-the-way-down
 thing. It ultimately bottoms out on a few magical classes like Object and
 Metaclass that the runtime conjures into being *ex nihilo*.
 
@@ -310,7 +310,7 @@ Properties are accessed using a `.` syntax.
 Allowing code outside of the class to directly modify an object's fields goes
 against the object-oriented credo that a class *encapsulates* state. Some
 languages take a more principled stance. In Smalltalk, fields are accessed using
-simple identifiers -- essentially variables that are only in scope inside a
+simple identifiers -- essentially, variables that are only in scope inside a
 class's methods. Ruby uses `@` followed by a name to access a field in an
 object. That syntax is only meaningful inside a method and always accesses state
 on the current object.
@@ -351,7 +351,7 @@ The generated code for the new node is in [Appendix II][appendix-get].
 </aside>
 
 Following the grammar, the new parsing code goes in our existing `call()`
-method:
+method.
 
 ^code parse-property (3 before, 4 after)
 
@@ -367,7 +367,7 @@ Instances of the new Expr.Get node feed into the resolver.
 
 OK, not much to that. Since properties are looked up <span
 name="dispatch">dynamically</span>, they don't get resolved. During resolution,
-we only recurse into the expression to the left of the dot. The actual property
+we recurse only into the expression to the left of the dot. The actual property
 access happens in the interpreter.
 
 <aside name="dispatch">
@@ -451,7 +451,7 @@ assignment     → ( call "." )? IDENTIFIER "=" assignment
 ```
 
 Unlike getters, setters don't chain. However, the reference to `call` allows any
-high precedence expression before the last dot, including any number of
+high-precedence expression before the last dot, including any number of
 *getters*, as in:
 
 <img src="image/classes/setter.png" alt="breakfast.omelette.filling.meat = ham" />
@@ -459,9 +459,9 @@ high precedence expression before the last dot, including any number of
 Note here that only the *last* part, the `.meat` is the *setter*. The
 `.omelette` and `.filling` parts are both *get* expressions.
 
-Like we have two separate AST nodes for variable access and variable assignment,
-we need a <span name="set-ast">second setter node</span> to complement our
-getter node.
+Just as we have two separate AST nodes for variable access and variable
+assignment, we need a <span name="set-ast">second setter node</span> to
+complement our getter node.
 
 ^code set-ast (1 before, 1 after)
 
@@ -480,8 +480,8 @@ has `call` on the left side, which can expand to arbitrarily large expressions,
 that final `=` may be many tokens away from the point where we need to know
 we're parsing an assignment.
 
-Instead, the trick we do is to parse the left hand side as a normal expression.
-Then, when we stumble onto the equals sign after it, we take the expression we
+Instead, the trick we do is parse the left-hand side as a normal expression.
+Then, when we stumble onto the equal sign after it, we take the expression we
 already parsed and transform it into the correct syntax tree node for the
 assignment.
 
@@ -518,8 +518,9 @@ This is another semantic edge case. There are three distinct operations:
 
 3. Evaluate the value.
 
-The order that those are performed could be user visible, which means we need to
-carefully specify it and ensure our implementations do these in the same order.
+The order that those are performed in could be user visible, which means we need
+to carefully specify it and ensure our implementations do these in the same
+order.
 
 </aside>
 
@@ -539,7 +540,7 @@ need behavior -- methods.
 Our helpful parser already parses method declarations, so we're good there. We
 also don't need to add any new parser support for method *calls*. We already
 have `.` (getters) and `()` (function calls). A "method call" simply chains
-those together:
+those together.
 
 <img src="image/classes/method.png" alt="The syntax tree for 'object.method(argument)" />
 
@@ -576,11 +577,11 @@ Then it calls that function using the same syntax as a method call. Does that
 work?
 
 Different languages have different answers to these questions. One could write a
-treatise on it. For Lox, we'll say the answer to both of these is that, yes, it
-does work. We have a couple of reasons to justify that. For the second
-example -- calling a function stored in a field -- we want to support that
-because first-class functions are useful and storing them in fields is a
-perfectly normal thing to do.
+treatise on it. For Lox, we'll say the answer to both of these is yes, it does
+work. We have a couple of reasons to justify that. For the second example --
+calling a function stored in a field -- we want to support that because
+first-class functions are useful and storing them in fields is a perfectly
+normal thing to do.
 
 The first example is more obscure. One motivation is that users generally expect
 to be able to hoist a subexpression out into a local variable without changing
@@ -607,7 +608,7 @@ like:
 <aside name="callback">
 
 A motivating use for this is callbacks. Often, you want to pass a callback whose
-body simply invokes a method on some object. Being able to lookup the method and
+body simply invokes a method on some object. Being able to look up the method and
 pass it directly saves you the chore of manually declaring a function to wrap
 it. Compare this:
 
@@ -619,7 +620,7 @@ fun callback(a, b, c) {
 takeCallback(callback);
 ```
 
-Versus this:
+With this:
 
 ```lox
 takeCallback(object.method);
@@ -675,7 +676,7 @@ it's not clear that `jane` "owns" `sayName` any more than `bill` does.
 Lox, though, has real class syntax so we do know which callable things are
 methods and which are functions. Thus, like Python, C#, and others, we will have
 methods "bind" `this` to the original instance when the method is first grabbed.
-Python calls <span name="bound">these</span> "bound methods".
+Python calls <span name="bound">these</span> **bound methods**.
 
 <aside name="bound">
 
@@ -820,7 +821,7 @@ awful lot like a *closure*, doesn't it?
 If we defined `this` as a sort of hidden variable in an environment that
 surrounds the function returned when looking up a method, then uses of `this` in
 the body would be able to find it later. LoxFunction already has the ability to
-hold onto a surrounding environment, so we have the machinery we need.
+hold on to a surrounding environment, so we have the machinery we need.
 
 Let's walk through an example to see how it works:
 
@@ -880,7 +881,7 @@ callback();
 ```
 
 In, say, JavaScript, it's common to return a callback from inside a method. That
-callback may want to hang onto and retain access to the original object -- the
+callback may want to hang on to and retain access to the original object -- the
 `this` value -- that the method was associated with. Our existing support for
 closures and environment chains should do all this correctly.
 
@@ -898,7 +899,7 @@ The generated code for the new node is in [Appendix II][appendix-this].
 </aside>
 
 Parsing is simple since it's a single token which our lexer already
-recognizes as a reserved word:
+recognizes as a reserved word.
 
 ^code parse-this (2 before, 2 after)
 
@@ -1010,8 +1011,8 @@ inside a method body.
 
 ^code this-outside-of-class (1 before, 1 after)
 
-That should help users use `this` correctly and saves us from having to handle
-misuse at runtime in the interpreter.
+That should help users use `this` correctly, and it saves us from having to
+handle misuse at runtime in the interpreter.
 
 ## Constructors and Initializers
 
@@ -1022,7 +1023,7 @@ in a valid configuration. But how do we ensure a brand new object *starts* in a
 good state?
 
 For that, we need constructors. I find them one of the trickiest parts of a
-language to design and if you peer closely at most other languages, you'll see
+language to design, and if you peer closely at most other languages, you'll see
 <span name="cracks">cracks</span> around object construction where the seams of
 the design don't quite fit together perfectly. Maybe there's something
 intrinsically messy about the moment of birth.
@@ -1048,7 +1049,7 @@ feature -- were added to C++ mainly as a way to emit errors from constructors.
 
     </aside>
 
-2.  Then a user-provided chunk of code is called which *initializes* the
+2.  Then, a user-provided chunk of code is called which *initializes* the
     unformed object.
 
 [placement new]: https://en.wikipedia.org/wiki/Placement_syntax
@@ -1082,7 +1083,7 @@ initializer, the arity is still zero.
 
 That's basically it. Since we bind the `init()` method before we call it, it has
 access to `this` inside its body. That, along with the arguments passed to the
-class, is all you need to be able to set up the new instance however you
+class, are all you need to be able to set up the new instance however you
 desire.
 
 ### Invoking init() directly
@@ -1115,10 +1116,10 @@ special case code in LoxFunction.
 
 Maybe "dislike" is too strong a claim. It's reasonable to have the constraints
 and resources of your implementation affect the design of the language. There
-are only so many hours in the day and if a cut corner here or there lets you get
+are only so many hours in the day, and if a cut corner here or there lets you get
 more features to users in less time, it may very well be a net win for their
 happiness and productivity. The trick is figuring out *which* corners to cut
-that won't cause your users and future self to curse your short-sightedness.
+that won't cause your users and future self to curse your shortsightedness.
 
 </aside>
 
@@ -1177,7 +1178,7 @@ it an error to return a value from inside an `init()` method.
 ^code return-in-initializer (1 before, 1 after)
 
 We're *still* not done. We statically disallow returning a *value* from an
-initializer, but you can still use an empty early `return`:
+initializer, but you can still use an empty early `return`.
 
 ```lox
 class Foo {
@@ -1207,7 +1208,7 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 1.  We have methods on instances, but there is no way to define "static" methods
     that can be called directly on the class object itself. Add support for
     them. Use a `class` keyword preceding the method to indicate a static method
-    that hangs off the class object:
+    that hangs off the class object.
 
     ```lox
     class Math {
@@ -1227,7 +1228,7 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
     that look like field reads and writes but that actually execute user-defined
     code. Extend Lox to support getter methods. These are declared without a
     parameter list. The body of the getter is executed when a property with that
-    name is accessed:
+    name is accessed.
 
     ```lox
     class Circle {
@@ -1247,7 +1248,7 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 3.  Python and JavaScript allow you to freely access an object's fields from
     outside of its own methods. Ruby and Smalltalk encapsulate instance state.
     Only methods on the class can access the raw fields, and it is up to the
-    class to decide which state is exposed. Most statically-typed languages
+    class to decide which state is exposed. Most statically typed languages
     offer modifiers like `private` and `public` to control which parts of a
     class are externally accessible on a per-member basis.
 
@@ -1263,33 +1264,32 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 ## Design Note: Prototypes and Power
 
 In this chapter, we introduced two new runtime entities, LoxClass and
-LoxInstance. The former is where behavior for objects lives and the latter is
+LoxInstance. The former is where behavior for objects lives, and the latter is
 for state. What if you could define methods right on a single object, inside
 LoxInstance? In that case, we wouldn't need LoxClass at all. LoxInstance would
 be a complete package for defining the behavior and state of an object.
 
-We'd still want some way to reuse behavior across multiple instances. Since
-there are no classes, we'll let a LoxInstance [**delegate**][delegate] directly
-to another LoxInstance to reuse its fields and methods, sort of like
-inheritance. The end result is a simpler runtime with only a single internal
-construct, LoxInstance.
+We'd still want some way, without classes, to reuse behavior across multiple
+instances. We could let a LoxInstance [*delegate*][delegate] directly to another
+LoxInstance to reuse its fields and methods, sort of like inheritance.
 
 Users would model their program as a constellation of objects, some of which
-delegate to each other to reflect commonality. There are no longer classes.
-Instead, individual objects that are delegated to represent "canonical" or
-"prototypical" objects that others refine.
+delegate to each other to reflect commonality. Objects used as delegates
+represent "canonical" or "prototypical" objects that others refine. The result
+is a simpler runtime with only a single internal construct, LoxInstance.
 
-That's where the name "[prototypes][proto]" comes from for this paradigm. It was
-invented by David Ungar and Randall Smith in a language called [Self][]. They
-came up with it by starting with Smalltalk and following the above mental
+That's where the name **[prototypes][proto]** comes from for this paradigm. It
+was invented by David Ungar and Randall Smith in a language called [Self][].
+They came up with it by starting with Smalltalk and following the above mental
 exercise to see how much they could pare it down.
 
 Prototypes were an academic curiosity for a long time, a fascinating one that
 generated interesting research but didn't make a dent in the larger world of
-programming. That is until Brendan Eich crammed prototypes into JavaScript which
-then promptly took over the world. Many (many) <span name="words">words</span>
-have been written about prototypes in JavaScript. Whether that shows that
-prototypes are brilliant or confusing -- or both! -- is an open question.
+programming. That is, until Brendan Eich crammed prototypes into JavaScript,
+which then promptly took over the world. Many (many) <span
+name="words">words</span> have been written about prototypes in JavaScript.
+Whether that shows that prototypes are brilliant or confusing -- or both! -- is
+an open question.
 
 <aside name="words">
 
@@ -1323,11 +1323,11 @@ actual quantification.
 *   **Ease** is how little effort it takes to make the language do what you
     want. "Usability" might be another term, though it carries more baggage than
     I want to bring in. "Higher-level" languages tend to have more ease than
-    lower-level ones. Most languages have a "grain" to them where some things
+    "lower-level" ones. Most languages have a "grain" to them where some things
     feel easier to express than others.
 
-*   **Complexity** is how big the language is (and its runtime, core libraries,
-    tools, ecosystem, etc.). People talk about how many pages are in a
+*   **Complexity** is how big the language (including its runtime, core libraries,
+    tools, ecosystem, etc.) is. People talk about how many pages are in a
     language's spec, or how many keywords it has. It's how much the user has to
     load into their wetware before they can be productive in the system. It is
     the antonym of simplicity.
@@ -1341,9 +1341,9 @@ ease in the process, or the total power may go down. Java would be a strictly
 *simpler* language if it removed strings, but it probably wouldn't handle text
 manipulation tasks well, nor would it be as easy to get things done.
 
-The art, then is finding *accidental* complexity that can be omitted. Language
-features and interactions that don't carry their weight by increasing the
-breadth or ease of using the language.
+The art, then, is finding *accidental* complexity that can be omitted --
+language features and interactions that don't carry their weight by increasing
+the breadth or ease of using the language.
 
 If users want to express their program in terms of categories of objects, then
 baking classes into the language increases the ease of doing that, hopefully by
