@@ -36,7 +36,7 @@ I'll, uh, see myself out.
 
 Given that the concept is "inheritance", you would hope they would pick a
 consistent metaphor and call them "parent" and "child" classes, but that would
-be too easy. Way back when, C.A.R. Hoare coined the term "<span
+be too easy. Way back when, C. A. R. Hoare coined the term "<span
 name="subclass">subclass</span>" to refer to a record type that refines another
 type. Simula borrowed that term to refer to a *class* that inherits from
 another. I don't think it was until Smalltalk came along that someone flipped
@@ -54,12 +54,12 @@ subclass is a finer categorization of a larger class of living things.
 
 In set theory, a subset is contained by a larger superset which has all of the
 elements of the subset and possibly more. Set theory and programming languages
-directly collide in type theory. There, you have "supertypes" and "subtypes".
+meet each other in type theory. There, you have "supertypes" and "subtypes".
 
-In statically-typed object-oriented languages, a subclass is also often a
+In statically typed object-oriented languages, a subclass is also often a
 subtype of its superclass. Say we have a Doughnut superclass and a BostonCream
 subclass. Every BostonCream is also an instance of Doughnut, but there may be
-doughnut objects that are not BostonCreams (like crullers).
+doughnut objects that are not BostonCreams (like Crullers).
 
 Think of a type as the set of all values of that type. The set of all Doughnut
 instances contains the set of all BostonCream instances since every BostonCream
@@ -143,9 +143,9 @@ silly edge case we need to worry about while we're in here. Take a look at this:
 class Oops < Oops {}
 ```
 
-There's no way this will do anything useful and if we let the runtime try to run
-this, it will break the expectation the interpreter has about there not being
-cycles in the inheritance chain. The safest thing is to detect this case
+There's no way this will do anything useful, and if we let the runtime try to
+run this, it will break the expectation the interpreter has about there not
+being cycles in the inheritance chain. The safest thing is to detect this case
 statically and report it as an error.
 
 ^code inherit-self (2 before, 1 after)
@@ -156,7 +156,7 @@ Assuming the code resolves without error, the AST travels to the interpreter.
 
 If the class has a superclass expression, we evaluate it. Since that could
 potentially evaluate to some other kind of object, we have to check at runtime
-that the thing you want to be the superclass is actually a class. Bad things
+that the thing we want to be the superclass is actually a class. Bad things
 would happen if we allowed code like:
 
 ```lox
@@ -187,10 +187,10 @@ does having a superclass actually *do?*
 
 Inheriting from another class means that everything that's <span
 name="liskov">true</span> of the superclass should be true, more or less, of the
-subclass. In statically-typed languages that carries a lot of implications. The
-sub-*class* must also be a sub-*type* and the memory layout is controlled so
-that you can pass an instance of a subclass to a function expecting a superclass
-and it can still access the inherited fields correctly.
+subclass. In statically typed languages, that carries a lot of implications. The
+sub*class* must also be a sub*type*, and the memory layout is controlled so that
+you can pass an instance of a subclass to a function expecting a superclass and
+it can still access the inherited fields correctly.
 
 <aside name="liskov">
 
@@ -202,14 +202,14 @@ formative period of object-oriented programming.
 
 </aside>
 
-Lox is a dynamically-typed language, so our requirements are much simpler.
+Lox is a dynamically typed language, so our requirements are much simpler.
 Basically, it means that if you can call some method on an instance of the
 superclass, you should be able to call that method when given an instance of the
 subclass. In other words, methods are inherited from the superclass.
 
 This lines up with one of the goals of inheritance -- to give users a way to
 reuse code across classes. Implementing this in our interpreter is
-astonishingly easy:
+astonishingly easy.
 
 ^code find-method-recurse-superclass (3 before, 1 after)
 
@@ -275,12 +275,12 @@ Pipe full of custard and coat with chocolate.
 ```
 
 We have a new expression form. The `super` keyword, followed by a dot and an
-identifier looks for a method with that name. Unlike calls on `this`, the search
+identifier, looks for a method with that name. Unlike calls on `this`, the search
 starts at the superclass.
 
 ### Syntax
 
-With `this`, the keyword works sort of like a magic variable and the expression
+With `this`, the keyword works sort of like a magic variable, and the expression
 is that one lone token. But with `super`, the subsequent `.` and property name
 are inseparable parts of the `super` expression. You can't have a bare `super`
 token all by itself.
@@ -341,13 +341,13 @@ Gaze upon:
 ```lox
 class A {
   method() {
-    print "Method A";
+    print "A method";
   }
 }
 
 class B < A {
   method() {
-    print "Method B";
+    print "B method";
   }
 
   test() {
@@ -359,8 +359,7 @@ class C < B {}
 
 C().test();
 ```
-
-Translate this program to Java, C#, or C++ and it will print "Method A", which
+Translate this program to Java, C#, or C++ and it will print "A method", which
 is what we want Lox to do too. When this program runs, inside the body of
 `test()`, `this` is an instance of C. The superclass of C is B, but that is
 *not* where the lookup should start. If it did, we would hit B's `method()`.
@@ -376,7 +375,7 @@ Instead, lookup should start on the superclass of *the class containing the
 
 <aside name="flow">
 
-The execution flow looks something like this
+The execution flow looks something like this:
 
 1. We call `test()` on an instance of C.
 
@@ -395,7 +394,7 @@ have that easily available.
 
 We *could* add a field to LoxFunction to store a reference to the LoxClass that
 owns that method. The interpreter would keep a reference to the
-currently-executing LoxFunction so that we could look it up later when we hit a
+currently executing LoxFunction so that we could look it up later when we hit a
 `super` expression. From there, we'd get the LoxClass of the method, then its
 superclass.
 
@@ -404,7 +403,7 @@ we needed to add support for `this`. In that case, we used our existing
 environment and closure mechanism to store a reference to the current object.
 Could we do something similar for storing the superclass<span
 name="rhetorical">?</span> Well, I probably wouldn't be talking about it if the
-answer was "no", so... yes.
+answer was no, so... yes.
 
 <aside name="rhetorical">
 
@@ -467,11 +466,11 @@ Inside that environment, we store a reference to the superclass -- the actual
 LoxClass object for the superclass which we have now that we are in the runtime.
 Then we create the LoxFunctions for each method. Those will capture the current
 environment -- the one where we just bound "super" -- as their closure, holding
-onto the superclass like we need. Once that's done, we pop the environment.
+on to the superclass like we need. Once that's done, we pop the environment.
 
 ^code end-superclass-environment (2 before, 2 after)
 
-We're ready to interpret `super` expressions themselves. There's a few moving
+We're ready to interpret `super` expressions themselves. There are a few moving
 parts, so we'll build this method up in pieces.
 
 ^code interpreter-visit-super
@@ -548,7 +547,7 @@ Heck, there are even simpler broken uses of super:
 super.notEvenInAClass();
 ```
 
-We could handle errors like these at runtime by checking to see if the look-up
+We could handle errors like these at runtime by checking to see if the lookup
 of "super" succeeded. But we can tell statically -- just by looking at the
 source code -- that Eclair has no superclass and thus no `super` expression will
 work inside it. Likewise, in the second example, we know that the `super`
@@ -579,7 +578,7 @@ If not -- oopsie! -- the user made a mistake.
 
 ## Conclusion
 
-We made it! That final bit of error-handling is the last chunk of code needed to
+We made it! That final bit of error handling is the last chunk of code needed to
 complete our Java implementation of Lox. This is a real <span
 name="superhero">accomplishment</span> and one you should be proud of. In the
 past dozen chapters and a thousand or so lines of code, we have learned and
@@ -600,8 +599,8 @@ implemented...
 * [classes][12],
 * constructors,
 * fields,
-* methods,
-* and finally inheritance.
+* methods, and finally,
+* inheritance.
 
 [4]: scanning.html
 [5]: representing-code.html
@@ -634,7 +633,7 @@ refreshed and ready, we'll embark on our [next adventure][].
 
 ## Challenges
 
-1.  Lox only supports *single inheritance* -- a class may have a single
+1.  Lox supports only *single inheritance* -- a class may have a single
     superclass and that's the only way to reuse methods across classes. Other
     languages have explored a variety of ways to more freely reuse and share
     capabilities across classes: mixins, traits, multiple inheritance, virtual
