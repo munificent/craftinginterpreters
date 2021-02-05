@@ -25,7 +25,7 @@ this book is going to fit on your bookshelf.
 An even more fundamental reason that jlox isn't sufficient is that it's too damn
 slow. A tree-walk interpreter is fine for some kinds of high-level, declarative
 languages. But for a general-purpose, imperative language -- even a "scripting"
-language like Lox, it won't fly. Take this little script:
+language like Lox -- it won't fly. Take this little script:
 
 ```lox
 fun fib(n) {
@@ -49,8 +49,8 @@ program we can write. A slow program that does a lot of work -- pointless or not
 </aside>
 
 On my laptop, that takes jlox about 72 seconds to execute. An equivalent C
-program finishes in half a second. Our dynamically-typed scripting language is
-never going to be as fast as a statically-typed language with manual memory
+program finishes in half a second. Our dynamically typed scripting language is
+never going to be as fast as a statically typed language with manual memory
 management, but we don't need to settle for more than *two orders of magnitude*
 slower.
 
@@ -60,7 +60,8 @@ AST -- is fundamentally the wrong design. We can't micro-optimize that to the
 performance we want any more than you can polish an AMC Gremlin into an SR-71
 Blackbird.
 
-We need to rethink the core model. This chapter introduces that model, bytecode, and begins our new interpreter, clox.
+We need to rethink the core model. This chapter introduces that model, bytecode,
+and begins our new interpreter, clox.
 
 ## Bytecode?
 
@@ -72,41 +73,40 @@ going with bytecode, let's stack it up against a couple of alternatives.
 Our existing interpreter has a couple of things going for it:
 
 *   Well, first, we already wrote it. It's done. And the main reason it's done
-    is because this style of interpreter is **really simple to implement.** The
+    is because this style of interpreter is *really simple to implement*. The
     runtime representation of the code directly maps to the syntax. It's
     virtually effortless to get from the parser to the data structures we need
     at runtime.
 
-*   It's **portable.** Our current interpreter is written in Java and runs on
-    any platform Java supports. We could write a new implementation in C using
-    the same approach and compile and run our language on basically every
-    platform under the sun.
+*   It's *portable*. Our current interpreter is written in Java and runs on any
+    platform Java supports. We could write a new implementation in C using the
+    same approach and compile and run our language on basically every platform
+    under the sun.
 
-Those are real advantages. But, on the other hand, **it's not
-memory-efficient.** Each piece of syntax becomes an AST node. A tiny Lox
-expression like `1 + 2` turns into a slew of objects with lots of pointers
-between them, something like:
+Those are real advantages. But, on the other hand, it's *not memory-efficient*.
+Each piece of syntax becomes an AST node. A tiny Lox expression like `1 + 2`
+turns into a slew of objects with lots of pointers between them, something like:
 
 <span name="header"></span>
 
 <aside name="header">
 
 The "(header)" parts are the bookkeeping information the Java virtual machine
-stores with each object to support memory management and tracking the object's
-type. Those take up space too!
+uses to support memory management and store the object's type. Those take up
+space too!
 
 </aside>
 
 <img src="image/chunks-of-bytecode/ast.png" alt="The tree of Java objects created to represent '1 + 2'." />
 
 Each of those pointers adds an extra 32 or 64 bits of overhead to the object.
-Worse, sprinkling our data across the heap in a loosely-connected web of objects
+Worse, sprinkling our data across the heap in a loosely connected web of objects
 does bad things for <span name="locality">*spatial locality*</span>.
 
 <aside name="locality">
 
 I wrote [an entire chapter][gpp locality] about this exact problem in my first
-book, "Game Programming Patterns", if you want to really dig in.
+book, *Game Programming Patterns*, if you want to really dig in.
 
 [gpp locality]: http://gameprogrammingpatterns.com/data-locality.html
 
@@ -142,7 +142,7 @@ which may move objects around in memory -- there's no telling where they'll be.
 
 </aside>
 
-Our AST walker has other overhead too around interface dispatch and the visitor
+Our AST walker has other overhead too around interface dispatch and the Visitor
 pattern, but the locality issues alone are enough to justify a better code
 representation.
 
@@ -150,12 +150,12 @@ representation.
 
 If you want to go *real* fast, you want to get all of those layers of
 indirection out of the way. Right down to the metal. Machine code. It even
-*sounds* fast. *"Machine code."*
+*sounds* fast. *Machine code.*
 
 Compiling directly to the native instruction set the chip supports is what the
 fastest languages do. Targeting native code has been the most efficient option
 since way back in the early days when engineers actually <span
-name="hand">hand-wrote</span> programs in machine code.
+name="hand">handwrote</span> programs in machine code.
 
 <aside name="hand">
 
@@ -226,14 +226,14 @@ makes your life as the compiler writer easier.
 
 The problem with a fantasy architecture, of course, is that it doesn't exist. We
 solve that by writing an *emulator* -- a simulated chip written in software that
-interprets the bytecode one instruction at a time. A **virtual machine**
-(**VM**), if you will.
+interprets the bytecode one instruction at a time. A *virtual machine (VM)*, if
+you will.
 
 That emulation layer adds <span name="p-code">overhead</span>, which is a key
 reason bytecode is slower than native code. But in return, it gives us
 portability. Write our VM in a language like C that is already supported on all
-the machines we care about and we can run our emulator on top of any hardware we
-like.
+the machines we care about, and we can run our emulator on top of any hardware
+we like.
 
 <aside name="p-code">
 
@@ -242,7 +242,7 @@ Pascal language. You might think a PDP-11 running at 15MHz couldn't afford the
 overhead of emulating a virtual machine. But back then, computers were in their
 Cambrian explosion and new architectures appeared every day. Keeping up with the
 latest chips was worth more than squeezing the maximum performance from each
-one. That's why the "p" in "p-code" doesn't stand for "Pascal", but "portable".
+one. That's why the "p" in p-code doesn't stand for "Pascal", but "portable".
 
 [p-code]: https://en.wikipedia.org/wiki/P-code_machine
 
@@ -260,7 +260,8 @@ to Bytecode to Virtual Machine." />
 Of course, we won't implement the phases strictly in order. Like our previous
 interpreter, we'll bounce around, building up the implementation one language
 feature at a time. In this chapter, we'll get the skeleton of the application in
-place and the data structures needed to store and represent a chunk of bytecode.
+place and create the data structures needed to store and represent a chunk of
+bytecode.
 
 ## Getting Started
 
@@ -327,11 +328,11 @@ Butter pecan is actually my favorite.
 
 </aside>
 
-* Cache-friendly, dense storage.
+* Cache-friendly, dense storage
 
-* Constant-time indexed element lookup.
+* Constant-time indexed element lookup
 
-* Constant-time appending to the end of the array.
+* Constant-time appending to the end of the array
 
 Those features are exactly why we used dynamic arrays all the time in jlox under
 the guise of Java's ArrayList class. Now that we're in C, we get to roll our
@@ -344,12 +345,12 @@ in use ("count").
 
 When we add an element, if the count is less than the capacity, then there is
 already available space in the array. We store the new element right in there
-and bump the count:
+and bump the count.
 
 <img src="image/chunks-of-bytecode/insert.png" alt="Storing an element in an
 array that has enough capacity." />
 
-If we have no spare capacity, then the process is a little more involved:
+If we have no spare capacity, then the process is a little more involved.
 
 <img src="image/chunks-of-bytecode/grow.png" alt="Growing the dynamic array
 before storing an element." class="wide" />
@@ -365,8 +366,8 @@ before storing an element." class="wide" />
 <aside name="amortized">
 
 Copying the existing elements when you grow the array makes it seem like
-appending an element is *O(n)*, not *O(1)* like I said above. However, you only
-need to do this copy step on *some* of the appends. Most of the time, there is
+appending an element is *O(n)*, not *O(1)* like I said above. However, you need
+to do this copy step only on *some* of the appends. Most of the time, there is
 already extra capacity, so you don't need to copy.
 
 To understand how this works, we need [**amortized
@@ -386,7 +387,7 @@ And implement it thusly:
 ^code chunk-c
 
 The dynamic array starts off completely empty. We don't even allocate a raw
-array yet. To append a byte to the end of the chunk we use a new function.
+array yet. To append a byte to the end of the chunk, we use a new function.
 
 ^code write-chunk-h (1 before, 2 after)
 
@@ -405,7 +406,7 @@ module.
 
 ^code chunk-c-include-memory (1 before, 2 after)
 
-This is enough to get us started:
+This is enough to get us started.
 
 ^code memory-h
 
@@ -486,13 +487,13 @@ That function conveniently supports the other three aspects of our policy. When
 `oldSize` is zero, `realloc()` is equivalent to calling `malloc()`.
 
 The interesting cases are when both `oldSize` and `newSize` are not zero. Those
-tell `realloc()` to resize the previously-allocated block. If the new size is
+tell `realloc()` to resize the previously allocated block. If the new size is
 smaller than the existing block of memory, it simply <span
 name="shrink">updates</span> the size of the block and returns the same pointer
 you gave it. If the new size is larger, it attempts to grow the existing block
 of memory.
 
-It can only do that if the memory after that block isn't already in use. If
+It can do that only if the memory after that block isn't already in use. If
 there isn't room to grow the block, `realloc()` instead allocates a *new* block
 of memory of the desired size, copies over the old bytes, frees the old block,
 and then returns a pointer to the new block. Remember, that's exactly the
@@ -516,7 +517,7 @@ it mean to "update" the block's size? Under the hood, the memory allocator
 maintains additional bookkeeping information for each block of heap-allocated
 memory, including its size.
 
-Given a pointer to some previously-allocated memory, it can find this
+Given a pointer to some previously allocated memory, it can find this
 bookkeeping information, which is necessary to be able to cleanly free it. It's
 this size metadata that `realloc()` updates.
 
@@ -526,7 +527,7 @@ Many implementations of `malloc()` store the allocated size in memory right
 </aside>
 
 OK, we can create new chunks and write instructions to them. Are we done? Nope!
-We're in C now, remember, we have to manage memory ourselves, like Ye Olden
+We're in C now, remember, we have to manage memory ourselves, like in Ye Olden
 Times, and that means *freeing* it too.
 
 ^code free-chunk-h (1 before, 1 after)
@@ -565,8 +566,8 @@ actually inside that chunk we made.
 To fix this, we're going to create a **disassembler**. An **assembler** is an
 old-school program that takes a file containing human-readable mnemonic names
 for CPU instructions like "ADD" and "MULT" and translates them to their binary
-machine code equivalent. A *dis*-assembler goes in the other direction -- given
-a blob of machine code, it spits out a textual listing of the instructions.
+machine code equivalent. A *dis*assembler goes in the other direction -- given a
+blob of machine code, it spits out a textual listing of the instructions.
 
 We'll implement something <span name="printer">similar</span>. Given a chunk, it
 will print out all of the instructions in it. A Lox *user* won't use this, but
@@ -633,7 +634,7 @@ in our compiler -- we print that too. For the one instruction we do have,
 
 <aside name="switch">
 
-We only have one instruction right now, but this switch will grow throughout the
+We have only one instruction right now, but this switch will grow throughout the
 rest of the book.
 
 </aside>
@@ -661,14 +662,13 @@ working.
 Now that we have a rudimentary chunk structure working, let's start making it
 more useful. We can store *code* in chunks, but what about *data*? Many values
 the interpreter works with are created at runtime as the result of operations.
-In:
 
 ```lox
 1 + 2;
 ```
 
-The value 3 appears nowhere in the code. However, the literals `1` and `2` do.
-To compile that statement to bytecode, we need some sort of instruction that
+The value 3 appears nowhere in the code here. However, the literals `1` and `2`
+do. To compile that statement to bytecode, we need some sort of instruction that
 means "produce a constant" and those literal values need to get stored in the
 chunk somewhere. In jlox, the Expr.Literal AST node held the value. We need a
 different solution now that we don't have a syntax tree.
@@ -679,8 +679,8 @@ We won't be *running* any code in this chapter, but since constants have a foot
 in both the static and dynamic worlds of our interpreter, they force us to start
 thinking at least a little bit about how our VM should represent values.
 
-For now, we're going to start as simple as possible -- we'll only support
-double-precision floating point numbers. This will obviously expand over time,
+For now, we're going to start as simple as possible -- we'll support only
+double-precision, floating-point numbers. This will obviously expand over time,
 so we'll set up a new module to give ourselves room to grow.
 
 ^code value-h
@@ -701,9 +701,9 @@ constant has an address or offset pointing to where the value is stored in that
 section.
 
 Most virtual machines do something similar. For example, the Java Virtual
-Machine [associates a *constant pool*][jvm const] with each compiled class. That
-sounds good enough for clox to me. Each chunk will carry with it a list of the
-values that appear as literals in the program. To keep things <span
+Machine [associates a **constant pool**][jvm const] with each compiled class.
+That sounds good enough for clox to me. Each chunk will carry with it a list of
+the values that appear as literals in the program. To keep things <span
 name="immediate">simpler</span>, we'll put *all* constants in there, even simple
 integers.
 
@@ -779,14 +779,7 @@ initialize a new chunk, we initialize its constant list too.
 
 ^code chunk-init-constant-array (1 before, 1 after)
 
-Likewise, we <span name="circle">free</span> the constants when we free the
-chunk.
-
-<aside name="circle">
-
-It's like the circle of life.
-
-</aside>
+Likewise, we free the constants when we free the chunk.
 
 ^code chunk-free-constants (1 before, 1 after)
 
@@ -853,9 +846,9 @@ operands look like -- its **instruction format**.
 <aside name="operand">
 
 Bytecode instruction operands are *not* the same as the operands passed to an
-arithmetic operator. You'll see when we get to expressions that those operand
-values are tracked separately. Instruction operands are a lower-level notion
-that modify how the bytecode instruction itself behaves.
+arithmetic operator. You'll see when we get to expressions that arithmetic
+operand values are tracked separately. Instruction operands are a lower-level
+notion that modify how the bytecode instruction itself behaves.
 
 </aside>
 
@@ -885,7 +878,7 @@ There's more going on here. As with `OP_RETURN`, we print out the name of the
 opcode. Then we pull out the constant index from the subsequent byte in the
 chunk. We print that index, but that isn't super useful to us human readers. So
 we also look up the actual constant value -- since constants *are* known at
-compile-time after all -- and display the value itself too.
+compile time after all -- and display the value itself too.
 
 This requires some way to print a clox Value. That function will live in the
 "value" module, so we include that.
@@ -1000,7 +993,7 @@ beginning of the chunk -- we show its source line.
 Bytecode instructions tend to be pretty fine-grained. A single line of source
 code often compiles to a whole sequence of instructions. To make that more
 visually clear, we show a `|` for any instruction that comes from the same
-source line as the preceding one. The resulting output for our hand-written
+source line as the preceding one. The resulting output for our handwritten
 chunk looks like:
 
 ```text
@@ -1042,10 +1035,10 @@ exactly that.
     of an instruction, determines the line where the instruction occurs.
 
     *Hint: It's not necessary for `getLine()` to be particularly efficient.
-    Since it is only called when a runtime error occurs, it is well off the
+    Since it is called only when a runtime error occurs, it is well off the
     critical path where performance matters.*
 
-2.  Because `OP_CONSTANT` only uses a single byte for its operand, a chunk may
+2.  Because `OP_CONSTANT` uses only a single byte for its operand, a chunk may
     only contain up to 256 different constants. That's small enough that people
     writing real-world code will hit that limit. We could use two or more bytes
     to store the operand, but that makes *every* constant instruction take up
@@ -1084,7 +1077,7 @@ exactly that.
     *Hardcore mode:* Implement `reallocate()` without calling `realloc()`,
     `malloc()`, or `free()`. You are allowed to call `malloc()` *once*, at the
     beginning of the interpreter's execution, to allocate a single big block of
-    memory which your `reallocate()` function has access to. It parcels out
+    memory, which your `reallocate()` function has access to. It parcels out
     blobs of memory from that single region, your own personal heap. It's your
     job to define how it does that.
 
@@ -1163,7 +1156,7 @@ It's not all rosy, though:
     didn't appear.
 
 *   It can be a chore to craft a valid program that tickles some obscure corner
-    of the implementation. This is particularly true for highly-optimized
+    of the implementation. This is particularly true for highly optimized
     compilers where you may need to write convoluted code to ensure that you
     end up on just the right optimization path where a bug may be hiding.
 
