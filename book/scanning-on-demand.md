@@ -2,7 +2,8 @@
 > twenty-six phonetic symbols, ten Arabic numbers, and about eight punctuation
 > marks.
 >
-> <cite>Kurt Vonnegut, <em>A Man Without a Country</em></cite>
+> <cite>Kurt Vonnegut, <em>Like Shaking Hands With God: A Conversation about
+> Writing</em></cite>
 
 Our second interpreter, clox, has three phases -- scanner, compiler, and virtual
 machine. A data structure joins each pair of phases. Tokens flow from scanner to
@@ -87,9 +88,9 @@ file, but we don't know how big the file is until we've read it.
 The code here is the classic trick to solve that. We open the file, but before
 reading it, we seek to the very end using `fseek()`. Then we call `ftell()`
 which tells us how many bytes we are from the start of the file. Since we seeked
-("sought"?) to the end, that's the size. We rewind back to the beginning,
-allocate a string of that <span name="one">size</span>, and read the whole file
-in a single batch.
+(sought?) to the end, that's the size. We rewind back to the beginning, allocate
+a string of that <span name="one">size</span>, and read the whole file in a
+single batch.
 
 <aside name="one">
 
@@ -144,7 +145,7 @@ error?
 
 We've got ourselves a string of Lox source code, so now we're ready to set up a
 pipeline to scan, compile, and execute it. It's driven by `interpret()`. Right
-now, that function runs our old hard-coded test chunk. Let's change it to
+now, that function runs our old hardcoded test chunk. Let's change it to
 something closer to its final incarnation.
 
 ^code vm-interpret-h (1 before, 1 after)
@@ -163,16 +164,18 @@ For now, the one function in it is declared like so:
 
 ^code compiler-h
 
-That will change, but it gets us going.
-
-^code compiler-c
+That signature will change, but it gets us going.
 
 The first phase of compilation is scanning -- the thing we're doing in this
 chapter -- so right now all the compiler does is set that up.
 
+^code compiler-c
+
+This will also grow in later chapters, naturally.
+
 ### The scanner scans
 
-There's still a few more feet of scaffolding to stand up before we can start
+There are still a few more feet of scaffolding to stand up before we can start
 writing useful code. First, a new header:
 
 ^code scanner-h
@@ -217,12 +220,12 @@ crouched at the starting line.
 
 In jlox, when the starting gun went off, the scanner raced ahead and eagerly
 scanned the whole program, returning a list of tokens. This would be a challenge
-in clox. We'd need some sort of growable array or list to store the tokens. We'd
-need to manage allocating and freeing the tokens and the collection itself.
-That's a lot of code, and a lot of memory churn.
+in clox. We'd need some sort of growable array or list to store the tokens in.
+We'd need to manage allocating and freeing the tokens, and the collection
+itself. That's a lot of code, and a lot of memory churn.
 
-At any point in time, the compiler only needs one or two tokens -- remember our
-grammar only requires a single token of lookahead -- so we don't need to keep
+At any point in time, the compiler needs only one or two tokens -- remember our
+grammar requires only a single token of lookahead -- so we don't need to keep
 them *all* around at the same time. Instead, the simplest solution is to not
 scan a token until the compiler needs one. When the scanner provides one, it
 returns the token by value. It doesn't need to dynamically allocate anything --
@@ -292,7 +295,7 @@ identical to the one in jlox, so let's just hammer out the whole thing.
 ^code token-type (2 before, 2 after)
 
 Aside from prefixing all the names with `TOKEN_` (since C tosses enum names in
-the top level namespace) the only difference is that extra `TOKEN_ERROR` type.
+the top-level namespace) the only difference is that extra `TOKEN_ERROR` type.
 What's that about?
 
 There are only a couple of errors that get detected during scanning:
@@ -358,7 +361,7 @@ To create a token, we have this constructor-like function:
 
 It uses the scanner's `start` and `current` pointers to capture the token's
 lexeme. It sets a couple of other obvious fields then returns the token. It has
-a sister function for returning error tokens:
+a sister function for returning error tokens.
 
 ^code error-token
 
@@ -461,7 +464,7 @@ skip those too.
 
 Comments start with `//` in Lox, so as with `!=` and friends, we need a second
 character of lookahead. However, with `!=`, we still wanted to consume the `!`
-even if the `=` wasn't found. Comments are different, if we don't find a second
+even if the `=` wasn't found. Comments are different. If we don't find a second
 `/`, then `skipWhitespace()` needs to not consume the *first* slash either.
 
 To handle that, we add:
@@ -511,10 +514,10 @@ chunk's constant table.
 
 <aside name="convert">
 
-Doing the lexeme to value conversion in the compiler does introduce some
+Doing the lexeme-to-value conversion in the compiler does introduce some
 redundancy. The work to scan a number literal is awfully similar to the work
 required to convert a sequence of digit characters to a number value. But there
-isn't *that* much redundancy, it isn't in anything performance-critical, and it
+isn't *that* much redundancy, it isn't in anything performance critical, and it
 keeps our scanner simpler.
 
 </aside>
@@ -583,14 +586,14 @@ table from scratch][hash], we'll learn all about it in exquisite detail.
 
 Let's say we've scanned the identifier "gorgonzola". How much work *should* we
 need to do to tell if that's a reserved word? Well, no Lox keyword starts with
-"g", so looking at the first character is enough to definitively answer "no".
+"g", so looking at the first character is enough to definitively answer no.
 That's a lot simpler than a hash table lookup.
 
 What about "cardigan"? We do have a keyword in Lox that starts with "c":
 "class". But the second character in "cardigan", "a", rules that out. What about
 "forest"? Since "for" is a keyword, we have to go farther in the string before
 we can establish that we don't have a reserved word. But, in most cases, only a
-character or two is enough to tell we've got a user-defined name in our hands.
+character or two is enough to tell we've got a user-defined name on our hands.
 We should be able to recognize that and fail fast.
 
 Here's a visual representation of that branching character-inspection logic:
@@ -639,10 +642,10 @@ able to tell that it does *not* contain "banque" -- the "e" node won't have that
 marker, while the "n" and "t" nodes will.
 
 Tries are a special case of an even more fundamental data structure: a
-[**deterministic finite automaton**][dfa] (DFA). You might also know these by
-other names: **finite state machine**, or just **state machine**. State machines
-are rad. They end up useful in everything from [game programming][state] to
-implementing networking protocols.
+[**deterministic finite automaton**][dfa] (**DFA**). You might also know these
+by other names: **finite state machine**, or just **state machine**. State
+machines are rad. They end up useful in everything from [game
+programming][state] to implementing networking protocols.
 
 [dfa]: https://en.wikipedia.org/wiki/Deterministic_finite_automaton
 [state]: http://gameprogrammingpatterns.com/state.html
@@ -651,7 +654,7 @@ In a DFA, you have a set of *states* with *transitions* between them, forming a
 graph. At any point in time, the machine is "in" exactly one state. It gets to
 other states by following transitions. When you use a DFA for lexical analysis,
 each transition is a character that gets matched from the string. Each state
-respresents a set of allowed characters.
+represents a set of allowed characters.
 
 Our keyword tree is exactly a DFA that recognizes Lox keywords. But DFAs are
 more powerful than simple trees because they can be arbitrary *graphs*.
@@ -758,7 +761,7 @@ itself is a valid identifier too, after all. The other letter that branches is
 ^code keyword-t (1 before, 1 after)
 
 That's it. A couple of nested `switch` statements. Not only is this code <span
-name="short">short</span>, but it's very very fast. It does the minimum amount
+name="short">short</span>, but it's very, very fast. It does the minimum amount
 of work required to detect a keyword, and bails out as soon as it can tell the
 identifier will not be a reserved one.
 
@@ -777,14 +780,14 @@ writing the simplest code I can is sufficient to accomplish that.
 
 ## Challenges
 
-1.  Many newer languages support [*string interpolation*][interp]. Inside a
+1.  Many newer languages support [**string interpolation**][interp]. Inside a
     string literal, you have some sort of special delimiters -- most commonly
     `${` at the beginning and `}` at the end. Between those delimiters, any
     expression can appear. When the string literal is executed, the inner
     expression is evaluated, converted to a string, and then merged with the
     surrounding string literal.
 
-    For example, if Lox supported string interpolation, then this:
+    For example, if Lox supported string interpolation, then this...
 
     ```lox
     var drink = "Tea";
@@ -793,7 +796,7 @@ writing the simplest code I can is sufficient to accomplish that.
     print "${drink} will be ready in ${steep + cool} minutes.";
     ```
 
-    Would print:
+    ...would print:
 
     ```text
     Tea will be ready in 6 minutes.

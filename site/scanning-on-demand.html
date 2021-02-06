@@ -114,7 +114,8 @@
 <p>Literature is idiosyncratic arrangements in horizontal lines in only
 twenty-six phonetic symbols, ten Arabic numbers, and about eight punctuation
 marks.</p>
-<p><cite>Kurt Vonnegut, <em>A Man Without a Country</em></cite></p>
+<p><cite>Kurt Vonnegut, <em>Like Shaking Hands With God: A Conversation about
+Writing</em></cite></p>
 </blockquote>
 <p>Our second interpreter, clox, has three phases<span class="em">&mdash;</span>scanner, compiler, and virtual
 machine. A data structure joins each pair of phases. Tokens flow from scanner to
@@ -255,9 +256,9 @@ file, but we don&rsquo;t know how big the file is until we&rsquo;ve read it.</p>
 <p>The code here is the classic trick to solve that. We open the file, but before
 reading it, we seek to the very end using <code>fseek()</code>. Then we call <code>ftell()</code>
 which tells us how many bytes we are from the start of the file. Since we seeked
-(&ldquo;sought&rdquo;?) to the end, that&rsquo;s the size. We rewind back to the beginning,
-allocate a string of that <span name="one">size</span>, and read the whole file
-in a single batch.</p>
+(sought?) to the end, that&rsquo;s the size. We rewind back to the beginning, allocate
+a string of that <span name="one">size</span>, and read the whole file in a
+single batch.</p>
 <aside name="one">
 <p>Well, that size <em>plus one</em>. Always gotta remember to make room for the null
 byte.</p>
@@ -335,7 +336,7 @@ error?</p>
 <h3><a href="#opening-the-compilation-pipeline" name="opening-the-compilation-pipeline"><small>16&#8202;.&#8202;1&#8202;.&#8202;1</small>Opening the compilation pipeline</a></h3>
 <p>We&rsquo;ve got ourselves a string of Lox source code, so now we&rsquo;re ready to set up a
 pipeline to scan, compile, and execute it. It&rsquo;s driven by <code>interpret()</code>. Right
-now, that function runs our old hard-coded test chunk. Let&rsquo;s change it to
+now, that function runs our old hardcoded test chunk. Let&rsquo;s change it to
 something closer to its final incarnation.</p>
 <div class="codehilite"><pre class="insert-before">
 void freeVM();
@@ -388,7 +389,9 @@ create new file</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.h</em>, create new file</div>
 
-<p>That will change, but it gets us going.</p>
+<p>That signature will change, but it gets us going.</p>
+<p>The first phase of compilation is scanning<span class="em">&mdash;</span>the thing we&rsquo;re doing in this
+chapter<span class="em">&mdash;</span>so right now all the compiler does is set that up.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 create new file</div>
 <pre>
@@ -404,10 +407,9 @@ create new file</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, create new file</div>
 
-<p>The first phase of compilation is scanning<span class="em">&mdash;</span>the thing we&rsquo;re doing in this
-chapter<span class="em">&mdash;</span>so right now all the compiler does is set that up.</p>
+<p>This will also grow in later chapters, naturally.</p>
 <h3><a href="#the-scanner-scans" name="the-scanner-scans"><small>16&#8202;.&#8202;1&#8202;.&#8202;2</small>The scanner scans</a></h3>
-<p>There&rsquo;s still a few more feet of scaffolding to stand up before we can start
+<p>There are still a few more feet of scaffolding to stand up before we can start
 writing useful code. First, a new header:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.h</em><br>
 create new file</div>
@@ -474,11 +476,11 @@ crouched at the starting line.</p>
 <h2><a href="#a-token-at-a-time" name="a-token-at-a-time"><small>16&#8202;.&#8202;2</small>A Token at a Time</a></h2>
 <p>In jlox, when the starting gun went off, the scanner raced ahead and eagerly
 scanned the whole program, returning a list of tokens. This would be a challenge
-in clox. We&rsquo;d need some sort of growable array or list to store the tokens. We&rsquo;d
-need to manage allocating and freeing the tokens and the collection itself.
-That&rsquo;s a lot of code, and a lot of memory churn.</p>
-<p>At any point in time, the compiler only needs one or two tokens<span class="em">&mdash;</span>remember our
-grammar only requires a single token of lookahead<span class="em">&mdash;</span>so we don&rsquo;t need to keep
+in clox. We&rsquo;d need some sort of growable array or list to store the tokens in.
+We&rsquo;d need to manage allocating and freeing the tokens, and the collection
+itself. That&rsquo;s a lot of code, and a lot of memory churn.</p>
+<p>At any point in time, the compiler needs only one or two tokens<span class="em">&mdash;</span>remember our
+grammar requires only a single token of lookahead<span class="em">&mdash;</span>so we don&rsquo;t need to keep
 them <em>all</em> around at the same time. Instead, the simplest solution is to not
 scan a token until the compiler needs one. When the scanner provides one, it
 returns the token by value. It doesn&rsquo;t need to dynamically allocate anything<span class="em">&mdash;</span>it can just pass tokens around on the C stack.</p>
@@ -611,7 +613,7 @@ typedef struct {
 <div class="source-file-narrow"><em>scanner.h</em></div>
 
 <p>Aside from prefixing all the names with <code>TOKEN_</code> (since C tosses enum names in
-the top level namespace) the only difference is that extra <code>TOKEN_ERROR</code> type.
+the top-level namespace) the only difference is that extra <code>TOKEN_ERROR</code> type.
 What&rsquo;s that about?</p>
 <p>There are only a couple of errors that get detected during scanning:
 unterminated strings and unrecognized characters. In jlox, the scanner reports
@@ -692,7 +694,7 @@ add after <em>isAtEnd</em>()</div>
 
 <p>It uses the scanner&rsquo;s <code>start</code> and <code>current</code> pointers to capture the token&rsquo;s
 lexeme. It sets a couple of other obvious fields then returns the token. It has
-a sister function for returning error tokens:</p>
+a sister function for returning error tokens.</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>makeToken</em>()</div>
 <pre>
@@ -916,7 +918,7 @@ in <em>skipWhitespace</em>()</div>
 
 <p>Comments start with <code>//</code> in Lox, so as with <code>!=</code> and friends, we need a second
 character of lookahead. However, with <code>!=</code>, we still wanted to consume the <code>!</code>
-even if the <code>=</code> wasn&rsquo;t found. Comments are different, if we don&rsquo;t find a second
+even if the <code>=</code> wasn&rsquo;t found. Comments are different. If we don&rsquo;t find a second
 <code>/</code>, then <code>skipWhitespace()</code> needs to not consume the <em>first</em> slash either.</p>
 <p>To handle that, we add:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
@@ -989,10 +991,10 @@ as it appears in the user&rsquo;s source code. Later in the compiler, we&rsquo;l
 that lexeme to a runtime value right when we are ready to store it in the
 chunk&rsquo;s constant table.</p>
 <aside name="convert">
-<p>Doing the lexeme to value conversion in the compiler does introduce some
+<p>Doing the lexeme-to-value conversion in the compiler does introduce some
 redundancy. The work to scan a number literal is awfully similar to the work
 required to convert a sequence of digit characters to a number value. But there
-isn&rsquo;t <em>that</em> much redundancy, it isn&rsquo;t in anything performance-critical, and it
+isn&rsquo;t <em>that</em> much redundancy, it isn&rsquo;t in anything performance critical, and it
 keeps our scanner simpler.</p>
 </aside>
 <p>Next up, numbers. Instead of adding a switch case for each of the ten digits
@@ -1112,13 +1114,13 @@ table from scratch</a>, we&rsquo;ll learn all about it in exquisite detail.</p>
 </aside>
 <p>Let&rsquo;s say we&rsquo;ve scanned the identifier &ldquo;gorgonzola&rdquo;. How much work <em>should</em> we
 need to do to tell if that&rsquo;s a reserved word? Well, no Lox keyword starts with
-&ldquo;g&rdquo;, so looking at the first character is enough to definitively answer &ldquo;no&rdquo;.
+&ldquo;g&rdquo;, so looking at the first character is enough to definitively answer no.
 That&rsquo;s a lot simpler than a hash table lookup.</p>
 <p>What about &ldquo;cardigan&rdquo;? We do have a keyword in Lox that starts with &ldquo;c&rdquo;:
 &ldquo;class&rdquo;. But the second character in &ldquo;cardigan&rdquo;, &ldquo;a&rdquo;, rules that out. What about
 &ldquo;forest&rdquo;? Since &ldquo;for&rdquo; is a keyword, we have to go farther in the string before
 we can establish that we don&rsquo;t have a reserved word. But, in most cases, only a
-character or two is enough to tell we&rsquo;ve got a user-defined name in our hands.
+character or two is enough to tell we&rsquo;ve got a user-defined name on our hands.
 We should be able to recognize that and fail fast.</p>
 <p>Here&rsquo;s a visual representation of that branching character-inspection logic:</p>
 <p><span name="down"></span></p><img src="image/scanning-on-demand/keywords.png" alt="A trie that contains all of Lox's keywords." />
@@ -1151,15 +1153,15 @@ illustration. That way, if your trie contains, say, &ldquo;banquet&rdquo; and &l
 able to tell that it does <em>not</em> contain &ldquo;banque&rdquo;<span class="em">&mdash;</span>the &ldquo;e&rdquo; node won&rsquo;t have that
 marker, while the &ldquo;n&rdquo; and &ldquo;t&rdquo; nodes will.</p>
 <p>Tries are a special case of an even more fundamental data structure: a
-<a href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton"><strong>deterministic finite automaton</strong></a> (DFA). You might also know these by
-other names: <strong>finite state machine</strong>, or just <strong>state machine</strong>. State machines
-are rad. They end up useful in everything from <a href="http://gameprogrammingpatterns.com/state.html">game programming</a> to
-implementing networking protocols.</p>
+<a href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton"><strong>deterministic finite automaton</strong></a> (<strong>DFA</strong>). You might also know these
+by other names: <strong>finite state machine</strong>, or just <strong>state machine</strong>. State
+machines are rad. They end up useful in everything from <a href="http://gameprogrammingpatterns.com/state.html">game
+programming</a> to implementing networking protocols.</p>
 <p>In a DFA, you have a set of <em>states</em> with <em>transitions</em> between them, forming a
 graph. At any point in time, the machine is &ldquo;in&rdquo; exactly one state. It gets to
 other states by following transitions. When you use a DFA for lexical analysis,
 each transition is a character that gets matched from the string. Each state
-respresents a set of allowed characters.</p>
+represents a set of allowed characters.</p>
 <p>Our keyword tree is exactly a DFA that recognizes Lox keywords. But DFAs are
 more powerful than simple trees because they can be arbitrary <em>graphs</em>.
 Transitions can form cycles between states. That lets you recognize arbitrarily
@@ -1300,7 +1302,7 @@ in <em>identifierType</em>()</div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>identifierType</em>()</div>
 
 <p>That&rsquo;s it. A couple of nested <code>switch</code> statements. Not only is this code <span
-name="short">short</span>, but it&rsquo;s very very fast. It does the minimum amount
+name="short">short</span>, but it&rsquo;s very, very fast. It does the minimum amount
 of work required to detect a keyword, and bails out as soon as it can tell the
 identifier will not be a reserved one.</p>
 <p>And with that, our scanner is complete.</p>
@@ -1314,20 +1316,20 @@ writing the simplest code I can is sufficient to accomplish that.</p>
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 <ol>
 <li>
-<p>Many newer languages support <a href="https://en.wikipedia.org/wiki/String_interpolation"><em>string interpolation</em></a>. Inside a
+<p>Many newer languages support <a href="https://en.wikipedia.org/wiki/String_interpolation"><strong>string interpolation</strong></a>. Inside a
 string literal, you have some sort of special delimiters<span class="em">&mdash;</span>most commonly
 <code>${</code> at the beginning and <code>}</code> at the end. Between those delimiters, any
 expression can appear. When the string literal is executed, the inner
 expression is evaluated, converted to a string, and then merged with the
 surrounding string literal.</p>
-<p>For example, if Lox supported string interpolation, then this:</p>
+<p>For example, if Lox supported string interpolation, then this<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></p>
 <div class="codehilite"><pre>
 <span class="k">var</span> <span class="i">drink</span> = <span class="s">&quot;Tea&quot;</span>;
 <span class="k">var</span> <span class="i">steep</span> = <span class="n">4</span>;
 <span class="k">var</span> <span class="i">cool</span> = <span class="n">2</span>;
 <span class="k">print</span> <span class="s">&quot;${drink} will be ready in ${steep + cool} minutes.&quot;</span>;
 </pre></div>
-<p>Would print:</p>
+<p><span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>would print:</p>
 <div class="codehilite"><pre>Tea will be ready in 6 minutes.
 </pre></div>
 <p>What token types would you define to implement a scanner for string
