@@ -118,7 +118,7 @@ would be embarrassed to admit that that was how it was done.</p>
 <p><cite>Christopher Priest, <em>The Prestige</em></cite></p>
 </blockquote>
 <p>We&rsquo;ve spent a lot of time talking about how to represent a program as a sequence
-of bytecode instructions, but it feels like learning biology using only stuffed
+of bytecode instructions, but it feels like learning biology using only stuffed,
 dead animals. We know what instructions are in theory, but we&rsquo;ve never seen them
 in action, so it&rsquo;s hard to really understand what they <em>do</em>. It would be hard to
 write a compiler that outputs bytecode when we don&rsquo;t have a good understanding
@@ -178,7 +178,7 @@ me, we&rsquo;ll get there.</p>
 <p>The slightly more interesting line here is that declaration of <code>vm</code>. This module
 is eventually going to have a slew of functions and it would be a chore to pass
 around a pointer to the VM to all of them. Instead, we declare a single global
-VM object. We only need one anyway, and this keeps the code in the book a little
+VM object. We need only one anyway, and this keeps the code in the book a little
 lighter on the page.</p>
 <aside name="one">
 <p>The choice to have a static VM instance is a concession for the book, but not
@@ -317,17 +317,16 @@ in struct <em>VM</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
-<p>Its type is a byte pointer. We use an actual real C pointer right into the
-middle of the bytecode array instead of something like an integer index because
-it&rsquo;s faster to dereference a pointer than look up an element in an array by
-index.</p>
+<p>Its type is a byte pointer. We use an actual real C pointer pointing right into
+the middle of the bytecode array instead of something like an integer index
+because it&rsquo;s faster to dereference a pointer than look up an element in an array
+by index.</p>
 <p>The name &ldquo;IP&rdquo; is traditional, and<span class="em">&mdash;</span>unlike many traditional names in CS<span class="em">&mdash;</span>actually makes sense: it&rsquo;s an <strong><a href="https://en.wikipedia.org/wiki/Program_counter">instruction pointer</a></strong>. Almost every
 instruction set in the <span name="ip">world</span>, real and virtual, has a
-register or variable like this. The other common name for it is &ldquo;PC&rdquo; for
-&ldquo;program counter&rdquo;.</p>
+register or variable like this.</p>
 <aside name="ip">
 <p>x86, x64, and the CLR call it &ldquo;IP&rdquo;. 68k, PowerPC, ARM, p-code, and the JVM call
-it &ldquo;PC&rdquo;.</p>
+it &ldquo;PC&rdquo;, for <strong>program counter</strong>.</p>
 </aside>
 <p>We initialize <code>ip</code> by pointing it at the first byte of code in the chunk. We
 haven&rsquo;t executed that instruction yet, so <code>ip</code> points to the instruction <em>about
@@ -386,10 +385,10 @@ going all the way back to the early days of computers.</p>
 &ldquo;jump table&rdquo;, and &ldquo;computed goto&rdquo;.</p>
 </aside>
 <p>Alas, the fastest solutions require either non-standard extensions to C, or
-hand-written assembly code. For clox, we&rsquo;ll keep it simple. Just like our
+handwritten assembly code. For clox, we&rsquo;ll keep it simple. Just like our
 disassembler, we have a single giant <code>switch</code> statement with a case for each
 opcode. The body of each case implements that opcode&rsquo;s behavior.</p>
-<p>So far, we only handle a single instruction, <code>OP_RETURN</code>, and the only thing it
+<p>So far, we handle only a single instruction, <code>OP_RETURN</code>, and the only thing it
 does is exit the loop entirely. Eventually, that instruction will be used to
 return from the current Lox function, but we don&rsquo;t have functions yet, so we&rsquo;ll
 repurpose it temporarily to end the execution.</p>
@@ -443,7 +442,7 @@ refer to constants, so we&rsquo;re setting up this helper macro now.</p>
 <p>Like the previous <code>READ_BYTE</code> macro, <code>READ_CONSTANT</code> is only used inside
 <code>run()</code>. To make that scoping more explicit, the macro definitions themselves
 are confined to that function. We <span name="macro">define</span> them at the
-beginning and<span class="em">&mdash;</span>because we care<span class="em">&mdash;</span>undefine them at the end:</p>
+beginning and<span class="em">&mdash;</span>because we care<span class="em">&mdash;</span>undefine them at the end.</p>
 <div class="codehilite"><pre class="insert-before">
 #undef READ_BYTE
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -525,8 +524,7 @@ Visitor pattern for walking the AST.</p>
 <h2><a href="#a-value-stack-manipulator" name="a-value-stack-manipulator"><small>15&#8202;.&#8202;2</small>A Value Stack Manipulator</a></h2>
 <p>In addition to imperative side effects, Lox has expressions that produce,
 modify, and consume values. Thus, our compiled bytecode needs a way to shuttle
-values around between the different instructions that need them. For example,
-in:</p>
+values around between the different instructions that need them. For example:</p>
 <div class="codehilite"><pre>
 <span class="k">print</span> <span class="n">3</span> - <span class="n">2</span>;
 </pre></div>
@@ -581,11 +579,11 @@ correct Lox implementation <em>must</em> print these numbers in this order:</p>
 12 // from print 3 + 9
 </pre></div>
 <p>Our old jlox interpreter accomplishes this by recursively traversing the AST. It
-does a post-order traversal. First it recurses down the left operand branch,
+does a postorder traversal. First it recurses down the left operand branch,
 then the right operand, then finally it evaluates the node itself.</p>
 <p>After evaluating the left operand, jlox needs to store that result somewhere
 temporarily while it&rsquo;s busy traversing down through the right operand tree. We
-used a local variable in Java for that. Our recursive tree-walk interpreter
+use a local variable in Java for that. Our recursive tree-walk interpreter
 creates a unique Java call frame for each node being evaluated, so we could have
 as many of these local variables as we needed.</p>
 <p>In clox, our <code>run()</code> function is not recursive<span class="em">&mdash;</span>the nested expression tree is
@@ -604,7 +602,7 @@ a step at a time:</p>
 bars showing which numbers need to be preserved across which instructions." /></p>
 <p>On the left are the steps of code. On the right are the values we&rsquo;re tracking.
 Each bar represents a number. It starts when the value is first produced<span class="em">&mdash;</span>either a constant or the result of an addition. The length of the bar tracks
-when a previously-produced value needs to be kept around, and it ends when that
+when a previously produced value needs to be kept around, and it ends when that
 value finally gets consumed by an operation.</p>
 <p>As you step through, you see values appear and then later get eaten. The
 longest-lived ones are the values produced from the left-hand side of an
@@ -613,14 +611,14 @@ expression.</p>
 <p>In the above diagram, I gave each unique number its own visual column. Let&rsquo;s be
 a little more parsimonious. Once a number is consumed, we allow its column to be
 reused for another later value. In other words, we take all of those gaps
-up there and fill them in pushing in numbers from the right:</p>
+up there and fill them in, pushing in numbers from the right:</p>
 <p><img src="image/a-virtual-machine/bars-stacked.png" alt="Like the previous
 diagram, but with number bars pushed to the left, forming a stack." /></p>
 <p>There&rsquo;s some interesting stuff going on here. When we shift everything over,
 each number still manages to stay in a single column for its entire life. Also,
 there are no gaps left. In other words, whenever a number appears earlier than
 another, then it will live at least as long as that second one. The first number
-to appear is the last to be consumed. Hmm<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>last-in, first-out<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>Why, that&rsquo;s a
+to appear is the last to be consumed. Hmm<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>last-in, first-out<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>why, that&rsquo;s a
 <span name="pancakes">stack</span>!</p>
 <aside name="pancakes">
 <p>This is also a stack:</p><img src="image/a-virtual-machine/pancakes.png" alt="A stack... of pancakes." />
@@ -647,14 +645,14 @@ which we&rsquo;ll learn about <a href="compiling-expressions.html">in due time</
 <p>As you&rsquo;ll see in this chapter, executing instructions in a stack-based VM is
 dead <span name="cheat">simple</span>. In later chapters, you&rsquo;ll also discover
 that compiling a source language to a stack-based instruction set is a piece of
-cake. And, yet, this architecture is fast enough to be used by production
+cake. And yet, this architecture is fast enough to be used by production
 language implementations. It almost feels like cheating at the programming
 language game.</p>
 <aside name="cheat">
 <p>To take a bit of the sheen off: stack-based interpreters aren&rsquo;t a silver bullet.
 They&rsquo;re often <em>adequate</em>, but modern implementations of the JVM, the CLR, and
-JavaScript all use sophisticated <a href="https://en.wikipedia.org/wiki/Just-in-time_compilation"><strong>just-in-time compilation</strong></a>
-pipelines to generate <em>much</em> faster native code on the fly.</p>
+JavaScript all use sophisticated <a href="https://en.wikipedia.org/wiki/Just-in-time_compilation">just-in-time compilation</a> pipelines to
+generate <em>much</em> faster native code on the fly.</p>
 </aside>
 <p>Alrighty, it&rsquo;s codin&rsquo; time! Here&rsquo;s the stack:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -673,14 +671,11 @@ in struct <em>VM</em></div>
 
 <p>We implement the stack semantics ourselves on top of a raw C array. The bottom
 of the stack<span class="em">&mdash;</span>the first value pushed and the last to be popped<span class="em">&mdash;</span>is at
-element zero in the array, and later pushed values follow it.</p>
-<p><span name="array"></span></p>
+element zero in the array, and later pushed values follow it. If we push the
+letters of &ldquo;crepe&rdquo;<span class="em">&mdash;</span>my favorite stackable breakfast item<span class="em">&mdash;</span>onto the stack, in
+order, the resulting C array looks like this:</p>
 <p><img src="image/a-virtual-machine/array.png" alt="An array containing the
 letters in 'crepe' in order starting at element 0." /></p>
-<aside name="array">
-<p>If we push the letters of &ldquo;crepe&rdquo;<span class="em">&mdash;</span>my favorite stackable breakfast
-item<span class="em">&mdash;</span>onto the stack, in order, the resulting C array looks like this.</p>
-</aside>
 <p>Since the stack grows and shrinks as values are pushed and popped, we need to
 track where the top of the stack is in the array. As with <code>ip</code>, we use a direct
 pointer instead of an integer index since it&rsquo;s faster to dereference the pointer
@@ -688,7 +683,7 @@ than calculate the offset from the index each time we need it.</p>
 <p>The pointer points at the array element just <em>past</em> the element containing the
 top value on the stack. That seems a little odd, but almost every implementation
 does this. It means we can indicate that the stack is empty by pointing at
-element zero in the array:</p>
+element zero in the array.</p>
 <p><img src="image/a-virtual-machine/stack-empty.png" alt="An empty array with
 stackTop pointing at the first element." /></p>
 <p>If we pointed to the top element, then for an empty stack we&rsquo;d need to point at
@@ -701,7 +696,7 @@ pointer that points just past the end of an array.</p>
 </aside>
 <p><img src="image/a-virtual-machine/stack-c.png" alt="An array with 'c' at element
 zero." /></p>
-<p><span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span><code>stackTop</code> always points just past the last item<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></p>
+<p><span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span><code>stackTop</code> always points just past the last item.</p>
 <p><img src="image/a-virtual-machine/stack-crepe.png" alt="An array with 'c', 'r',
 'e', 'p', and 'e' in the first five elements." /></p>
 <p>I remember it like this: <code>stackTop</code> points to where the next value to be pushed
@@ -875,7 +870,7 @@ executes instructions. The stack grows and shrinks as values flow through it.
 The two halves work, but it&rsquo;s hard to get a feel for how cleverly they interact
 with only the two rudimentary instructions we have so far. So let&rsquo;s teach our
 interpreter to do arithmetic.</p>
-<p>We&rsquo;ll start with the simplest arithmetic operation, unary negation:</p>
+<p>We&rsquo;ll start with the simplest arithmetic operation, unary negation.</p>
 <div class="codehilite"><pre>
 <span class="k">var</span> <span class="i">a</span> = <span class="n">1.2</span>;
 <span class="k">print</span> -<span class="i">a</span>; <span class="c">// -1.2.</span>
@@ -906,7 +901,7 @@ in <em>run</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
-<p>The instruction needs a value to operate on which it gets by popping from the
+<p>The instruction needs a value to operate on, which it gets by popping from the
 stack. It negates that, then pushes the result back on for later instructions to
 use. Doesn&rsquo;t get much easier than that. We can disassemble it too.</p>
 <div class="codehilite"><pre class="insert-before">
@@ -1029,7 +1024,7 @@ true. But it expands to:</p>
 <div class="codehilite"><pre>
 <span class="k">if</span> (<span class="i">morning</span>) <span class="i">makeCoffee</span>(); <span class="i">drinkCoffee</span>();;
 </pre></div>
-<p>Oops. The <code>if</code> only attaches to the <em>first</em> statement. You might think you could
+<p>Oops. The <code>if</code> attaches only to the <em>first</em> statement. You might think you could
 fix this using a block.</p>
 <div class="codehilite"><pre>
 <span class="a">#define WAKE_UP() { makeCoffee(); drinkCoffee(); }</span>
@@ -1099,7 +1094,7 @@ larger expression:</p>
 <p><img src="image/a-virtual-machine/chunk.png" alt="The expression being
 evaluated: -((1.2 + 3.4) / 5.6)" /></p>
 <p>Building on our existing example chunk, here&rsquo;s the additional instructions we
-need to hand-compile that AST to bytecode:</p>
+need to hand-compile that AST to bytecode.</p>
 <div class="codehilite"><pre class="insert-before">
   int constant = addConstant(&amp;chunk, 1.2);
   writeChunk(&amp;chunk, OP_CONSTANT, 123);
@@ -1196,7 +1191,7 @@ around a stack-based bytecode instruction set. There&rsquo;s another family of
 bytecode architectures out there<span class="em">&mdash;</span><em>register-based</em>. Despite the name, these
 bytecode instructions aren&rsquo;t quite as difficult to work with as the registers in
 an actual chip like <span name="x64">x64</span>. With real hardware registers,
-you usually only have a handful for the entire program, so you spend a lot of
+you usually have only a handful for the entire program, so you spend a lot of
 effort <a href="https://en.wikipedia.org/wiki/Register_allocation">trying to use them efficiently and shuttling stuff in and out of
 them</a>.</p>
 <aside name="x64">
