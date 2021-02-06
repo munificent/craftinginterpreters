@@ -6,7 +6,7 @@
 > <cite>Christopher Priest, <em>The Prestige</em></cite>
 
 We've spent a lot of time talking about how to represent a program as a sequence
-of bytecode instructions, but it feels like learning biology using only stuffed
+of bytecode instructions, but it feels like learning biology using only stuffed,
 dead animals. We know what instructions are in theory, but we've never seen them
 in action, so it's hard to really understand what they *do*. It would be hard to
 write a compiler that outputs bytecode when we don't have a good understanding
@@ -42,7 +42,7 @@ me, we'll get there.
 The slightly more interesting line here is that declaration of `vm`. This module
 is eventually going to have a slew of functions and it would be a chore to pass
 around a pointer to the VM to all of them. Instead, we declare a single global
-VM object. We only need one anyway, and this keeps the code in the book a little
+VM object. We need only one anyway, and this keeps the code in the book a little
 lighter on the page.
 
 <aside name="one">
@@ -125,23 +125,22 @@ during execution that we want the C compiler to keep it in a register.
 
 ^code ip (2 before, 1 after)
 
-Its type is a byte pointer. We use an actual real C pointer right into the
-middle of the bytecode array instead of something like an integer index because
-it's faster to dereference a pointer than look up an element in an array by
-index.
+Its type is a byte pointer. We use an actual real C pointer pointing right into
+the middle of the bytecode array instead of something like an integer index
+because it's faster to dereference a pointer than look up an element in an array
+by index.
 
 The name "IP" is traditional, and -- unlike many traditional names in CS --
 actually makes sense: it's an **[instruction pointer][ip]**. Almost every
 instruction set in the <span name="ip">world</span>, real and virtual, has a
-register or variable like this. The other common name for it is "PC" for
-"program counter".
+register or variable like this.
 
 [ip]: https://en.wikipedia.org/wiki/Program_counter
 
 <aside name="ip">
 
 x86, x64, and the CLR call it "IP". 68k, PowerPC, ARM, p-code, and the JVM call
-it "PC".
+it "PC", for **program counter**.
 
 </aside>
 
@@ -199,11 +198,11 @@ If you want to learn some of these techniques, look up "direct threaded code",
 </aside>
 
 Alas, the fastest solutions require either non-standard extensions to C, or
-hand-written assembly code. For clox, we'll keep it simple. Just like our
+handwritten assembly code. For clox, we'll keep it simple. Just like our
 disassembler, we have a single giant `switch` statement with a case for each
 opcode. The body of each case implements that opcode's behavior.
 
-So far, we only handle a single instruction, `OP_RETURN`, and the only thing it
+So far, we handle only a single instruction, `OP_RETURN`, and the only thing it
 does is exit the loop entirely. Eventually, that instruction will be used to
 return from the current Lox function, but we don't have functions yet, so we'll
 repurpose it temporarily to end the execution.
@@ -230,7 +229,7 @@ refer to constants, so we're setting up this helper macro now.
 Like the previous `READ_BYTE` macro, `READ_CONSTANT` is only used inside
 `run()`. To make that scoping more explicit, the macro definitions themselves
 are confined to that function. We <span name="macro">define</span> them at the
-beginning and -- because we care -- undefine them at the end:
+beginning and -- because we care -- undefine them at the end.
 
 ^code undef-read-constant (1 before, 1 after)
 
@@ -284,8 +283,7 @@ Visitor pattern for walking the AST.
 
 In addition to imperative side effects, Lox has expressions that produce,
 modify, and consume values. Thus, our compiled bytecode needs a way to shuttle
-values around between the different instructions that need them. For example,
-in:
+values around between the different instructions that need them. For example:
 
 ```lox
 print 3 - 2;
@@ -359,12 +357,12 @@ correct Lox implementation *must* print these numbers in this order:
 ```
 
 Our old jlox interpreter accomplishes this by recursively traversing the AST. It
-does a post-order traversal. First it recurses down the left operand branch,
+does a postorder traversal. First it recurses down the left operand branch,
 then the right operand, then finally it evaluates the node itself.
 
 After evaluating the left operand, jlox needs to store that result somewhere
 temporarily while it's busy traversing down through the right operand tree. We
-used a local variable in Java for that. Our recursive tree-walk interpreter
+use a local variable in Java for that. Our recursive tree-walk interpreter
 creates a unique Java call frame for each node being evaluated, so we could have
 as many of these local variables as we needed.
 
@@ -391,7 +389,7 @@ bars showing which numbers need to be preserved across which instructions." />
 On the left are the steps of code. On the right are the values we're tracking.
 Each bar represents a number. It starts when the value is first produced --
 either a constant or the result of an addition. The length of the bar tracks
-when a previously-produced value needs to be kept around, and it ends when that
+when a previously produced value needs to be kept around, and it ends when that
 value finally gets consumed by an operation.
 
 As you step through, you see values appear and then later get eaten. The
@@ -402,7 +400,7 @@ expression.
 In the above diagram, I gave each unique number its own visual column. Let's be
 a little more parsimonious. Once a number is consumed, we allow its column to be
 reused for another later value. In other words, we take all of those gaps
-up there and fill them in pushing in numbers from the right:
+up there and fill them in, pushing in numbers from the right:
 
 <img src="image/a-virtual-machine/bars-stacked.png" alt="Like the previous
 diagram, but with number bars pushed to the left, forming a stack." />
@@ -411,7 +409,7 @@ There's some interesting stuff going on here. When we shift everything over,
 each number still manages to stay in a single column for its entire life. Also,
 there are no gaps left. In other words, whenever a number appears earlier than
 another, then it will live at least as long as that second one. The first number
-to appear is the last to be consumed. Hmm... last-in, first-out... Why, that's a
+to appear is the last to be consumed. Hmm... last-in, first-out... why, that's a
 <span name="pancakes">stack</span>!
 
 <aside name="pancakes">
@@ -456,7 +454,7 @@ which we'll learn about [in due time][pratt].
 As you'll see in this chapter, executing instructions in a stack-based VM is
 dead <span name="cheat">simple</span>. In later chapters, you'll also discover
 that compiling a source language to a stack-based instruction set is a piece of
-cake. And, yet, this architecture is fast enough to be used by production
+cake. And yet, this architecture is fast enough to be used by production
 language implementations. It almost feels like cheating at the programming
 language game.
 
@@ -464,8 +462,8 @@ language game.
 
 To take a bit of the sheen off: stack-based interpreters aren't a silver bullet.
 They're often *adequate*, but modern implementations of the JVM, the CLR, and
-JavaScript all use sophisticated [**just-in-time compilation**][jit]
-pipelines to generate *much* faster native code on the fly.
+JavaScript all use sophisticated [just-in-time compilation][jit] pipelines to
+generate *much* faster native code on the fly.
 
 [jit]: https://en.wikipedia.org/wiki/Just-in-time_compilation
 
@@ -477,19 +475,12 @@ Alrighty, it's codin' time! Here's the stack:
 
 We implement the stack semantics ourselves on top of a raw C array. The bottom
 of the stack -- the first value pushed and the last to be popped -- is at
-element zero in the array, and later pushed values follow it.
-
-<span name="array"></span>
+element zero in the array, and later pushed values follow it. If we push the
+letters of "crepe" -- my favorite stackable breakfast item -- onto the stack, in
+order, the resulting C array looks like this:
 
 <img src="image/a-virtual-machine/array.png" alt="An array containing the
 letters in 'crepe' in order starting at element 0." />
-
-<aside name="array">
-
-If we push the letters of "crepe" -- my favorite stackable breakfast
-item -- onto the stack, in order, the resulting C array looks like this.
-
-</aside>
 
 Since the stack grows and shrinks as values are pushed and popped, we need to
 track where the top of the stack is in the array. As with `ip`, we use a direct
@@ -499,7 +490,7 @@ than calculate the offset from the index each time we need it.
 The pointer points at the array element just *past* the element containing the
 top value on the stack. That seems a little odd, but almost every implementation
 does this. It means we can indicate that the stack is empty by pointing at
-element zero in the array:
+element zero in the array.
 
 <img src="image/a-virtual-machine/stack-empty.png" alt="An empty array with
 stackTop pointing at the first element." />
@@ -519,7 +510,7 @@ pointer that points just past the end of an array.
 <img src="image/a-virtual-machine/stack-c.png" alt="An array with 'c' at element
 zero." />
 
-...`stackTop` always points just past the last item...
+...`stackTop` always points just past the last item.
 
 <img src="image/a-virtual-machine/stack-crepe.png" alt="An array with 'c', 'r',
 'e', 'p', and 'e' in the first five elements." />
@@ -616,7 +607,7 @@ The two halves work, but it's hard to get a feel for how cleverly they interact
 with only the two rudimentary instructions we have so far. So let's teach our
 interpreter to do arithmetic.
 
-We'll start with the simplest arithmetic operation, unary negation:
+We'll start with the simplest arithmetic operation, unary negation.
 
 ```lox
 var a = 1.2;
@@ -633,7 +624,7 @@ We execute it like so:
 
 ^code op-negate (1 before, 1 after)
 
-The instruction needs a value to operate on which it gets by popping from the
+The instruction needs a value to operate on, which it gets by popping from the
 stack. It negates that, then pushes the result back on for later instructions to
 use. Doesn't get much easier than that. We can disassemble it too.
 
@@ -719,7 +710,7 @@ true. But it expands to:
 if (morning) makeCoffee(); drinkCoffee();;
 ```
 
-Oops. The `if` only attaches to the *first* statement. You might think you could
+Oops. The `if` attaches only to the *first* statement. You might think you could
 fix this using a block.
 
 ```c
@@ -777,7 +768,7 @@ larger expression:
 evaluated: -((1.2 + 3.4) / 5.6)" />
 
 Building on our existing example chunk, here's the additional instructions we
-need to hand-compile that AST to bytecode:
+need to hand-compile that AST to bytecode.
 
 ^code main-chunk (3 before, 3 after)
 
@@ -861,7 +852,7 @@ around a stack-based bytecode instruction set. There's another family of
 bytecode architectures out there -- *register-based*. Despite the name, these
 bytecode instructions aren't quite as difficult to work with as the registers in
 an actual chip like <span name="x64">x64</span>. With real hardware registers,
-you usually only have a handful for the entire program, so you spend a lot of
+you usually have only a handful for the entire program, so you spend a lot of
 effort [trying to use them efficiently and shuttling stuff in and out of
 them][register allocation].
 
