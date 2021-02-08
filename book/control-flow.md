@@ -617,8 +617,8 @@ desugaring comes in. We take those and use them to synthesize syntax tree nodes
 that express the semantics of the `for` loop, like the hand-desugared example I
 showed you earlier.
 
-The code is a little simpler if we work backwards, so we start with the
-increment clause.
+The code is a little simpler if we work backward, so we start with the increment
+clause.
 
 ^code for-desugar-increment (2 before, 1 after)
 
