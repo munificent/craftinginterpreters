@@ -2,7 +2,7 @@
 > sometimes that a Thing which seemed very Thingish inside you is quite
 > different when it gets out into the open and has other people looking at it.
 >
-> <cite>A.A. Milne, <em>Winnie-the-Pooh</em></cite>
+> <cite>A. A. Milne, <em>Winnie-the-Pooh</em></cite>
 
 The past few chapters were huge, packed full of complex techniques and pages of
 code. In this chapter, there's only one new concept to learn and a scattering of
@@ -47,7 +47,7 @@ In order to choose a value representation, we need to answer two key questions:
 
 Since we're not just designing this language but building it ourselves, when
 answering these two questions we also have to keep in mind the implementer's
-eternal goal: how do we do it *efficiently?*
+eternal quest: to do it *efficiently*.
 
 Language hackers over the years have come up with a variety of clever ways to
 pack the above information into as few bits as possible. For now, we'll start
@@ -68,17 +68,17 @@ In other words, this is the VM's notion of "type", not the user's.
 
 </aside>
 
-For now, we only have a couple of cases, but this will grow as we add strings,
+For now, we have only a couple of cases, but this will grow as we add strings,
 functions, and classes to clox. In addition to the type, we also need to store
 the data for the value -- the `double` for a number, `true` or `false` for a
-Boolean. We could define a struct with fields for each possible type:
+Boolean. We could define a struct with fields for each possible type.
 
 <img src="image/types-of-values/struct.png" alt="A struct with two fields laid next to each other in memory." />
 
 But this is a waste of memory. A value can't simultaneously be both a number and
 a Boolean. So at any point in time, only one of those fields will be used. C
 lets you optimize this by defining a <span name="sum">union</span>. A union
-looks like a struct except that all of its fields overlap in memory:
+looks like a struct except that all of its fields overlap in memory.
 
 <aside name="sum">
 
@@ -135,13 +135,13 @@ smaller size, but all that would do is increase the padding.
 <aside name="pad">
 
 We could move the tag field *after* the union, but that doesn't help much
-either. Whenever we create an array of values -- which is where most of our
-memory usage for values will be -- the C compiler will insert that same padding
+either. Whenever we create an array of Values -- which is where most of our
+memory usage for Values will be -- the C compiler will insert that same padding
 *between* each Value to keep the doubles aligned.
 
 </aside>
 
-So our values are 16 bytes, which seems a little large. We'll improve it
+So our Values are 16 bytes, which seems a little large. We'll improve it
 [later][optimization]. In the meantime, they're still small enough to store on
 the C stack and pass around by value. Lox's semantics allow that because the
 only types we support so far are **immutable**. If we pass a copy of a Value
@@ -169,7 +169,7 @@ operation. First, to promote a native C value to a clox Value:
 
 Each one of these takes a C value of the appropriate type and produces a Value
 that has the correct type tag and contains the underlying value. This hoists
-statically-typed values up into clox's dynamically-typed universe. In order to
+statically typed values up into clox's dynamically typed universe. In order to
 *do* anything with a Value, though, we need to unpack it and get the C value
 back out.
 
@@ -193,12 +193,12 @@ double number = AS_NUMBER(value);
 ```
 
 Then we may open a smoldering portal to the Shadow Realm. It's not safe to use
-any of the `AS_` macros unless we know the value contains the appropriate type.
-To that end, we define a last few macros to check a value's type.
+any of the `AS_` macros unless we know the Value contains the appropriate type.
+To that end, we define a last few macros to check a Value's type.
 
 ^code is-macros (1 before, 2 after)
 
-<span name="universe">These</span> macros return `true` if the value has that
+<span name="universe">These</span> macros return `true` if the Value has that
 type. Any time we call one of the `AS_` macros, we need to guard it behind a
 call to one of these first. With these eight macros, we can now safely shuttle
 data between Lox's dynamic world and C's static one.
@@ -212,7 +212,7 @@ back down.
 
 </aside>
 
-## Dynamically-typed Numbers
+## Dynamically Typed Numbers
 
 We've got our value representation and the tools to convert to and from it. All
 that's left to get clox running again is to grind through the code and fix every
@@ -230,7 +230,7 @@ Over in the runtime, we have a function to print values.
 
 ^code print-number-value (1 before, 1 after)
 
-Right before we send the value to `printf()`, we unwrap it and extract the
+Right before we send the Value to `printf()`, we unwrap it and extract the
 double value. We'll revisit this function shortly to add the other types, but
 let's get our existing code working first.
 
@@ -244,15 +244,15 @@ can't assume the operand is a number anymore. The user could just as well do:
 print -false; // Uh...
 ```
 
-We need to handle that gracefully, which means it's time for **runtime errors**.
+We need to handle that gracefully, which means it's time for *runtime errors*.
 Before performing an operation that requires a certain type, we need to make
-sure the value *is* that type.
+sure the Value *is* that type.
 
 For unary negation, the check looks like this:
 
 ^code op-negate (1 before, 1 after)
 
-First, we check to see if the value on top of the stack is a number. If it's
+First, we check to see if the Value on top of the stack is a number. If it's
 not, we report the runtime error and <span name="halt">stop</span> the
 interpreter. Otherwise, we keep going. Only after this validation do we unwrap
 the operand, negate it, wrap the result and push it.
@@ -266,11 +266,11 @@ remedy.
 
 </aside>
 
-To access the value, we use a new little function.
+To access the Value, we use a new little function.
 
 ^code peek
 
-It returns a value from the stack but doesn't <span name="peek">pop</span> it.
+It returns a Value from the stack but doesn't <span name="peek">pop</span> it.
 The `distance` argument is how far down from the top of the stack to look: zero
 is the top, one is one slot down, etc.
 
@@ -298,7 +298,7 @@ arbitrary number of arguments to `runtimeError()`. It forwards those on to
 
 <aside name="tutorial">
 
-If you are looking for a C tutorial, I love "[The C Programming Language][kr]",
+If you are looking for a C tutorial, I love *[The C Programming Language][kr]*,
 usually called "K&R" in honor of its authors. It's not entirely up to date, but
 the quality of the writing more than makes up for it.
 
@@ -337,7 +337,7 @@ in a standard header.
 
 ^code include-stdarg (1 after)
 
-With this, our VM can not only do the right thing when you negate numbers (like
+With this, our VM can not only do the right thing when we negate numbers (like
 it used to before we broke it), but it also gracefully handles erroneous
 attempts to negate other types (which we don't have yet, but still).
 
@@ -385,7 +385,7 @@ Soon, I'll show you why we made the wrapping macro an argument.
 All of our existing clox code is back in working order. Finally, it's time to
 add some new types. We've got a running numeric calculator that now does a
 number of pointless paranoid runtime type checks. We can represent other types
-internally, but there's no way for a user's program to ever create a value of
+internally, but there's no way for a user's program to ever create a Value of
 one of those types.
 
 Not until now, that is. We'll start by adding compiler support for the three new
@@ -398,8 +398,8 @@ the chunk's constant table and emitting a bytecode instruction that simply
 loaded that constant. We could do the same thing for the new types. We'd store,
 say, `true`, in the constant table, and use an `OP_CONSTANT` to read it out.
 
-But given that there are literally only three possible values we need to worry
-about with these new types, it's gratuitous -- and <span
+But given that there are literally (heh) only three possible values we need to
+worry about with these new types, it's gratuitous -- and <span
 name="small">slow!</span> -- to waste a two-byte instruction and a constant
 table entry on them. Instead, we'll define three dedicated instructions to push
 each of these literals on the stack.
@@ -480,7 +480,7 @@ logical operators.
 
 ### Logical not and falsiness
 
-The simplest logical operator is our old exclamatory friend unary not:
+The simplest logical operator is our old exclamatory friend unary not.
 
 ```lox
 print !true; // "false"
@@ -533,7 +533,7 @@ Negating a string could, uh, reverse it?
 
 Lox follows Ruby in that `nil` and `false` are falsey and every other value
 behaves like `true`. We've got a new instruction we can generate, so we also
-need to be able to *un*-generate it in the disassembler.
+need to be able to *un*generate it in the disassembler.
 
 ^code disassemble-not (2 before, 1 after)
 
@@ -542,8 +542,8 @@ need to be able to *un*-generate it in the disassembler.
 That wasn't too bad. Let's keep the momentum going and knock out the equality
 and comparison operators too: `==`, `!=`, `<`, `>`, `<=`, and `>=`. That covers
 all of the operators that return Boolean results except the logical operators
-`and` and `or`. Since those need to short-circuit -- basically do a little
-control flow -- we aren't ready for them yet.
+`and` and `or`. Since those need to short-circuit (basically do a little
+control flow) we aren't ready for them yet.
 
 Here are the new instructions for those operators:
 
@@ -606,7 +606,7 @@ operation.
 You can evaluate `==` on any pair of objects, even objects of different types.
 There's enough complexity that it makes sense to shunt that logic over to a
 separate function. That function always returns a C `bool`, so we can safely
-wrap the result in a `BOOL_VAL`. The function relates to values, so it lives
+wrap the result in a `BOOL_VAL`. The function relates to Values, so it lives
 over in the "value" module.
 
 ^code values-equal-h (2 before, 1 after)
@@ -615,23 +615,23 @@ And here's the implementation:
 
 ^code values-equal
 
-First, we check the types. If the values have <span
+First, we check the types. If the Values have <span
 name="equal">different</span> types, they are definitely not equal. Otherwise,
-we unwrap the two values and compare them directly.
+we unwrap the two Values and compare them directly.
 
 <aside name="equal">
 
 Some languages have "implicit conversions" where values of different types may
-be considered equal if one can be converted to the others' type. For example,
+be considered equal if one can be converted to the other's type. For example,
 the number 0 is equivalent to the string "0" in JavaScript. This looseness was a
 large enough source of pain that JS added a separate "strict equality" operator,
 `===`.
 
 PHP considers the strings "1" and "01" to be equivalent because both can be
 converted to equivalent numbers, though the ultimate reason is because PHP was
-designed by a Lovecraftian Eldritch God to destroy the mind.
+designed by a Lovecraftian Eldritch god to destroy the mind.
 
-Most dynamically-typed languages that have separate integer and floating point
+Most dynamically typed languages that have separate integer and floating-point
 number types consider values of different number types equal if the numeric
 values are the same (so, say, 1.0 is equal to 1), though even that seemingly
 innocuous convenience can bite the unwary.
@@ -641,7 +641,7 @@ innocuous convenience can bite the unwary.
 For each value type, we have a separate case that handles comparing the value
 itself. Given how similar the cases are, you might wonder why we can't simply
 `memcmp()` the two Value structs and be done with it. The problem is that
-because of padding and different-sized union fields, a value contains unused
+because of padding and different-sized union fields, a Value contains unused
 bits. C gives no guarantee about what is in those, so it's possible that two
 equal Values actually differ in memory that isn't used.
 
@@ -651,7 +651,7 @@ equal Values actually differ in memory that isn't used.
 
 Anyway, as we add more types to clox, this function will grow new cases. For
 now, these three are sufficient. The other comparison operators are easier since
-they only work on numbers.
+they work only on numbers.
 
 ^code interpret-comparison (4 before, 1 after)
 
