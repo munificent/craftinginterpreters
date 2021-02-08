@@ -143,7 +143,7 @@ It deals with precedence and associativity without breaking a sweat. I love it.<
 <aside name="pratt">
 <p>Pratt parsers are a sort of oral tradition in industry. No compiler or language
 book I&rsquo;ve read teaches them. Academia is very focused on generated parsers, and
-Pratt&rsquo;s technique is for hand-written ones, so it gets overlooked.</p>
+Pratt&rsquo;s technique is for handwritten ones, so it gets overlooked.</p>
 <p>But in production compilers, where hand-rolled parsers are common, you&rsquo;d be
 surprised how many people know it. Ask where they learned it, and it&rsquo;s always,
 &ldquo;Oh, I worked on this compiler years ago and my coworker said they took it from
@@ -252,7 +252,7 @@ algorithm, that table grows additional columns.</p>
 <aside name="blog">
 <p>If this chapter isn&rsquo;t clicking with you and you&rsquo;d like another take on the
 concepts, I wrote an article that teaches the same algorithm but using Java and
-an object-oriented style: <a href="http://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/">Pratt Parsing: Expression Parsing Made Easy</a>.</p>
+an object-oriented style: <a href="http://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/">&ldquo;Pratt Parsing: Expression Parsing Made Easy&rdquo;</a>.</p>
 </aside>
 <p>I don&rsquo;t want to revisit 40-something lines of code each time we extend the
 table. So we&rsquo;re going to work our way into the core of the parser from the
@@ -273,16 +273,16 @@ order them to squeeze the most performance out of the compiler<span class="em">&
 optimizations often interact in complex ways<span class="em">&mdash;</span>is somewhere between an &ldquo;open
 area of research&rdquo; and a &ldquo;dark art&rdquo;.</p>
 </aside>
-<p>In clox, we&rsquo;re taking an old school approach and merging these two passes into
+<p>In clox, we&rsquo;re taking an old-school approach and merging these two passes into
 one. Back in the day, language hackers did this because computers literally
 didn&rsquo;t have enough memory to store an entire source file&rsquo;s AST. We&rsquo;re doing it
 because it keeps our compiler simpler, which is a real asset when programming in
 C.</p>
-<p>&ldquo;Single-pass compilers&rdquo; like we&rsquo;re going to build don&rsquo;t work well for all
-languages. Since the compiler only has a peephole view into the user&rsquo;s program
+<p>Single-pass compilers like we&rsquo;re going to build don&rsquo;t work well for all
+languages. Since the compiler has only a peephole view into the user&rsquo;s program
 while generating code, the language must be designed such that you don&rsquo;t need
 much surrounding context to understand a piece of syntax. Fortunately, tiny,
-dynamically-typed Lox is <span name="lox">well-suited</span> to that.</p>
+dynamically typed Lox is <span name="lox">well-suited</span> to that.</p>
 <aside name="lox">
 <p>Not that this should come as much of a surprise. I did design the language
 specifically for this book after all.</p><img src="image/compiling-expressions/keyhole.png" alt="Peering through a keyhole at 'var x;'"/>
@@ -292,9 +292,9 @@ functionality you&rsquo;ll recognize from jlox for parsing<span class="em">&mdas
 matching expected token types, etc. And it also has functions for code gen<span class="em">&mdash;</span>emitting bytecode and adding constants to the destination chunk. (And it means
 I&rsquo;ll use &ldquo;parsing&rdquo; and &ldquo;compiling&rdquo; interchangeably throughout this and later
 chapters.)</p>
-<p>We&rsquo;ll build the parsing  and code generation halves first. Then we&rsquo;ll stitch
-them together with the code in the middle that uses Pratt&rsquo;s technique to parse
-Lox&rsquo;s particular grammar and output the right bytecode.</p>
+<p>We&rsquo;ll build the parsing and code generation halves first. Then we&rsquo;ll stitch them
+together with the code in the middle that uses Pratt&rsquo;s technique to parse Lox&rsquo;s
+particular grammar and output the right bytecode.</p>
 <h2><a href="#parsing-tokens" name="parsing-tokens"><small>17&#8202;.&#8202;2</small>Parsing Tokens</a></h2>
 <p>First up, the front half of the compiler. This function&rsquo;s name should sound
 familiar.</p>
@@ -321,11 +321,11 @@ scanner for the next token and stores it for later use. Before doing that, it
 takes the old <code>current</code> token and stashes that in a <code>previous</code> field. That will
 come in handy later so that we can get at the lexeme after we match a token.</p>
 <p>The code to read the next token is wrapped in a loop. Remember, clox&rsquo;s scanner
-doesn&rsquo;t report lexical errors. Instead, it creates special &ldquo;error tokens&rdquo; and
+doesn&rsquo;t report lexical errors. Instead, it creates special <em>error tokens</em> and
 leaves it up to the parser to report them. We do that here.</p>
 <p>We keep looping, reading tokens and reporting the errors, until we hit a
-non-error one or reach the end. That way, the rest of the parser only sees
-valid tokens. The current and previous token are stored in this struct:</p>
+non-error one or reach the end. That way, the rest of the parser sees only valid
+tokens. The current and previous token are stored in this struct:</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;scanner.h&quot;
 </pre><div class="source-file"><em>compiler.c</em></div>
@@ -421,7 +421,7 @@ in <em>compile</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
 
-<p>I&rsquo;ve got another flag for error handling to introduce. We want to avoid error
+<p>I&rsquo;ve got another flag to introduce for error handling. We want to avoid error
 cascades. If the user has a mistake in their code and the parser gets confused
 about where it is in the grammar, we don&rsquo;t want it to spew out a whole pile of
 meaningless knock-on errors after the first one.</p>
@@ -477,7 +477,7 @@ in <em>errorAt</em>()</div>
 <p>There&rsquo;s a good chance the parser will go off in the weeds, but the user won&rsquo;t
 know because the errors all get swallowed. Panic mode ends when the parser
 reaches a synchronization point. For Lox, we chose statement boundaries, so when
-we later add those to our compiler, we&rsquo;ll clear the flag.</p>
+we later add those to our compiler, we&rsquo;ll clear the flag there.</p>
 <p>These new fields need to be initialized.</p>
 <div class="codehilite"><pre class="insert-before">
   initScanner(source);
@@ -561,11 +561,11 @@ static void errorAt(Token* token, const char* message) {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>parser</em></div>
 
-<p>Right now, the chunk pointer is stored in a module level variable like we store
+<p>Right now, the chunk pointer is stored in a module-level variable like we store
 other global state. Later, when we start compiling user-defined functions, the
 notion of &ldquo;current chunk&rdquo; gets more complicated. To avoid having to go back and
 change a lot of code, I encapsulate that logic in the <code>currentChunk()</code> function.</p>
-<p>We initialize this new module variable before we write any bytecode.</p>
+<p>We initialize this new module variable before we write any bytecode:</p>
 <div class="codehilite"><pre class="insert-before">
 bool compile(const char* source, Chunk* chunk) {
   initScanner(source);
@@ -601,7 +601,7 @@ add after <em>emitByte</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitByte</em>()</div>
 
-<p>In this chapter, our VM only deals with expressions. When you run clox, it will
+<p>In this chapter, our VM deals only with expressions. When you run clox, it will
 parse, compile, and execute a single expression, then print the result. To print
 that value, we are temporarily using the <code>OP_RETURN</code> instruction. So we have the
 compiler add one of those to the end of the chunk.</p>
@@ -641,12 +641,12 @@ add after <em>endCompiler</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
 <p>We aren&rsquo;t ready to implement every kind of expression in Lox yet. Heck, we don&rsquo;t
-even have Booleans. For this chapter, we&rsquo;re only going to worry about:</p>
+even have Booleans. For this chapter, we&rsquo;re only going to worry about four:</p>
 <ul>
-<li>Number literals: <code>123</code>.</li>
-<li>Parentheses for grouping: <code>(123)</code>.</li>
-<li>Unary negation: <code>-123</code>.</li>
-<li>The Four Horsemen of the Arithmetic: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>.</li>
+<li>Number literals: <code>123</code></li>
+<li>Parentheses for grouping: <code>(123)</code></li>
+<li>Unary negation: <code>-123</code></li>
+<li>The Four Horsemen of the Arithmetic: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code></li>
 </ul>
 <p>As we work through the functions to compile each of those kinds of expressions,
 we&rsquo;ll also assemble the requirements for the table-driven parser that calls
@@ -707,12 +707,12 @@ add after <em>emitReturn</em>()</div>
 <a href="chunks-of-bytecode.html">earlier chapter</a>. That adds the given value to the end of the chunk&rsquo;s
 constant table and returns its index. The new function&rsquo;s job is mostly to make
 sure we don&rsquo;t have too many constants. Since the <code>OP_CONSTANT</code> instruction uses
-a single byte for the index operand, we can only store and load up to <span
+a single byte for the index operand, we can store and load only up to <span
 name="256">256</span> constants in a chunk.</p>
 <aside name="256">
 <p>Yes, that limit is pretty low. If this were a full-sized language
 implementation, we&rsquo;d want to add another instruction like <code>OP_CONSTANT_16</code> that
-stores the index as a two-byte operand so we can handle more constants when
+stores the index as a two-byte operand so we could handle more constants when
 needed.</p>
 <p>The code to support that isn&rsquo;t particularly illuminating, so I omitted it from
 clox, but you&rsquo;ll want your VMs to scale to larger programs.</p>
@@ -747,11 +747,11 @@ expression between the parentheses, then parse the closing <code>)</code> at the
 That&rsquo;s to be expected since the grammar itself is recursive.</p>
 </aside>
 <p>As far as the back end is concerned, there&rsquo;s literally nothing to a grouping
-expression. Its sole function is syntactic<span class="em">&mdash;</span>it lets you insert a lower
-precedence expression where a higher precedence is expected. Thus, it has no
-runtime semantics on its own and therefore doesn&rsquo;t emit any bytecode. The inner
-call to <code>expression()</code> takes care of generating bytecode for the expression
-inside the parentheses.</p>
+expression. Its sole function is syntactic<span class="em">&mdash;</span>it lets you insert a
+lower-precedence expression where a higher precedence is expected. Thus, it has
+no runtime semantics on its own and therefore doesn&rsquo;t emit any bytecode. The
+inner call to <code>expression()</code> takes care of generating bytecode for the
+expression inside the parentheses.</p>
 <h3><a href="#unary-negation" name="unary-negation"><small>17&#8202;.&#8202;4&#8202;.&#8202;3</small>Unary negation</a></h3>
 <p>Unary minus is also a prefix expression, so it works with our model too.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
@@ -817,18 +817,18 @@ Consider:</p>
 </pre></div>
 <p>Here, the operand to <code>-</code> should be just the <code>a.b</code> expression, not the entire
 <code>a.b + c</code>. But if <code>unary()</code> calls <code>expression()</code>, the latter will happily chew
-through all of the remaining code including the <code>+</code>. It will erronously treat
+through all of the remaining code including the <code>+</code>. It will erroneously treat
 the <code>-</code> as lower precendence than the <code>+</code>.</p>
 <p>When parsing the operand to unary <code>-</code>, we need to compile only expressions at a
 certain precedence level or higher. In jlox&rsquo;s recursive descent parser we
-accomplished that by calling into the parsing method for the lowest precendence
+accomplished that by calling into the parsing method for the lowest-precendence
 expression we wanted to allow (in this case, <code>call()</code>). Each method for parsing
 a specific expression also parsed any expressions of higher precedence too, so
-that would include the rest of the precedence table.</p>
-<p>The parsing functions like <code>number()</code> and <code>unary()</code> here are different. Each
-only parses exactly one type of expression. They don&rsquo;t cascade to include higher
-precedence expression types too. We need a different solution, and it looks like
-this:</p>
+that included the rest of the precedence table.</p>
+<p>The parsing functions like <code>number()</code> and <code>unary()</code> here in clox are different.
+Each only parses exactly one type of expression. They don&rsquo;t cascade to include
+higher-precedence expression types too. We need a different solution, and it
+looks like this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>unary</em>()</div>
 <pre>
@@ -879,7 +879,7 @@ compiler is sitting on a chunk of code like:</p>
 <p>If we call <code>parsePrecedence(PREC_ASSIGNMENT)</code>, then it will parse the entire
 expression because <code>+</code> has higher precedence than assignment. If instead we
 call <code>parsePrecedence(PREC_UNARY)</code>, it will compile the <code>-a.b</code> and stop there.
-It doesn&rsquo;t keep going through the <code>+</code> because the addition is lower precedence
+It doesn&rsquo;t keep going through the <code>+</code> because the addition has lower precedence
 than unary operators.</p>
 <p>With this function in hand, it&rsquo;s a snap to fill in the missing body for
 <code>expression()</code>.</p>
@@ -895,9 +895,9 @@ replace 1 line</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>expression</em>(), replace 1 line</div>
 
-<p>We simply parse the lowest precedence level, which subsumes all of the higher
-precedence expressions too. Now, to compile the operand for a unary expression,
-we call this new function and limit it to the appropriate level:</p>
+<p>We simply parse the lowest precedence level, which subsumes all of the
+higher-precedence expressions too. Now, to compile the operand for a unary
+expression, we call this new function and limit it to the appropriate level:</p>
 <div class="codehilite"><pre class="insert-before">
   // Compile the operand.
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -1039,18 +1039,18 @@ though they have different precedences.</p>
 <p>We now have all of the pieces and parts of the compiler laid out. We have a
 function for each grammar production: <code>number()</code>, <code>grouping()</code>, <code>unary()</code>, and
 <code>binary()</code>. We still need to implement <code>parsePrecedence()</code>, and <code>getRule()</code>. We
-also know we need some table that, given a token type, lets us find:</p>
+also know we need a table that, given a token type, lets us find</p>
 <ul>
 <li>
-<p>The function to compile a prefix expression starting with a token of that
-type.</p>
+<p>the function to compile a prefix expression starting with a token of that
+type,</p>
 </li>
 <li>
-<p>The function to compile an infix expression whose left operand is followed
-by a token of that type.</p>
+<p>the function to compile an infix expression whose left operand is followed
+by a token of that type, and</p>
 </li>
 <li>
-<p>The precedence of an <span name="prefix">infix</span> expression that uses
+<p>the precedence of an <span name="prefix">infix</span> expression that uses
 that token as an operator.</p>
 </li>
 </ul>
@@ -1235,12 +1235,12 @@ replace 1 line</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>parsePrecedence</em>(), replace 1 line</div>
 
 <p>We read the next token and look up the corresponding ParseRule. If there is no
-prefix parser then the token must be a syntax error. We report that and return
+prefix parser, then the token must be a syntax error. We report that and return
 to the caller.</p>
 <p>Otherwise, we call that prefix parse function and let it do its thing. That
 prefix parser compiles the rest of the prefix expression, consuming any other
 tokens it needs, and returns back here. Infix expressions are where it gets
-interesting, since precedence comes into play. The implementation is remarkably
+interesting since precedence comes into play. The implementation is remarkably
 simple.</p>
 <div class="codehilite"><pre class="insert-before">
   prefixRule();
@@ -1289,7 +1289,7 @@ connects a function to another function it directly calls. The <img
 src="image/compiling-expressions/points-to.png" class="arrow" /> arrow shows the
 table&rsquo;s pointers to the parsing functions.</p>
 </aside>
-<p>We&rsquo;ll need to tweak the code in this chapter later to handle assignment. But,
+<p>Later, we&rsquo;ll need to tweak the code in this chapter to handle assignment. But,
 otherwise, what we wrote covers all of our expression compiling needs for the
 rest of the book. We&rsquo;ll plug additional parsing functions into the table when we
 add new kinds of expressions, but <code>parsePrecedence()</code> is complete.</p>
@@ -1328,7 +1328,7 @@ in <em>endCompiler</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
 
-<p>We only do this if the code was free of errors. After a syntax error, the
+<p>We do this only if the code was free of errors. After a syntax error, the
 compiler keeps on going but it&rsquo;s in kind of a weird state and might produce
 broken code. That&rsquo;s harmless because it won&rsquo;t get executed, but we&rsquo;ll just
 confuse ourselves if we try to read it.</p>
@@ -1372,12 +1372,12 @@ called, which calls which, and the arguments passed to them.</p>
 pointers. That&rsquo;s because <code>-</code> is both a prefix operator (unary negation) and
 an infix one (subtraction).</p>
 <p>In the full Lox language, what other tokens can be used in both prefix and
-infix positions? What about in C or another language of your choice?</p>
+infix positions? What about in C or in another language of your choice?</p>
 </li>
 <li>
 <p>You might be wondering about complex &ldquo;mixfix&rdquo; expressions that have more
 than two operands separated by tokens. C&rsquo;s conditional or &ldquo;ternary&rdquo;
-operator, <code>?:</code> is a widely-known one.</p>
+operator, <code>?:</code>, is a widely known one.</p>
 <p>Add support for that operator to the compiler. You don&rsquo;t have to generate
 any bytecode, just show how you would hook it up to the parser and handle
 the operands.</p>
@@ -1388,13 +1388,13 @@ the operands.</p>
 <h2><a href="#design-note" name="design-note">Design Note: It&rsquo;s Just Parsing</a></h2>
 <p>I&rsquo;m going to make a claim here that will be unpopular with some compiler and
 language people. It&rsquo;s OK if you don&rsquo;t agree. Personally, I learn more from
-strongly-stated opinions that I disagree with than I do from several pages of
-qualifiers and equivocation. My claim is that <em>parsing doesn&rsquo;t matter.</em></p>
+strongly stated opinions that I disagree with than I do from several pages of
+qualifiers and equivocation. My claim is that <em>parsing doesn&rsquo;t matter</em>.</p>
 <p>Over the years, many programming language people, especially in academia, have
 gotten <em>really</em> into parsers and taken them very seriously. Initially, it was
 the compiler folks who got into <span name="yacc">compiler-compilers</span>,
-LALR and other stuff like that. The first half of the Dragon book is a long love
-letter to the wonders of parser generators.</p>
+LALR, and other stuff like that. The first half of the Dragon book is a long
+love letter to the wonders of parser generators.</p>
 <aside name="yacc">
 <p>All of us suffer from the vice of &ldquo;when all you have is a hammer, everything
 looks like a nail&rdquo;, but perhaps none so visibly as compiler people. You wouldn&rsquo;t
@@ -1406,7 +1406,7 @@ compiler for us.&rdquo;</p>
 <p>For the record, I don&rsquo;t claim immunity to this affliction.</p>
 </aside>
 <p>Later, the functional programming folks got into parser combinators, packrat
-parsers and other sorts of things. Because, obviously, if you give a functional
+parsers, and other sorts of things. Because, obviously, if you give a functional
 programmer a problem, the first thing they&rsquo;ll do is whip out a pocketful of
 higher-order functions.</p>
 <p>Over in math and algorithm analysis land, there is a long legacy of research
@@ -1421,7 +1421,7 @@ rewarding.</p>
 <p>But if your goal is just to implement a language and get it in front of users,
 almost all of that stuff doesn&rsquo;t matter. It&rsquo;s really easy to get worked up by
 the enthusiasm of the people who <em>are</em> into it and think that your front end
-<em>needs</em> some whiz-bang generated combinator parser factory thing. I&rsquo;ve seen
+<em>needs</em> some whiz-bang generated combinator-parser-factory thing. I&rsquo;ve seen
 people burn tons of time writing and rewriting their parser using whatever
 today&rsquo;s hot library or technique is.</p>
 <p>That&rsquo;s time that doesn&rsquo;t add any value to your user&rsquo;s life. If you&rsquo;re just

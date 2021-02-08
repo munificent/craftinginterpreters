@@ -286,7 +286,7 @@ never collects any.
 
 More sophisticated collectors might run on a separate thread or interleaved
 periodically during program execution -- often at function call boundaries or
-when a backwards jump occurs.
+when a backward jump occurs.
 
 </aside>
 
@@ -1086,7 +1086,7 @@ The collector's job is to free dead objects and preserve live ones. Mistakes are
 easy to make in both directions. If the VM fails to free objects that aren't
 needed, it slowly leaks memory. If it frees an object that is in use, the user's
 program can access invalid memory. These failures often don't immediately cause
-a crash, which makes it hard for us to trace backwards in time to find the bug.
+a crash, which makes it hard for us to trace backward in time to find the bug.
 
 This is made harder by the fact that we don't know when the collector will run.
 Any call that eventually allocates some memory is a place in the VM where a

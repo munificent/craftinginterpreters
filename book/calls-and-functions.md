@@ -588,7 +588,7 @@ Same with the conditional jump:
 
 ^code jump-if-false (2 before, 1 after)
 
-And our backwards-jumping loop instruction:
+And our backward-jumping loop instruction:
 
 ^code loop (2 before, 1 after)
 

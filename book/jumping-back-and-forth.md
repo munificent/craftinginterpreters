@@ -390,7 +390,7 @@ and maybe a conditional expression like `?:`, but Lox keeps it simple.
 
 ## While Statements
 
-That takes us to the *looping* statements, which jump *backwards* so that code
+That takes us to the *looping* statements, which jump *backward* so that code
 can be executed more than once. Lox only has two loop constructs, `while` and
 `for`. A `while` loop is (much) simpler, so we start the party there.
 
@@ -437,7 +437,7 @@ about to compile. Then we pass that into this helper function:
 ^code emit-loop
 
 It's a bit like `emitJump()` and `patchJump()` combined. It emits a new loop
-instruction, which unconditionally jumps *backwards* by a given offset. Like the
+instruction, which unconditionally jumps *backward* by a given offset. Like the
 jump instructions, after that we have a 16-bit operand. We calculate the offset
 from the instruction we're currently at to the `loopStart` point that we want to
 jump back to. The `+ 2` is to take into account the size of the `OP_LOOP`
@@ -465,7 +465,7 @@ Disassembly is similar too.
 
 That's our `while` statement. It contains two jumps -- a conditional forward one
 to escape the loop when the condition is not met, and an unconditional loop
-backwards after we have executed the body. The flow looks like this:
+backward after we have executed the body. The flow looks like this:
 
 <img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." />
 
