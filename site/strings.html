@@ -132,17 +132,17 @@ on every single value.</p>
 <aside name="pascal">
 <p>UCSD Pascal, one of the first implementations of Pascal, had this exact limit.
 Instead of using a terminating null byte to indicate the end of the string like
-C, Pascal strings start with a length value. Since UCSD used only a single byte
-to store the length, strings couldn&rsquo;t be any longer than 255 characters.</p><img src="image/strings/pstring.png" alt="The Pascal string 'hello' with a length byte of 5 preceding it.">
+C, Pascal strings started with a length value. Since UCSD used only a single
+byte to store the length, strings couldn&rsquo;t be any longer than 255 characters.</p><img src="image/strings/pstring.png" alt="The Pascal string 'hello' with a length byte of 5 preceding it.">
 </aside>
-<p>We need a way to support values whose size varies, sometimes greatly. This is
+<p>We need a way to support values whose sizes vary, sometimes greatly. This is
 exactly what dynamic allocation on the heap is designed for. We can allocate as
 many bytes as we need. We get back a pointer that we&rsquo;ll use to keep track of the
 value as it flows through the VM.</p>
 <h2><a href="#values-and-objects" name="values-and-objects"><small>19&#8202;.&#8202;1</small>Values and Objects</a></h2>
-<p>Using the heap for larger, variable-sized values and the stack for smaller
+<p>Using the heap for larger, variable-sized values and the stack for smaller,
 atomic ones leads to a two-level representation. Every Lox value that you can
-store in a variable or return from an expression will be a Value. For small
+store in a variable or return from an expression will be a Value. For small,
 fixed-size types like numbers, the payload is stored directly inside the Value
 struct itself.</p>
 <p>If the object is larger, its data lives on the heap. Then the Value&rsquo;s payload is
@@ -152,7 +152,7 @@ Each type has its own unique data, but there is also state they all share that
 <a href="garbage-collection.html">our future garbage collector</a> will use to manage their memory.</p><img src="image/strings/value.png" class="wide" alt="Field layout of number and obj values.">
 <p>We&rsquo;ll call this common representation <span name="short">&ldquo;Obj&rdquo;</span>. Each Lox
 value whose state lives on the heap is an Obj. We can thus use a single new
-ValueType case to refer to all heap-allocated types:</p>
+ValueType case to refer to all heap-allocated types.</p>
 <aside name="short">
 <p>&ldquo;Obj&rdquo; is short for &ldquo;object&rdquo;, natch.</p>
 </aside>
@@ -279,7 +279,7 @@ create new file</div>
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, create new file</div>
 
-<p>Right now, it only contains the type tag. Shortly, we&rsquo;ll add some other
+<p>Right now, it contains only the type tag. Shortly, we&rsquo;ll add some other
 bookkeeping information for memory management. The type enum is this:</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;value.h&quot;
@@ -311,8 +311,9 @@ typedef enum {
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<p>That&rsquo;s our foundation. Now, let&rsquo;s build strings on top of it. The payload for
-strings is defined in a separate struct. Again we need to forward-declare it.</p>
+<p>That&rsquo;s our foundation.</p>
+<p>Now, let&rsquo;s build strings on top of it. The payload for strings is defined in a
+separate struct. Again, we need to forward-declare it.</p>
 <div class="codehilite"><pre class="insert-before">
 typedef struct Obj Obj;
 </pre><div class="source-file"><em>value.h</em></div>
@@ -342,10 +343,10 @@ add after struct <em>Obj</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>Obj</em></div>
 
-<p>A string object contains an array of characters. Those are stored in a separate
-heap-allocated array so that we only set aside as much room as needed for each
+<p>A string object contains an array of characters. Those are stored in a separate,
+heap-allocated array so that we set aside only as much room as needed for each
 string. We also store the number of bytes in the array. This isn&rsquo;t strictly
-necessary, but lets us tell how much memory is allocated for the string without
+necessary but lets us tell how much memory is allocated for the string without
 walking the character array to find the null terminator.</p>
 <p>Because ObjString is an Obj, it also needs the state all Objs share. It
 accomplishes that by having its first field be an Obj. C specifies that struct
@@ -413,11 +414,11 @@ uses <code>value</code> twice. A macro is expanded by inserting the argument <em
 every place the parameter name appears in the body. If a macro uses a parameter
 more than once, that expression gets evaluated multiple times.</p>
 <p>That&rsquo;s bad if the expression has side effects. If we put the body of
-<code>isObjType()</code> into the macro definition and then you did, say:</p>
+<code>isObjType()</code> into the macro definition and then you did, say,</p>
 <div class="codehilite"><pre>
 <span class="a">IS_STRING</span>(<span class="a">POP</span>())
 </pre></div>
-<p>Then it would pop two values off the stack! Using a function fixes that.</p>
+<p>then it would pop two values off the stack! Using a function fixes that.</p>
 <p>As long as we ensure that we set the type tag correctly whenever we create an
 Obj of some type, this macro will tell us when it&rsquo;s safe to cast a value to a
 specific object type. We can do that using these:</p>
@@ -554,7 +555,7 @@ runtime as a result of string operations like concatenation. Those strings
 obviously need to dynamically allocate memory for the characters, which means
 the string needs to <em>free</em> that memory when it&rsquo;s no longer needed.</p>
 <p>If we had an ObjString for a string literal, and tried to free its character
-array which pointed into the original source code string, bad things would
+array that pointed into the original source code string, bad things would
 happen. So, for literals, we preemptively copy the characters over to the heap.
 This way, every ObjString reliably owns its character array and can free it.</p>
 <p>The real work of creating a string object happens in this function:</p>
@@ -619,7 +620,7 @@ static ObjString* allocateString(char* chars, int length) {
 that there is room for the extra payload fields needed by the specific object
 type being created.</p>
 <p>Then it initializes the Obj state<span class="em">&mdash;</span>right now, that&rsquo;s just the type tag. This
-function returns to <code>allocateString()</code> which finishes initializing the ObjString
+function returns to <code>allocateString()</code>, which finishes initializing the ObjString
 fields. <span name="viola"><em>Voilà</em></span>, we can compile and execute string
 literals.</p>
 <aside name="viola"><img src="image/strings/viola.png" class="above" alt="A viola.">
@@ -664,7 +665,7 @@ add after <em>copyString</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
 
-<p>We only have a single object type now, but this function will sprout additional
+<p>We have only a single object type now, but this function will sprout additional
 switch cases in later chapters. For string objects, it simply <span
 name="term-2">prints</span> the character array as a C string.</p>
 <aside name="term-2">
@@ -891,7 +892,7 @@ to get in place before we&rsquo;re ready to tackle that project. Until then, we 
 living on borrowed time. The longer we wait to add the collector, the harder it
 is to do.</p>
 <aside name="borrowed">
-<p>I&rsquo;ve seen a number of people implement large swaths of their language before
+<p>I&rsquo;ve seen a number of people implement large swathes of their language before
 trying to start on the GC. For the kind of toy programs you typically run while
 a language is being developed, you actually don&rsquo;t run out of memory before
 reaching the end of the program, so this gets you surprisingly far.</p>
@@ -902,7 +903,7 @@ language implementation can squirrel away a reference to some object. If you
 don&rsquo;t find all of them, you get nightmarish bugs.</p>
 <p>I&rsquo;ve seen language implementations die because it was too hard to get the GC in
 later. If your language needs GC, get it working as soon as you can. It&rsquo;s a
-cross-cutting concern that touches the entire codebase.</p>
+crosscutting concern that touches the entire codebase.</p>
 </aside>
 <p>Today, we should at least do the bare minimum: avoid <em>leaking</em> memory by making
 sure the VM can still find every allocated object even if the Lox program itself
@@ -967,7 +968,7 @@ in <em>allocateObject</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateObject</em>()</div>
 
-<p>Since this is a singly-linked list, the easiest place to insert it is as the
+<p>Since this is a singly linked list, the easiest place to insert it is as the
 head. That way, we don&rsquo;t need to also store a pointer to the tail and keep it
 updated.</p>
 <p>The &ldquo;object&rdquo; module is directly using the global <code>vm</code> variable from the &ldquo;vm&rdquo;
@@ -1104,8 +1105,8 @@ will eat more and more memory as it goes, not relinquishing a single byte until
 the entire program is done.</p>
 <p>We won&rsquo;t address that until we&rsquo;ve added <a href="garbage-collection.html">a real garbage collector</a>, but this
 is a big step. We now have the infrastructure to support a variety of different
-kinds of dynamically-allocated objects. And we&rsquo;ve used that to add strings to
-clox, one of the most-used types in most programming languages. Strings in turn
+kinds of dynamically allocated objects. And we&rsquo;ve used that to add strings to
+clox, one of the most used types in most programming languages. Strings in turn
 enable us to build another fundamental data type, especially in dynamic
 languages: the venerable <a href="hash-tables.html">hash table</a>. But that&rsquo;s for the next chapter<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></p>
 <div class="challenges">
@@ -1123,7 +1124,7 @@ character array in a single contiguous allocation.</p>
 <p>When we create the ObjString for each string literal, we copy the characters
 onto the heap. That way, when the string is later freed, we know it is safe
 to free the characters too.</p>
-<p>This is a simpler approach, but wastes some memory, which might be a problem
+<p>This is a simpler approach but wastes some memory, which might be a problem
 on very constrained devices. Instead, we could keep track of which
 ObjStrings own their character array and which are &ldquo;constant strings&rdquo; that
 just point back to the original source string or some other non-freeable
@@ -1147,10 +1148,10 @@ nasty conundrum: deciding how to represent strings.</p>
 <ul>
 <li>
 <p><strong>What is a single &ldquo;character&rdquo; in a string?</strong> How many different values are
-there and what do they represent? The first widely-adopted standard answer
+there and what do they represent? The first widely adopted standard answer
 to this was <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a>. It gave you 127 different character values and
 specified what they were. It was great<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>if you only ever cared about
-English. While it has weird, mostly-forgotten characters like &ldquo;record
+English. While it has weird, mostly forgotten characters like &ldquo;record
 separator&rdquo; and &ldquo;synchronous idle&rdquo;, it doesn&rsquo;t have a single umlaut, acute,
 or grave. It can&rsquo;t represent &ldquo;jalapeño&rdquo;, &ldquo;naïve&rdquo;, <span
 name="gruyere">&ldquo;Gruyère&rdquo;</span>, or &ldquo;Mötley Crüe&rdquo;.</p>
@@ -1160,7 +1161,7 @@ or Mötley Crüe is a language not worth using.</p>
 </aside>
 <p>Next came <a href="https://en.wikipedia.org/wiki/Unicode">Unicode</a>. Initially, it supported 16,384 different characters
 (<strong>code points</strong>), which fit nicely in 16 bits with a couple of bits to
-spare. Later that grew and grew and now there are well over 100,000
+spare. Later that grew and grew, and now there are well over 100,000
 different code points including such vital instruments of human
 communication as 💩 (Unicode Character &lsquo;PILE OF POO&rsquo;, <code>U+1F4A9</code>).</p>
 <p>Even that long list of code points is not enough to represent each possible
@@ -1170,7 +1171,7 @@ visible glyph a language might support. To handle that, Unicode also has
 more confusing Unicode <em>also</em> has a single code point that looks like &ldquo;ä&rdquo;.)</p>
 <p>If a user accesses the fourth &ldquo;character&rdquo; in &ldquo;naïve&rdquo;, do they expect to get
 back &ldquo;v&rdquo; or &ldquo;¨&rdquo;? The former means they are thinking of each code
-point and its combining characters as a single unit<span class="em">&mdash;</span>what Unicode calls an
+point and its combining character as a single unit<span class="em">&mdash;</span>what Unicode calls an
 <strong>extended grapheme cluster</strong><span class="em">&mdash;</span>the latter means they are thinking in
 individual code points. Which do your users expect?</p>
 </li>
@@ -1194,7 +1195,7 @@ is without walking and decoding all of the preceding ones.</p>
 trade-offs. Like many things in engineering, there&rsquo;s no <span
 name="python">perfect</span> solution:</p>
 <aside name="python">
-<p>An example of how difficult this problem is comes from Python. The achingly-long
+<p>An example of how difficult this problem is comes from Python. The achingly long
 transition from Python 2 to 3 is painful mostly because of its changes around
 string encoding.</p>
 </aside>
@@ -1206,15 +1207,15 @@ side.</p>
 <li>
 <p>UTF-32 is fast and supports the whole Unicode range, but wastes a lot of
 memory given that most code points do tend to be in the lower range of
-values where a full 32 bits aren&rsquo;t needed.</p>
+values, where a full 32 bits aren&rsquo;t needed.</p>
 </li>
 <li>
-<p>UTF-8 is memory efficient and supports the whole Unicode range, but it&rsquo;s
+<p>UTF-8 is memory efficient and supports the whole Unicode range, but its
 variable-length encoding makes it slow to access arbitrary code points.</p>
 </li>
 <li>
 <p>UTF-16 is worse than all of them<span class="em">&mdash;</span>an ugly consequence of Unicode
-outgrowing its earlier 16-bit range. It&rsquo;s less memory efficient than UTF-8,
+outgrowing its earlier 16-bit range. It&rsquo;s less memory efficient than UTF-8
 but is still a variable-length encoding thanks to surrogate pairs. Avoid it
 if you can. Alas, if your language needs to run on or interoperate with the
 browser, the JVM, or the CLR, you might be stuck with it, since those all
@@ -1231,12 +1232,12 @@ code points and extended grapheme clusters.</p>
 debug, and optimize. When serializing strings or interoperating with other
 systems, you have to deal with all of the encodings. Users need to understand
 the two indexing APIs and know which to use when. This is the approach that
-newer big languages tend to take like Perl 6 and Swift.</p>
-<p>A simpler compromise is to always encode using UTF-8 and only expose a code
-point-based API. For users that want to work with grapheme clusters, let them
-use a third-party library for that. This is less Latin-centric than ASCII but
-not much more complex. You lose fast direct indexing by code point, but you can
-usually live without that or afford to make it <em>O(n)</em> instead of <em>O(1)</em>.</p>
+newer, big languages tend to take<span class="em">&mdash;</span>like Perl 6 and Swift.</p>
+<p>A simpler compromise is to always encode using UTF-8 and only expose an API that
+works with code points. For users that want to work with grapheme clusters, let
+them use a third-party library for that. This is less Latin-centric than ASCII
+but not much more complex. You lose fast direct indexing by code point, but you
+can usually live without that or afford to make it <em>O(n)</em> instead of <em>O(1)</em>.</p>
 <p>If I were designing a big workhorse language for people writing large
 applications, I&rsquo;d probably go with the maximal approach. For my little embedded
 scripting language <a href="http://wren.io">Wren</a>, I went with UTF-8 and code points.</p>
