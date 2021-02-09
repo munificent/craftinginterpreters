@@ -123,8 +123,8 @@ may have been some discussion of big-O notation and algorithms. This chapter has
 fewer intellectual pretensions. There are no large ideas to learn. Instead, it&rsquo;s
 a handful of straightforward engineering tasks. Once we&rsquo;ve completed them, our
 virtual machine will support variables.</p>
-<p>Actually, it will only support <em>global</em> variables. Locals are coming in the
-<a href="local-variables.html">next chapter</a>. In jlox, we managed to cram them both into a single chapter,
+<p>Actually, it will support only <em>global</em> variables. Locals are coming in the
+<a href="local-variables.html">next chapter</a>. In jlox, we managed to cram them both into a single chapter
 because we used the same implementation technique for all variables. We built a
 chain of environments, one for each scope, all the way up to the top. That was a
 simple, clean way to learn how to manage state.</p>
@@ -142,11 +142,11 @@ compared to other objects whose set of properties is more freely modified. C and
 C++ compilers usually have a variety of ways to compile <code>switch</code> statements
 based on the number of cases and how densely packed the case values are.</p>
 </aside>
-<p>A quick refresher on Lox semantics: Global variables in Lox are &ldquo;late bound&rdquo; or
+<p>A quick refresher on Lox semantics: Global variables in Lox are &ldquo;late bound&rdquo;, or
 resolved dynamically. This means you can compile a chunk of code that refers to
 a global variable before it&rsquo;s defined. As long as the code doesn&rsquo;t <em>execute</em>
 before the definition happens, everything is fine. In practice, that means you
-can refer to later variables inside the body of functions:</p>
+can refer to later variables inside the body of functions.</p>
 <div class="codehilite"><pre>
 <span class="k">fun</span> <span class="i">showVariable</span>() {
   <span class="k">print</span> <span class="i">global</span>;
@@ -176,7 +176,7 @@ inside control flow statements, like this:</p>
 <p>Allowing it would raise confusing questions around the scope of the variable.
 So, like other languages, we prohibit it syntactically by having a separate
 grammar rule for the subset of statements that <em>are</em> allowed inside a control
-flow body:</p>
+flow body.</p>
 <div class="codehilite"><pre>
 <span class="i">statement</span>      → <span class="i">exprStmt</span>
                | <span class="i">forStmt</span>
@@ -186,7 +186,7 @@ flow body:</p>
                | <span class="i">whileStmt</span>
                | <span class="i">block</span> ;
 </pre></div>
-<p>Then we use a separate rule for the top level of a script and inside a block:</p>
+<p>Then we use a separate rule for the top level of a script and inside a block.</p>
 <div class="codehilite"><pre>
 <span class="i">declaration</span>    → <span class="i">classDecl</span>
                | <span class="i">funDecl</span>
@@ -194,17 +194,17 @@ flow body:</p>
                | <span class="i">statement</span> ;
 </pre></div>
 <p>The <code>declaration</code> rule contains the statements that declare names, and also
-includes <code>statement</code> so that all statements types are allowed. Since <code>block</code>
+includes <code>statement</code> so that all statement types are allowed. Since <code>block</code>
 itself is in <code>statement</code>, you can put declarations <span
 name="parens">inside</span> a control flow construct by nesting them inside a
 block.</p>
 <aside name="parens">
 <p>Blocks work sort of like parentheses do for expressions. A block lets you put
-the &ldquo;lower precedence&rdquo; declaration statements in places where only a &ldquo;higher
-precedence&rdquo; non-declaring statement is allowed.</p>
+the &ldquo;lower-precedence&rdquo; declaration statements in places where only a
+&ldquo;higher-precedence&rdquo; non-declaring statement is allowed.</p>
 </aside>
-<p>In this chapter, we&rsquo;ll only cover a couple of statements and one
-declaration:</p>
+<p>In this chapter, we&rsquo;ll cover only a couple of statements and one
+declaration.</p>
 <div class="codehilite"><pre>
 <span class="i">statement</span>      → <span class="i">exprStmt</span>
                | <span class="i">printStmt</span> ;
@@ -213,8 +213,8 @@ declaration:</p>
                | <span class="i">statement</span> ;
 </pre></div>
 <p>Up to now, our VM considered a &ldquo;program&rdquo; to be a single expression since that&rsquo;s
-all we could parse and compile. In a real Lox program, a script is a sequence of
-declarations. We&rsquo;re ready to support that now.</p>
+all we could parse and compile. In a full Lox implementation, a program is a
+sequence of declarations. We&rsquo;re ready to support that now.</p>
 <div class="codehilite"><pre class="insert-before">
   advance();
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -242,7 +242,7 @@ add after <em>expression</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expression</em>()</div>
 
-<p>We&rsquo;ll get to variable declarations later in the chapter, so, for now, we simply
+<p>We&rsquo;ll get to variable declarations later in the chapter, so for now, we simply
 forward to <code>statement()</code>.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>declaration</em>()</div>
@@ -255,7 +255,7 @@ add after <em>declaration</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>declaration</em>()</div>
 
-<p>Blocks can contain declarations and control flow statements can contain other
+<p>Blocks can contain declarations, and control flow statements can contain other
 statements. That means these two functions will eventually be recursive. We may
 as well write out the forward declarations now.</p>
 <div class="codehilite"><pre class="insert-before">
@@ -303,10 +303,10 @@ add after <em>consume</em>()</div>
 
 <p>The <code>check()</code> function returns <code>true</code> if the current token has the given type.
 It seems a little <span name="read">silly</span> to wrap this in a function, but
-we&rsquo;ll use it more later and I think short verb-named functions like this make
+we&rsquo;ll use it more later, and I think short verb-named functions like this make
 the parser easier to read.</p>
 <aside name="read">
-<p>This sounds trivial but hand-written parsers for non-toy languages get pretty
+<p>This sounds trivial, but handwritten parsers for non-toy languages get pretty
 big. When you have thousands of lines of code, a utility function that turns two
 lines into one and makes the result a little more readable easily earns its
 keep.</p>
@@ -566,7 +566,7 @@ something a little more ambitious and get variables going. There are three
 operations we need to support:</p>
 <aside name="fair">
 <p>I can&rsquo;t help but imagine a &ldquo;language fair&rdquo; like some country 4H thing. Rows of
-straw-lined stalls full of baby languages <em>moo</em>-ing and <em>baa</em>-ing at each other.</p>
+straw-lined stalls full of baby languages <em>moo</em>ing and <em>baa</em>ing at each other.</p>
 </aside>
 <ul>
 <li>Declaring a new variable using a <code>var</code> statement.</li>
@@ -878,7 +878,7 @@ in enum <em>OpCode</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<p>Over in the interpreter, the implementation mirrors <code>OP_DEFINE_GLOBAL</code>:</p>
+<p>Over in the interpreter, the implementation mirrors <code>OP_DEFINE_GLOBAL</code>.</p>
 <div class="codehilite"><pre class="insert-before">
       case OP_POP: pop(); break;
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -962,7 +962,7 @@ getter.</p>
 be used as an assignment target, we look for a subsequent <code>=</code> token. If we see
 one, we compile it as an assignment or setter instead of a variable access or
 getter.</p>
-<p>We don&rsquo;t have setters to worry about yet, so all we need to handle is variables.</p>
+<p>We don&rsquo;t have setters to worry about yet, so all we need to handle are variables.</p>
 <div class="codehilite"><pre class="insert-before">
   uint8_t arg = identifierConstant(&amp;name);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -1055,7 +1055,7 @@ this should be a syntax error. But here&rsquo;s what our parser does:</p>
 <aside name="do">
 <p>Wouldn&rsquo;t it be wild if <code>a * b</code> <em>was</em> a valid assignment target, though? You
 could imagine some algebra-like language that tried to divide the assigned value
-up in some reasonable way and distribute it to <code>a</code> and <code>b</code>. <span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>That&rsquo;s probably
+up in some reasonable way and distribute it to <code>a</code> and <code>b</code><span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>that&rsquo;s probably
 a terrible idea.</p>
 </aside>
 <ol>
@@ -1073,8 +1073,8 @@ account the precedence of the surrounding expression that contains the variable.
 If the variable happens to be the right-hand side of an infix operator, or the
 operand of a unary operator, then that containing expression is too high
 precedence to permit the <code>=</code>.</p>
-<p>To fix this, <code>variable()</code> should only look for and consume the <code>=</code> if it&rsquo;s in
-the context of a low precedence expression. The code that knows the current
+<p>To fix this, <code>variable()</code> should look for and consume the <code>=</code> only if it&rsquo;s in
+the context of a low-precedence expression. The code that knows the current
 precedence is, logically enough, <code>parsePrecedence()</code>. The <code>variable()</code> function
 doesn&rsquo;t need to know the actual level. It just cares that the precedence is low
 enough to allow assignment, so we pass that fact in as a Boolean.</p>
@@ -1095,7 +1095,7 @@ replace 1 line</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>parsePrecedence</em>(), replace 1 line</div>
 
-<p>Since assignment is the lowest precedence expression, the only time we allow an
+<p>Since assignment is the lowest-precedence expression, the only time we allow an
 assignment is when parsing an assignment expression or top-level expression like
 in an expression statement. That flag makes its way to the parser function here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
@@ -1136,10 +1136,10 @@ replace 1 line</div>
 <p>That&rsquo;s a lot of plumbing to get literally one bit of data to the right place in
 the compiler, but arrived it has. If the variable is nested inside some
 expression with higher precedence, <code>canAssign</code> will be <code>false</code> and this will
-ignore the <code>=</code> even if there is one there. Then <code>namedVariable()</code> returns and
+ignore the <code>=</code> even if there is one there. Then <code>namedVariable()</code> returns, and
 execution eventually makes its way back to <code>parsePrecedence()</code>.</p>
 <p>Then what? What does the compiler do with our broken example from before? Right
-now, <code>variable()</code> won&rsquo;t consume the <code>=</code> so that will be the current token. The
+now, <code>variable()</code> won&rsquo;t consume the <code>=</code>, so that will be the current token. The
 compiler returns back to <code>parsePrecedence()</code> from the <code>variable()</code> prefix parser
 and then tries to enter the infix parsing loop. There is no parsing function
 associated with <code>=</code>, so it skips that loop.</p>
@@ -1290,9 +1290,9 @@ this:</p>
 every time an identifier is encountered. It creates a new constant each
 time, even if that variable name is already in a previous slot in the
 constant table. That&rsquo;s wasteful in cases where the same variable is
-referenced multiple times by the same function. That in turn increases the
-odds of filling up the constant table and running out of slots, since we
-only allow 256 constants in a single chunk.</p>
+referenced multiple times by the same function. That, in turn, increases the
+odds of filling up the constant table and running out of slots since we
+allow only 256 constants in a single chunk.</p>
 <p>Optimize this. How does your optimization affect the performance of the
 compiler compared to the runtime? Is this the right trade-off?</p>
 </li>
