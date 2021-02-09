@@ -22,7 +22,7 @@ replaces the previous entry.
 Hash tables appear in so many languages because they are incredibly powerful.
 Much of this power comes from one metric: given a key, a hash table returns the
 corresponding value in <span name="constant">constant time</span>, *regardless
-of how many keys are in the hash table.*
+of how many keys are in the hash table*.
 
 <aside name="constant">
 
@@ -43,7 +43,7 @@ a million.
 <aside name="rolodex">
 
 Stuff all those cards in a Rolodex -- does anyone even remember those things
-anymore? -- with dividers for each letter and you improve your speed
+anymore? -- with dividers for each letter, and you improve your speed
 dramatically. As we'll see, that's not too far from the trick a hash table uses.
 
 </aside>
@@ -63,7 +63,7 @@ their values?
 <aside name="basic">
 
 This limitation isn't *too* far-fetched. The initial versions of BASIC out of
-Dartmouth only allowed variable names to be a single letter followed by one
+Dartmouth allowed variable names to be only a single letter followed by one
 optional digit.
 
 </aside>
@@ -82,14 +82,14 @@ labeled with a letter of the alphabet." />
 
 </aside>
 
-Memory usage is great -- just a single reasonably-sized <span
+Memory usage is great -- just a single, reasonably sized <span
 name="bucket">array</span>. There's some waste from the empty buckets, but it's
 not huge. There's no overhead for node pointers, padding, or other stuff you'd
 get with something like a linked list or tree.
 
 Performance is even better. Given a variable name -- its character -- you can
 subtract the ASCII value of `a` and use the result to index directly into the
-array. Then you can either lookup the existing value or store a new value
+array. Then you can either look up the existing value or store a new value
 directly into that slot. It doesn't get much faster than that.
 
 This is sort of our Platonic ideal data structure. Lightning fast, dead simple,
@@ -101,14 +101,14 @@ index directly into.
 
 ### Load factor and wrapped keys
 
-Confining Lox to single-letter variables makes our job as implementers easier,
-but it's probably no fun programming in a language that only gives you 26
-storage locations. What if we loosened it a little and allowed variables up to
-<span name="six">eight</span> characters long?
+Confining Lox to single-letter variables would make our job as implementers
+easier, but it's probably no fun programming in a language that gives you only
+26 storage locations. What if we loosened it a little and allowed variables up
+to <span name="six">eight</span> characters long?
 
 <aside name="six">
 
-Again, this restriction isn't so crazy. Early linkers for C only treated the
+Again, this restriction isn't so crazy. Early linkers for C treated only the
 first six characters of external identifiers as meaningful. Everything after
 that was ignored. If you've ever wondered why the C standard library is so
 enamored of abbreviation -- looking at you, `strncmp()` -- it turns out it
@@ -120,8 +120,8 @@ That's small enough that we can pack all eight characters into a 64-bit integer
 and easily turn the string into a number. We can then use it as an array index.
 Or, at least, we could if we could somehow allocate a 295,148 *petabyte* array.
 Memory's gotten cheaper over time, but not quite *that* cheap. Even if we could
-make an array that big, it would be heinously wasteful. Almost every bucket will
-be empty unless users start writing way bigger Lox programs than we've
+make an array that big, it would be heinously wasteful. Almost every bucket
+would be empty unless users started writing way bigger Lox programs than we've
 anticipated.
 
 Even though our variable keys cover the full 64-bit numeric range, we clearly
@@ -134,7 +134,7 @@ until it fits the smaller range of array elements.
 For example, say we want to store "bagel". We allocate an array with eight
 elements, plenty enough to store it and more later. We treat the key string as a
 64-bit integer. On a little-endian machine like Intel, packing those characters
-into a 64-bit word puts the first letter, "b", ASCII value 98 in the
+into a 64-bit word puts the first letter, "b" (ASCII value 98), in the
 least-significant byte. We take that integer modulo the array size (<span
 name="power-of-two">8</span>) to fit it in the bounds and get a bucket index, 2.
 Then we store the value there as usual.
@@ -142,7 +142,7 @@ Then we store the value there as usual.
 <aside name="power-of-two">
 
 I'm using powers of two for the array sizes here, but they don't need to be.
-Some styles of hash table work best with powers of two, including the one we'll
+Some styles of hash tables work best with powers of two, including the one we'll
 build in this book. Others prefer prime number array sizes or have other rules.
 
 </aside>
@@ -152,7 +152,7 @@ fit an array of any size. We can thus control the number of buckets
 independently of the key range. That solves our waste problem, but introduces a
 new one. Any two variables whose key number has the same remainder when divided
 by the array size will end up in the same bucket. Keys can **collide**. For
-example, if we try to add "jam", it also ends up in bucket 2:
+example, if we try to add "jam", it also ends up in bucket 2.
 
 <img src="image/hash-tables/collision.png" alt="'Bagel' and 'jam' both end up in bucket index 2." />
 
@@ -187,7 +187,7 @@ A low load factor can make collisions <span name="pigeon">rarer</span>, but the
 [*pigeonhole principle*][pigeon] tells us we can never eliminate them entirely.
 If you've got five pet pigeons and four holes to put them in, at least one hole
 is going to end up with more than one pigeon. With 18,446,744,073,709,551,616
-different variable names, any reasonably-sized array can potentially end up with
+different variable names, any reasonably sized array can potentially end up with
 multiple keys in the same bucket.
 
 [pigeon]: https://en.wikipedia.org/wiki/Pigeonhole_principle
@@ -200,7 +200,7 @@ like it when their programming language can look up variables correctly only
 
 Put these two funny-named mathematical rules together and you get this
 observation: Take a birdhouse containing 365 pigeonholes, and use each pigeon's
-birthday to assign it to a pigeonhole. You'll need only about 26 randomly-chosen
+birthday to assign it to a pigeonhole. You'll need only about 26 randomly chosen
 pigeons before you get a greater than 50% chance of two pigeons in the same box.
 
 <img src="image/hash-tables/pigeons.png" alt="Two pigeons in the same hole." />
@@ -220,7 +220,7 @@ then walk the list until you find an entry with the matching key.
 In catastrophically bad cases where every entry collides in the same bucket, the
 data structure degrades into a single unsorted linked list with *O(n)* lookup.
 In practice, it's easy to avoid that by controlling the load factor and how
-entries get scattered across buckets. In typical separate chained hash tables,
+entries get scattered across buckets. In typical separate-chained hash tables,
 it's rare for a bucket to have more than one or two entries.
 
 Separate chaining is conceptually simple -- it's literally an array of linked
@@ -253,11 +253,11 @@ of the entries stay inside the array of buckets.
 
 </aside>
 
-Storing all entries in a single big contiguous array is great for keeping the
+Storing all entries in a single, big, contiguous array is great for keeping the
 memory representation simple and fast. But it makes all of the operations on the
 hash table more complex. When inserting an entry, its bucket may be full,
 sending us to look at another bucket. That bucket itself may be occupied and so
-on. This process of finding an available bucket is called **probing** and the
+on. This process of finding an available bucket is called **probing**, and the
 order that you examine buckets is a **probe sequence**.
 
 There are a <span name="probe">number</span> of algorithms for determining
@@ -285,7 +285,7 @@ The good thing about linear probing is that it's cache friendly. Since you walk
 the array directly in memory order, it keeps the CPU's cache lines full and
 happy. The bad thing is that it's prone to **clustering**. If you have a lot of
 entries with numerically similar key values, you can end up with a lot of
-colliding overflowing buckets right next to each other.
+colliding, overflowing buckets right next to each other.
 
 Compared to separate chaining, open addressing can be harder to wrap your head
 around. I think of open addressing as similar to separate chaining except that
@@ -296,40 +296,40 @@ implicitly by the order that you look through the buckets.
 The tricky part is that more than one of these implicit lists may be interleaved
 together. Let's walk through an example that covers all the interesting cases.
 We'll ignore values for now and just worry about a set of keys. We start with an
-empty array of 8 buckets:
+empty array of 8 buckets.
 
 <img src="image/hash-tables/insert-1.png" alt="An array with eight empty buckets." class="wide" />
 
 We decide to insert "bagel". The first letter, "b" (ASCII value 98), modulo the
-array size (8) puts it in bucket 2:
+array size (8) puts it in bucket 2.
 
 <img src="image/hash-tables/insert-2.png" alt="Bagel goes into bucket 2." class="wide" />
 
 Next, we insert "jam". That also wants to go in bucket 2 (106 mod 8 = 2), but
 that bucket's taken. We keep probing to the next bucket. It's empty, so we put
-it there:
+it there.
 
 <img src="image/hash-tables/insert-3.png" alt="Jam goes into bucket 3, since 2 is full." class="wide" />
 
-We insert "fruit", which happily lands in bucket 6:
+We insert "fruit", which happily lands in bucket 6.
 
 <img src="image/hash-tables/insert-4.png" alt="Fruit goes into bucket 6." class="wide" />
 
-Likewise, "migas" can go in its preferred bucket 5:
+Likewise, "migas" can go in its preferred bucket 5.
 
 <img src="image/hash-tables/insert-5.png" alt="Migas goes into bucket 5." class="wide" />
 
-When we try to insert "eggs", it also wants to be in bucket 5. That's full so we
+When we try to insert "eggs", it also wants to be in bucket 5. That's full, so we
 skip to 6. Bucket 6 is also full. Note that the entry in there is *not* part of
 the same probe sequence. "Fruit" is in its preferred bucket, 6. So the 5 and 6
 sequences have collided and are interleaved. We skip over that and finally put
-"eggs" in bucket 7:
+"eggs" in bucket 7.
 
 <img src="image/hash-tables/insert-6.png" alt="Eggs goes into bucket 7 because 5 and 6 are full." class="wide" />
 
 We run into a similar problem with "nuts". It can't land in 6 like it wants to.
 Nor can it go into 7. So we keep going. But we've reached the end of the array,
-so we wrap back around to 0 and put it there:
+so we wrap back around to 0 and put it there.
 
 <img src="image/hash-tables/insert-7.png" alt="Nuts wraps around to bucket 0 because 6 and 7 are full." class="wide" />
 
@@ -364,7 +364,7 @@ hashed. We, thankfully, don't need to worry about those concerns for this book.
     points in time, it's gonna get really hard to find it.
 
 *   **It must be *uniform*.** Given a typical set of inputs, it should produce a
-    wide and evenly-distributed range of output numbers, with as few clumps or
+    wide and evenly distributed range of output numbers, with as few clumps or
     patterns as possible. We want it to <span name="scatter">scatter</span>
     values across the whole numeric range to minimize collisions and clustering.
 
@@ -374,7 +374,7 @@ hashed. We, thankfully, don't need to worry about those concerns for this book.
 
 <aside name="scatter">
 
-One of the original names for hash tables was "scatter table" because it takes
+One of the original names for a hash table was "scatter table" because it takes
 the entries and scatters them throughout the array. The word "hash" came from
 the idea that a hash function takes the input data, chops it up, and tosses it
 all together into a pile to come up with a single number from all of those bits.
@@ -402,7 +402,7 @@ Who knows, maybe hash functions could turn out to be your thing too?
 </aside>
 
 OK, that's a quick run through of buckets, load factors, open addressing,
-collision resolution and hash functions. That's an awful lot of text and not a
+collision resolution, and hash functions. That's an awful lot of text and not a
 lot of real code. Don't worry if it still seems vague. Once we're done coding it
 up, it will all click into place.
 
@@ -430,13 +430,13 @@ wrapping it in a Value. It's a little faster and smaller this way.
 <aside name="string">
 
 In clox, we only need to support keys that are strings. Handling other types of
-keys doesn't add much complexity. As long as you can reduce an object to a
-sequence of bits, and compare two objects for equality, it's easy to use as a
-hash key.
+keys doesn't add much complexity. As long as you can compare two objects for
+equality and reduce them to sequences of bits, it's easy to use them as hash
+keys.
 
 </aside>
 
-To create a new empty hash table, we declare a constructor-like function.
+To create a new, empty hash table, we declare a constructor-like function.
 
 ^code init-table-h (2 before, 2 after)
 
@@ -465,7 +465,7 @@ handles that gracefully.
 Before we can start putting entries in the table, we need to, well, hash them.
 To ensure that the entries get distributed uniformly throughout the array, we
 want a good hash function that looks at all of the bits of the key string. If it
-only, say, looked at the first few characters, then a series of strings that all
+looked at, say, only the first few characters, then a series of strings that all
 shared the same prefix would end up colliding in the same bucket.
 
 On the other hand, walking the entire string to calculate the hash is kind of
@@ -479,7 +479,7 @@ Over in the "object" module in ObjString, we add:
 
 Each ObjString stores the hash code for its string. Since strings are immutable
 in Lox, we can calculate the hash code once up front and be certain that it will
-never get invalidated. Caching it eagerly makes a kind of sense: Allocating the
+never get invalidated. Caching it eagerly makes a kind of sense: allocating the
 string and copying its characters over is already an *O(n)* operation, so it's a
 good time to also do the *O(n)* calculation of the string's hash.
 
@@ -494,7 +494,7 @@ That function simply stores the hash in the struct.
 
 The fun happens over at the callers. `allocateString()` is called from two
 places: the function that copies a string and the one that takes ownership of an
-existing dynamically-allocated string. We'll start with the first.
+existing dynamically allocated string. We'll start with the first.
 
 ^code copy-string-hash (1 before, 1 after)
 
@@ -510,17 +510,17 @@ The interesting code is over here:
 
 ^code hash-string
 
-This is the actual bonafide "hash function" in clox. The algorithm is called
+This is the actual bona fide "hash function" in clox. The algorithm is called
 "FNV-1a", and is the shortest decent hash function I know. Brevity is certainly
 a virtue in a book that aims to show you every line of code.
 
-The basic idea is pretty simple and many hash functions follow the same pattern.
-You start with some initial hash value, usually a constant with certain
+The basic idea is pretty simple, and many hash functions follow the same
+pattern. You start with some initial hash value, usually a constant with certain
 carefully chosen mathematical properties. Then you walk the data to be hashed.
-For each byte (or sometimes word), you munge the bits into the hash value
-somehow and then mix the resulting bits around some.
+For each byte (or sometimes word), you mix the bits into the hash value somehow,
+and then scramble the resulting bits around some.
 
-What it means to "munge" and "mix" can get pretty sophisticated. Ultimately,
+What it means to "mix" and "scramble" can get pretty sophisticated. Ultimately,
 though, the basic goal is *uniformity* -- we want the resulting hash values to
 be as widely scattered around the numeric range as possible to avoid collisions
 and clustering.
@@ -544,11 +544,12 @@ should go in. It returns a pointer to that bucket -- the address of the Entry in
 the array.
 
 Once we have a bucket, inserting is straightforward. We update the hash table's
-size, taking care to not increase the count if we overwrote an already-present
-key. Then we copy the key and value into the corresponding fields in the entry.
+size, taking care to not increase the count if we overwrote the value for an
+already-present key. Then we copy the key and value into the corresponding
+fields in the Entry.
 
 We're missing a little something here, though. We haven't actually allocated the
-entry array yet. Oops! Before we can insert anything, we need to make sure we
+Entry array yet. Oops! Before we can insert anything, we need to make sure we
 have an array, and that it's big enough.
 
 ^code table-set-grow (1 before, 1 after)
@@ -583,10 +584,10 @@ at that `findEntry()` function you've been wondering about.
 ^code find-entry
 
 This function is the real core of the hash table. It's responsible for taking a
-key and an array of buckets and figuring out which bucket the entry belongs in.
+key and an array of buckets, and figuring out which bucket the entry belongs in.
 This function is also where linear probing and collision handling come into
 play. We'll use `findEntry()` both to look up existing entries in the hash
-table, and to decide where to insert new ones.
+table and to decide where to insert new ones.
 
 For all that, there isn't much to it. First, we use modulo to map the key's hash
 code to an index within the array's bounds. That gives us a bucket index where,
@@ -594,14 +595,14 @@ ideally, we'll be able to find or place the entry.
 
 There are a few cases to check for:
 
-*   If the key for the entry at that array index is `NULL`, then the bucket is
+*   If the key for the Entry at that array index is `NULL`, then the bucket is
     empty. If we're using `findEntry()` to look up something in the hash table,
     this means it isn't there. If we're using it to insert, it means we've found
     a place to add the new entry.
 
 *   If the key in the bucket is <span name="equal">equal</span> to the key we're
     looking for, then that key is already present in the table. If we're doing a
-    look-up, that's good -- we found the key we seek. If we're doing an insert,
+    lookup, that's good -- we've found the key we seek. If we're doing an insert,
     this means we'll be replacing the value for that key instead of adding a new
     entry.
 
@@ -628,7 +629,7 @@ What if we collide with *every* bucket? Fortunately, that can't happen thanks to
 our load factor. Because we grow the array as soon as it gets close to being
 full, we know there will always be empty buckets.
 
-We return directly from within the loop, yielding a pointer to the found entry
+We return directly from within the loop, yielding a pointer to the found Entry
 so the caller can either insert something into it or read from it. Way back in
 `tableSet()`, the function that first kicked this off, we store the new entry in
 that returned bucket and we're done.
@@ -653,17 +654,16 @@ Remember that to choose the bucket for each entry, we take its hash key *modulo
 the array size*. That means that when the array size changes, entries may end up
 in different buckets.
 
-We need to recalculate the buckets for each of the existing entries in the hash
-table. That in turn could cause new collisions which we need to resolve. So the
-simplest way to handle that is to rebuild the table from scratch by re-inserting
-every entry into the new empty array.
+Those new buckets may have new collisions that we need to deal with. So the
+simplest way to get every entry where it belongs is to rebuild the table from
+scratch by re-inserting every entry into the new empty array.
 
 ^code re-hash (2 before, 2 after)
 
 We walk through the old array front to back. Any time we find a non-empty
 bucket, we insert that entry into the new array. We use `findEntry()`, passing
 in the *new* array instead of the one currently stored in the Table. (This is
-why `findEntry()` takes a pointer directly to an entry array and not the whole
+why `findEntry()` takes a pointer directly to an Entry array and not the whole
 `Table` struct. That way, we can pass the new array and capacity before we've
 stored those in the struct.)
 
@@ -699,8 +699,8 @@ this function:
 ^code table-get-h (1 before, 1 after)
 
 You pass in a table and a key. If it finds an entry with that key, it returns
-`true`, otherwise it returns `false`. If the entry exists, it stores the
-resulting value in the `value` output parameter.
+`true`, otherwise it returns `false`. If the entry exists, the `value` output
+parameter points to the resulting value.
 
 Since `findEntry()` already does the hard work, the implementation isn't bad.
 
@@ -711,8 +711,8 @@ check for that first. This isn't just an optimization -- it also ensures that we
 don't try to access the bucket array when the array is `NULL`. Otherwise, we let
 `findEntry()` work its magic. That returns a pointer to a bucket. If the bucket
 is empty, which we detect by seeing if the key is `NULL`, then we didn't find an
-entry with our key. If `findEntry()` does return a non-empty entry, then that's
-our match. We take the entry's value and copy it to the output parameter so the
+Entry with our key. If `findEntry()` does return a non-empty Entry, then that's
+our match. We take the Entry's value and copy it to the output parameter so the
 caller can get it. Piece of cake.
 
 ### Deleting entries
@@ -722,7 +722,7 @@ support: removing an entry. This seems pretty obvious, if you can add things,
 you should be able to *un*-add them, right? But you'd be surprised how many
 tutorials on hash tables omit this.
 
-I could have taken that route too. In fact, we only use deletion in clox in a
+I could have taken that route too. In fact, we use deletion in clox only in a
 tiny edge case in the VM. But if you want to actually understand how to
 completely implement a hash table, this feels important. I can sympathize with
 their desire to overlook it. As we'll see, deleting from a hash table that uses
@@ -750,17 +750,17 @@ all with the same preferred bucket, 2:
 <img src="image/hash-tables/delete-1.png" alt="A hash table containing 'bagel' in bucket 2, 'biscuit' in bucket 3, and 'jam' in bucket 4." />
 
 Remember that when we're walking a probe sequence to find an entry, we know
-we've reached the end of a sequence and the entry isn't present when we hit an
-empty bucket. It's like the probe sequence is a list of entries and an empty
+we've reached the end of a sequence and that the entry isn't present when we hit
+an empty bucket. It's like the probe sequence is a list of entries and an empty
 entry terminates that list.
 
-If we delete "biscuit" by simply clearing the entry, then we break that probe
+If we delete "biscuit" by simply clearing the Entry, then we break that probe
 sequence in the middle, leaving the trailing entries orphaned and unreachable.
 Sort of like removing a node from a linked list without relinking the pointer
 from the previous node to the next one.
 
-If we later try to look for "jam", we'll start at "bagel", stop at the next
-empty entry, and never find it:
+If we later try to look for "jam", we'd start at "bagel", stop at the next
+empty Entry, and never find it.
 
 <img src="image/hash-tables/delete-2.png" alt="The 'biscuit' entry has been deleted from the hash table, breaking the chain." />
 
@@ -770,7 +770,7 @@ deletion, we replace it with a special sentinel entry called a "tombstone". When
 we are following a probe sequence during a lookup, and we hit a tombstone, we
 *don't* treat it like an empty slot and stop iterating. Instead, we keep going
 so that deleting an entry doesn't break any implicit collision chains and we can
-still find entries after it:
+still find entries after it.
 
 <img src="image/hash-tables/delete-3.png" alt="Instead of deleting 'biscuit', it's replaced with a tombstone." />
 
@@ -786,7 +786,7 @@ entry works.
 
 <aside name="tombstone">
 
-<img src="image/hash-tables/tombstone.png" alt="A tombstone enscribed 'Here lies entry bagel &rarr; 3.75, gone but not deleted'." />
+<img src="image/hash-tables/tombstone.png" alt="A tombstone enscribed 'Here lies entry biscuit &rarr; 3.75, gone but not deleted'." />
 
 </aside>
 
@@ -796,8 +796,7 @@ of "half" entry. It has some of the characteristics of a present entry, and some
 of the characteristics of an empty one.
 
 When we are following a probe sequence during a lookup, and we hit a tombstone,
-we *don't* treat it like an empty slot and stop iterating. Instead, we note it
-and keep going.
+we note it and keep going.
 
 ^code find-tombstone (2 before, 2 after)
 
@@ -839,8 +838,8 @@ array slots, so for load factor, we consider tombstones to be full buckets.
 
 That's why we don't reduce the count when deleting an entry in the previous
 code. The count is no longer the number of entries in the hash table, it's the
-number of entries plus tombstones. That implies that we only increment the count
-during insertion if the new entry goes into an entirely empty bucket.
+number of entries plus tombstones. That implies that we increment the count
+during insertion only if the new entry goes into an entirely empty bucket.
 
 ^code set-increment-count (2 before, 2 after)
 
@@ -855,7 +854,7 @@ count since it may change during a resize. So we clear it out:
 
 ^code resize-init-count (2 before, 1 after)
 
-Then each time we find a non-tombstone entry, we increment it:
+Then each time we find a non-tombstone entry, we increment it.
 
 ^code resize-increment-count (1 before, 1 after)
 
@@ -863,7 +862,7 @@ This means that when we grow the capacity, we may end up with *fewer* entries in
 the resulting larger array because all of the tombstones get discarded. That's a
 little wasteful, but not a huge practical problem.
 
-I find it interesting that much of the work to support deleting entries was in
+I find it interesting that much of the work to support deleting entries is in
 `findEntry()` and `adjustCapacity()`. The actual delete logic is quite simple
 and fast. In practice, deletions tend to be rare, so you'd expect a hash table
 to do as much work as it can in the delete function and leave the other
@@ -888,7 +887,7 @@ It's a neat trick.
 
 We've got ourselves a hash table that mostly works, though it has a critical
 flaw in its center. Also, we aren't using it for anything yet. It's time to
-address both of those and in the process learn a classic technique used by
+address both of those and, in the process, learn a classic technique used by
 interpreters.
 
 The reason the hash table doesn't totally work is that when `findEntry()` checks
@@ -1020,18 +1019,18 @@ the key we're looking for instead of an ObjString. At the point that we call
 this, we haven't created an ObjString yet.
 
 Second, when checking to see if we found the key, we look at the actual strings.
-First, we see if they have matching lengths and hashes. Those are quick to check
+We first see if they have matching lengths and hashes. Those are quick to check
 and if they aren't equal, the strings definitely aren't the same.
 
-Finally, in case there is a hash collision, we do an actual
-character-by-character string comparison. This is the one place in the VM where
-we actually test strings for textual equality. We do it here to deduplicate
-strings and then the rest of the VM can take for granted that any two strings at
-different addresses in memory must have different contents.
+If there is a hash collision, we do an actual character-by-character string
+comparison. This is the one place in the VM where we actually test strings for
+textual equality. We do it here to deduplicate strings and then the rest of the
+VM can take for granted that any two strings at different addresses in memory
+must have different contents.
 
 In fact, now that we've interned all the strings, we can take advantage of it in
 the bytecode interpreter. When a user does `==` on two objects that happen to be
-strings, we don't need to test the characters any more:
+strings, we don't need to test the characters any more.
 
 ^code equal (1 before, 1 after)
 
@@ -1041,7 +1040,7 @@ we have a full-featured hash table ready for us to use for tracking variables,
 instances, or any other key-value pairs that might show up.
 
 We also sped up testing strings for equality. This is nice for when the user
-does `==` on strings. But it's even more critical in a dynamically-typed
+does `==` on strings. But it's even more critical in a dynamically typed
 language like Lox where method calls and instance fields are looked up by name
 at runtime. If testing a string for equality is slow, then that means looking up
 a method by name is slow. And if *that's* slow in your object-oriented language,
