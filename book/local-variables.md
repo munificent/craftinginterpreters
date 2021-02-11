@@ -53,12 +53,12 @@ Right now, we only use it for holding on to **temporaries** -- short-lived blobs
 of data that we need to remember while computing an expression. As long as we
 don't get in the way of those, we can stuff our local variables onto the stack
 too. This is great for performance. Allocating space for a new local requires
-only incrementing the `stackTop` pointer and freeing is likewise a decrement.
+only incrementing the `stackTop` pointer, and freeing is likewise a decrement.
 Accessing a variable from a known stack slot is an indexed array lookup.
 
 We do need to be careful, though. The VM expects the stack to behave like, well,
-a stack. We have to be OK with only allocating new locals on the top of the
-stack, and we have to accept that we can only discard a local when nothing is
+a stack. We have to be OK with allocating new locals only on the top of the
+stack, and we have to accept that we can discard a local only when nothing is
 above it on the stack. Also, we need to make sure temporaries don't interfere.
 
 Conveniently, the design of Lox is in <span name="harmony">harmony</span> with
@@ -103,11 +103,11 @@ with locals deliciously fast -- as simple as indexing into an array.
 
 <aside name="fn">
 
-In this chapter, locals live on the bottom of the stack and are indexed from
-there. When we add [functions][], that scheme gets a little more complex. Each
-function needs its own region of the stack for its parameters and local
-variables. But, as we'll see, that doesn't add as much complexity as you might
-expect.
+In this chapter, locals start at the bottom of the VM's stack array and are
+indexed from there. When we add [functions][], that scheme gets a little more
+complex. Each function needs its own region of the stack for its parameters and
+local variables. But, as we'll see, that doesn't add as much complexity as you
+might expect.
 
 [functions]: calls-and-functions.html
 
@@ -115,14 +115,14 @@ expect.
 
 There's a lot of state we need to track in the compiler to make this whole thing
 go, so let's get started there. In jlox, we used a linked chain of "environment"
-HashMaps to track what local variables are currently in scope. That's sort of
+HashMaps to track which local variables were currently in scope. That's sort of
 the classic, schoolbook way of representing lexical scope. For clox, as usual,
 we're going a little closer to the metal. All of the state lives in a new
 struct.
 
 ^code compiler-struct (1 before, 2 after)
 
-We have a simple flat array of all locals that are in scope during each point in
+We have a simple, flat array of all locals that are in scope during each point in
 the compilation process. They are <span name="order">ordered</span> in the array
 in the order that their declarations appear in the code. Since the instruction
 operand we'll use to encode a local is a single byte, our VM has a hard limit on
@@ -131,7 +131,7 @@ the locals array a fixed size.
 
 <aside name="order">
 
-We're writing a single pass compiler, so it's not like we have *too* many other
+We're writing a single-pass compiler, so it's not like we have *too* many other
 options for how to order them in the array.
 
 </aside>
@@ -166,7 +166,7 @@ lexical environment. The next step is figuring out how the compiler *gets* at
 this state. If we were <span name="thread">principled</span> engineers, we'd
 give each function in the front end a parameter that accepts a pointer to a
 Compiler. We'd create a Compiler at the beginning and carefully thread it
-through each function call. ...But that would mean a lot of boring changes to
+through each function call... but that would mean a lot of boring changes to
 the code we already wrote, so here's a global variable instead:
 
 <aside name="thread">
@@ -183,7 +183,7 @@ Here's a little function to initialize the compiler:
 
 ^code init-compiler
 
-When we first start up the VM, we call it to get everything into a clean state:
+When we first start up the VM, we call it to get everything into a clean state.
 
 ^code compiler (1 before, 1 after)
 
@@ -248,7 +248,7 @@ this function to enter a new local scope:
 ^code begin-scope
 
 In order to "create" a scope, all we do is increment the current depth. This is
-certainly much faster than jlox which allocated an entire new HashMap for
+certainly much faster than jlox, which allocated an entire new HashMap for
 each one. Given `beginScope()`, you can probably guess what `endScope()` does.
 
 ^code end-scope
@@ -281,7 +281,7 @@ Both of those helpers need a few changes to support local variables. In
 First, we "declare" the variable. I'll get to what that means in a second. After
 that, we exit the function if we're in a local scope. At runtime, locals aren't
 looked up by name. There's no need to stuff the variable's name into the
-constant table so if the declaration is inside a local scope we return a dummy
+constant table, so if the declaration is inside a local scope, we return a dummy
 table index instead.
 
 Over in `defineVariable()`, we need to emit the code to store a local variable
@@ -313,13 +313,13 @@ OK, so what's "declaring" about? Here's what that does:
 ^code declare-variable
 
 This is the point where the compiler records the existence of the variable. We
-only do this for locals, so if we're in the top level global scope, we just bail
+only do this for locals, so if we're in the top-level global scope, we just bail
 out. Because global variables are late bound, the compiler doesn't keep track of
 which declarations for them it has seen.
 
 But for local variables, the compiler does need to remember that the variable
 exists. That's what declaring it does -- it adds it to the compiler's list of
-variables in the current scope, using another new function.
+variables in the current scope. We implement that using another new function.
 
 ^code add-local
 
@@ -348,8 +348,8 @@ variables refer to them by slot index. That index is stored in a single-byte
 operand, which means the VM only supports up to 256 local variables in scope at
 one time.
 
-If we try to go over that, not only could we not refer to them at runtime, the
-compiler would overrwrite its own locals array. Let's prevent that.
+If we try to go over that, not only could we not refer to them at runtime, but
+the compiler would overwrite its own locals array, too. Let's prevent that.
 
 ^code too-many-locals (1 before, 2 after)
 
@@ -365,12 +365,12 @@ The next case is trickier. Consider:
 At the top level, Lox allows redeclaring a variable with the same name as a
 previous declaration because that's useful for the REPL. But inside a local
 scope, that's a pretty <span name="rust">weird</span> thing to do. It's likely
-to be a mistake and many languages, including our own Lox, enshrine that
+to be a mistake, and many languages, including our own Lox, enshrine that
 assumption by making this an error.
 
 <aside name="rust">
 
-Interestingly, the Rust programming language *does* allow this and idiomatic
+Interestingly, the Rust programming language *does* allow this, and idiomatic
 code relies on it.
 
 </aside>
@@ -404,12 +404,12 @@ about later.
 
 Local variables are appended to the array when they're declared, which means the
 current scope is always at the end of the array. When we declare a new variable,
-we start at the end and work backward looking for an existing variable with the
+we start at the end and work backward, looking for an existing variable with the
 same name. If we find one in the current scope, we report the error. Otherwise,
-if we reach the beginning of the array or a variable owned by another scope then
-we know we've checked all of the existing variables in the scope.
+if we reach the beginning of the array or a variable owned by another scope,
+then we know we've checked all of the existing variables in the scope.
 
-To see if two identifiers are the same we use this:
+To see if two identifiers are the same, we use this:
 
 ^code identifiers-equal
 
@@ -445,7 +445,7 @@ and should be freed. So, for each variable that we discard, we also emit an
 <aside name="pop">
 
 When multiple local variables go out of scope at once, you get a series of
-`OP_POP` instructions which get interpreted one at a time. A simple optimization
+`OP_POP` instructions that get interpreted one at a time. A simple optimization
 you could add to your Lox implementation is a specialized `OP_POPN` instruction
 that takes an operand for the number of slots to pop and pops them all at once.
 
@@ -514,7 +514,7 @@ And its implementation:
 
 ^code interpret-get-local (1 before, 2 after)
 
-It takes a single byte operand for the stack slot where the local lives. It
+It takes a single-byte operand for the stack slot where the local lives. It
 loads the value from that index and then pushes it on top of the stack where
 later instructions can find it.
 
@@ -647,17 +647,17 @@ the runtime, it's just two little instructions. You'll see this as a continuing
 hammers in the optimizer's toolbox is pulling work forward into the compiler so
 that you don't have to do it at runtime. In this chapter, that meant resolving
 exactly which stack slot every local variable occupies. That way, at runtime, no
-"look up" or resolution needs to happen.
+lookup or resolution needs to happen.
 
 <aside name="static">
 
-You can look at static types as an extreme example of this trend. A
-statically-typed language takes all of the type analysis and type error handling
-and sorts it all out during compilation. Then the runtime doesn't have to waste
-any time checking that values have the proper type for their operation. In fact,
-in some statically-typed languages like C, you don't even *know* the type at
-runtime. The compiler completely erases any representation of a value's type
-leaving just the bare bits.
+You can look at static types as an extreme example of this trend. A statically
+typed language takes all of the type analysis and type error handling and sorts
+it all out during compilation. Then the runtime doesn't have to waste any time
+checking that values have the proper type for their operation. In fact, in some
+statically typed languages like C, you don't even *know* the type at runtime.
+The compiler completely erases any representation of a value's type leaving just
+the bare bits.
 
 </aside>
 
@@ -683,7 +683,7 @@ leaving just the bare bits.
 1.  Many languages make a distinction between variables that can be reassigned
     and those that can't. In Java, the `final` modifier prevents you from
     assigning to a variable. In JavaScript, a variable declared with `let` can
-    be assigned but one declared using `const` can't. Swift treats `let` as
+    be assigned, but one declared using `const` can't. Swift treats `let` as
     single-assignment and uses `var` for assignable variables. Scala and Kotlin
     use `val` and `var`.
 
@@ -691,6 +691,6 @@ leaving just the bare bits.
     your choice, then implement it. An attempt to assign to a variable declared
     using your new keyword should cause a compile error.
 
-1.  Extend clox to allow more than 255 local variables to be in scope at a time.
+1.  Extend clox to allow more than 256 local variables to be in scope at a time.
 
 </div>

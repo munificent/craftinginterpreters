@@ -153,11 +153,11 @@ can use.</p>
 of data that we need to remember while computing an expression. As long as we
 don&rsquo;t get in the way of those, we can stuff our local variables onto the stack
 too. This is great for performance. Allocating space for a new local requires
-only incrementing the <code>stackTop</code> pointer and freeing is likewise a decrement.
+only incrementing the <code>stackTop</code> pointer, and freeing is likewise a decrement.
 Accessing a variable from a known stack slot is an indexed array lookup.</p>
 <p>We do need to be careful, though. The VM expects the stack to behave like, well,
-a stack. We have to be OK with only allocating new locals on the top of the
-stack, and we have to accept that we can only discard a local when nothing is
+a stack. We have to be OK with allocating new locals only on the top of the
+stack, and we have to accept that we can discard a local only when nothing is
 above it on the stack. Also, we need to make sure temporaries don&rsquo;t interfere.</p>
 <p>Conveniently, the design of Lox is in <span name="harmony">harmony</span> with
 these constraints. New locals are always created by declaration statements.
@@ -190,15 +190,15 @@ variable lives.</p>
 bytecode instructions that read and store local variables. This makes working
 with locals deliciously fast<span class="em">&mdash;</span>as simple as indexing into an array.</p>
 <aside name="fn">
-<p>In this chapter, locals live on the bottom of the stack and are indexed from
-there. When we add <a href="calls-and-functions.html">functions</a>, that scheme gets a little more complex. Each
-function needs its own region of the stack for its parameters and local
-variables. But, as we&rsquo;ll see, that doesn&rsquo;t add as much complexity as you might
-expect.</p>
+<p>In this chapter, locals start at the bottom of the VM&rsquo;s stack array and are
+indexed from there. When we add <a href="calls-and-functions.html">functions</a>, that scheme gets a little more
+complex. Each function needs its own region of the stack for its parameters and
+local variables. But, as we&rsquo;ll see, that doesn&rsquo;t add as much complexity as you
+might expect.</p>
 </aside>
 <p>There&rsquo;s a lot of state we need to track in the compiler to make this whole thing
 go, so let&rsquo;s get started there. In jlox, we used a linked chain of &ldquo;environment&rdquo;
-HashMaps to track what local variables are currently in scope. That&rsquo;s sort of
+HashMaps to track which local variables were currently in scope. That&rsquo;s sort of
 the classic, schoolbook way of representing lexical scope. For clox, as usual,
 we&rsquo;re going a little closer to the metal. All of the state lives in a new
 struct.</p>
@@ -219,14 +219,14 @@ Parser parser;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>ParseRule</em></div>
 
-<p>We have a simple flat array of all locals that are in scope during each point in
+<p>We have a simple, flat array of all locals that are in scope during each point in
 the compilation process. They are <span name="order">ordered</span> in the array
 in the order that their declarations appear in the code. Since the instruction
 operand we&rsquo;ll use to encode a local is a single byte, our VM has a hard limit on
 the number of locals that can be in scope at once. That means we can also give
 the locals array a fixed size.</p>
 <aside name="order">
-<p>We&rsquo;re writing a single pass compiler, so it&rsquo;s not like we have <em>too</em> many other
+<p>We&rsquo;re writing a single-pass compiler, so it&rsquo;s not like we have <em>too</em> many other
 options for how to order them in the array.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
@@ -279,7 +279,7 @@ lexical environment. The next step is figuring out how the compiler <em>gets</em
 this state. If we were <span name="thread">principled</span> engineers, we&rsquo;d
 give each function in the front end a parameter that accepts a pointer to a
 Compiler. We&rsquo;d create a Compiler at the beginning and carefully thread it
-through each function call. <span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>But that would mean a lot of boring changes to
+through each function call<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>but that would mean a lot of boring changes to
 the code we already wrote, so here&rsquo;s a global variable instead:</p>
 <aside name="thread">
 <p>In particular, if we ever want to use our compiler in a multi-threaded
@@ -311,7 +311,7 @@ add after <em>emitConstant</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitConstant</em>()</div>
 
-<p>When we first start up the VM, we call it to get everything into a clean state:</p>
+<p>When we first start up the VM, we call it to get everything into a clean state.</p>
 <div class="codehilite"><pre class="insert-before">
   initScanner(source);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -401,7 +401,7 @@ add after <em>endCompiler</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
 <p>In order to &ldquo;create&rdquo; a scope, all we do is increment the current depth. This is
-certainly much faster than jlox which allocated an entire new HashMap for
+certainly much faster than jlox, which allocated an entire new HashMap for
 each one. Given <code>beginScope()</code>, you can probably guess what <code>endScope()</code> does.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>beginScope</em>()</div>
@@ -445,7 +445,7 @@ in <em>parseVariable</em>()</div>
 <p>First, we &ldquo;declare&rdquo; the variable. I&rsquo;ll get to what that means in a second. After
 that, we exit the function if we&rsquo;re in a local scope. At runtime, locals aren&rsquo;t
 looked up by name. There&rsquo;s no need to stuff the variable&rsquo;s name into the
-constant table so if the declaration is inside a local scope we return a dummy
+constant table, so if the declaration is inside a local scope, we return a dummy
 table index instead.</p>
 <p>Over in <code>defineVariable()</code>, we need to emit the code to store a local variable
 if we&rsquo;re in a local scope. It looks like this:</p>
@@ -489,12 +489,12 @@ add after <em>identifierConstant</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifierConstant</em>()</div>
 
 <p>This is the point where the compiler records the existence of the variable. We
-only do this for locals, so if we&rsquo;re in the top level global scope, we just bail
+only do this for locals, so if we&rsquo;re in the top-level global scope, we just bail
 out. Because global variables are late bound, the compiler doesn&rsquo;t keep track of
 which declarations for them it has seen.</p>
 <p>But for local variables, the compiler does need to remember that the variable
 exists. That&rsquo;s what declaring it does<span class="em">&mdash;</span>it adds it to the compiler&rsquo;s list of
-variables in the current scope, using another new function.</p>
+variables in the current scope. We implement that using another new function.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifierConstant</em>()</div>
 <pre>
@@ -524,8 +524,8 @@ fault, but more a limitation of the VM. The instructions to work with local
 variables refer to them by slot index. That index is stored in a single-byte
 operand, which means the VM only supports up to 256 local variables in scope at
 one time.</p>
-<p>If we try to go over that, not only could we not refer to them at runtime, the
-compiler would overrwrite its own locals array. Let&rsquo;s prevent that.</p>
+<p>If we try to go over that, not only could we not refer to them at runtime, but
+the compiler would overwrite its own locals array, too. Let&rsquo;s prevent that.</p>
 <div class="codehilite"><pre class="insert-before">
 static void addLocal(Token name) {
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -552,10 +552,10 @@ in <em>addLocal</em>()</div>
 <p>At the top level, Lox allows redeclaring a variable with the same name as a
 previous declaration because that&rsquo;s useful for the REPL. But inside a local
 scope, that&rsquo;s a pretty <span name="rust">weird</span> thing to do. It&rsquo;s likely
-to be a mistake and many languages, including our own Lox, enshrine that
+to be a mistake, and many languages, including our own Lox, enshrine that
 assumption by making this an error.</p>
 <aside name="rust">
-<p>Interestingly, the Rust programming language <em>does</em> allow this and idiomatic
+<p>Interestingly, the Rust programming language <em>does</em> allow this, and idiomatic
 code relies on it.</p>
 </aside>
 <p>Note that the above program is different from this one:</p>
@@ -600,11 +600,11 @@ about later.</p>
 </aside>
 <p>Local variables are appended to the array when they&rsquo;re declared, which means the
 current scope is always at the end of the array. When we declare a new variable,
-we start at the end and work backward looking for an existing variable with the
+we start at the end and work backward, looking for an existing variable with the
 same name. If we find one in the current scope, we report the error. Otherwise,
-if we reach the beginning of the array or a variable owned by another scope then
-we know we&rsquo;ve checked all of the existing variables in the scope.</p>
-<p>To see if two identifiers are the same we use this:</p>
+if we reach the beginning of the array or a variable owned by another scope,
+then we know we&rsquo;ve checked all of the existing variables in the scope.</p>
+<p>To see if two identifiers are the same, we use this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifierConstant</em>()</div>
 <pre>
@@ -663,7 +663,7 @@ and should be freed. So, for each variable that we discard, we also emit an
 <code>OP_POP</code> <span name="pop">instruction</span> to pop it from the stack.</p>
 <aside name="pop">
 <p>When multiple local variables go out of scope at once, you get a series of
-<code>OP_POP</code> instructions which get interpreted one at a time. A simple optimization
+<code>OP_POP</code> instructions that get interpreted one at a time. A simple optimization
 you could add to your Lox implementation is a specialized <code>OP_POPN</code> instruction
 that takes an operand for the number of slots to pop and pops them all at once.</p>
 </aside>
@@ -797,7 +797,7 @@ in <em>run</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
-<p>It takes a single byte operand for the stack slot where the local lives. It
+<p>It takes a single-byte operand for the stack slot where the local lives. It
 loads the value from that index and then pushes it on top of the stack where
 later instructions can find it.</p>
 <aside name="slot">
@@ -981,15 +981,15 @@ the runtime, it&rsquo;s just two little instructions. You&rsquo;ll see this as a
 hammers in the optimizer&rsquo;s toolbox is pulling work forward into the compiler so
 that you don&rsquo;t have to do it at runtime. In this chapter, that meant resolving
 exactly which stack slot every local variable occupies. That way, at runtime, no
-&ldquo;look up&rdquo; or resolution needs to happen.</p>
+lookup or resolution needs to happen.</p>
 <aside name="static">
-<p>You can look at static types as an extreme example of this trend. A
-statically-typed language takes all of the type analysis and type error handling
-and sorts it all out during compilation. Then the runtime doesn&rsquo;t have to waste
-any time checking that values have the proper type for their operation. In fact,
-in some statically-typed languages like C, you don&rsquo;t even <em>know</em> the type at
-runtime. The compiler completely erases any representation of a value&rsquo;s type
-leaving just the bare bits.</p>
+<p>You can look at static types as an extreme example of this trend. A statically
+typed language takes all of the type analysis and type error handling and sorts
+it all out during compilation. Then the runtime doesn&rsquo;t have to waste any time
+checking that values have the proper type for their operation. In fact, in some
+statically typed languages like C, you don&rsquo;t even <em>know</em> the type at runtime.
+The compiler completely erases any representation of a value&rsquo;s type leaving just
+the bare bits.</p>
 </aside>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
@@ -1012,7 +1012,7 @@ complexity is worth it?</p>
 <p>Many languages make a distinction between variables that can be reassigned
 and those that can&rsquo;t. In Java, the <code>final</code> modifier prevents you from
 assigning to a variable. In JavaScript, a variable declared with <code>let</code> can
-be assigned but one declared using <code>const</code> can&rsquo;t. Swift treats <code>let</code> as
+be assigned, but one declared using <code>const</code> can&rsquo;t. Swift treats <code>let</code> as
 single-assignment and uses <code>var</code> for assignable variables. Scala and Kotlin
 use <code>val</code> and <code>var</code>.</p>
 <p>Pick a keyword for a single-assignment variable form to add to Lox. Justify
@@ -1020,7 +1020,7 @@ your choice, then implement it. An attempt to assign to a variable declared
 using your new keyword should cause a compile error.</p>
 </li>
 <li>
-<p>Extend clox to allow more than 255 local variables to be in scope at a time.</p>
+<p>Extend clox to allow more than 256 local variables to be in scope at a time.</p>
 </li>
 </ol>
 </div>
