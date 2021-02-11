@@ -120,7 +120,7 @@ discover that, even if it was useful, it was meaningless.</p>
 </blockquote>
 <p>It&rsquo;s taken a while to get here, but we&rsquo;re finally ready to add control flow to
 our virtual machine. In the tree-walk interpreter we built for jlox, we
-implemented Lox&rsquo;s control flow in terms of Java&rsquo;s. To execute a Lox if
+implemented Lox&rsquo;s control flow in terms of Java&rsquo;s. To execute a Lox <code>if</code>
 statement, we used a Java <code>if</code> statement to run the chosen branch. That works,
 but isn&rsquo;t entirely satisfying. By what magic does the <em>JVM itself</em> or a native
 CPU implement <code>if</code> statements? Now that we have our own bytecode VM to hack on,
@@ -129,7 +129,7 @@ we can answer that.</p>
 the way execution moves through the text of the program. Almost like there is a
 little robot inside the computer wandering through our code, executing bits and
 pieces here and there. Flow is the path that robot takes, and by <em>controlling</em>
-it, we drive which pieces of code it executes.</p>
+the robot, we drive which pieces of code it executes.</p>
 <p>In jlox, the robot&rsquo;s locus of attention<span class="em">&mdash;</span>the <em>current</em> bit of code<span class="em">&mdash;</span>was
 implicit based on which AST nodes were stored in various Java variables and what
 Java code we were in the middle of running. In clox, it is much more explicit.
@@ -138,7 +138,7 @@ value of that field is exactly &ldquo;where we are&rdquo; in the program.</p>
 <p>Execution proceeds normally by incrementing the <code>ip</code>. But we can mutate that
 variable however we want to. In order to implement control flow, all that&rsquo;s
 necessary is to change the <code>ip</code> in more interesting ways. The simplest control
-flow construct is an <code>if</code> statement with no else clause:</p>
+flow construct is an <code>if</code> statement with no <code>else</code> clause:</p>
 <div class="codehilite"><pre>
 <span class="k">if</span> (<span class="i">condition</span>) <span class="k">print</span>(<span class="s">&quot;condition was truthy&quot;</span>);
 </pre></div>
@@ -155,8 +155,8 @@ instruction as usual.</p>
 <p>When we compile to bytecode, the explicit nested block structure of the code
 evaporates, leaving only a flat series of instructions behind. Lox is a
 <a href="https://en.wikipedia.org/wiki/Structured_programming">structured programming</a> language, but clox bytecode isn&rsquo;t. The right<span class="em">&mdash;</span>or
-wrong depending on how you look at it<span class="em">&mdash;</span>set of bytecode instructions could jump
-into the middle of a block, or from one scope into another.</p>
+wrong, depending on how you look at it<span class="em">&mdash;</span>set of bytecode instructions could
+jump into the middle of a block, or from one scope into another.</p>
 <p>The VM will happily execute that, even if the result leaves the stack in an
 unknown, inconsistent state. So even though the bytecode is unstructured, we&rsquo;ll
 take care to ensure that our compiler only generates clean code that maintains
@@ -166,9 +166,9 @@ higher-level languages that mandate structured control flow, the compiler lowers
 that down to raw jumps. At the bottom, it turns out goto is the only real
 control flow.</p>
 <p>Anyway, I didn&rsquo;t mean to get all philosophical. The important bit is that if we
-have that one conditional jump instruction, that&rsquo;s enough to implement Lox&rsquo;s if
-statement, as long as it doesn&rsquo;t have an <code>else</code> clause. So let&rsquo;s go ahead and
-get started with that.</p>
+have that one conditional jump instruction, that&rsquo;s enough to implement Lox&rsquo;s
+<code>if</code> statement, as long as it doesn&rsquo;t have an <code>else</code> clause. So let&rsquo;s go ahead
+and get started with that.</p>
 <h2><a href="#if-statements" name="if-statements"><small>23&#8202;.&#8202;1</small>If Statements</a></h2>
 <p>This many chapters in, you know the drill. Any new feature starts in the front
 end and works its way through the pipeline. An <code>if</code> statement is, well, a
@@ -421,9 +421,9 @@ in <em>ifStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
 
-<p>After executing the then branch this jumps to the next statement after the else.
-Unlike the other jump, this jump is unconditional. We always take it, so we need
-another instruction that expresses that.</p>
+<p>After executing the then branch, this jumps to the next statement after the else
+branch. Unlike the other jump, this jump is unconditional. We always take it, so
+we need another instruction that expresses that.</p>
 <div class="codehilite"><pre class="insert-before">
   OP_PRINT,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -494,8 +494,8 @@ in <em>ifStatement</em>()</div>
 implicit else branch even if the user didn&rsquo;t write an <code>else</code> clause. In the case
 where they left it off, all the branch does is discard the condition value.</p>
 <p>The full correct flow looks like this:</p><img src="image/jumping-back-and-forth/full-if-else.png" alt="Flowchart of the compiled bytecode including necessary pop instructions." />
-<p>If you trace through you can see that it always executes a single branch and
-ensures the condition is popped first. All that remains it a little disassembler
+<p>If you trace through, you can see that it always executes a single branch and
+ensures the condition is popped first. All that remains is a little disassembler
 support.</p>
 <div class="codehilite"><pre class="insert-before">
       return simpleInstruction(&quot;OP_PRINT&quot;, offset);
@@ -527,9 +527,9 @@ add after <em>byteInstruction</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, add after <em>byteInstruction</em>()</div>
 
-<p>There we go, that&rsquo;s one complete control flow construct. If this were an 80&rsquo;s
+<p>There we go, that&rsquo;s one complete control flow construct. If this were an &rsquo;80s
 movie, the montage music would kick in and the rest of the control flow syntax
-would take care of itself. Alas, the <span name="80s">80s</span> are long over,
+would take care of itself. Alas, the <span name="80s">&rsquo;80s</span> are long over,
 so we&rsquo;ll have to grind it out ourselves.</p>
 <aside name="80s">
 <p>My enduring love of Depeche Mode notwithstanding.</p>
@@ -584,8 +584,8 @@ value sticks around to become the result of the entire expression.</p>
 <p>We&rsquo;ve got plenty of space left in our opcode range, so we could have separate
 instructions for conditional jumps that implicitly pop and those that don&rsquo;t, I
 suppose. But I&rsquo;m trying to keep things minimal for the book. In your bytecode
-VM, it&rsquo;s worth exploring adding more specialized instructions and see how they
-affect performance.</p>
+VM, it&rsquo;s worth exploring adding more specialized instructions and seeing how
+they affect performance.</p>
 </aside>
 <h3><a href="#logical-or-operator" name="logical-or-operator"><small>23&#8202;.&#8202;2&#8202;.&#8202;1</small>Logical or operator</a></h3>
 <p>The <code>or</code> operator is a little more complex. First we add it to the parse table.</p>
@@ -733,7 +733,7 @@ add after <em>emitBytes</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitBytes</em>()</div>
 
 <p>It&rsquo;s a bit like <code>emitJump()</code> and <code>patchJump()</code> combined. It emits a new loop
-instruction, which unconditionally jumps <em>backward</em> by a given offset. Like the
+instruction, which unconditionally jumps <em>backwards</em> by a given offset. Like the
 jump instructions, after that we have a 16-bit operand. We calculate the offset
 from the instruction we&rsquo;re currently at to the <code>loopStart</code> point that we want to
 jump back to. The <code>+ 2</code> is to take into account the size of the <code>OP_LOOP</code>
@@ -814,7 +814,7 @@ semantics <a href="control-flow.html#for-loops">in more detail</a>.</p>
 </aside>
 <p>In jlox, the parser desugared a <code>for</code> loop to a synthesized AST for a <code>while</code>
 loop with some extra stuff before it and at the end of the body. We&rsquo;ll do
-something similiar, though we won&rsquo;t go through anything like an AST. Instead,
+something similar, though we won&rsquo;t go through anything like an AST. Instead,
 our bytecode compiler will use the jump and loop instructions we already have.</p>
 <p>We&rsquo;ll work our way through the implementation a piece at a time, starting with
 the <code>for</code> keyword.</p>
@@ -860,7 +860,7 @@ implementation of <span name="infinite">infinite</span> loops now.</p>
 a runtime error.</p>
 </aside>
 <h3><a href="#initializer-clause" name="initializer-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;1</small>Initializer clause</a></h3>
-<p>Now we&rsquo;ll add the first clause, the initializer. It only executes once, before
+<p>Now we&rsquo;ll add the first clause, the initializer. It executes only once, before
 the body, so compiling is straightforward.</p>
 <div class="codehilite"><pre class="insert-before">
   consume(TOKEN_LEFT_PAREN, &quot;Expect '(' after 'for'.&quot;);
@@ -963,7 +963,7 @@ in <em>forStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
 
-<p>We only do this when there is a condition clause. If there isn&rsquo;t, there&rsquo;s no
+<p>We do this only when there is a condition clause. If there isn&rsquo;t, there&rsquo;s no
 jump to patch and no condition value on the stack to pop.</p>
 <h3><a href="#increment-clause" name="increment-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;3</small>Increment clause</a></h3>
 <p>I&rsquo;ve saved the best for last, the increment clause. It&rsquo;s pretty convoluted. It
@@ -974,8 +974,8 @@ compile the <code>for</code> statement AST&rsquo;s body field before its increme
 only makes a single pass over the code. Instead, we&rsquo;ll <em>jump over</em> the
 increment, run the body, jump <em>back</em> up to the increment, run it, and then go to
 the next iteration.</p>
-<p>I know, a little weird, but, hey, it beats manually managing ASTs in memory in
-C, right? Here&rsquo;s the code:</p>
+<p>I know, a little weird, but hey, it beats manually managing ASTs in memory in C,
+right? Here&rsquo;s the code:</p>
 <div class="codehilite"><pre class="insert-before">
   }
 
@@ -1089,30 +1089,30 @@ don&rsquo;t think most programmers around today have seen that first hand. It&rs
 long time since that style was common. These days, it&rsquo;s a boogie man we invoke
 in scary stories around the campfire.</p>
 <p>The reason we rarely confront that monster in person is because Edsger Dijkstra
-slayed it with his famous letter &ldquo;Goto Considered Harmful&rdquo;, published in
-<em>Communications of the ACM</em>. Debate around structured programming had been
-fierce for some time with adherents on both sides, but I think Dijkstra deserves
-the most credit for effectively ending it. Most new languages today have no
-unstructured jump statements.</p>
+slayed it with his famous letter &ldquo;Go To Statement Considered Harmful&rdquo;, published
+in <em>Communications of the ACM</em> (March, 1968). Debate around structured
+programming had been fierce for some time with adherents on both sides, but I
+think Dijkstra deserves the most credit for effectively ending it. Most new
+languages today have no unstructured jump statements.</p>
 <p>A one-and-a-half page letter that almost single-handedly destroyed a language
 feature must be pretty impressive stuff. If you haven&rsquo;t read it, I encourage you
 to do so. It&rsquo;s a seminal piece of computer science lore, one of our tribe&rsquo;s
-ancestral songs. Also, it&rsquo;s a nice short bit of practice for reading academic CS
-<span name="style">writing</span>, which is a useful skill to develop.</p>
+ancestral songs. Also, it&rsquo;s a nice, short bit of practice for reading academic
+CS <span name="style">writing</span>, which is a useful skill to develop.</p>
 <aside name="style">
 <p>That is, if you can get past Dijkstra&rsquo;s insufferable faux-modest
 self-aggrandizing writing style:</p>
 <blockquote>
 <p>More recently I discovered why the use of the go to statement has such
-disastrous effects<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>. At that time I did not attach too much importance to
+disastrous effects. <span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>At that time I did not attach too much importance to
 this discovery; I now submit my considerations for publication because in very
 recent discussions in which the subject turned up, I have been urged to do so.</p>
 </blockquote>
 <p>Ah, yet another one of my many discoveries. I couldn&rsquo;t even be bothered to write
 it up until the clamoring masses begged me to.</p>
 </aside>
-<p>I&rsquo;ve read it through a number of times, as well as a few critiques, responses,
-and commentaries. I ended up with mixed feelings, at best. At a very high level
+<p>I&rsquo;ve read it through a number of times, along with a few critiques, responses,
+and commentaries. I ended up with mixed feelings, at best. At a very high level,
 I&rsquo;m with him. His general argument is something like this:</p>
 <ol>
 <li>
@@ -1141,10 +1141,10 @@ arbitrary action, what data do we have to fix in order that we can redo the
 process until the very same point?)</p>
 </blockquote>
 <p>Imagine it like this. You have two computers with the same program running on
-the same exact same inputs<span class="em">&mdash;</span>so totally deterministic. You pause one of them at
-an arbitrary point in its execution. What data would you need to send to the
-other computer to be able to stop it exactly as far along as the first one was?</p>
-<p>If your program only allows simple statements like assignment, it&rsquo;s easy. You
+the exact same inputs<span class="em">&mdash;</span>so totally deterministic. You pause one of them at an
+arbitrary point in its execution. What data would you need to send to the other
+computer to be able to stop it exactly as far along as the first one was?</p>
+<p>If your program allows only simple statements like assignment, it&rsquo;s easy. You
 just need to know the point after the last statement you executed. Basically a
 breakpoint, the <code>ip</code> in our VM, or the line number in an error message. Adding
 branching control flow like <code>if</code> and <code>switch</code> doesn&rsquo;t add any more to this. Even
@@ -1194,7 +1194,7 @@ example of that proof: it implements the unstructured control flow of the clox
 bytecode instruction set without using any gotos itself.</p>
 <p>That seems to offer a counter-argument to Dijkstra&rsquo;s claim: you <em>can</em> define a
 correspondence for a program using gotos by transforming it to one that doesn&rsquo;t
-and then use the correspondence from that program, which<span class="em">&mdash;</span>according to him<span class="em">&mdash;</span>is acceptable because it only uses branches and loops.</p>
+and then use the correspondence from that program, which<span class="em">&mdash;</span>according to him<span class="em">&mdash;</span>is acceptable because it uses only branches and loops.</p>
 <p>But, honestly, my argument here is also weak. I think both of us are basically
 doing pretend math and using fake logic to make what should be an empirical,
 human-centered argument. Dijkstra is right that some code using goto is really
