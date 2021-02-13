@@ -969,8 +969,8 @@ return from `makeCounter()` and exit its body, the interpreter discards that
 environment. Since the interpreter doesn't keep the environment surrounding
 `count()` around, it's up to the function object itself to hang on to it.
 
-This data structure is called a <span name="closure">"closure"</span> because it
-"closes over" and holds on to the surrounding variables where the function is
+This data structure is called a <span name="closure">**closure**</span> because
+it "closes over" and holds on to the surrounding variables where the function is
 declared. Closures have been around since the early Lisp days, and language
 hackers have come up with all manner of ways to implement them. For jlox, we'll
 do the simplest thing that works. In LoxFunction, we add a field to store an

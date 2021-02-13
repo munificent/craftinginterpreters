@@ -6,7 +6,7 @@
 Thanks to our diligent labor in [the last chapter][last], we have a virtual
 machine with working functions. What it lacks is closures. Aside from global
 variables, which are their own breed of animal, a function has no way to
-reference a variable declared outside of its own body:
+reference a variable declared outside of its own body.
 
 [last]: calls-and-functions.html
 
@@ -29,7 +29,7 @@ functions when resolving a variable.
 This problem is harder in clox than it was in jlox because our bytecode VM
 stores locals on a stack. We used a stack because I claimed locals have stack
 semantics -- variables are discarded in the reverse order that they are created.
-But with closures, that's only *mostly* true:
+But with closures, that's only *mostly* true.
 
 ```lox
 fun makeClosure() {
@@ -47,7 +47,7 @@ closure();
 The outer function `makeClosure()` declares a variable, `local`. It also creates
 an inner function, `closure()` that captures that variable. Then `makeClosure()`
 returns a reference to that function. Since the closure <span
-name="flying">escapes</span> while holding onto the local variable, `local` must
+name="flying">escapes</span> while holding on to the local variable, `local` must
 outlive the function call where it was created.
 
 <aside name="flying">
@@ -85,7 +85,6 @@ devised all <span name="lambda">manner</span> of ways to compile closures to
 optimized runtime representations. Some are more efficient but require a more
 complex compilation process than we could easily retrofit into clox.
 
-
 <aside name="lambda">
 
 Search for "closure conversion" or "lambda lifting" to start exploring.
@@ -93,11 +92,11 @@ Search for "closure conversion" or "lambda lifting" to start exploring.
 </aside>
 
 The technique I explain here comes from the design of the Lua VM. It is fast,
-parsimonious with memory, and relatively little code to implement. Even more
+parsimonious with memory, and implemented with relatively little code. Even more
 impressive, it fits naturally into the single-pass compilers clox and Lua both
 use. It is somewhat intricate, though. It might take a while before all the
-pieces click together in your mind. We'll build them one step at a time and I'll
-try to introduce the concepts in stages.
+pieces click together in your mind. We'll build them one step at a time, and
+I'll try to introduce the concepts in stages.
 
 ## Closure Objects
 
@@ -111,7 +110,7 @@ compile time.
 <aside name="literal">
 
 In other words, a function declaration in Lox *is* a kind of literal -- a piece
-of syntax that defines a constant value of a built in type.
+of syntax that defines a constant value of a built-in type.
 
 </aside>
 
@@ -188,7 +187,7 @@ And when we're done with a closure, we release its memory.
 
 ^code free-closure (1 before, 1 after)
 
-We only free the ObjClosure itself, not the ObjFunction. That's because the
+We free only the ObjClosure itself, not the ObjFunction. That's because the
 closure doesn't *own* the function. There may be multiple closures that all
 reference the same function, and none of them claims any special privilege over
 it. We can't free the ObjFunction until *all* objects referencing it are gone --
@@ -223,7 +222,7 @@ closures.
 
 ### Compiling to closure objects
 
-We have closure objects but our VM never creates them. The next step is getting
+We have closure objects, but our VM never creates them. The next step is getting
 the compiler to emit instructions to tell the runtime when to create a new
 ObjClosure to wrap a given ObjFunction. This happens right at the end of a
 function declaration.
@@ -269,7 +268,7 @@ Once you have a closure, you'll eventually want to call it.
 
 We remove the code for calling objects whose type is `OBJ_FUNCTION`. Since we
 wrap all functions in ObjClosures, the runtime will never try to invoke a bare
-ObjFunction anymore. Those objects only live in constant tables and get
+ObjFunction anymore. Those objects live only in constant tables and get
 immediately <span name="naked">wrapped</span> in closures before anything else
 sees them.
 
@@ -287,15 +286,15 @@ are over in that function. First, we update its signature.
 ^code call-signature (1 after)
 
 Then, in the body, we need to fix everything that referenced the function to
-handle the fact that we've introduced a layer of indirection. Starting with the
+handle the fact that we've introduced a layer of indirection. We start with the
 arity checking:
 
 ^code check-arity (1 before, 1 after)
 
 The only change is that we unwrap the closure to get to the underlying function.
-The next thing `call()` does is create a new CallFrame. We change that to store
-the closure in the CallFrame and get the bytecode pointer from the closure's
-function.
+The next thing `call()` does is create a new CallFrame. We change that code to
+store the closure in the CallFrame and get the bytecode pointer from the
+closure's function.
 
 ^code call-init-closure (1 before, 2 after)
 
@@ -305,7 +304,7 @@ This necessitates changing the declaration of CallFrame too.
 
 That change triggers a few other cascading changes. Every place in the VM that
 accessed CallFrame's function needs to use a closure instead. First, the macro
-for reading a constant from the current function's constant table.
+for reading a constant from the current function's constant table:
 
 ^code read-constant (1 before, 1 after)
 
@@ -314,18 +313,18 @@ closure.
 
 ^code disassemble-instruction (1 before, 1 after)
 
-Likewise when reporting a runtime error.
+Likewise when reporting a runtime error:
 
 ^code runtime-error-function (1 before, 1 after)
 
 Almost there. The last piece is the blob of code that sets up the very first
-CallFrame to begin executing the top level code for a Lox script.
+CallFrame to begin executing the top-level code for a Lox script.
 
 ^code interpret (4 before, 2 after)
 
 <span name="pop">The</span> compiler still returns a raw ObjFunction when
 compiling a script. That's fine, but it means we need to wrap it in an
-ObjClosure here before the VM can execute it.
+ObjClosure here, before the VM can execute it.
 
 <aside name="pop">
 
@@ -358,10 +357,10 @@ closed-over variables were always on the stack. But as we saw earlier, these
 variables sometimes outlive the function where they are declared. That means
 they won't always be on the stack.
 
-The next easiest approach then would be to take any local variable that gets
+The next easiest approach, then, would be to take any local variable that gets
 closed over and have it always live on the heap. When the local variable
 declaration in the surrounding function is executed, the VM would allocate
-memory for it dynamically. That way it can live as long as needed.
+memory for it dynamically. That way it could live as long as needed.
 
 This would be a fine approach if clox didn't have a single-pass compiler. But
 that restriction we chose in our implementation makes things harder. Take a look
@@ -382,9 +381,9 @@ Here, the compiler compiles the declaration of `x` at `(1)` and emits code for
 the assignment at `(2)`. It does that before reaching the declaration of
 `inner()` at `(3)` and discovering that `x` is in fact closed over. We don't
 have an easy way to go back and fix that already-emitted code to treat `x`
-specially. Instead, we want a solution that allows a closed over variable to
-live on the stack exactly like a normal local variable *until the point that is
-closed over*.
+specially. Instead, we want a solution that allows a closed-over variable to
+live on the stack exactly like a normal local variable *until the point that it
+is closed over*.
 
 Fortunately, thanks to the Lua dev team, we have a solution. We use a level of
 indirection that they call an **upvalue**. An upvalue refers to a local variable
@@ -397,7 +396,7 @@ corresponding upvalue to reach it. When a function declaration is first executed
 and we create a closure for it, the VM creates the array of upvalues and wires
 them up to "capture" the surrounding local variables that the closure needs.
 
-For example, if we throw this program at clox:
+For example, if we throw this program at clox,
 
 ```lox
 {
@@ -408,14 +407,14 @@ For example, if we throw this program at clox:
 }
 ```
 
-The compiler and runtime will conspire together to build up a set of objects in
+the compiler and runtime will conspire together to build up a set of objects in
 memory like this:
 
 <img src="image/closures/open-upvalue.png" alt="The object graph of the stack, ObjClosure, ObjFunction, and upvalue array."/>
 
 
 That might look overwhelming, but fear not. We'll work our way through it. The
-important part is that upvalues serve as the layer of indirection we need to
+important part is that upvalues serve as the layer of indirection needed to
 continue to find a captured local variable even after it moves off the stack.
 But before we get to all that, let's focus on compiling captured variables.
 
@@ -424,8 +423,8 @@ But before we get to all that, let's focus on compiling captured variables.
 As usual, we want to do as much work as possible during compilation to keep
 execution simple and fast. Since local variables are lexically scoped in Lox, we
 have enough knowledge at compile time to resolve which surrounding local
-variables a function accesses and where those locals are declared. That in turn
-means we know *how many* upvalues a closure needs, *which* variables they
+variables a function accesses and where those locals are declared. That, in
+turn, means we know *how many* upvalues a closure needs, *which* variables they
 capture, and *which stack slots* contain those variables in the declaring
 function's stack window.
 
@@ -433,7 +432,7 @@ Currently, when the compiler resolves an identifier, it walks the block scopes
 for the current function from innermost to outermost. If we don't find the
 variable in that function, we assume the variable must be a global. We don't
 consider the local scopes of enclosing functions -- they get skipped right over.
-The first change then is inserting a resolution step for those outer local
+The first change, then, is inserting a resolution step for those outer local
 scopes.
 
 ^code named-variable-upvalue (3 before, 1 after)
@@ -454,17 +453,17 @@ identifier.
 
 We call this after failing to resolve a local variable in the current function's
 scope, so we know the variable isn't in the current compiler. Recall that
-Compiler stores a pointer to the Compiler for the enclosing function and these
+Compiler stores a pointer to the Compiler for the enclosing function, and these
 pointers form a linked chain that goes all the way to the root Compiler for the
 top-level code. Thus, if the enclosing Compiler is `NULL`, we know we've reached
 the outermost function without finding a local variable. The variable must be
-<span name="undefined">global</span> so we return -1.
+<span name="undefined">global</span>, so we return -1.
 
 <aside name="undefined">
 
 It might end up being an entirely undefined variable and not even global. But in
 Lox, we don't detect that error until runtime, so from the compiler's
-perspective, it's "hopefully global."
+perspective, it's "hopefully global".
 
 </aside>
 
@@ -505,7 +504,7 @@ at runtime.
 <aside name="span">
 
 Like constants and function arity, the upvalue count is another one of those
-little pieces of data that forms the bridge between the compiler and runtime.
+little pieces of data that form the bridge between the compiler and runtime.
 
 </aside>
 
@@ -585,7 +584,7 @@ name="devious">devious</span> example:
 <aside name="devious">
 
 If you work on programming languages long enough, you will develop a
-finely-honed skill at creating bizarre programs like this that are technically
+finely honed skill at creating bizarre programs like this that are technically
 valid but likely to trip up an implementation written by someone with a less
 perverse imagination than you.
 
@@ -648,14 +647,14 @@ function references a local variable declared several hops away, we'll thread it
 through all of the intermediate functions by having each function capture an
 upvalue for the next function to grab.
 
-<img src="image/closures/linked-upvalues.png" alt="An upvalue in inner() points to an unvalue in middle(), which points to a local variable in outer()."/>
+<img src="image/closures/linked-upvalues.png" alt="An upvalue in inner() points to an upvalue in middle(), which points to a local variable in outer()."/>
 
 In the above example, `middle()` captures the local variable `x` in the
 immediately enclosing function `outer()` and stores it in its own upvalue. It
 does this even though `middle()` itself doesn't reference `x`. Then, when the
 declaration of `inner()` executes, its closure grabs the *upvalue* from the
-ObjClosure for `middle()` that captured `x`. A function only ever captures --
-either a local or upvalue -- from the immediately surrounding function, which is
+ObjClosure for `middle()` that captured `x`. A function captures -- either a
+local or upvalue -- *only* from the immediately surrounding function, which is
 guaranteed to still be around at the point that the inner function declaration
 executes.
 
@@ -689,14 +688,14 @@ calls works its way along the chain of nested compilers until it hits one of
 the base cases -- either it finds an actual local variable to capture or it
 runs out of compilers.
 
-When a local variable is found, the mostly deeply <span
-name="outer">nested</span> call to `resolveUpvalue()` captures it and returns
-the upvalue index. That returns to the next call for the inner function
-declaration. That call captures the *upvalue* from the surrounding function, and
-so on. As each nested call to `resolveUpvalue()` returns, we drill back down
-into the innermost function declaration where the identifier we are resolving
-appears. At each step along the way, we add an upvalue to the intervening
-function and pass the resulting upvalue index down to the next call.
+When a local variable is found, the most deeply <span name="outer">nested</span>
+call to `resolveUpvalue()` captures it and returns the upvalue index. That
+returns to the next call for the inner function declaration. That call captures
+the *upvalue* from the surrounding function, and so on. As each nested call to
+`resolveUpvalue()` returns, we drill back down into the innermost function
+declaration where the identifier we are resolving appears. At each step along
+the way, we add an upvalue to the intervening function and pass the resulting
+upvalue index down to the next call.
 
 <aside name="outer">
 
@@ -725,7 +724,7 @@ correct variables.
 
 ^code capture-upvalues (1 before, 1 after)
 
-The `OP_CLOSURE` instruction is unique in that it has a variably-sized encoding.
+The `OP_CLOSURE` instruction is unique in that it has a variably sized encoding.
 For each upvalue the closure captures, there are two single-byte operands. Each
 pair of operands specifies what that upvalue captures. If the first byte is one,
 it captures a local variable in the enclosing function. If zero, it captures one
@@ -753,7 +752,7 @@ fun outer() {
 }
 ```
 
-If we disassemble the instruction that creates the closure for `inner()` it
+If we disassemble the instruction that creates the closure for `inner()`, it
 prints this:
 
 ```text
@@ -768,7 +767,7 @@ We have two other, simpler instructions to add disassembler support for.
 
 ^code disassemble-upvalue-ops (2 before, 1 after)
 
-These both have a single byte operand, so there's nothing exciting going on. We
+These both have a single-byte operand, so there's nothing exciting going on. We
 do need to add an include so the debug module can get to `AS_FUNCTION()`.
 
 ^code debug-include-object (1 before, 1 after)
@@ -816,8 +815,8 @@ outer();
 This program should print "assigned" even though the closure assigns to `x` and
 the surrounding function accesses it.
 
-Because upvalues are objects, we've got all the usual object machinery. A
-constructor-like function:
+Because upvalues are objects, we've got all the usual object machinery, starting
+with a constructor-like function:
 
 ^code new-upvalue-h (1 before, 1 after)
 
@@ -843,11 +842,11 @@ And, finally, to print:
 
 ^code print-upvalue (3 before, 1 after)
 
-Printing isn't useful to end users. Upvalues are only objects so that we can
+Printing isn't useful to end users. Upvalues are objects only so that we can
 take advantage of the VM's memory management. They aren't first-class values
 that a Lox user can directly access in a program. So this code will never
 actually execute... but it keeps the compiler from yelling at us about an
-unhandled switch case so here we are.
+unhandled switch case, so here we are.
 
 ### Upvalues in closures
 
@@ -856,7 +855,7 @@ We've finally worked our way back to implementing that.
 
 ^code upvalue-fields (1 before, 1 after)
 
-<span name="count">Different</span> closures may have a different number of
+<span name="count">Different</span> closures may have different numbers of
 upvalues, so we need a dynamic array. The upvalues themselves are dynamically
 allocated too, so we end up with a double pointer -- a pointer to a dynamically
 allocated array of pointers to upvalues. We also store the number of elements in
@@ -881,8 +880,8 @@ initialize them all to `NULL`. This weird ceremony around memory is a careful
 dance to please the (forthcoming) garbage collection deities. It ensures the
 memory manager never sees uninitialized memory.
 
-Then we store the array in the new closure, as well as copying the count over
-from the ObjFunction.
+Then we store the array in the new closure, as well as copy the count over from
+the ObjFunction.
 
 ^code init-upvalue-fields (1 before, 1 after)
 
@@ -890,7 +889,7 @@ When we free an ObjClosure, we also free the upvalue array.
 
 ^code free-upvalues (1 before, 1 after)
 
-ObjClosure does not own the ObjUpvalue objects itself, but it does own *the
+ObjClosure does not own the ObjUpvalue objects themselves, but it does own *the
 array* containing pointers to those upvalues.
 
 We fill the upvalue array over in the interpreter when it creates a closure.
@@ -972,12 +971,12 @@ fun outer() {
 outer();
 ```
 
-Run this and it correctly prints "outside".
+Run this, and it correctly prints "outside".
 
 ## Closed Upvalues
 
-Of course, a key feature of closures is that they hold onto the variable as long
-as needed, even after the function that declares the variable has returned.
+Of course, a key feature of closures is that they hold on to the variable as
+long as needed, even after the function that declares the variable has returned.
 Here's another example that *should* work:
 
 ```lox
@@ -1041,8 +1040,8 @@ closure assigns a new value to it and the second closure reads the variable.
 <aside name="global">
 
 The fact that I'm using a couple of global variables isn't significant. I needed
-some way to return two values from a function and without any kind of collection
-type in Lox, my options were limited.
+some way to return two values from a function, and without any kind of
+collection type in Lox, my options were limited.
 
 </aside>
 
@@ -1054,7 +1053,7 @@ unaffected. Thus, the call to `globalGet()` will print "initial".
 
 If closures close over variables, then `get()` and `set()` will both capture --
 reference -- the *same mutable variable*. When `set()` changes `a`, it changes
-the same `a` that `get()` reads from. There is only one `a`. That in turn
+the same `a` that `get()` reads from. There is only one `a`. That, in turn,
 implies the call to `globalGet()` will print "updated".
 
 Which is it? The answer for Lox and most other languages I know with closures is
@@ -1088,7 +1087,7 @@ struct. That way we don't need to do any additional heap allocation to close an
 upvalue.
 
 The second question is straightforward too. As long as the variable is on the
-stack, there may be code that refers to it there and that code must work
+stack, there may be code that refers to it there, and that code must work
 correctly. So the logical time to hoist the variable to the heap is as late as
 possible. If we move the local variable right when it goes out of scope, we are
 certain that no code after that point will try to access it from the stack.
@@ -1160,7 +1159,7 @@ We'll use a new instruction for that.
 
 The instruction requires no operand. We know that the variable will always be
 right on top of the stack at the point that this instruction executes. We
-declare the instruction:
+declare the instruction.
 
 ^code close-upvalue-op (1 before, 1 after)
 
@@ -1169,9 +1168,9 @@ And add trivial disassembler support for it:
 ^code disassemble-close-upvalue (1 before, 1 after)
 
 Excellent. Now the generated bytecode tells the runtime exactly when each
-captured local variable must move to the heap. Better, it only does so for the
+captured local variable must move to the heap. Better, it does so only for the
 locals that *are* used by a closure and need this special treatment. This aligns
-with our general performance goal that we only want users to pay for
+with our general performance goal that we want users to pay only for
 functionality that they use. Variables that aren't used by closures live and die
 entirely on the stack just as they did before.
 
@@ -1216,7 +1215,7 @@ on performance critical execution paths in the user's program.
 Closures are frequently *invoked* inside hot loops. Think about the closures
 passed to typical higher-order functions on collections like [`map()`][map] and
 [`filter()`][filter]. That should be fast. But the function declaration that
-*creates* the closure only happens once and is usually outside of the loop.
+*creates* the closure happens only once and is usually outside of the loop.
 
 [map]: https://en.wikipedia.org/wiki/Map_(higher-order_function)
 [filter]: https://en.wikipedia.org/wiki/Filter_(higher-order_function)
@@ -1253,7 +1252,7 @@ The list starts out empty.
 
 Starting with the first upvalue pointed to by the VM, each open upvalue points
 to the next open upvalue that references a local variable farther down the
-stack. For example, this script:
+stack. This script, for example,
 
 ```lox
 {
@@ -1272,7 +1271,7 @@ stack. For example, this script:
 }
 ```
 
-Should produce a series of linked upvalues like so:
+should produce a series of linked upvalues like so:
 
 <img src="image/closures/linked-list.png" alt="Three upvalues in a linked list."/>
 
@@ -1290,12 +1289,12 @@ a node after it.
 
 <aside name="head">
 
-It's a singly-linked list. It's not like we have any other choice than to start
+It's a singly linked list. It's not like we have any other choice than to start
 at the head and go forward from there.
 
 </aside>
 
-There are three ways we can exit the loop:
+There are three reasons we can exit the loop:
 
 1.  **The local slot we stopped at *is* the slot we're looking for.** We found
     an existing upvalue capturing the variable, so we reuse that upvalue.
@@ -1307,7 +1306,7 @@ There are three ways we can exit the loop:
 
 3.  **We found an upvalue whose local slot is *below* the one we're looking
     for.** Since the list is sorted, that means we've gone past the slot we are
-    closing over and thus there must not be an existing upvalue for it.
+    closing over, and thus there must not be an existing upvalue for it.
 
 In the first case, we're done and we've returned. Otherwise, we create a new
 upvalue for our local slot and insert it into the list at the right location.
@@ -1363,13 +1362,13 @@ The fun stuff happens here:
 
 This function takes a pointer to a stack slot. It closes every open upvalue it
 can find that points to that slot or any slot above it on the stack. Right now,
-we only pass a pointer to the top slot on the stack, so the "or above it" part
+we pass a pointer only to the top slot on the stack, so the "or above it" part
 doesn't come into play, but it will soon.
 
 To do this, we walk the VM's list of open upvalues, again from top to bottom. If
 an upvalue's location points into the range of slots we're closing, we close the
 upvalue. Otherwise, once we reach an upvalue outside of the range, we know the
-rest will be too so we stop iterating.
+rest will be too, so we stop iterating.
 
 The way an upvalue gets closed is pretty <span name="cool">cool</span>. First,
 we copy the variable's value into the `closed` field in the ObjUpvalue. That's
@@ -1381,7 +1380,7 @@ those instructions to check some flag for whether the upvalue is open or closed.
 But there is already a level of indirection in play -- those instructions
 dereference the `location` pointer to get to the variable's value. When the
 variable moves from the stack to the `closed` field, we simply update that
-`location` to the address of the ObjUpvalue's *own `closed` field.*
+`location` to the address of the ObjUpvalue's *own* `closed` field.
 
 <aside name="cool">
 
@@ -1412,7 +1411,7 @@ immediately inside the function. Those need to get closed too.
 <aside name="close">
 
 There's nothing *preventing* us from closing the outermost function scope in the
-compiler and emitting `OP_POP` and `OP_CLOSE_UPVALUE` instructions. Doing so was
+compiler and emitting `OP_POP` and `OP_CLOSE_UPVALUE` instructions. Doing so is
 just unnecessary because the runtime discards all of the stack slots used by the
 function implicitly when it pops the call frame.
 
@@ -1420,14 +1419,14 @@ function implicitly when it pops the call frame.
 
 This is the reason `closeUpvalues()` accepts a pointer to a stack slot. When a
 function returns, we call that same helper and pass in the first stack slot
-owned by the function:
+owned by the function.
 
 ^code return-close-upvalues (1 before, 2 after)
 
 By passing the first slot in the function's stack window, we close every
 remaining open upvalue owned by the returning function. And with that, we now
 have a fully functioning closure implementation. Closed-over variables live as
-long as needed by the functions that capture them.
+long as they are needed by the functions that capture them.
 
 This was a lot of work! In jlox, closures fell out naturally from our
 environment representation. In clox, we had to add a lot of code -- new bytecode
@@ -1452,7 +1451,7 @@ jlox's implementation. But under the hood, clox is watching what the user does
 and optimizing for their specific uses. As your language implementations grow in
 sophistication, you'll find yourself doing this more. A large fraction of
 "optimization" is about adding special case code that detects certain uses and
-provides a custom-build faster path for code that fits that pattern.
+provides a custom-built, faster path for code that fits that pattern.
 
 We have lexical scoping fully working in clox now, which is a major milestone.
 And, now that we have functions and variables with complex lifetimes, we also
@@ -1507,7 +1506,7 @@ memory so that we can free some of those objects when they're no longer needed.
 Closures capture variables. When two closures capture the same variable, they
 share a reference to the same underlying storage location. This fact is visible
 when new values are assigned to the variable. Obviously, if two closures capture
-*different* variables, there is no sharing:
+*different* variables, there is no sharing.
 
 ```lox
 var globalOne;
@@ -1598,7 +1597,7 @@ run forever.
 </aside>
 
 If you're familiar with JavaScript, you probably know that variables declared
-using `var` are implicitly *hoisted* to the surrounding function or top level
+using `var` are implicitly *hoisted* to the surrounding function or top-level
 scope. It's as if you really wrote this:
 
 ```js
@@ -1683,14 +1682,14 @@ each iteration of the loop is a separate invocation of the function, those are
 definitely separate variables for each call. So this prints "1" then "2".
 
 If a language has a higher-level iterator-based looping structure like `foreach`
-in C#, Java's "enhanced for", `for-of` in JavaScript, `for-in` in Dart, etc.
+in C#, Java's "enhanced for", `for-of` in JavaScript, `for-in` in Dart, etc.,
 then I think it's natural to the reader to have each iteration create a new
 variable. The code *looks* like a new variable because the loop header looks
 like a variable declaration. And there's no increment expression that looks like
 it's mutating that variable to advance to the next step.
 
 If you dig around StackOverflow and other places, you find evidence that this is
-what users expect because they are very surprised when they *don't* get it. In
+what users expect, because they are very surprised when they *don't* get it. In
 particular, C# originally did *not* create a new loop variable for each
 iteration of a `foreach` loop. This was such a frequent source of user confusion
 that they took the very rare step of shipping a breaking change to the language.
@@ -1705,7 +1704,7 @@ is whatever value caused you to exit the loop.
 
 The pragmatically useful answer is probably to do what JavaScript does with
 `let` in `for` loops. Make it look like mutation but actually create a new
-variable each time because that's what users want. It is kind of weird when you
+variable each time, because that's what users want. It is kind of weird when you
 think about it, though.
 
 </div>
