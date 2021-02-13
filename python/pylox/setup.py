@@ -20,14 +20,12 @@ setup(name='pylox',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=[
-          'click'
-      ],
+      install_requires=[],
       extras_require={
           'test': ['pytest'],
       },
       entry_points="""
       [console_scripts]
-      pylox=pylox.scripts.cli:cli
+      pylox=pylox.lox:main
       """
       )
