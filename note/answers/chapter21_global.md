@@ -103,8 +103,8 @@ static uint8_t identifierConstant(Token* name) {
     return (uint8_t)AS_NUMBER(index);
   }
 
-  writeValueArray(&vm.globalValues, UNDEFINED_VAL);
   uint8_t newIndex = (uint8_t)vm.globalValues.count;
+  writeValueArray(&vm.globalValues, UNDEFINED_VAL);
 
   tableSet(&vm.globalNames, identifier, NUMBER_VAL((double)newIndex));
   return newIndex;
