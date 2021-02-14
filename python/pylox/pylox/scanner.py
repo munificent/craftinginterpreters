@@ -1,5 +1,5 @@
 import pylox.lox as lox
-from pylox.token import Token, TokenType
+from pylox.tokens import Token, TokenType
 
 
 class Scanner:
