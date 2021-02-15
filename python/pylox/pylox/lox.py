@@ -1,5 +1,3 @@
-from pylox.ast_printer import AstPrinter
-from pylox.tokens import Token, TokenType
 import sys
 import readline
 
@@ -7,8 +5,12 @@ from pylox.scanner import Scanner
 from pylox.tokens import TokenType, Token
 from pylox.parser import Parser
 from pylox.ast_printer import AstPrinter
+from pylox.interpreter import RuntimeException, Interpreter
 
-HadError = False
+
+gHadError = False
+gHadRuntimeError = False
+gInterpreter = Interpreter()
 
 
 def main():
@@ -25,8 +27,10 @@ def main():
 def run_file(path: str):
     with open(path, encoding='utf-8') as f:
         run(f.read())
-    if HadError:
+    if gHadError:
         sys.exit(65)
+    if gHadRuntimeError:
+        sys.exit(70)
 
 
 def run_prompt(prompt="lox> "):
@@ -46,10 +50,10 @@ def run(source: str):
     parser = Parser(tokens)
     expression = parser.parse()
 
-    if HadError:
+    if gHadError:
         return
 
-    print(AstPrinter().print(expression))
+    gInterpreter.interpret(expression)
 
 
 ## error handling
@@ -68,7 +72,12 @@ def error(line: int, message: str):
 
 def report(line: int, where: str, message: str):
     print(f"[line {line}] Error {where}: {message}", file=sys.stderr)
-    HadError = True
+    gHadError = True
+
+
+def runtime_error(error: RuntimeException):
+    print(f"{error.message} \n[line {error.token.line}]")
+    gHadRuntimeError = True
 
 
 if __name__ == "__main__":
