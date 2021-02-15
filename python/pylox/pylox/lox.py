@@ -1,7 +1,12 @@
+from pylox.ast_printer import AstPrinter
+from pylox.tokens import Token, TokenType
 import sys
 import readline
 
 from pylox.scanner import Scanner
+from pylox.tokens import TokenType, Token
+from pylox.parser import Parser
+from pylox.ast_printer import AstPrinter
 
 HadError = False
 
@@ -36,11 +41,25 @@ def run_prompt(prompt="lox> "):
 
 def run(source: str):
     scanner = Scanner(source)
-    for token in scanner.scan_tokens():
-        print(token)
+    tokens = scanner.scan_tokens()
+
+    parser = Parser(tokens)
+    expression = parser.parse()
+
+    if HadError:
+        return
+
+    print(AstPrinter().print(expression))
 
 
 ## error handling
+
+
+def token_error(token: Token, message: str):
+    if token.type == TokenType.EOF:
+        report(token.line, " at end", message)
+    else:
+        report(token.line, f" at '{token.lexeme}'", message)
 
 
 def error(line: int, message: str):
