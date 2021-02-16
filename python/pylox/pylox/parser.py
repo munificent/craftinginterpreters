@@ -2,11 +2,17 @@ from typing import List
 
 from pylox.tokens import TokenType, Token
 from pylox.expr import *
+from pylox.stmt import *
 from pylox import lox
 
 """
 Grammar:
 
+program        → statement* EOF ;
+statement      → exprStmt
+               | printStmt
+exprStmt       → expression ";"
+printStmt      → "print" expression ";"
 expression     → equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -27,12 +33,26 @@ class Parser:
         self.tokens = tokens
         self.current = 0
 
-    def parse(self):
-        try:
-            return self.expression()
-        except ParseError as e:
-            print(e)
-            return None
+    def parse(self) -> List[Stmt]:
+        statements = []
+        while not self.is_at_end():
+            statements.append(self.statement())
+        return statements
+
+    def statement(self) -> Stmt:
+        if self.match(TokenType.PRINT):
+            return self.print_statement()
+        return self.expression_statement()
+
+    def print_statement(self) -> Print:
+        value = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Print(value)
+
+    def expression_statement(self) -> Expression:
+        expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+        return Expression(expr)
 
     def expression(self) -> Expr:
         return self.equality()

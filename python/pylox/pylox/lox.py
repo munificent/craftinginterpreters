@@ -39,12 +39,12 @@ def run(source: str) -> None:
     tokens = scanner.scan_tokens()
 
     parser = Parser(tokens)
-    expression = parser.parse()
+    statements = parser.parse()
 
     if gHadError:
         return
 
-    gInterpreter.interpret(expression)
+    gInterpreter.interpret(statements)
 
 ## error handling
 
@@ -76,7 +76,7 @@ def main() -> None:
         print("Usage: pylox [script]")
         sys.exit(64)
     elif len(args) == 1:
-        run_file(args[1])
+        run_file(args[0])
     else:
         run_prompt()
 

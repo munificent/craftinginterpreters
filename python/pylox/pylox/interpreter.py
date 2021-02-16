@@ -2,8 +2,7 @@ import operator
 import functools
 from typing import List
 
-from pylox import lox
-from pylox.expr import *
+from pylox import lox, expr as Expr, stmt as Stmt
 from pylox.tokens import TokenType, Token
 
 
@@ -71,25 +70,35 @@ BINARY_OPS = {
 }
 
 
-class Interpreter(Visitor):
+class Interpreter(Expr.Visitor, Stmt.Visitor):
 
-    def interpret(self, expr: Expr) -> None:
+    def interpret(self, statements: List[Stmt.Stmt]) -> None:
         try:
-            value = self.evaluate(expr)
-            print(self.stringify(value))
+            for stmt in statements:
+                self.execute(stmt)
         except RuntimeException as e:
             lox.runtime_error(e)
 
-    def evaluate(self, expr: Expr) -> object:
+    def evaluate(self, expr: Expr.Expr) -> object:
         return expr.accept(self)
 
-    def visit_literal(self, expr: Literal) -> object:
+    def execute(self, stmt: Stmt.Stmt) -> None:
+        stmt.accept(self)
+
+    def visit_expression(self, stmt: Stmt.Expression) -> None:
+        self.evaluate(stmt.expression)
+
+    def visit_print(self, stmt: Stmt.Print) -> None:
+        value = self.evaluate(stmt.expression)
+        print(self.stringify(value))
+
+    def visit_literal(self, expr: Expr.Literal) -> object:
         return expr.value
 
-    def visit_grouping(self, expr: Grouping) -> object:
+    def visit_grouping(self, expr: Expr.Grouping) -> object:
         return self.evaluate(expr.expression)
 
-    def visit_unary(self, expr: Unary) -> object:
+    def visit_unary(self, expr: Expr.Unary) -> object:
         right = self.evaluate(expr.right)
         if expr.operator.type == TokenType.MINUS:
             check_operand(expr.operator, expr.right)
@@ -99,7 +108,7 @@ class Interpreter(Visitor):
         # unreachable
         return None
 
-    def visit_binary(self, expr: Binary) -> object:
+    def visit_binary(self, expr: Expr.Binary) -> object:
         left = self.evaluate(expr.left)
         right = self.evaluate(expr.right)
         func = BINARY_OPS[expr.operator.type]
@@ -120,5 +129,7 @@ class Interpreter(Visitor):
             if text.endswith(".0"):
                 return text[:-2]
             return text
+        elif isinstance(value, bool):
+            return str(value).lower()
         else:
             return str(value)

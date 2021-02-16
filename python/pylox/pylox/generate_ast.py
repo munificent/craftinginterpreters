@@ -16,18 +16,23 @@ def main():
         "Unary : Token operator, Expr right"
     ])
 
+    define_ast(output_dir, "Stmt", [
+        "Expression : Expr expression",
+        "Print : Expr expression"
+    ])
+
 
 def define_ast(output_dir, basename, types):
     path = os.path.join(output_dir, f"{basename.lower()}.py")
     with open(path, "w") as f:
-        f.write("""
+        f.write(f"""
 import abc
 from dataclasses import dataclass
-
+{"from pylox.expr import Expr" if basename == "Stmt" else ""}
 from pylox.tokens import Token
 
 
-class Expr:
+class {basename}:
     def accept(self, visitor: 'Visitor'):
         raise NotImplementedError
 """)
