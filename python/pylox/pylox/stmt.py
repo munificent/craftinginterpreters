@@ -26,6 +26,15 @@ class Print(Stmt):
         return visitor.visit_print(self)
 
 
+@dataclass
+class Var(Stmt):
+    name: Token
+    initializer: Expr
+
+    def accept(self, visitor: 'Visitor'):
+        return visitor.visit_var(self)
+
+
 class Visitor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
@@ -34,4 +43,8 @@ class Visitor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def visit_print(self, stmt: Print):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def visit_var(self, stmt: Var):
         raise NotImplementedError

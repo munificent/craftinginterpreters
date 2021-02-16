@@ -4,6 +4,7 @@ from typing import List
 
 from pylox import lox, expr as Expr, stmt as Stmt
 from pylox.tokens import TokenType, Token
+from pylox.environment import Environment
 
 
 class RuntimeException(Exception):
@@ -71,6 +72,8 @@ BINARY_OPS = {
 
 
 class Interpreter(Expr.Visitor, Stmt.Visitor):
+    def __init__(self) -> None:
+        self.environment: Environment = Environment()
 
     def interpret(self, statements: List[Stmt.Stmt]) -> None:
         try:
@@ -92,6 +95,10 @@ class Interpreter(Expr.Visitor, Stmt.Visitor):
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
 
+    def visit_var(self, stmt: Stmt.Var) -> None:
+        value = stmt.initializer and self.evaluate(stmt.initializer)
+        self.environment.define(stmt.name.lexeme, value)
+
     def visit_literal(self, expr: Expr.Literal) -> object:
         return expr.value
 
@@ -107,6 +114,9 @@ class Interpreter(Expr.Visitor, Stmt.Visitor):
             return not self.is_truthy(right)
         # unreachable
         return None
+
+    def visit_variable(self, expr: Expr.Variable):
+        return self.environment.get(expr.name)
 
     def visit_binary(self, expr: Expr.Binary) -> object:
         left = self.evaluate(expr.left)

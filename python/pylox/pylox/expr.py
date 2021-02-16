@@ -45,6 +45,14 @@ class Unary(Expr):
         return visitor.visit_unary(self)
 
 
+@dataclass
+class Variable(Expr):
+    name: Token
+
+    def accept(self, visitor: 'Visitor'):
+        return visitor.visit_variable(self)
+
+
 class Visitor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
@@ -61,4 +69,8 @@ class Visitor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def visit_unary(self, expr: Unary):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def visit_variable(self, expr: Variable):
         raise NotImplementedError

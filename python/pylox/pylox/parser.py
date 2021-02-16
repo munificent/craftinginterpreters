@@ -9,6 +9,9 @@ from pylox import lox
 Grammar:
 
 program        → statement* EOF ;
+declaration    → varDecl
+               | statement
+varDecl        → "var" IDENTIFIER ( "=" expression)? ";"
 statement      → exprStmt
                | printStmt
 exprStmt       → expression ";"
@@ -22,6 +25,7 @@ unary          → ( "!" | "-" ) unary
                | primary ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
+               | IDENTIFIER ;
 """
 
 class ParseError(Exception):
@@ -36,8 +40,16 @@ class Parser:
     def parse(self) -> List[Stmt]:
         statements = []
         while not self.is_at_end():
-            statements.append(self.statement())
+            statements.append(self.declaration())
         return statements
+
+    def declaration(self) -> Stmt:
+        try:
+            if self.match(TokenType.VAR):
+                return self.var_declaration()
+            return self.statement()
+        except ParseError:
+            self.synchronize()
 
     def statement(self) -> Stmt:
         if self.match(TokenType.PRINT):
@@ -48,6 +60,12 @@ class Parser:
         value = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Print(value)
+
+    def var_declaration(self) -> Stmt:
+        name = self.consume(TokenType.IDENTIFIER, "Expect variable name.")
+        initializer = self.expression() if self.match(TokenType.EQUAL) else None
+        self.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
+        return Var(name, initializer)
 
     def expression_statement(self) -> Expression:
         expr = self.expression()
@@ -106,6 +124,8 @@ class Parser:
             return Literal(None)
         elif self.match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self.previous().literal)
+        elif self.match(TokenType.IDENTIFIER):
+            return Variable(self.previous())
         elif self.match(TokenType.LEFT_PAREN):
             expr = self.expression()
             self.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression")
