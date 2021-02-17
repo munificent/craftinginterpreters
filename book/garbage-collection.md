@@ -2,16 +2,16 @@
 > I wanna, I wanna,<br>
 > I wanna be trash.<br>
 >
-> <cite>The Whip, <em>Trash</em></cite>
+> <cite>The Whip, &ldquo;Trash&rdquo;</cite>
 
 We say Lox is a "high-level" language because it frees programmers from worrying
 about details irrelevant to the problem they're solving. The user becomes an
-executive giving the machine abstract goals and letting the lowly computer
+executive, giving the machine abstract goals and letting the lowly computer
 figure out how to get there.
 
 Dynamic memory allocation is a perfect candidate for automation. It's necessary
 for a working program, tedious to do by hand, and yet still error-prone. The
-inevitable mistakes can be catastrophic, leading to crashes, memory corruption
+inevitable mistakes can be catastrophic, leading to crashes, memory corruption,
 or security violations. It's the kind of risky-yet-boring work that machines
 excel at over humans.
 
@@ -56,7 +56,7 @@ memory to still be in use if it *could possibly* be read in the future.
 I'm using "conservative" in the general sense. There is such a thing as a
 "conservative garbage collector" which means something more specific. All
 garbage collectors are "conservative" in that they keep memory alive if it
-*could* be accessed instead of having a Magic 8-Ball that lets them more
+*could* be accessed, instead of having a Magic 8-Ball that lets them more
 precisely know what data *will* be accessed.
 
 A **conservative GC** is a special kind of collector that considers any piece of
@@ -149,7 +149,7 @@ on the stack. But to get to the string, we need to trace through the closure and
 its upvalue array. Since it *is* possible for the user's program to do that, all
 of these indirectly accessible objects are also considered reachable.
 
-<img src="image/garbage-collection/reachable.png" class="wide" alt="All of the referenced objects from the closure and the path to the 'data' string from the stack." />
+<img src="image/garbage-collection/reachable.png" class="wide" alt="All of the referenced objects from the closure, and the path to the 'data' string from the stack." />
 
 This gives us an inductive definition of reachability:
 
@@ -174,10 +174,10 @@ differ in *how* they perform each step.
 
 <aside name="handbook">
 
-If you want to explore other GC algorithms, ["The Garbage Collection
-Handbook"][gc book] is the canonical reference. For a large book on such a deep,
-narrow topic, it is quite enjoyable to read. Or perhaps I have a strange idea of
-fun.
+If you want to explore other GC algorithms,
+[*The Garbage Collection Handbook*][gc book] (Jones, et al.) is the canonical
+reference. For a large book on such a deep, narrow topic, it is quite enjoyable
+to read. Or perhaps I have a strange idea of fun.
 
 [gc book]: http://gchandbook.org/
 
@@ -185,11 +185,11 @@ fun.
 
 ## Mark-Sweep Garbage Collection
 
-The first managed language was Lisp, the second "high level" language to be
+The first managed language was Lisp, the second "high-level" language to be
 invented, right after Fortran. John McCarthy considered using manual memory
 management or reference counting, but <span
 name="procrastination">eventually</span> settled on (and coined) garbage
-collection -- once the program was out of memory it would go back and find
+collection -- once the program was out of memory, it would go back and find
 unused storage it could reclaim.
 
 <aside name="procrastination">
@@ -209,25 +209,25 @@ of CS seem to be timeless.
 
 As the name implies, mark-sweep works in two phases:
 
-*   **Marking** &ndash; We start with the roots and traverse or <span
+*   **Marking:** We start with the roots and traverse or <span
     name="trace">*trace*</span> through all of the objects those roots refer to.
     This is a classic graph traversal of all of the reachable objects. Each time
     we visit an object, we *mark* it in some way. (Implementations differ in how
     they record the mark.)
 
-*   **Sweeping** &ndash; Once the mark phase completes, every reachable object
-    in the heap is marked. That means any unmarked object is unreachable and
+*   **Sweeping:** Once the mark phase completes, every reachable object
+    in the heap has been marked. That means any unmarked object is unreachable and
     ripe for reclamation. We go through all the unmarked objects and free each
     one.
 
 It looks something like this:
 
-<img src="image/garbage-collection/mark-sweep.png" class="wide" alt="Starting from a graph of objects, first the reachable ones are marked, the remaining are swept and then only the reachable remain." />
+<img src="image/garbage-collection/mark-sweep.png" class="wide" alt="Starting from a graph of objects, first the reachable ones are marked, the remaining are swept, and then only the reachable remain." />
 
 <aside name="trace">
 
 A **tracing garbage collector** is any algorithm that traces through the graph
-of object references. This is in contrast with reference counting which has a
+of object references. This is in contrast with reference counting, which has a
 different strategy for tracking the reachable objects.
 
 </aside>
@@ -253,7 +253,7 @@ We'll work our way up to a full implementation starting with this empty shell:
 
 ^code collect-garbage
 
-The first question you might ask is, "When does this function get called?" It
+The first question you might ask is, When does this function get called? It
 turns out that's a subtle question that we'll spend some time on later in the
 chapter. For now we'll sidestep the issue and build ourselves a handy diagnostic
 tool in the process.
@@ -263,8 +263,8 @@ tool in the process.
 We'll add an optional "stress test" mode for the garbage collector. When this
 flag is defined, the GC runs as often as it possibly can. This is, obviously,
 horrendous for performance. But it's great for flushing out memory management
-bugs that only occur when a GC is triggered at just the right moment. If *every*
-moment triggers a GC, you're likely to hit it.
+bugs that occur only when a GC is triggered at just the right moment. If *every*
+moment triggers a GC, you're likely to find those bugs.
 
 ^code call-collect (2 before, 1 after)
 
@@ -276,7 +276,7 @@ GC itself will call `reallocate()` to free memory.
 Collecting right before <span name="demand">allocation</span> is the classic way
 to wire a GC into a VM. You're already calling into the memory manager, so it's
 an easy place to hook in the code. Also, allocation is the only time when you
-really *need* some freed up memory, so that you can reuse it. If you *don't* use
+really *need* some freed up memory so that you can reuse it. If you *don't* use
 allocation to trigger a GC, you have to make sure every possible place in code
 where you can loop and allocate memory also has a way to trigger the collector.
 Otherwise, the VM can get into a starved state where it needs more memory but
@@ -284,7 +284,7 @@ never collects any.
 
 <aside name="demand">
 
-More sophisticated collectors might run on a separate thread or interleaved
+More sophisticated collectors might run on a separate thread or be interleaved
 periodically during program execution -- often at function call boundaries or
 when a backward jump occurs.
 
@@ -295,7 +295,7 @@ when a backward jump occurs.
 While we're on the subject of diagnostics, let's put some more in. A real
 challenge I've found with garbage collectors is that they are opaque. We've been
 running lots of Lox programs just fine without any GC *at all* so far. Once we
-add one, how do we tell if it's doing anything useful? Can we only tell if we
+add one, how do we tell if it's doing anything useful? Can we tell only if we
 write programs that plow through acres of memory? How do we debug that?
 
 An easy way to shine a light into the GC's inner workings is with some logging.
@@ -303,7 +303,9 @@ An easy way to shine a light into the GC's inner workings is with some logging.
 ^code define-log-gc (1 before, 2 after)
 
 When this is enabled, clox prints information to the console when it does
-something with dynamic memory. We need a couple of includes.
+something with dynamic memory.
+
+We need a couple of includes.
 
 ^code debug-log-includes (1 before, 2 after)
 
@@ -322,7 +324,7 @@ allocating and freeing, so we can instrument those now.
 
 ^code debug-log-allocate (1 before, 1 after)
 
-And at the end of an object's lifespan.
+And at the end of an object's lifespan:
 
 ^code log-free-object (1 before, 1 after)
 
@@ -332,8 +334,9 @@ work through the rest of the chapter.
 ## Marking the Roots
 
 Objects are scattered across the heap like stars in the inky night sky. A
-reference from one object to another forms a connection and these constellations
-are the graph that the mark phase traverses. Marking begins at the roots.
+reference from one object to another forms a connection, and these
+constellations are the graph that the mark phase traverses. Marking begins at
+the roots.
 
 ^code call-mark-roots (3 before, 2 after)
 
@@ -361,18 +364,18 @@ Which is defined here:
 
 ^code mark-object
 
-The `NULL` check is unnecessary when called from `markValue()`. A Lox Value that is
-some kind of Obj type will always have a valid pointer. But later we will call
-this function directly from other code and in some of those places, the object
-being pointed to is optional.
+The `NULL` check is unnecessary when called from `markValue()`. A Lox Value that
+is some kind of Obj type will always have a valid pointer. But later we will
+call this function directly from other code, and in some of those places, the
+object being pointed to is optional.
 
 Assuming we do have a valid object, we mark it by setting a flag. That new field
 lives in the Obj header struct all objects share.
 
 ^code is-marked-field (1 before, 1 after)
 
-Every new object begins life unmarked because we haven't determined if it is
-reachable or not yet.
+Every new object begins life unmarked because we haven't yet determined if it is
+reachable or not.
 
 ^code init-is-marked (1 before, 2 after)
 
@@ -395,14 +398,15 @@ We implement that in the "table" module here:
 
 ^code mark-table
 
-Pretty straightforward. We walk the entry array. For each one, we mark its value.
-We also mark the key strings for each entry since the GC manages those strings too.
+Pretty straightforward. We walk the entry array. For each one, we mark its
+value. We also mark the key strings for each entry since the GC manages those
+strings too.
 
 ### Less obvious roots
 
 Those cover the roots that we typically think of -- the values that are
 obviously reachable because they're stored in variables the user's program can
-see. But the VM has a few of its own hidey holes where it squirrels away
+see. But the VM has a few of its own hidey-holes where it squirrels away
 references to values that it directly accesses.
 
 Most function call state lives in the value stack, but the VM maintains a
@@ -436,11 +440,11 @@ Which means the "memory" module needs an include.
 
 ^code memory-include-compiler (2 before, 1 after)
 
-And the definition is over in the "compiler" module:
+And the definition is over in the "compiler" module.
 
 ^code mark-compiler-roots
 
-Fortunately, the compiler doesn't have too many values that it hangs onto. The
+Fortunately, the compiler doesn't have too many values that it hangs on to. The
 only object it uses is the ObjFunction it is compiling into. Since function
 declarations can nest, the compiler has a linked list of those and we walk the
 whole list.
@@ -460,8 +464,8 @@ between objects to find the indirectly reachable values. We don't have instances
 with fields yet, so there aren't many objects that contain references, but we do
 have <span name="some">some</span>. In particular, ObjClosure has the list of
 ObjUpvalues it closes over as well as a reference to the raw ObjFunction that it
-wraps. ObjFunction in turn has a constant table containing references to all of
-the literals created in the function's body. This is enough to build a fairly
+wraps. ObjFunction, in turn, has a constant table containing references to all
+of the literals created in the function's body. This is enough to build a fairly
 complex web of objects for our collector to crawl through.
 
 <aside name="some">
@@ -473,7 +477,7 @@ process.
 </aside>
 
 Now it's time to implement that traversal. We can go breadth-first, depth-first,
-or some other order. Since we just need to find the *set* of all reachable
+or in some other order. Since we just need to find the *set* of all reachable
 objects, the order we visit them <span name="dfs">mostly</span> doesn't matter.
 
 <aside name="dfs">
@@ -484,12 +488,12 @@ memory. That impacts performance because the CPU uses locality to determine
 which memory to preload into the caches.
 
 Even when traversal order does matter, it's not clear which order is *best*.
-It's very difficult to determine which order objects will be used in the future,
-so it's hard for the GC to know which order will help performance.
+It's very difficult to determine which order objects will be used in in the
+future, so it's hard for the GC to know which order will help performance.
 
 </aside>
 
-### The tri-color abstraction
+### The tricolor abstraction
 
 As the collector wanders through the graph of objects, we need to make sure it
 doesn't lose track of where it is or get stuck going in circles. This is
@@ -498,34 +502,34 @@ interleave marking with running pieces of the user's program. The collector
 needs to be able to pause and then pick up where it left off later.
 
 To help us soft-brained humans reason about this complex process, VM hackers
-came up with a metaphor called the <span name="color"></span>**tri-color
+came up with a metaphor called the <span name="color"></span>**tricolor
 abstraction**. Each object has a conceptual "color" that tracks what state the
-object is in and what work is left to do.
+object is in, and what work is left to do.
 
 <aside name="color">
 
 Advanced garbage collection algorithms often add other colors to the
-abstraction. I've seen multiple shades of gray and even purple in some designs.
+abstraction. I've seen multiple shades of gray, and even purple in some designs.
 My puce-chartreuse-fuchsia-malachite collector paper was, alas, not accepted for
 publication.
 
 </aside>
 
-*   **White** <img src="image/garbage-collection/white.png" class="dot" />
-    &ndash; At the beginning of a garbage collection, every object is white.
-    This color means we have not reached or processed the object at all.
+*   **<img src="image/garbage-collection/white.png" class="dot" /> White:** At
+    the beginning of a garbage collection, every object is white. This color
+    means we have not reached or processed the object at all.
 
-*   **Gray** <img src="image/garbage-collection/gray.png" class="dot" /> &ndash;
-    During marking, when we first reach an object, we darken it gray. This color
-    means we know the object itself is reachable and should not be collected.
-    But we have not yet traced *through* it to see what *other* objects it
-    references. In graph algorithm terms, gray objects form the *worklist* --
-    the set of objects we know about but haven't processed yet.
+*   **<img src="image/garbage-collection/gray.png" class="dot" /> Gray:** During
+    marking, when we first reach an object, we darken it gray. This color means
+    we know the object itself is reachable and should not be collected. But we
+    have not yet traced *through* it to see what *other* objects it references.
+    In graph algorithm terms, this is the *worklist* -- the set of objects we
+    know about but haven't processed yet.
 
-*   **Black** <img src="image/garbage-collection/black.png" class="dot" />
-    &ndash; When we take a gray object and mark all of the objects it
-    references, we then turn the gray object black. This color means the mark
-    phase is done processing that object.
+*   **<img src="image/garbage-collection/black.png" class="dot" /> Black:** When
+    we take a gray object and mark all of the objects it references, we then
+    turn the gray object black. This color means the mark phase is done
+    processing that object.
 
 In terms of that abstraction, the marking process now looks like this:
 
@@ -533,7 +537,7 @@ In terms of that abstraction, the marking process now looks like this:
 
 2.  Find all the roots and mark them gray.
 
-3.  As long as there are still gray objects:
+3.  Repeat as long as there are still gray objects:
 
     1.  Pick a gray object. Turn any white objects that the object mentions to
         gray.
@@ -550,7 +554,7 @@ by the wavefront and stay white.
 
 <img src="image/garbage-collection/tricolor-trace.png" class="wide" alt="A gray wavefront working through a graph of nodes." />
 
-At the <span name="invariant">end</span>, you're left with a sea of reached
+At the <span name="invariant">end</span>, you're left with a sea of reached,
 black objects sprinkled with islands of white objects that can be swept up and
 freed. Once the unreachable objects are freed, the remaining objects -- all
 black -- are reset to white for the next garbage collection cycle.
@@ -558,7 +562,7 @@ black -- are reset to white for the next garbage collection cycle.
 <aside name="invariant">
 
 Note that at every step of this process no black node ever points to a white
-node. This property is called the **tri-color invariant**. The traversal process
+node. This property is called the **tricolor invariant**. The traversal process
 maintains this invariant to ensure that no reachable object is ever collected.
 
 </aside>
@@ -572,15 +576,15 @@ don't want to have to traverse the entire object list looking for objects with
 that field set.
 
 Instead, we'll create a separate worklist to keep track of all of the gray
-objects. When an object turns gray -- in addition to setting the mark field --
-we'll also add it to the worklist.
+objects. When an object turns gray, in addition to setting the mark field we'll
+also add it to the worklist.
 
 ^code add-to-gray-stack (1 before, 1 after)
 
 We could use any kind of data structure that lets us put items in and take them
 out easily. I picked a stack because that's the simplest to implement with a
 dynamic array in C. It works mostly like other dynamic arrays we've built in
-Lox, *except* note that it calls the *system* `realloc()` function and not our
+Lox, *except*, note that it calls the *system* `realloc()` function and not our
 own `reallocate()` wrapper. The memory for the gray stack itself is *not*
 managed by the garbage collector. We don't want growing the gray stack during a
 GC to cause the GC to recursively start a new GC. That could tear a hole in the
@@ -618,7 +622,7 @@ gray stack, finish the GC, and free up more memory.
 
 ### Processing gray objects
 
-OK, now when we're done marking the roots we have both set a bunch of fields
+OK, now when we're done marking the roots, we have both set a bunch of fields
 and filled our work list with objects to chew through. It's time for the next
 phase.
 
@@ -648,7 +652,7 @@ outgoing references so there is nothing to traverse.
 
 An easy optimization we could do in `markObject()` is to skip adding strings and
 native functions to the gray stack at all since we know they don't need to be
-processed. Instead, they can darken from white straight to black.
+processed. Instead, they could darken from white straight to black.
 
 </aside>
 
@@ -691,7 +695,7 @@ Each closure has a reference to the bare function it wraps, as well as an array
 of pointers to the upvalues it captures. We trace all of those.
 
 That's the basic mechanism for processing a gray object, but there are two loose
-ends to tie off. First, some logging.
+ends to tie up. First, some logging.
 
 ^code log-blacken-object (1 before, 1 after)
 
@@ -714,8 +718,8 @@ words, it keeps the wavefront moving forward through only the white objects.
 ## Sweeping Unused Objects
 
 When the loop in `traceReferences()` exits, we have processed all the objects we
-could get our hands on. The gray stack is empty and every object in the heap is
-either black or white. The black objects are reachable and we want to hang on to
+could get our hands on. The gray stack is empty, and every object in the heap is
+either black or white. The black objects are reachable, and we want to hang on to
 them. Anything still white never got touched by the trace and is thus garbage.
 All that's left is to reclaim them.
 
@@ -725,17 +729,17 @@ All of the logic lives in one function.
 
 ^code sweep
 
-I know that's kind of a lot of code and pointer shenanigans but there isn't much
-to it once you work through it. The outer `while` loop walks the linked list of
-every object in the heap, checking their mark bits. If an object is marked
-(black), we leave it alone and continue past it. If it is unmarked (white), we
-unlink it from the list and free it using the `freeObject()` function we already
-wrote.
+I know that's kind of a lot of code and pointer shenanigans, but there isn't
+much to it once you work through it. The outer `while` loop walks the linked
+list of every object in the heap, checking their mark bits. If an object is
+marked (black), we leave it alone and continue past it. If it is unmarked
+(white), we unlink it from the list and free it using the `freeObject()`
+function we already wrote.
 
 <img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." />
 
 Most of the other code in here deals with the fact that removing a node from a
-singly-linked list is cumbersome. We have to continuously remember the previous
+singly linked list is cumbersome. We have to continuously remember the previous
 node so we can unlink its next pointer, and we have to handle the edge case
 where we are freeing the first node. But, otherwise, it's pretty simple --
 delete every node in a linked list that doesn't have a bit set in it.
@@ -766,9 +770,9 @@ of memory back to the operating system. That would be bad.
 
 This can be a real problem. Java does not intern *all* strings, but it does
 intern string *literals*. It also provides an API to add strings to the string
-table. For many years, the capacity of that table was fixed and strings added to
-it could never be removed. If users weren't careful about their use of
-`String.intern()` they could run out of memory and crash.
+table. For many years, the capacity of that table was fixed, and strings added
+to it could never be removed. If users weren't careful about their use of
+`String.intern()`, they could run out of memory and crash.
 
 Ruby had a similar problem for years where symbols -- interned string-like
 values -- were not garbage collected. Both eventually enabled the GC to collect
@@ -783,9 +787,9 @@ The string table is special and we need special support for it. In particular,
 it needs a special kind of reference. The table should be able to refer to a
 string, but that link should not be considered a root when determining
 reachability. That implies that the referenced object can be freed. When that
-happens, the dangling reference must be fixed too, sort of like a magic
+happens, the dangling reference must be fixed too, sort of like a magic,
 self-clearing pointer. This particular set of semantics comes up frequently
-enough that it has a name: a [**weak reference.**][weak]
+enough that it has a name: a [**weak reference**][weak].
 
 [weak]: https://en.wikipedia.org/wiki/Weak_reference
 
@@ -811,7 +815,7 @@ The implementation is here:
 
 ^code table-remove-white
 
-We walk every entry in the table. The string intern table only uses the key of
+We walk every entry in the table. The string intern table uses only the key of
 each entry -- it's basically a hash *set* not a hash *map*. If the key string
 object's mark bit is not set, then it is a white object that is moments from
 being swept away. We delete it from the hash table first and thus ensure we
@@ -821,16 +825,16 @@ won't see any dangling pointers.
 
 We have a fully functioning mark-sweep garbage collector now. When the stress
 testing flag is enabled, it gets called all the time, and with the logging
-enabled too we can watch it do its thing and see that it is indeed reclaiming
+enabled too, we can watch it do its thing and see that it is indeed reclaiming
 memory. But, when the stress testing flag is off, it never runs at all. It's
-time  to decide when the collector should be invoked during normal program
+time to decide when the collector should be invoked during normal program
 execution.
 
 As far as I can tell, this question is poorly answered by the literature. When
 garbage collectors were first invented, computers had a tiny, fixed amount of
-memory. Many of the early GC papers assume that you set aside a few thousand
-words of memory -- in other words, most of it -- and invoke the collector
-whenever you run out. Simple.
+memory. Many of the early GC papers assumed that you set aside a few thousand
+words of memory -- in other words, most of it -- and invoked the collector
+whenever you ran out. Simple.
 
 Modern machines have gigs of physical RAM, hidden behind the operating system's
 even larger virtual memory abstraction, which is shared among a slew of other
@@ -955,11 +959,11 @@ throughput and latency by your choice of collection algorithm. But even within a
 single algorithm, we have a lot of control over *how frequently* the collector
 runs.
 
-Our collector is a <span name="incremental">**stop-the-world**</span> GC which
+Our collector is a <span name="incremental">**stop-the-world GC**</span> which
 means the user's program is paused until the entire garbage collection process
 has completed. If we wait a long time before we run the collector, then a large
 number of dead objects will accumulate. That leads to a very long pause while
-the collector runs and thus high latency. So, clearly, we want to run the
+the collector runs, and thus high latency. So, clearly, we want to run the
 collector really frequently.
 
 <aside name="incremental">
@@ -975,8 +979,8 @@ incorrectly get deleted). Time visiting live objects is time not freeing memory
 and also time not running user code. If you run the GC *really* frequently, then
 the user's program doesn't have enough time to even generate new garbage for the
 VM to collect. The VM will spend all of its time obsessively revisiting the same
-set of live objects over and over, and throughput suffers. So, clearly, we want
-to run the collector really *in*-frequently.
+set of live objects over and over, and throughput will suffer. So, clearly, we
+want to run the collector really *in*frequently.
 
 In fact, we want something in the middle, and the frequency of when the
 collector runs is one of our main knobs for tuning the trade-off between latency
@@ -1023,7 +1027,7 @@ The starting threshold here is <span name="lab">arbitrary</span>. It's similar
 to the initial capacity we picked for our various dynamic arrays. The goal is to
 not trigger the first few GCs *too* quickly but also to not wait too long. If we
 had some real-world Lox programs, we could profile those to tune this. But since
-all we have is toy programs, I just picked a number.
+all we have are toy programs, I just picked a number.
 
 <aside name="lab">
 
@@ -1046,7 +1050,7 @@ When the total crosses the limit, we run the collector.
 Now, finally, our garbage collector actually does something when the user runs a
 program without our hidden diagnostic flag enabled. The sweep phase frees
 objects by calling `reallocate()`, which lowers the value of `bytesAllocated`,
-so after the collection completes we know how many live bytes remain. We adjust
+so after the collection completes, we know how many live bytes remain. We adjust
 the threshold of the next GC based on that.
 
 ^code update-next-gc (1 before, 2 after)
@@ -1060,11 +1064,11 @@ scaling factor is basically arbitrary.
 
 You'd want to tune this in your implementation once you had some real programs
 to benchmark it on. Right now, we can at least log some of the statistics that
-we have. We capture the heap size before the collection:
+we have. We capture the heap size before the collection.
 
 ^code log-before-size (1 before, 1 after)
 
-And then print the results at the end:
+And then print the results at the end.
 
 ^code log-collected-amount (1 before, 1 after)
 
@@ -1095,9 +1099,9 @@ stop the music. Every single heap-allocated object that we want to keep needs to
 find a chair quickly -- get marked as a root or stored as a reference in some
 other object -- before the sweep phase comes to kick it out of the game.
 
-How is it possible for the VM to use an object later that the GC itself doesn't
-see? How can the VM find it? The most common answer is through a pointer stored
-in some local variable on the C stack. The GC walks the *VM's* value and
+How is it possible for the VM to use an object later -- one that the GC itself
+doesn't see? How can the VM find it? The most common answer is through a pointer
+stored in some local variable on the C stack. The GC walks the *VM's* value and
 CallFrame stacks, but the C stack is <span name="c">hidden</span> to it.
 
 <aside name="c">
@@ -1105,7 +1109,7 @@ CallFrame stacks, but the C stack is <span name="c">hidden</span> to it.
 Our GC can't find addresses in the C stack, but many can. Conservative garbage
 collectors look all through memory, including the native stack. The most
 well-known of this variety is the [**Boehm–Demers–Weiser garbage
-collector**][boehm], usually just called the **Boehm collector**. (The shortest
+collector**][boehm], usually just called the "Boehm collector". (The shortest
 path to fame in CS is a last name that's alphabetically early so that it shows
 up first in sorted lists of names.)
 
@@ -1128,10 +1132,10 @@ writing the prose, so I had plenty of time to find all of these corners and
 flush out most of these bugs. The stress testing code we put in at the beginning
 of this chapter and a pretty good test suite were very helpful.
 
-But I only fixed *most* of them. I left a couple in because I want to give you a
+But I fixed only *most* of them. I left a couple in because I want to give you a
 hint of what it's like to encounter these bugs in the wild. If you enable the
 stress test flag and run some toy Lox programs, you can probably stumble onto a
-few. Give it a try and *see if you can fix any yourself.*
+few. Give it a try and *see if you can fix any yourself*.
 
 
 ### Adding to the constant table
@@ -1142,7 +1146,7 @@ table, that array may need to grow. The constant itself may also be some
 heap-allocated object like a string or a nested function.
 
 The new object being added to the constant table is passed to `addConstant()`.
-At that moment, the object can only be found in the parameter to that function
+At that moment, the object can be found only in the parameter to that function
 on the C stack. That function appends the object to the constant table. If the
 table doesn't have enough capacity and needs to grow, it calls `reallocate()`.
 That in turn triggers a GC, which fails to mark the new constant object and
@@ -1165,8 +1169,8 @@ to call into the VM from the "chunk" module.
 
 ### Interning strings
 
-Here's another similar one. All strings are interned in clox so whenever we
-create a new string we also add it to the intern table. You can see where this
+Here's another similar one. All strings are interned in clox, so whenever we
+create a new string, we also add it to the intern table. You can see where this
 is going. Since the string is brand new, it isn't reachable anywhere. And
 resizing the string pool can trigger a collection. Again, we go ahead and stash
 the string on the stack first.
@@ -1192,7 +1196,7 @@ stack. For numbers that's perfectly safe.
 But concatenating two strings requires allocating a new character array on the
 heap, which can in turn trigger a GC. Since we've already popped the operand
 strings by that point, they can potentially be missed by the mark phase and get
-swept away. Instead of popping them off the stack eagerly, we *peek* them.
+swept away. Instead of popping them off the stack eagerly, we peek them.
 
 ^code concatenate-peek (1 before, 2 after)
 
@@ -1209,7 +1213,7 @@ the code that *causes* some problem. You're looking for the *absence* of code
 which fails to *prevent* a problem, and that's a much harder search.
 
 But, for now at least, you can rest easy. As far as I know, we've found all of
-the collection bugs in clox and now we have a working, robust, self-tuning
+the collection bugs in clox, and now we have a working, robust, self-tuning,
 mark-sweep garbage collector.
 
 <div class="challenges">
@@ -1245,7 +1249,7 @@ ephemeral ones more frequently.
 
 It turns out there kind of is. Many years ago, GC researchers gathered metrics
 on the lifetime of objects in real-world running programs. They tracked every
-object when it was allocated and eventually when it was no longer needed and
+object when it was allocated, and eventually when it was no longer needed, and
 then graphed out how long objects tended to live.
 
 They discovered something they called the **generational hypothesis**, or the
@@ -1257,8 +1261,8 @@ it gave them a handle on how to partition objects into groups that benefit from
 frequent collections and those that don't.
 
 They designed a technique called **generational garbage collection**. It works
-like this: Every time a new object is allocated, it goes into a special
-relatively small region of the heap called the *nursery*. Since objects tend to
+like this: Every time a new object is allocated, it goes into a special,
+relatively small region of the heap called the "nursery". Since objects tend to
 die young, the garbage collector is invoked <span
 name="nursery">frequently</span> over the objects just in this region.
 
@@ -1269,7 +1273,7 @@ allocating and freeing objects than a mark-sweep collector.
 
 </aside>
 
-Each time the GC runs over the nursery is called a *generation*. Any objects
+Each time the GC runs over the nursery is called a "generation". Any objects
 that are no longer needed get freed. Those that survive are now considered one
 generation older, and the GC tracks this for each object. If an object survives
 a certain number of generations -- often just a single collection -- it gets
