@@ -18,7 +18,7 @@ from here on out.
 
 People who have strong opinions about object-oriented programming -- read
 "everyone" -- tend to assume OOP means some very specific list of language
-features, but really there's a whole space to explore and each language has its
+features, but really there's a whole space to explore, and each language has its
 own ingredients and recipes.
 
 Self has objects but no classes. CLOS has methods but doesn't attach them to
@@ -80,8 +80,8 @@ these ObjClass structs to represent it.
 
 <img src="image/classes-and-instances/klass.png" alt="'Klass' in a zany kidz font."/>
 
-I named the variable "klass" not just to give the VM a zany preschool "kidz
-korner" feel. While "class" is not a reserved word in C, it is in C++, and you
+I named the variable "klass" not just to give the VM a zany preschool "Kidz
+Korner" feel. While "class" is not a reserved word in C, it is in C++, and you
 can compile clox as either.
 
 </aside>
@@ -118,7 +118,7 @@ language. Next, we move into the parser.
 
 ^code match-class (1 before, 1 after)
 
-Class declarations are statements and the parser recognizes one by the leading
+Class declarations are statements, and the parser recognizes one by the leading
 `class` keyword. The rest of the compilation happens over here:
 
 ^code class-declaration
@@ -153,7 +153,7 @@ That instruction takes the constant table index of the class's name as an
 operand.
 
 After that, but before compiling the body of the class, we define the variable
-for the class's name. *Declaring* the variable adds it to the scope but recall
+for the class's name. *Declaring* the variable adds it to the scope, but recall
 from [a previous chapter][scope] that we can't *use* the variable until it's
 *defined*. For classes, we define the variable before the body. That way, users
 can refer to the containing class inside the bodies of its own methods. That's
@@ -169,7 +169,7 @@ The compiler is emitting a new instruction, so let's define that.
 
 ^code class-op (1 before, 1 after)
 
-And add it to the disassembler.
+And add it to the disassembler:
 
 ^code disassemble-class (2 before, 1 after)
 
@@ -188,10 +188,10 @@ needs to be on the stack for a new <span name="local">local</span> variable.
 
 "Local" classes -- classes declared inside the body of a function or block, are
 an unusual concept. Many languages don't allow them at all. But since Lox is a
-dynamically-typed scripting language, it treats the top level of a program and
+dynamically typed scripting language, it treats the top level of a program and
 the bodies of functions and blocks uniformly. Classes are just another kind of
-declaration and since you can declare variables and functions inside blocks, you
-can declare classes in there too.
+declaration, and since you can declare variables and functions inside blocks,
+you can declare classes in there too.
 
 </aside>
 
@@ -237,7 +237,7 @@ its fields using a hash table.
 <aside name="fields">
 
 Being able to freely add fields to an object at runtime is a big practical
-difference between most dynamic and static languages. Statically-typed languages
+difference between most dynamic and static languages. Statically typed languages
 usually require fields to be explicitly declared. This way, the compiler knows
 exactly what fields each instance has. It can use that to determine the precise
 amount of memory needed for each instance and the offsets in that memory where
@@ -249,7 +249,7 @@ accessing a field is as fast as offsetting a pointer by an integer constant.
 
 </aside>
 
-We only need to add an include and we've got it.
+We only need to add an include, and we've got it.
 
 ^code object-include-table (1 before, 1 after)
 
@@ -258,7 +258,7 @@ This new struct gets a new object type.
 ^code obj-type-instance (1 before, 1 after)
 
 I want to slow down a bit here because the Lox *language's* notion of "type" and
-the VM *implementation's* notion of type brush against each other in ways that
+the VM *implementation's* notion of "type" brush against each other in ways that
 can be confusing. Inside the C code that makes clox, there are a number of
 different types of Obj -- ObjString, ObjClosure, etc. Each has its own internal
 representation and semantics.
@@ -300,7 +300,7 @@ At the sadder end of the instance's lifespan, it gets freed.
 The instance owns its field table so when freeing the instance, we also free the
 table. We don't explicitly free the entries *in* the table, because there may
 be other references to those objects. The garbage collector will take care of
-those for us. Here we only free the entry array of the table itself.
+those for us. Here we free only the entry array of the table itself.
 
 Speaking of the garbage collector, it needs support for tracing through
 instances.
@@ -332,7 +332,7 @@ too.
 
 The real fun happens over in the interpreter. Lox has no special `new` keyword.
 The way to create an instance of a class is to invoke the class itself as if it
-were a function. The runtime already supports function calls and it checks the
+were a function. The runtime already supports function calls, and it checks the
 type of object being called to make sure the user doesn't try to invoke a number
 or other invalid type.
 
@@ -354,7 +354,7 @@ the [next chapter][next] when we add support for initializers.
 
 </aside>
 
-We're one step farther. Now we can define classes and create instances of them:
+We're one step farther. Now we can define classes and create instances of them.
 
 ```lox
 class Brioche {}
@@ -404,7 +404,7 @@ so that the name is available at runtime.
 
 <aside name="prop">
 
-The compiler uses "property" instead of "field" here because remember Lox also
+The compiler uses "property" instead of "field" here because, remember, Lox also
 lets you use dot syntax to access a method without calling it. "Property" is the
 general term we use to refer to any named entity you can access on an instance.
 Fields are the subset of properties that are backed by the instance's state.
@@ -432,9 +432,9 @@ a + (b.c = 3)
 The problem is that the `=` side of a set expression has much lower precedence
 than the `.` part. The parser may call `dot()` in a context that is too high
 precedence to permit a setter to appear. To avoid incorrectly allowing that, we
-only parse and compile the equals part when `canAssign` is true. If an equals
+parse and compile the equals part only when `canAssign` is true. If an equals
 token appears when `canAssign` is false, `dot()` leaves it alone and returns. In
-that case, the compiler will eventually unwind up to `parsePrecedence()` which
+that case, the compiler will eventually unwind up to `parsePrecedence()`, which
 stops at the unexpected `=` still sitting as the next token and reports an
 error.
 
@@ -457,7 +457,7 @@ Now is a good time to define these two new instructions.
 
 ^code property-ops (1 before, 1 after)
 
-And add support for disassembling them.
+And add support for disassembling them:
 
 ^code disassemble-property-ops (1 before, 1 after)
 
@@ -501,7 +501,7 @@ accessing any fields on it.
 
 Lox *could* support adding fields to values of other types. It's our language
 and we can do what we want. But it's likely a bad idea. It significantly
-complicates the implementation in ways that hurt performance -- for example
+complicates the implementation in ways that hurt performance -- for example,
 string interning gets a lot harder.
 
 Also, it raises gnarly semantic questions around the equality and identity of
@@ -522,7 +522,7 @@ fields. For that we need setters.
 ^code interpret-set-property (3 before, 2 after)
 
 This is a little more complex than `OP_GET_PROPERTY`. When this executes, the
-top of the stack has the instance whose field is being set and above that the
+top of the stack has the instance whose field is being set and above that, the
 value to be stored. Like before, we read the instruction's operand and find the
 field name string. Using that, we store the value on top of the stack into the
 instance's field table.
@@ -567,8 +567,8 @@ pair.second = 2;
 print pair.first + pair.second; // 3.
 ```
 
-This doesn't really feel very *object*-oriented. It's more like a strange
-dynamically-typed variant of C where objects are loose struct-like bags of data.
+This doesn't really feel very *object*-oriented. It's more like a strange,
+dynamically typed variant of C where objects are loose struct-like bags of data.
 Sort of a dynamic procedural language. But this is a big step in expressiveness.
 Our Lox implementation now lets users freely aggregate data into bigger units.
 In the next chapter, we will breathe life into those inert blobs.
@@ -582,7 +582,7 @@ In the next chapter, we will breathe life into those inert blobs.
     there any way to see if a field exists *before* trying to access it. It's up
     to the user to ensure on their own that only valid fields are read.
 
-    How do other dynamically-typed languages handle missing fields? What do you
+    How do other dynamically typed languages handle missing fields? What do you
     think Lox should do? Implement your solution.
 
 2.  Fields are accessed at runtime by their *string* name. But that name must
@@ -599,9 +599,9 @@ In the next chapter, we will breathe life into those inert blobs.
 4.  Because fields are accessed by name at runtime, working with instance state
     is slow. It's technically a constant-time operation -- thanks, hash tables
     -- but the constant factors are relatively large. This is a major component
-    of why dynamic languages are slower than statically-typed ones.
+    of why dynamic languages are slower than statically typed ones.
 
-    How do sophisticated implementations of dynamically-typed languages cope
+    How do sophisticated implementations of dynamically typed languages cope
     with and optimize this?
 
 </div>
