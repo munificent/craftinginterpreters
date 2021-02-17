@@ -19,6 +19,7 @@ def main():
     ])
 
     define_ast(output_dir, "Stmt", [
+        "Block : List[Stmt] statements",
         "Expression : Expr expression",
         "Print : Expr expression",
         "Var : Token name, Expr initializer",
@@ -31,6 +32,7 @@ def define_ast(output_dir, basename, types):
         f.write(f"""
 import abc
 from dataclasses import dataclass
+{"from typing import List" if basename == "Stmt" else ""}
 {"from pylox.expr import Expr" if basename == "Stmt" else ""}
 from pylox.tokens import Token
 

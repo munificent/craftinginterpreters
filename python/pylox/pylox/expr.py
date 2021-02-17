@@ -2,6 +2,7 @@
 import abc
 from dataclasses import dataclass
 
+
 from pylox.tokens import Token
 
 

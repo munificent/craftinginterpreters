@@ -61,11 +61,13 @@ def error(line: int, message: str) -> None:
 
 def report(line: int, where: str, message: str) -> None:
     print(f"[line {line}] Error {where}: {message}", file=sys.stderr)
+    global gHadError
     gHadError = True
 
 
 def runtime_error(error: RuntimeException) -> None:
     print(f"{error.message} \n[line {error.token.line}]")
+    global gHadRuntimeError
     gHadRuntimeError = True
 
 ## main

@@ -1,6 +1,7 @@
 
 import abc
 from dataclasses import dataclass
+from typing import List
 from pylox.expr import Expr
 from pylox.tokens import Token
 
@@ -8,6 +9,14 @@ from pylox.tokens import Token
 class Stmt:
     def accept(self, visitor: 'Visitor'):
         raise NotImplementedError
+
+
+@dataclass
+class Block(Stmt):
+    statements: List[Stmt]
+
+    def accept(self, visitor: 'Visitor'):
+        return visitor.visit_block(self)
 
 
 @dataclass
@@ -36,6 +45,10 @@ class Var(Stmt):
 
 
 class Visitor(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def visit_block(self, stmt: Block):
+        raise NotImplementedError
 
     @abc.abstractmethod
     def visit_expression(self, stmt: Expression):

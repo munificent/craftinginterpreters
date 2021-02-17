@@ -8,12 +8,14 @@ from pylox import lox
 """
 Grammar:
 
-program        → statement* EOF ;
+program        → declaration* EOF ;
 declaration    → varDecl
                | statement
 varDecl        → "var" IDENTIFIER ( "=" expression)? ";"
 statement      → exprStmt
                | printStmt
+               | block
+block          → "{" declaration* "}" ;
 exprStmt       → expression ";"
 printStmt      → "print" expression ";"
 expression     → assignment ;
@@ -56,6 +58,8 @@ class Parser:
     def statement(self) -> Stmt:
         if self.match(TokenType.PRINT):
             return self.print_statement()
+        elif self.match(TokenType.LEFT_BRACE):
+            return Block(self.block())
         return self.expression_statement()
 
     def print_statement(self) -> Print:
@@ -73,6 +77,13 @@ class Parser:
         expr = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return Expression(expr)
+
+    def block(self) -> List[Stmt]:
+        statements = []
+        while not self.is_at_end() and not self.check(TokenType.RIGHT_BRACE):
+            statements.append(self.declaration())
+        self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        return statements
 
     def expression(self) -> Expr:
         return self.assignment()
