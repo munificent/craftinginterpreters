@@ -11,6 +11,15 @@ class Expr:
 
 
 @dataclass
+class Assign(Expr):
+    name: Token
+    value: Expr
+
+    def accept(self, visitor: 'Visitor'):
+        return visitor.visit_assign(self)
+
+
+@dataclass
 class Binary(Expr):
     left: Expr
     operator: Token
@@ -54,6 +63,10 @@ class Variable(Expr):
 
 
 class Visitor(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def visit_assign(self, expr: Assign):
+        raise NotImplementedError
 
     @abc.abstractmethod
     def visit_binary(self, expr: Binary):

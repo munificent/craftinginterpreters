@@ -99,6 +99,11 @@ class Interpreter(Expr.Visitor, Stmt.Visitor):
         value = stmt.initializer and self.evaluate(stmt.initializer)
         self.environment.define(stmt.name.lexeme, value)
 
+    def visit_assign(self, expr: Expr.Assign):
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
+
     def visit_literal(self, expr: Expr.Literal) -> object:
         return expr.value
 
