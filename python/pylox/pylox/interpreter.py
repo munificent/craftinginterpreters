@@ -82,6 +82,13 @@ class Interpreter(Expr.Visitor, Stmt.Visitor):
         except RuntimeException as e:
             lox.runtime_error(e)
 
+    def interpret_repl(self, expr: Expr.Expr) -> object:
+        try:
+            value = self.evaluate(expr)
+            return self.stringify(value)
+        except RuntimeException as e:
+            lox.runtime_error(e)
+
     def evaluate(self, expr: Expr.Expr) -> object:
         return expr.accept(self)
 

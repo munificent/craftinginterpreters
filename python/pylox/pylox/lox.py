@@ -1,5 +1,8 @@
+from pylox.expr import Expr
 import sys
 import readline
+from typing import List
+from pylox import interpreter
 
 from pylox.scanner import Scanner
 from pylox.tokens import TokenType, Token
@@ -26,13 +29,29 @@ def run_file(path: str) -> None:
 
 def run_prompt(prompt: str="lox> ") -> None:
     while True:
+        global gHadError
+        gHadError = False
+
         try:
             line = input(prompt)
         except EOFError:
             break
-        run(line)
-        HadError = False
 
+        scanner = Scanner(line)
+        tokens = scanner.scan_tokens()
+        parser = Parser(tokens)
+        syntax = parser.parse_repl()
+
+        # Ignore it if there was a syntax error.
+        if gHadError:
+            continue
+
+        if isinstance(syntax, list):
+            gInterpreter.interpret(syntax)
+        elif isinstance(syntax, Expr):
+            result = gInterpreter.interpret_repl(syntax)
+            if result is not None:
+                print(f"= {result}")
 
 def run(source: str) -> None:
     scanner = Scanner(source)

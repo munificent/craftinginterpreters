@@ -41,10 +41,25 @@ class Parser:
         self.tokens = tokens
         self.current = 0
 
+        self.allow_expression = False
+        self.found_expression = False
+
     def parse(self) -> List[Stmt]:
         statements = []
         while not self.is_at_end():
             statements.append(self.declaration())
+        return statements
+
+    def parse_repl(self):
+        self.allow_expression = True
+        statements = []
+        while not self.is_at_end():
+            statements.append(self.declaration())
+
+            if self.found_expression:
+                last = statements[-1]
+                return last.expression
+            self.allow_expression = False
         return statements
 
     def declaration(self) -> Stmt:
@@ -75,7 +90,11 @@ class Parser:
 
     def expression_statement(self) -> Expression:
         expr = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+
+        if self.allow_expression and self.is_at_end():
+            self.found_expression = True
+        else:
+            self.consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return Expression(expr)
 
     def block(self) -> List[Stmt]:
