@@ -1,6 +1,6 @@
 > You can choose your friends but you sho' can't choose your family, an' they're
-> still kin to you no matter whether you acknowledge 'em or not, and it makes
-> you look right silly when you don't.
+> still kin to you no matter whether you acknowledge &rsquo;em or not, and it
+> makes you look right silly when you don't.
 >
 > <cite>Harper Lee, <em>To Kill a Mockingbird</em></cite>
 
@@ -46,13 +46,13 @@ class Cruller < Doughnut {
 }
 ```
 
-Here, the Cruller class inherits from Doughnut and thus instances of Cruller
+Here, the Cruller class inherits from Doughnut and thus, instances of Cruller
 inherit the `cook()` method. I don't know why I'm belaboring this. You know how
 inheritance works. Let's start compiling the new syntax.
 
 ^code compile-superclass (2 before, 1 after)
 
-After we compile the class name, if the next token is a `<` then we found a
+After we compile the class name, if the next token is a `<`, then we found a
 superclass clause. We consume the superclass's identifier token, then call
 `variable()`. That function takes the previously consumed token, treats it as a
 variable reference, and emits code to load the variable's value. In other words,
@@ -119,7 +119,7 @@ journey:
 
 <img src="image/superclasses/jlox-resolve.png" alt="Resolving a call to cook() in an instance of Cruller means walking the superclass chain." />
 
-That's a lot of work to perform during method *invocation* time. It's slow and,
+That's a lot of work to perform during method *invocation* time. It's slow, and
 worse, the farther an inherited method is up the ancestor chain, the slower it
 gets. Not a great performance story.
 
@@ -141,7 +141,7 @@ field on the instance doesn't shadow the method.
 </aside>
 
 I've sometimes heard this technique called "copy-down inheritance". It's simple
-and fast, but, like most optimizations, you only get to use it under certain
+and fast, but, like most optimizations, you get to use it only under certain
 constraints. It works in Lox because Lox classes are *closed*. Once a class
 declaration is finished executing, the set of methods for that class can never
 change.
@@ -202,7 +202,7 @@ and their code.
 
 ## Storing Superclasses
 
-Did you notice that when we added method inheritance we didn't actually add any
+Did you notice that when we added method inheritance, we didn't actually add any
 reference from a subclass to its superclass? After we copy the inherited methods
 over, we forget the superclass entirely. We don't need to keep a handle on the
 superclass, so we don't.
@@ -248,10 +248,10 @@ C().test();
 ```
 
 Inside the body of the `test()` method, `this` is an instance of C. If super
-calls were resolved relative to the superclass of the *receiver* then we would
+calls were resolved relative to the superclass of the *receiver*, then we would
 look in C's superclass, B. But super calls are resolved relative to the
 superclass of the *surrounding class where the super call occurs*. In this case,
-we are in B's `test()` method, so the superclass is A and the program should
+we are in B's `test()` method, so the superclass is A, and the program should
 print "A method".
 
 This means that super calls are not resolved dynamically based on the runtime
@@ -335,12 +335,12 @@ Since we opened a local scope for the superclass variable, we need to close it.
 
 We pop the scope and discard the "super" variable after compiling the class body
 and its methods. That way, the variable is accessible in all of the methods of
-the subclass. It's a somewhat pointless optimization, but we only create the
-scope if there *is* a superclass clause. Thus we only need to close the scope if
+the subclass. It's a somewhat pointless optimization, but we create the scope
+only if there *is* a superclass clause. Thus we need to close the scope only if
 there is one.
 
 To track that, we could declare a little local variable in `classDeclaration()`.
-But soon other functions in the compiler will need to know whether the
+But soon, other functions in the compiler will need to know whether the
 surrounding class is a subclass or not. So we may as well give our future selves
 a hand and store this fact as a field in the ClassCompiler now.
 
@@ -376,7 +376,7 @@ This is it, friend. The very last entry you'll add to the parsing table.
 ^code table-super (1 before, 1 after)
 
 When the expression parser lands on a `super` token, control jumps to a new
-parsing function which starts off like so.
+parsing function which starts off like so:
 
 ^code super
 
@@ -476,7 +476,7 @@ for reporting.
 
 ^code super-errors (1 before, 1 after)
 
-A super call is only meaningful inside the body of a method (or in a function
+A super call is meaningful only inside the body of a method (or in a function
 nested inside a method), and only inside the method of a class that has a
 superclass. We detect both of these cases using the value of `currentClass`. If
 that's `NULL` or points to a class with no superclass, we report those errors.
@@ -523,13 +523,13 @@ pushes the new bound method. Otherwise, it reports a runtime error and returns
 <aside name="field">
 
 Another difference compared to `OP_GET_PROPERTY` is that we don't try to look
-for a shadowing field first. Fields are not inherited so `super` expressions
+for a shadowing field first. Fields are not inherited, so `super` expressions
 always resolve to methods.
 
 If Lox were a prototype-based language that used *delegation* instead of
 *inheritance*, then instead of one *class* inheriting from another *class*,
 instances would inherit from ("delegate to") other instances. In that case,
-fields *can* be inherited and we would need to check for them here.
+fields *could* be inherited, and we would need to check for them here.
 
 </aside>
 
@@ -537,7 +537,7 @@ fields *can* be inherited and we would need to check for them here.
 
 We have superclass method accesses working now. And since the returned object is
 an ObjBoundMethod that you can then invoke, we've got super *calls* working too.
-Just like last chapter, we've reached a point where our VM has the complete
+Just like last chapter, we've reached a point where our VM has the complete,
 correct semantics.
 
 But, also like last chapter, it's pretty slow. Again, we're heap allocating an
@@ -552,7 +552,7 @@ you invoke it immediately or not.
 The compiler can certainly answer that question for itself if it sees a left
 parenthesis after the superclass method name, so we'll go ahead and perform the
 same optimization we did for method calls. Take out the two lines of code that
-load the superclass and emit `OP_GET_SUPER` and replace them with this:
+load the superclass and emit `OP_GET_SUPER`, and replace them with this:
 
 ^code super-invoke (1 before, 1 after)
 
@@ -561,7 +561,7 @@ find one, we compile that. Then we load the superclass. After that, we emit a
 new `OP_SUPER_INVOKE` instruction. This <span
 name="superinstruction">superinstruction</span> combines the behavior of
 `OP_GET_SUPER` and `OP_CALL`, so it takes two operands: the constant table index
-of the method name to lookup and the number of arguments to pass to it.
+of the method name to look up and the number of arguments to pass to it.
 
 <aside name="superinstruction">
 
@@ -612,7 +612,7 @@ for a method call.
 We pass the superclass, method name, and argument count to our existing
 `invokeFromClass()` function. That function looks up the given method on the
 given class and attempts to create a call to it with the given arity. If a
-method could not be found, it returns `false` and we bail out of the
+method could not be found, it returns `false`, and we bail out of the
 interpreter. Otherwise, `invokeFromClass()` pushes a new CallFrame onto the call
 stack for the method's closure. That invalidates the interpreter's cached
 CallFrame pointer, so we refresh `frame`.
@@ -621,7 +621,7 @@ CallFrame pointer, so we refresh `frame`.
 
 Take a look back at what we've created. By my count, we wrote around 2,500 lines
 of fairly clean, straightforward C. That little program contains a complete
-implementation of the -- quite high-level! -- Lox language with a whole
+implementation of the -- quite high-level! -- Lox language, with a whole
 precedence table full of expression types and a suite of control flow
 statements. We implemented variables, functions, closures, classes, fields,
 methods, and inheritance.
@@ -636,11 +636,11 @@ If you go out and start poking around in the implementations of Lua, Python, or
 Ruby, you will be surprised by how much of it now looks familiar to you. You
 have seriously leveled up your knowledge of how programming languages work,
 which in turn gives you a deeper understanding of programming itself. It's like
-you used to be a race car driver and now you can pop the hood and repair the
+you used to be a race car driver, and now you can pop the hood and repair the
 engine too.
 
 You can stop here if you like. The two implementations of Lox you have are
-complete and full-featured. You built the car and can drive it wherever you want
+complete and full featured. You built the car and can drive it wherever you want
 now. But if you are looking to have more fun tuning and tweaking for even
 greater performance out on the track, there is one more chapter. We don't add
 any new capabilities, but we roll in a couple of classic optimizations to
@@ -667,13 +667,13 @@ squeeze even more perf out. If that sounds fun, [keep reading][opt]...
     If Lox was your language, how would you address this, if at all? If you
     would change the language, implement your change.
 
-2.  Our copy-down inheritance optimization is only valid because Lox does not
+2.  Our copy-down inheritance optimization is valid only because Lox does not
     permit you to modify a class's methods after its declaration. This means we
     don't have to worry about the copied methods in the subclass getting out of
     sync with later changes to the superclass.
 
-    Other languages like Ruby *do* allow classes to be modified after the fact.
-    How do implementations of languages like that support class
+    Other languages, like Ruby, *do* allow classes to be modified after the
+    fact. How do implementations of languages like that support class
     modification while keeping method resolution efficient?
 
 3.  In the [jlox chapter on inheritance][inheritance], we had a challenge to
@@ -698,11 +698,11 @@ squeeze even more perf out. If that sounds fun, [keep reading][opt]...
     then the subclass has no way of overriding or modifying the superclass's
     behavior.
 
-    Take out Lox's current overriding and `super` behavior and replace it with
+    Take out Lox's current overriding and `super` behavior, and replace it with
     BETA's semantics. In short:
 
-    *   When calling a method on a class, prefer the method *highest* on the
-        class's inheritance chain.
+    *   When calling a method on a class, the method *highest* on the
+        class's inheritance chain takes precedence.
 
     *   Inside the body of a method, a call to `inner` looks for a method with
         the same name in the nearest subclass along the inheritance chain
