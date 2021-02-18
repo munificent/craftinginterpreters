@@ -13,8 +13,11 @@ declaration    → varDecl
                | statement
 varDecl        → "var" IDENTIFIER ( "=" expression)? ";"
 statement      → exprStmt
+               | ifStmt
                | printStmt
-               | block
+               | block ;
+ifStmt         → "if" "(" expression ")" statement
+                 ( "else" statement )? ;
 block          → "{" declaration* "}" ;
 exprStmt       → expression ";"
 printStmt      → "print" expression ";"
@@ -75,7 +78,17 @@ class Parser:
             return self.print_statement()
         elif self.match(TokenType.LEFT_BRACE):
             return Block(self.block())
+        elif self.match(TokenType.IF):
+            return self.if_statement()
         return self.expression_statement()
+
+    def if_statement(self) -> If:
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+        then_branch = self.statement()
+        else_branch = self.statement() if self.match(TokenType.ELSE) else None
+        return If(condition, then_branch, else_branch)
 
     def print_statement(self) -> Print:
         value = self.expression()

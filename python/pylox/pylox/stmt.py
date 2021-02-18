@@ -20,6 +20,16 @@ class Block(Stmt):
 
 
 @dataclass
+class If(Stmt):
+    condition: Expr
+    then_branch: Stmt
+    else_branch: Stmt
+
+    def accept(self, visitor: 'Visitor'):
+        return visitor.visit_if(self)
+
+
+@dataclass
 class Expression(Stmt):
     expression: Expr
 
@@ -48,6 +58,10 @@ class Visitor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def visit_block(self, stmt: Block):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def visit_if(self, stmt: If):
         raise NotImplementedError
 
     @abc.abstractmethod

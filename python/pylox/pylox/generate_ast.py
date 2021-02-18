@@ -20,6 +20,7 @@ def main():
 
     define_ast(output_dir, "Stmt", [
         "Block : List[Stmt] statements",
+        "If : Expr condition, Stmt then_branch, Stmt else_branch",
         "Expression : Expr expression",
         "Print : Expr expression",
         "Var : Token name, Expr initializer",
