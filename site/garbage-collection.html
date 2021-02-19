@@ -468,7 +468,7 @@ in <em>allocateObject</em>()</div>
 <pre class="insert">
 
 <span class="a">#ifdef DEBUG_LOG_GC</span>
-  <span class="i">printf</span>(<span class="s">&quot;%p allocate %ld for %d</span><span class="e">\n</span><span class="s">&quot;</span>, (<span class="t">void</span>*)<span class="i">object</span>, <span class="i">size</span>, <span class="i">type</span>);
+  <span class="i">printf</span>(<span class="s">&quot;%p allocate %zu for %d</span><span class="e">\n</span><span class="s">&quot;</span>, (<span class="t">void</span>*)<span class="i">object</span>, <span class="i">size</span>, <span class="i">type</span>);
 <span class="a">#endif</span>
 
 </pre><pre class="insert-after">
@@ -909,8 +909,8 @@ in <em>markObject</em>()</div>
 
   <span class="k">if</span> (<span class="i">vm</span>.<span class="i">grayCapacity</span> &lt; <span class="i">vm</span>.<span class="i">grayCount</span> + <span class="n">1</span>) {
     <span class="i">vm</span>.<span class="i">grayCapacity</span> = <span class="a">GROW_CAPACITY</span>(<span class="i">vm</span>.<span class="i">grayCapacity</span>);
-    <span class="i">vm</span>.<span class="i">grayStack</span> = <span class="i">realloc</span>(<span class="i">vm</span>.<span class="i">grayStack</span>,
-                           <span class="k">sizeof</span>(<span class="t">Obj</span>*) * <span class="i">vm</span>.<span class="i">grayCapacity</span>);
+    <span class="i">vm</span>.<span class="i">grayStack</span> = (<span class="t">Obj</span>**)<span class="i">realloc</span>(<span class="i">vm</span>.<span class="i">grayStack</span>,
+                                  <span class="k">sizeof</span>(<span class="t">Obj</span>*) * <span class="i">vm</span>.<span class="i">grayCapacity</span>);
   }
 
   <span class="i">vm</span>.<span class="i">grayStack</span>[<span class="i">vm</span>.<span class="i">grayCount</span>++] = <span class="i">object</span>;
@@ -984,8 +984,8 @@ and try again. That may give us enough wiggle room on the heap to create the
 gray stack, finish the GC, and free up more memory.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-    vm.grayStack = realloc(vm.grayStack,
-                           sizeof(Obj*) * vm.grayCapacity);
+    vm.grayStack = (Obj**)realloc(vm.grayStack,
+                                  sizeof(Obj*) * vm.grayCapacity);
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markObject</em>()</div>
 <pre class="insert">
@@ -1612,7 +1612,7 @@ in <em>collectGarbage</em>()</div>
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
-  <span class="i">printf</span>(<span class="s">&quot;   collected %ld bytes (from %ld to %ld) next at %ld</span><span class="e">\n</span><span class="s">&quot;</span>,
+  <span class="i">printf</span>(<span class="s">&quot;   collected %zu bytes (from %zu to %zu) next at %zu</span><span class="e">\n</span><span class="s">&quot;</span>,
          <span class="i">before</span> - <span class="i">vm</span>.<span class="i">bytesAllocated</span>, <span class="i">before</span>, <span class="i">vm</span>.<span class="i">bytesAllocated</span>,
          <span class="i">vm</span>.<span class="i">nextGC</span>);
 </pre><pre class="insert-after">
