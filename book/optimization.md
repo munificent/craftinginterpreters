@@ -26,7 +26,7 @@ hold the entire hardware architecture and compiler pipeline in their head and
 understand a program's performance just by thinking real hard. Those days are
 long gone, separated from the present by microcode, cache lines, branch
 prediction, deep compiler pipelines, and mammoth instruction sets. We like to
-pretend C is a "low level" language, but the stack of technology between
+pretend C is a "low-level" language, but the stack of technology between
 `printf("Hello, world!");` and a greeting appearing on screen is now miles tall.
 
 Optimization today is an empirical science. Our program is a border collie
@@ -47,7 +47,7 @@ programs that use a feature and validate the VM's behavior. Tests pin down
 semantics and ensure we don't break existing features when we add new ones. We
 have similar needs when it comes to performance:
 
-1.  How do we validate that an optimization *does* improve performance and by
+1.  How do we validate that an optimization *does* improve performance, and by
     how much?
 
 2.  How do we ensure that other unrelated changes don't *regress* performance?
@@ -61,7 +61,7 @@ name="much">*long*</span> it takes to do it.
 
 Most benchmarks measure running time. But, of course, you'll eventually find
 yourself needing to write benchmarks that measure memory allocation, how much
-time is spent in the garbage collector, start-up time, etc.
+time is spent in the garbage collector, startup time, etc.
 
 </aside>
 
@@ -80,12 +80,12 @@ The suite of benchmarks you choose to write is a key part of that decision. In
 the same way that your tests encode your choices around what correct behavior
 looks like, your benchmarks are the embodiment of your priorities when it comes
 to performance. They will guide which optimizations you implement, so choose
-your benchmarks carefully and don't forget to periodically reflect on whether
+your benchmarks carefully, and don't forget to periodically reflect on whether
 they are helping you reach your larger goals.
 
 <aside name="js">
 
-In the early proliferation of JavaScript VMs, the first widely-used benchmark
+In the early proliferation of JavaScript VMs, the first widely used benchmark
 suite was SunSpider from WebKit. During the browser wars, marketing folks used
 SunSpider results to claim their browser was fastest. That highly incentivized
 VM hackers to optimize to those benchmarks.
@@ -118,7 +118,7 @@ but treat benchmarking as its own skill that improves with practice.
 ### Profiling
 
 OK, so you've got a few benchmarks now. You want to make them go faster. Now
-what? First of all, let's assume you've done all the obvious easy work. You are
+what? First of all, let's assume you've done all the obvious, easy work. You are
 using the right algorithms and data structures -- or, at least, you aren't using
 ones that are aggressively wrong. I don't consider using a hash table instead of
 a linear search through a huge unsorted array "optimization" so much as "good
@@ -320,9 +320,9 @@ out at eight elements and grows by a factor of two each time. We know -- and the
 CPU and C compiler do not -- that our table's size is always a power of two.
 
 Because we're clever bit twiddlers, we know a faster way to calculate the
-remainder of a number modulo a power of two: *masking*. Let's say we want to
-calculate 229 modulo 64. The answer is 37, which is not particularly apparent in
-decimal, but is clearer when you view those numbers in binary:
+remainder of a number modulo a power of two: **bit masking**. Let's say we want
+to calculate 229 modulo 64. The answer is 37, which is not particularly apparent
+in decimal, but is clearer when you view those numbers in binary:
 
 <img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 & 63 = 37." />
 
@@ -330,16 +330,18 @@ On the left side of the illustration, notice how the result (37) is simply the
 dividend (229) with the highest two bits shaved off? Those two highest bits are
 the bits at or to the left of the divisor's single 1 bit.
 
-On the right side, we get the same result by taking 229 and bitwise and-ing it
-with 63, which is one less than our original power of two divisor. Subtracting
-one from a power of two gives you a series of 1 bits. That is exactly the mask
-we need in order to strip out those two leftmost bits.
+On the right side, we get the same result by taking 229 and bitwise <span
+class="small-caps">AND</span>-ing it with 63, which is one less than our
+original power of two divisor. Subtracting one from a power of two gives you a
+series of 1 bits. That is exactly the mask we need in order to strip out those
+two leftmost bits.
 
 In other words, you can calculate a number modulo any power of two by simply
-and-ing it with that power of two minus one. I'm not enough of a mathematician
-to *prove* to you that this works, but if you think it through, it should make
-sense. We can replace that slow modulo operator with a fast subtraction followed
-by a very fast bitwise and. We simply change the offending line of code to:
+<span class="small-caps">AND</span>-ing it with that power of two minus one. I'm
+not enough of a mathematician to *prove* to you that this works, but if you
+think it through, it should make sense. We can replace that slow modulo operator
+with a fast subtraction followed by a very fast bitwise <span
+class="small-caps">AND</span>. We simply change the offending line of code to:
 
 ```c
   uint32_t index = key->hash & (capacity - 1);
@@ -353,9 +355,9 @@ store the *capacity* since we can easily calculate that by incrementing the
 mask.
 
 Instead of storing the entry array *capacity* in Table, we'll directly store the
-*bit mask*. We'll keep the <span name="rename">same</span> `capacity` field but
-its meaning and value are now different. It now stores the mask and its value is
-always one *less* than the size of the entry array.
+*bit mask*. We'll keep the <span name="rename">same</span> `capacity` field, but
+its meaning and value are now different. It now stores the mask, and its value
+is always one *less* than the size of the entry array.
 
 <aside name="rename">
 
@@ -376,7 +378,7 @@ is another modulo in `findEntry()` to update.
 
 ^code next-index (4 before, 1 after)
 
-This line didn't show up in the profile since most searches don't wrap.
+This line didn't show up in the profiler since most searches don't wrap.
 
 Before we can try out these changes and see how they affect the performance, we
 have to fix every piece of code that uses the `capacity` field and update it to
@@ -439,14 +441,14 @@ And also when the linear probing wraps around.
 
 ^code find-string-next (3 before, 1 after)
 
-These are real optimizations. This function is only called when interning
+These are real optimizations. This function is called only when interning
 strings, which wasn't heavily stressed by our benchmark. But a Lox program that
 created lots of strings might noticeably benefit from this change.
 
 ### Memory manager changes
 
 There are a few places in the memory management code where we access a hash
-table's capacity. First, using a `<=` in the loop when we mark all of the
+table's capacity. First, we need a `<=` in the loop when we mark all of the
 entries in a table.
 
 ^code mark-table (1 before, 1 after)
@@ -501,7 +503,7 @@ blindly guessing at hotspots, we likely wouldn't have noticed it. What I want
 you to take away from this is how important it is to have a profiler in your
 toolbox.
 
-To reinforce that point, let's go ahead and run the same benchmark in our
+To reinforce that point, let's go ahead and run the original benchmark in our
 now-optimized VM and see what the profiler shows us. On my machine, `tableGet()`
 is still a fairly large chunk of execution time. That's to be expected for a
 dynamically typed language. But it has dropped from 72% of the total execution
@@ -515,7 +517,7 @@ they are for discovering problems.
 This next optimization has a very different feel. Thankfully, despite the odd
 name, it does not involve punching your grandmother. It's different, but not,
 like, *that* different. With our previous optimization, the profiler told us
-where the problem was and we merely had to use some ingenuity to come up with a
+where the problem was, and we merely had to use some ingenuity to come up with a
 solution.
 
 This optimization is more subtle, and its performance effects more scattered
@@ -528,7 +530,7 @@ about the lowest levels of machine architecture.
 I'm not sure who first came up with this trick. The earliest source I can find
 is David Gudeman's 1993 paper "Representing Type Information in Dynamically
 Typed Languages". Everyone else cites that. But Gudeman himself says the paper
-isn't novel work but instead "gathers together a body of folklore".
+isn't novel work, but instead "gathers together a body of folklore".
 
 Maybe the inventor has been lost to the mists of time, or maybe it's been
 reinvented a number of times. Anyone who ruminates on IEEE 754 long enough
@@ -537,10 +539,10 @@ unused NaN bits.
 
 </aside>
 
-Like the heading says, this optimization is called "NaN boxing" or sometimes
-"NaN tagging". Personally I like the latter name because "boxing" tends to imply
+Like the heading says, this optimization is called **NaN boxing** or sometimes
+**NaN tagging**. Personally I like the latter name because "boxing" tends to imply
 some kind of heap-allocated representation, but the former seems to be the more
-widely-used term. This technique changes how we represent values in the VM.
+widely used term. This technique changes how we represent values in the VM.
 
 On a 64-bit machine, our Value type takes up 16 bytes. The struct has two
 fields, a type tag and a union for the payload. The largest fields in the union
@@ -552,10 +554,10 @@ aligned to an 8-byte boundary, the compiler adds padding after the tag too:
 That's pretty big. If we could cut that down, then the VM could pack more values
 into the same amount of memory. Most computers have plenty of RAM these days, so
 the direct memory savings aren't a huge deal. But a smaller representation means
-more Values fit in a cache line. That means fewer cache misses which affects
+more Values fit in a cache line. That means fewer cache misses, which affects
 *speed*.
 
-If Values need to be aligned to their largest payload size and a Lox number or
+If Values need to be aligned to their largest payload size, and a Lox number or
 Obj pointer needs a full 8 bytes, how can we get any smaller? In a dynamically
 typed language like Lox, each value needs to carry not just its payload, but
 enough additional information to determine the value's type at runtime. If a Lox
@@ -571,7 +573,7 @@ int, the resulting variable gets *exactly* 32 bits of storage.
 Dynamic language folks hate losing ground to the static camp, so they've come up
 with a number of very clever ways to pack type information and a payload into a
 small number of bits. NaN boxing is one of those. It's a particularly good fit
-for languages like JavaScript and Lua where all numbers are double-precision
+for languages like JavaScript and Lua, where all numbers are double-precision
 floating point. Lox is in that same camp.
 
 ### What is (and is not) a number?
@@ -583,8 +585,8 @@ scheme, encoded in the venerable scroll [IEEE 754][754], known to mortals as the
 
 [754]: https://en.wikipedia.org/wiki/IEEE_754
 
-In the eyes of your computer, a <span name="hyphen">64-bit</span>
-double-precision IEEE floating-point number looks like this:
+In the eyes of your computer, a <span name="hyphen">64-bit</span>,
+double-precision, IEEE floating-point number looks like this:
 
 <aside name="hyphen">
 
@@ -601,18 +603,18 @@ That's a lot of hyphens for one sentence.
 *   Next to that are 11 **exponent** bits. These tell you how far the mantissa
     is shifted away from the decimal (well, binary) point.
 
-*   The highest bit is the <span name="sign">**sign bit**</span> and indicates
-    whether the number is positive or negative.
+*   The highest bit is the <span name="sign">**sign bit**</span>, which
+    indicates whether the number is positive or negative.
 
 I know that's a little vague, but this chapter isn't a deep dive on
-floating-point representation. If you want to know how the exponent and mantissa
+floating point representation. If you want to know how the exponent and mantissa
 play together, there are already better explanations out there than I could
 write.
 
 <aside name="sign">
 
-Since the sign bit is always present even if the number is zero, that implies
-that "positive zero" and "negative zero" have different bit representations and,
+Since the sign bit is always present, even if the number is zero, that implies
+that "positive zero" and "negative zero" have different bit representations, and
 indeed, IEEE 754 does distinguish those.
 
 </aside>
@@ -626,7 +628,7 @@ infinity or the result of division by zero.
 *Any* double whose exponent bits are all set is a NaN, regardless of the
 mantissa bits. That means there's lots and lots of *different* NaN bit patterns.
 IEEE 754 divides those into two categories. Values where the highest mantissa
-bit is 0 are called **signalling NaNs** and the others are **quiet NaNs**.
+bit is 0 are called **signalling NaNs**, and the others are **quiet NaNs**.
 Signalling NaNs are intended to be the result of erroneous computations, like
 division by zero. A chip <span name="abort">may</span> detect when one of these
 values is produced and abort a program completely. They may self-destruct if you
@@ -658,7 +660,7 @@ about Obj pointers? Don't pointers need a full 64 bits too?
 
 Fortunately, we have another trick up our other sleeve. Yes, technically
 pointers on a 64-bit architecture are 64 bits. But, no architecture I know of
-actually uses that entire address space. Instead, most widely-used chips today
+actually uses that entire address space. Instead, most widely used chips today
 only ever use the low <span name="48">48</span> bits. The remaining 16 bits are
 either unspecified or always zero.
 
@@ -680,13 +682,13 @@ while retaining all of the fidelity.
 
 What's particularly nice about this representation is that there is no need to
 *convert* a numeric double value into a "boxed" form. Lox numbers *are* just
-normal 64-bit doubles. We still need to *check* their type before we use them,
+normal, 64-bit doubles. We still need to *check* their type before we use them,
 since Lox is dynamically typed, but we don't need to do any bit shifting or
 pointer indirection to go from "value" to "number".
 
 For the other value types, there is a conversion step, of course. But,
 fortunately, our VM hides all of the mechanism to go from values to raw types
-behind a handful of macros. Rewrite those to implement NaN boxing and the rest
+behind a handful of macros. Rewrite those to implement NaN boxing, and the rest
 of the VM should just work.
 
 ### Conditional support
@@ -719,11 +721,11 @@ new type.
 
 ^code nan-boxing (2 before, 1 after)
 
-When NaN boxing is enabled, the actual type of a Value is a flat unsigned 64-bit
-integer. We could use double instead which would make the macros for dealing
-with Lox numbers a little simpler. But all of the other macros need to do
-bitwise operations and uint64_t is a much friendlier type for that. Outside of
-this module, the rest of the VM doesn't really care one way or the other.
+When NaN boxing is enabled, the actual type of a Value is a flat, unsigned
+64-bit integer. We could use double instead, which would make the macros for
+dealing with Lox numbers a little simpler. But all of the other macros need to
+do bitwise operations and uint64_t is a much friendlier type for that. Outside
+of this module, the rest of the VM doesn't really care one way or the other.
 
 Before we start re-implementing those macros, we close the `#else` branch of the
 `#ifdef` at the end of the definitions for the old representation.
@@ -743,9 +745,9 @@ convince our C compiler of that fact, which we made harder by defining Value to
 be uint64_t.
 
 We need to get the compiler to take a set of bits that it thinks are a double
-and use those same bits as a uint64_t, or vice versa -- called **type punning**.
-C and C++ programmers have been doing this since the days of bell bottoms and
-8-tracks, but the language specifications have <span
+and use those same bits as a uint64_t, or vice versa. This is called **type
+punning**. C and C++ programmers have been doing this since the days of bell
+bottoms and 8-tracks, but the language specifications have <span
 name="hesitate">hesitated</span> to say which of the many ways to do this is
 officially sanctioned.
 
@@ -753,12 +755,12 @@ officially sanctioned.
 
 Spec authors don't like type punning because it makes optimization harder. A key
 optimization technique is reordering instructions to fill the CPU's execution
-pipelines. A compiler can only reorder code when doing so doesn't have a user
-visible effect, obviously.
+pipelines. A compiler can reorder code only when doing so doesn't have a
+user-visible effect, obviously.
 
 Pointers make that harder. If two pointers point to the same value, then a write
 through one and a read through the other cannot be reordered. But what about two
-pointers of *different* types? If those could point to the same object then
+pointers of *different* types? If those could point to the same object, then
 basically *any* two pointers could be aliases to the same value. That
 drastically limits the amount of code the compiler is free to rearrange.
 
@@ -781,7 +783,7 @@ That macro passes the double here:
 
 I know, weird, right? The way to treat a series of bytes as having a different
 type without changing their value at all is `memcpy()`? This looks horrendously
-slow. Create a local variable. Pass its address to the operating system through
+slow: Create a local variable. Pass its address to the operating system through
 a syscall to copy a few bytes. Then return the result, which is the exact same
 bytes as the input.
 
@@ -864,11 +866,11 @@ to dodge that Intel value.
 ### Nil, true, and false
 
 The next type to handle is `nil`. That's pretty simple since there's only one
-`nil` value and thus we only need a single bit pattern to represent it. There
-are two other singleton values, the two Booleans `true` and `false` which calls
+`nil` value and thus we need only a single bit pattern to represent it. There
+are two other singleton values, the two Booleans, `true` and `false`. This calls
 for three total unique bit patterns.
 
-Two bits gives us four different combinations, which is plenty. We claim the two
+Two bits give us four different combinations, which is plenty. We claim the two
 lowest bits of our unused mantissa space as a "type tag" to determine which of
 these three singleton values we're looking at. The three type tags are defined
 like so:
@@ -884,8 +886,9 @@ In code, we check the bits like so:
 
 ^code nil-val (2 before, 1 after)
 
-We simply bitwise or the quiet NaN bits and the type tag, and then do a little
-cast dance to teach the C compiler what we want those bits to mean.
+We simply bitwise <span class="small-caps">OR</span> the quiet NaN bits and the
+type tag, and then do a little cast dance to teach the C compiler what we want
+those bits to mean.
 
 Since `nil` has only a single bit representation, we can use equality on
 uint64_t to see if a Value is `nil`.
@@ -898,7 +901,7 @@ You can guess how we define the `true` and `false` values.
 
 ^code false-true-vals (2 before, 1 after)
 
-The bits look like this.
+The bits look like this:
 
 <img src="image/optimization/bools.png" alt="The bit representation of the true and false values." />
 
@@ -915,7 +918,7 @@ simpler.
 
 Since we know there are exactly two Boolean bit representations in Lox -- unlike
 in C where any non-zero value can be considered "true" -- if it ain't `true`, it
-must be `false`. This macro does assume you only call it on a Value that you
+must be `false`. This macro does assume you call it only on a Value that you
 know *is* a Lox Boolean. To check that, there's one more macro.
 
 ^code is-bool (2 before, 1 after)
@@ -926,18 +929,19 @@ That looks a little strange. A more obvious macro would look like this:
 #define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)
 ```
 
-Unfortunately, that's not safe. The expansion mentions `v` twice which means if
+Unfortunately, that's not safe. The expansion mentions `v` twice, which means if
 that expression has any side effects, they will be executed twice. We could have
 the macro call out to a separate function, but, ugh, what a chore.
 
-Instead, we bitwise or a 1 onto the value to merge the only two valid Boolean
-bit patterns. That leaves three potential states the value could be in:
+Instead, we bitwise <span class="small-caps">OR</span> a 1 onto the value to
+merge the only two valid Boolean bit patterns. That leaves three potential
+states the value can be in:
 
 1. It was `FALSE_VAL` and has now been converted to `TRUE_VAL`.
 
 2. It was `TRUE_VAL` and the `| 1` did nothing and it's still `TRUE_VAL`.
 
-3. It's some other non-Boolean value.
+3. It's some other, non-Boolean value.
 
 At that point, we can simply compare the result to `TRUE_VAL` to see if we're
 in the first two states or the third.
@@ -947,7 +951,7 @@ in the first two states or the third.
 The last value type is the hardest. Unlike the singleton values, there are
 billions of different pointer values we need to box inside a NaN. This means we
 need both some kind of tag to indicate that these particular NaNs *are* Obj
-pointers and we need room for the addresses themselves.
+pointers, and room for the addresses themselves.
 
 The tag bits we used for the singleton values are in the region where I decided
 to store the pointer itself, so we can't easily use a different <span
@@ -962,9 +966,10 @@ of the previous singleton values.
 
 We actually *could* use the lowest bits to store the type tag even when the
 value is an Obj pointer. That's because Obj pointers are always aligned to an
-8-byte boundary since Obj contains a 64-bit field. That in turn implies that the
-three lowest bits of an Obj pointer will always be zero. We could store whatever
-we wanted in there and just mask it off before dereferencing the pointer.
+8-byte boundary since Obj contains a 64-bit field. That, in turn, implies that
+the three lowest bits of an Obj pointer will always be zero. We could store
+whatever we wanted in there and just mask it off before dereferencing the
+pointer.
 
 This is another value representation optimization called "pointer tagging".
 
@@ -980,18 +985,18 @@ quiet NaN bits and the sign bit.
 
 ^code obj-val (1 before, 2 after)
 
-The pointer itself is a full 64 bits and, in <span name="safe">principle</span>,
+The pointer itself is a full 64 bits, and in <span name="safe">principle</span>,
 it could thus overlap with some of those quiet NaN and sign bits. But in
-practice, at least on the architectures I've tested, everything above the 48-th
+practice, at least on the architectures I've tested, everything above the 48th
 bit in a pointer is always zero. There's a lot of casting going on here, which
 I've found is necessary to satisfy some of the pickiest C compilers, but the
-end result is just munging some bits together.
+end result is just jamming some bits together.
 
 <aside name="safe">
 
 I try to follow the letter of the law when it comes to the code in this book, so
 this paragraph is dubious. There comes a point when optimizing where you push
-the boundary of not just what the *spec says* you can do but what a real
+the boundary of not just what the *spec says* you can do, but what a real
 compiler and chip let you get away with.
 
 There are risks when stepping outside of the spec, but there are rewards in that
@@ -1007,10 +1012,10 @@ To get the Obj pointer back out, we simply mask off all of those extra bits.
 
 ^code as-obj (1 before, 2 after)
 
-The tilde (`~`), if you haven't done enough bit munging to encounter it before,
-is bitwise not. It toggles all ones and zeroes in its operand. By masking the
-value with the bitwise negation of the quiet NaN and sign bits, we *clear* those
-bits and let the pointer bits remain.
+The tilde (`~`), if you haven't done enough bit manipulation to encounter it
+before, is bitwise <span class="small-caps">NOT</span>. It toggles all ones and
+zeroes in its operand. By masking the value with the bitwise negation of the
+quiet NaN and sign bits, we *clear* those bits and let the pointer bits remain.
 
 One last macro:
 
@@ -1019,7 +1024,7 @@ One last macro:
 A Value storing an Obj pointer has its sign bit set, but so does any negative
 number. To tell if a Value is an Obj pointer, we need to check that both the
 sign bit and all of the quiet NaN bits are set. This is similar to how we detect
-the type of the singleton values except this time we use the sign bit as the
+the type of the singleton values, except this time we use the sign bit as the
 tag.
 
 ### Value functions
@@ -1030,7 +1035,7 @@ module that peek inside the otherwise black box of Value and work with its
 encoding directly. We need to fix those too.
 
 The first is `printValue()`. It has separate code for each value type. We no
-longer have an explicit type enum we can switch on so instead we use a series
+longer have an explicit type enum we can switch on, so instead we use a series
 of type tests to handle each kind of value.
 
 ^code print-value (1 before, 1 after)
@@ -1051,17 +1056,17 @@ It doesn't get much simpler than that! If the two bit representations are
 identical, the values are equal. That does the right thing for the singleton
 values since each has a unique bit representation and they are only equal to
 themselves. It also does the right thing for Obj pointers, since objects use
-identity for equality -- two Obj references are only equal if they point to the
+identity for equality -- two Obj references are equal only if they point to the
 exact same object.
 
 It's *mostly* correct for numbers too. Most floating-point numbers with
 different bit representations are distinct numeric values. Alas, IEEE 754
 contains a pothole to trip us up. For reasons that aren't entirely clear to me,
-the spec mandates that NaN values are *not* equal to *themselves.* This isn't a
+the spec mandates that NaN values are *not* equal to *themselves*. This isn't a
 problem for the special quiet NaNs that we are using for our own purposes. But
-it's possible to produce a "real" arithmetic NaN in Lox and if we want to
-correctly implement IEEE 754 numbers then the resulting value is not supposed to
-be equal to itself. More concretely:
+it's possible to produce a "real" arithmetic NaN in Lox, and if we want to
+correctly implement IEEE 754 numbers, then the resulting value is not supposed
+to be equal to itself. More concretely:
 
 ```lox
 var nan = 0/0;
@@ -1117,7 +1122,7 @@ well, especially in an <span name="opt">optimized</span> build.
 
 When doing profiling work, you almost always want to profile an optimized
 "release" build of your program since that reflects the performance story your
-end users experience. Compiler optimizations like inlining can dramatically
+end users experience. Compiler optimizations, like inlining, can dramatically
 affect which parts of the code are performance hotspots. Hand-optimizing a debug
 build risks sending you off "fixing" problems that the optimizing compiler will
 already solve for you.
@@ -1136,7 +1141,7 @@ the addresses handed out to us by the C memory allocator can impact the results.
 
 If we did our job right, basically everything gets a little faster, especially
 on larger, more complex Lox programs. But it is possible that the extra bitwise
-operations we do when NaN-boxing values nullifies the gains from the better
+operations we do when NaN-boxing values nullify the gains from the better
 memory use. Doing performance work like this is unnerving because you can't
 easily *prove* that you've made the VM better. You can't point to a single
 surgically targeted microbenchmark and say, "There, see?"
@@ -1151,13 +1156,13 @@ everything roughly 10% faster across the board.
 That's not a huge improvement, especially compared to the profound effect of
 making hash table lookups faster. I added this optimization in large part
 because it's a good example of a certain *kind* of performance work you may
-experience, and, honestly, because I think it's technically really cool. It
-might not be the first thing I reached for if I were seriously trying to make
-clox faster. There is probably other lower-hanging fruit.
+experience, and honestly, because I think it's technically really cool. It might
+not be the first thing I would reach for if I were seriously trying to make clox
+faster. There is probably other, lower-hanging fruit.
 
 But, if you find yourself working on a program where all of the easy wins have
 been taken, then at some point you may want to think about tuning your value
-representation. This chapter has hopefully shined a light on some of the options
+representation. I hope this chapter has shined a light on some of the options
 you have in that area.
 
 ## Where to Next
@@ -1178,7 +1183,7 @@ certainly *use* one, and I hope this book has equipped you with a better
 understanding of how the programming languages you use are designed and
 implemented.
 
-You have also learned a handful of important, fundamental data structures, and
+You have also learned a handful of important, fundamental data structures and
 gotten some practice doing low-level profiling and optimization work. That kind
 of expertise is helpful no matter what domain you program in.
 
@@ -1201,7 +1206,7 @@ engineering is how much it rewards those with eclectic interests.
 If you do want to go further down the programming language rabbit hole, here
 are some suggestions for which branches in the tunnel to explore:
 
-*   Our simple single-pass bytecode compiler pushed us towards mostly runtime
+*   Our simple, single-pass bytecode compiler pushed us towards mostly runtime
     optimization. In a mature language implementation, compile-time optimization
     is generally more important, and the field of compiler optimizations is
     incredibly rich. Grab a classic <span name="cooper">compilers</span> book,
@@ -1216,8 +1221,8 @@ are some suggestions for which branches in the tunnel to explore:
 
     <aside name="cooper">
 
-    I like Cooper and Torczon's "Engineering a Compiler" for this. Appel's
-    "Modern Compiler Implementation" is also well regarded.
+    I like Cooper and Torczon's *Engineering a Compiler* for this. Appel's
+    *Modern Compiler Implementation* books are also well regarded.
 
     </aside>
 
@@ -1250,7 +1255,7 @@ are some suggestions for which branches in the tunnel to explore:
 
     Eventually you may get to a point where you have something you think others
     could use as well. That gets you into the very distinct world of programming
-    language *popularity.* Expect to spend a ton of time writing documentation,
+    language *popularity*. Expect to spend a ton of time writing documentation,
     example programs, tools, and useful libraries. The field is crowded with
     languages vying for users. To thrive in that space you'll have to put on
     your marketing hat and *sell*. Not everyone enjoys that kind of
@@ -1279,9 +1284,9 @@ something to do during your summer vacation:
 
 2.  Many strings in real-world user programs are small, often only a character
     or two. This is less of a concern in clox because we intern strings, but
-    most VMs don't. For those that don't, heap-allocating a tiny character array
+    most VMs don't. For those that don't, heap allocating a tiny character array
     for each of those little strings and then representing the value as a
-    pointer to that array is wasteful. Often the pointer is larger than the
+    pointer to that array is wasteful. Often, the pointer is larger than the
     string's characters. A classic trick is to have a separate value
     representation for small strings that stores the characters inline in the
     value.
