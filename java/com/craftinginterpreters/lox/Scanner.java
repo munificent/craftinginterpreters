@@ -226,8 +226,7 @@ class Scanner {
 //< is-at-end
 //> advance-and-add-token
   private char advance() {
-    current++;
-    return source.charAt(current - 1);
+    return source.charAt(current++);
   }
 
   private void addToken(TokenType type) {
