@@ -81,8 +81,8 @@ these ObjClass structs to represent it.
 <img src="image/classes-and-instances/klass.png" alt="'Klass' in a zany kidz font."/>
 
 I named the variable "klass" not just to give the VM a zany preschool "Kidz
-Korner" feel. While "class" is not a reserved word in C, it is in C++, and you
-can compile clox as either.
+Korner" feel. It makes it easier to get clox compiling as C++ where "class" is
+a reserved word.
 
 </aside>
 
