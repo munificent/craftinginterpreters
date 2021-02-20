@@ -66,6 +66,10 @@ clox:
 	@ $(MAKE) -f util/c.make NAME=clox MODE=release SOURCE_DIR=c
 	@ cp build/clox clox # For convenience, copy the interpreter to the top level.
 
+# Compile the C interpreter as ANSI standard C++.
+cpplox:
+	@ $(MAKE) -f util/c.make NAME=cpplox MODE=debug CPP=true SOURCE_DIR=c
+
 # Compile and run the AST generator.
 generate_ast:
 	@ $(MAKE) -f util/java.make DIR=java PACKAGE=tool
@@ -137,6 +141,25 @@ c_chapters: split_chapters
 	@ $(MAKE) -f util/c.make NAME=chap28_methods MODE=release SOURCE_DIR=gen/chap28_methods
 	@ $(MAKE) -f util/c.make NAME=chap29_superclasses MODE=release SOURCE_DIR=gen/chap29_superclasses
 	@ $(MAKE) -f util/c.make NAME=chap30_optimization MODE=release SOURCE_DIR=gen/chap30_optimization
+
+cpp_chapters: split_chapters
+	@ $(MAKE) -f util/c.make NAME=cpp_chap14_chunks MODE=release CPP=true SOURCE_DIR=gen/chap14_chunks
+	@ $(MAKE) -f util/c.make NAME=cpp_chap15_virtual MODE=release CPP=true SOURCE_DIR=gen/chap15_virtual
+	@ $(MAKE) -f util/c.make NAME=cpp_chap16_scanning MODE=release CPP=true SOURCE_DIR=gen/chap16_scanning
+	@ $(MAKE) -f util/c.make NAME=cpp_chap17_compiling MODE=release CPP=true SOURCE_DIR=gen/chap17_compiling
+	@ $(MAKE) -f util/c.make NAME=cpp_chap18_types MODE=release CPP=true SOURCE_DIR=gen/chap18_types
+	@ $(MAKE) -f util/c.make NAME=cpp_chap19_strings MODE=release CPP=true SOURCE_DIR=gen/chap19_strings
+	@ $(MAKE) -f util/c.make NAME=cpp_chap20_hash MODE=release CPP=true SOURCE_DIR=gen/chap20_hash
+	@ $(MAKE) -f util/c.make NAME=cpp_chap21_global MODE=release CPP=true SOURCE_DIR=gen/chap21_global
+	@ $(MAKE) -f util/c.make NAME=cpp_chap22_local MODE=release CPP=true SOURCE_DIR=gen/chap22_local
+	@ $(MAKE) -f util/c.make NAME=cpp_chap23_jumping MODE=release CPP=true SOURCE_DIR=gen/chap23_jumping
+	@ $(MAKE) -f util/c.make NAME=cpp_chap24_calls MODE=release CPP=true SOURCE_DIR=gen/chap24_calls
+	@ $(MAKE) -f util/c.make NAME=cpp_chap25_closures MODE=release CPP=true SOURCE_DIR=gen/chap25_closures
+	@ $(MAKE) -f util/c.make NAME=cpp_chap26_garbage MODE=release CPP=true SOURCE_DIR=gen/chap26_garbage
+	@ $(MAKE) -f util/c.make NAME=cpp_chap27_classes MODE=release CPP=true SOURCE_DIR=gen/chap27_classes
+	@ $(MAKE) -f util/c.make NAME=cpp_chap28_methods MODE=release CPP=true SOURCE_DIR=gen/chap28_methods
+	@ $(MAKE) -f util/c.make NAME=cpp_chap29_superclasses MODE=release CPP=true SOURCE_DIR=gen/chap29_superclasses
+	@ $(MAKE) -f util/c.make NAME=cpp_chap30_optimization MODE=release CPP=true SOURCE_DIR=gen/chap30_optimization
 
 diffs: split_chapters java_chapters
 	@ mkdir -p build/diffs
