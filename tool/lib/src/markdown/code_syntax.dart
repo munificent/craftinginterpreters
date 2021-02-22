@@ -110,18 +110,10 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
 
-//  if name not in snippets:
-//    errors.append("Undefined snippet {}".format(name))
-//    contents += "**ERROR: Missing snippet {}**\n".format(name)
-//    return contents
-//
-//  if snippets[name] == False:
-//    errors.append("Reused snippet {}".format(name))
-//    contents += "**ERROR: Reused snippet {}**\n".format(name)
-//    return contents
-
-//  # Consume it.
-//  snippets[name] = False
+  if (snippet == null) {
+    print("Undefined snippet ${tag.name}");
+    return "<strong>ERROR: Missing snippet ${tag.name}</strong>\n";
+  }
 
   var location = <String>[];
   if (tag.showLocation) location = snippet.locationHtmlLines;
