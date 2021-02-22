@@ -303,7 +303,9 @@ name="division">arithmetic</span> operators. Can we do something better?
 
 <aside name="division">
 
-Its sister operation, division, is equally slow.
+Pipelining makes it hard to talk about the performance of an individual CPU
+instruction, but to give you a feel for things, division and modulo are about
+30-50 *times* slower than addition and subtraction on x86.
 
 </aside>
 
@@ -340,38 +342,21 @@ In other words, you can calculate a number modulo any power of two by simply
 <span class="small-caps">AND</span>-ing it with that power of two minus one. I'm
 not enough of a mathematician to *prove* to you that this works, but if you
 think it through, it should make sense. We can replace that slow modulo operator
-with a fast subtraction followed by a very fast bitwise <span
-class="small-caps">AND</span>. We simply change the offending line of code to:
+with a very fast decrement and bitwise <span class="small-caps">AND</span>. We
+simply change the offending line of code to this:
 
-```c
-  uint32_t index = key->hash & (capacity - 1);
-```
+^code initial-index (2 before, 1 after)
 
-We can go farther. The result of `(capacity - 1)` changes infrequently, only
-when the table grows or shrinks. Instead of performing the subtraction on each
-hash table lookup, we can cache the result and reuse it. In fact, if we cache
-the *mask* used to wrap a hash key into the table size, we don't even need to
-store the *capacity* since we can easily calculate that by incrementing the
-mask.
+CPUs love bitwise operators, so it's hard to <span name="sub">improve</span> on that. 
 
-Instead of storing the entry array *capacity* in Table, we'll directly store the
-*bit mask*. We'll keep the <span name="rename">same</span> `capacity` field, but
-its meaning and value are now different. It now stores the mask, and its value
-is always one *less* than the size of the entry array.
+<aside name="sub">
 
-<aside name="rename">
-
-Honestly, the code is clearer if we rename the field to `capacityMask`. But
-doing so means a slew of very uninteresting code changes to drag you through, so
-in the interest of expedience, I left the name alone.
+Another potential improvement is to eliminate the decrement by storing the bit
+mask directly instead of the capacity. In my tests, that didn't make a
+difference. Instruction pipelining makes some operations essentially free if the
+CPU is bottlenecked elsewhere.
 
 </aside>
-
-With that interpretation, to wrap a key, we simply apply the mask.
-
-^code initial-index (1 before, 1 after)
-
-CPUs love bitwise operators, so it's hard to improve on that. 
 
 Our linear probing search may need to wrap around the end of the array, so there
 is another modulo in `findEntry()` to update.
@@ -380,60 +365,11 @@ is another modulo in `findEntry()` to update.
 
 This line didn't show up in the profiler since most searches don't wrap.
 
-Before we can try out these changes and see how they affect the performance, we
-have to fix every piece of code that uses the `capacity` field and update it to
-work with the new value it represents. This is going to be kind of a chore.
-Sorry.
-
-### Hash table changes
-
-There are a few changes to make in `adjustCapacity()`. First, when we allocate
-the new array, we calculate the size from the mask.
-
-^code adjust-alloc (1 before, 1 after)
-
-Then we iterate over the array to initialize the empty entries.
-
-^code adjust-init (1 before, 1 after)
-
-The difference here is that the `<` check to exit the loop has become a `<=`.
-
-^code re-hash (1 before, 1 after)
-
-When we free the old array, the garbage collector wants to track how many bytes
-are released.
-
-^code adjust-free (3 before, 1 after)
-
-There's going to be a lot of `+ 1` and `<=` in this section. This is fertile
-ground for subtle off-by-one bugs, so we should tread carefully to ensure we
-don't get stung.
-
-Moving up the abstraction stack, we get to the main hash table operations that
-call `adjustCapacity()` and `findEntry()`. When we grow the array before
-inserting a new entry into it, we need to calculate the capacity.
-
-^code table-set-grow (1 before, 1 after)
-
-All the way at the beginning, we initialize the field.
-
-^code init-capacity-mask (1 before, 1 after)
-
-As you've seen, to calculate the actual array size from the `capacity` mask, we
-add one. When the hash table is empty, the size is zero, so initializing
-`capacity` to -1 correctly yields zero when we increment it.
-
-When copying all of the entries from one hash table to another, we iterate over
-the source table's array.
-
-^code add-all-loop (1 before, 1 after)
-
-That's another `<` to `<=` change.
-
 The `findEntry()` function has a sister function, `tableFindString()` that does
-a hash table lookup for interning strings. We need to make the same changes
-there that we made in `findEntry()`. We use `capacity` as a mask when wrapping
-the string's hash key.
+a hash table lookup for interning strings. We may as well apply the same
+optimizations there too. This function is called only when interning strings,
+which wasn't heavily stressed by our benchmark. But a Lox program that created
+lots of strings might noticeably benefit from this change.
 
 ^code find-string-index (4 before, 2 after)
 
@@ -441,33 +377,9 @@ And also when the linear probing wraps around.
 
 ^code find-string-next (3 before, 1 after)
 
-These are real optimizations. This function is called only when interning
-strings, which wasn't heavily stressed by our benchmark. But a Lox program that
-created lots of strings might noticeably benefit from this change.
-
-### Memory manager changes
-
-There are a few places in the memory management code where we access a hash
-table's capacity. First, we need a `<=` in the loop when we mark all of the
-entries in a table.
-
-^code mark-table (1 before, 1 after)
-
-And another one in the loop to remove unmarked entries from the string table.
-
-^code remove-white (1 before, 1 after)
-
-Finally, the garbage collector tracks the amount of memory freed, so it needs an
-accurate count of the entry array size.
-
-^code free-table (1 before, 1 after)
-
-That's our last `+ 1`! That was a lot of plumbing just to turn a couple of `%`
-operators into `&`.
-
-Let's see if it was worth it. I tweaked that zoological benchmark to count how
-many <span name="batch">batches</span> of 10,000 calls it can run in ten
-seconds. More batches equals faster performance. On my machine using the
+Let's see if our fixes were worth it. I tweaked that zoological benchmark to
+count how many <span name="batch">batches</span> of 10,000 calls it can run in
+ten seconds. More batches equals faster performance. On my machine using the
 unoptimized code, the benchmark gets through 3,192 batches. After this
 optimization, that jumps to 6,249.
 
