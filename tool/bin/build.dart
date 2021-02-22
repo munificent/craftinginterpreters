@@ -84,6 +84,11 @@ List<int> _buildPage(Book book, Mustache mustache, Page page,
   var wordCount = proseCount;
   for (var tag in page.codeTags) {
     var snippet = book.findSnippet(tag);
+    if (snippet == null) {
+      print("No snippet for $tag");
+      continue;
+    }
+
     codeLineCount += snippet.added.length;
     for (var line in snippet.added) wordCount += line.wordCount;
     for (var line in snippet.contextBefore) wordCount += line.wordCount;
