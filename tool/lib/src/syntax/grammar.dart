@@ -58,7 +58,7 @@ final java = Language(
     // ALL_CAPS constant names are colored like normal identifiers. We give
     // them their own rule so that it matches before the capitalized type name
     // rule.
-    Rule(r"[A-Z][A-Z0-9_]+", "i"),
+    Rule(r"[A-Z][A-Z0-9_]+\b", "i"),
 
     ..._commonRules,
     _characterRule,
