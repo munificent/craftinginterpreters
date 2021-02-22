@@ -365,7 +365,9 @@ to which one? No? It&rsquo;s this:</p>
 the modulo operator is <em>really</em> slow. Much slower than other <span
 name="division">arithmetic</span> operators. Can we do something better?</p>
 <aside name="division">
-<p>Its sister operation, division, is equally slow.</p>
+<p>Pipelining makes it hard to talk about the performance of an individual CPU
+instruction, but to give you a feel for things, division and modulo are about
+30-50 <em>times</em> slower than addition and subtraction on x86.</p>
 </aside>
 <p>In the general case, it&rsquo;s really hard to re-implement a fundamental arithmetic
 operator in user code in a way that&rsquo;s faster than what the CPU itself can do.
@@ -393,40 +395,28 @@ two leftmost bits.</p>
 <span class="small-caps">AND</span>-ing it with that power of two minus one. I&rsquo;m
 not enough of a mathematician to <em>prove</em> to you that this works, but if you
 think it through, it should make sense. We can replace that slow modulo operator
-with a fast subtraction followed by a very fast bitwise <span
-class="small-caps">AND</span>. We simply change the offending line of code to:</p>
-<div class="codehilite"><pre>
-  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> &amp; (<span class="i">capacity</span> - <span class="n">1</span>);
-</pre></div>
-<p>We can go farther. The result of <code>(capacity - 1)</code> changes infrequently, only
-when the table grows or shrinks. Instead of performing the subtraction on each
-hash table lookup, we can cache the result and reuse it. In fact, if we cache
-the <em>mask</em> used to wrap a hash key into the table size, we don&rsquo;t even need to
-store the <em>capacity</em> since we can easily calculate that by incrementing the
-mask.</p>
-<p>Instead of storing the entry array <em>capacity</em> in Table, we&rsquo;ll directly store the
-<em>bit mask</em>. We&rsquo;ll keep the <span name="rename">same</span> <code>capacity</code> field, but
-its meaning and value are now different. It now stores the mask, and its value
-is always one <em>less</em> than the size of the entry array.</p>
-<aside name="rename">
-<p>Honestly, the code is clearer if we rename the field to <code>capacityMask</code>. But
-doing so means a slew of very uninteresting code changes to drag you through, so
-in the interest of expedience, I left the name alone.</p>
-</aside>
-<p>With that interpretation, to wrap a key, we simply apply the mask.</p>
+with a very fast decrement and bitwise <span class="small-caps">AND</span>. We
+simply change the offending line of code to this:</p>
 <div class="codehilite"><pre class="insert-before">
+static Entry* findEntry(Entry* entries, int capacity,
                         ObjString* key) {
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>findEntry</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> &amp; <span class="i">capacity</span>;
+  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> &amp; (<span class="i">capacity</span> - <span class="n">1</span>);
 </pre><pre class="insert-after">
   Entry* tombstone = NULL;
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 1 line</div>
 
-<p>CPUs love bitwise operators, so it&rsquo;s hard to improve on that. </p>
+<p>CPUs love bitwise operators, so it&rsquo;s hard to <span name="sub">improve</span> on that. </p>
+<aside name="sub">
+<p>Another potential improvement is to eliminate the decrement by storing the bit
+mask directly instead of the capacity. In my tests, that didn&rsquo;t make a
+difference. Instruction pipelining makes some operations essentially free if the
+CPU is bottlenecked elsewhere.</p>
+</aside>
 <p>Our linear probing search may need to wrap around the end of the array, so there
 is another modulo in <code>findEntry()</code> to update.</p>
 <div class="codehilite"><pre class="insert-before">
@@ -438,128 +428,18 @@ is another modulo in <code>findEntry()</code> to update.</p>
 in <em>findEntry</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="i">index</span> = (<span class="i">index</span> + <span class="n">1</span>) &amp; <span class="i">capacity</span>;
+    <span class="i">index</span> = (<span class="i">index</span> + <span class="n">1</span>) &amp; (<span class="i">capacity</span> - <span class="n">1</span>);
 </pre><pre class="insert-after">
   }
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 1 line</div>
 
 <p>This line didn&rsquo;t show up in the profiler since most searches don&rsquo;t wrap.</p>
-<p>Before we can try out these changes and see how they affect the performance, we
-have to fix every piece of code that uses the <code>capacity</code> field and update it to
-work with the new value it represents. This is going to be kind of a chore.
-Sorry.</p>
-<h3><a href="#hash-table-changes" name="hash-table-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;2</small>Hash table changes</a></h3>
-<p>There are a few changes to make in <code>adjustCapacity()</code>. First, when we allocate
-the new array, we calculate the size from the mask.</p>
-<div class="codehilite"><pre class="insert-before">
-static void adjustCapacity(Table* table, int capacity) {
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>adjustCapacity</em>()<br>
-replace 1 line</div>
-<pre class="insert">
-  <span class="t">Entry</span>* <span class="i">entries</span> = <span class="a">ALLOCATE</span>(<span class="t">Entry</span>, <span class="i">capacity</span> + <span class="n">1</span>);
-</pre><pre class="insert-after">
-  for (int i = 0; i &lt; capacity; i++) {
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
-
-<p>Then we iterate over the array to initialize the empty entries.</p>
-<div class="codehilite"><pre class="insert-before">
-  Entry* entries = ALLOCATE(Entry, capacity + 1);
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>adjustCapacity</em>()<br>
-replace 1 line</div>
-<pre class="insert">
-  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt;= <span class="i">capacity</span>; <span class="i">i</span>++) {
-</pre><pre class="insert-after">
-    entries[i].key = NULL;
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
-
-<p>The difference here is that the <code>&lt;</code> check to exit the loop has become a <code>&lt;=</code>.</p>
-<div class="codehilite"><pre class="insert-before">
-  table-&gt;count = 0;
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>adjustCapacity</em>()<br>
-replace 1 line</div>
-<pre class="insert">
-  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt;= <span class="i">table</span>-&gt;<span class="i">capacity</span>; <span class="i">i</span>++) {
-</pre><pre class="insert-after">
-    Entry* entry = &amp;table-&gt;entries[i];
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
-
-<p>When we free the old array, the garbage collector wants to track how many bytes
-are released.</p>
-<div class="codehilite"><pre class="insert-before">
-    table-&gt;count++;
-  }
-
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>adjustCapacity</em>()<br>
-replace 1 line</div>
-<pre class="insert">
-  <span class="a">FREE_ARRAY</span>(<span class="t">Entry</span>, <span class="i">table</span>-&gt;<span class="i">entries</span>, <span class="i">table</span>-&gt;<span class="i">capacity</span> + <span class="n">1</span>);
-</pre><pre class="insert-after">
-  table-&gt;entries = entries;
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
-
-<p>There&rsquo;s going to be a lot of <code>+ 1</code> and <code>&lt;=</code> in this section. This is fertile
-ground for subtle off-by-one bugs, so we should tread carefully to ensure we
-don&rsquo;t get stung.</p>
-<p>Moving up the abstraction stack, we get to the main hash table operations that
-call <code>adjustCapacity()</code> and <code>findEntry()</code>. When we grow the array before
-inserting a new entry into it, we need to calculate the capacity.</p>
-<div class="codehilite"><pre class="insert-before">
-bool tableSet(Table* table, ObjString* key, Value value) {
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>tableSet</em>()<br>
-replace 2 lines</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">table</span>-&gt;<span class="i">count</span> + <span class="n">1</span> &gt; (<span class="i">table</span>-&gt;<span class="i">capacity</span> + <span class="n">1</span>) * <span class="a">TABLE_MAX_LOAD</span>) {
-    <span class="t">int</span> <span class="i">capacity</span> = <span class="a">GROW_CAPACITY</span>(<span class="i">table</span>-&gt;<span class="i">capacity</span> + <span class="n">1</span>) - <span class="n">1</span>;
-</pre><pre class="insert-after">
-    adjustCapacity(table, capacity);
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>tableSet</em>(), replace 2 lines</div>
-
-<p>All the way at the beginning, we initialize the field.</p>
-<div class="codehilite"><pre class="insert-before">
-  table-&gt;count = 0;
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>initTable</em>()<br>
-replace 1 line</div>
-<pre class="insert">
-  <span class="i">table</span>-&gt;<span class="i">capacity</span> = -<span class="n">1</span>;
-</pre><pre class="insert-after">
-  table-&gt;entries = NULL;
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>initTable</em>(), replace 1 line</div>
-
-<p>As you&rsquo;ve seen, to calculate the actual array size from the <code>capacity</code> mask, we
-add one. When the hash table is empty, the size is zero, so initializing
-<code>capacity</code> to -1 correctly yields zero when we increment it.</p>
-<p>When copying all of the entries from one hash table to another, we iterate over
-the source table&rsquo;s array.</p>
-<div class="codehilite"><pre class="insert-before">
-void tableAddAll(Table* from, Table* to) {
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>tableAddAll</em>()<br>
-replace 1 line</div>
-<pre class="insert">
-  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt;= <span class="i">from</span>-&gt;<span class="i">capacity</span>; <span class="i">i</span>++) {
-</pre><pre class="insert-after">
-    Entry* entry = &amp;from-&gt;entries[i];
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>tableAddAll</em>(), replace 1 line</div>
-
-<p>That&rsquo;s another <code>&lt;</code> to <code>&lt;=</code> change.</p>
 <p>The <code>findEntry()</code> function has a sister function, <code>tableFindString()</code> that does
-a hash table lookup for interning strings. We need to make the same changes
-there that we made in <code>findEntry()</code>. We use <code>capacity</code> as a mask when wrapping
-the string&rsquo;s hash key.</p>
+a hash table lookup for interning strings. We may as well apply the same
+optimizations there too. This function is called only when interning strings,
+which wasn&rsquo;t heavily stressed by our benchmark. But a Lox program that created
+lots of strings might noticeably benefit from this change.</p>
 <div class="codehilite"><pre class="insert-before">
 ObjString* tableFindString(Table* table, const char* chars,
                            int length, uint32_t hash) {
@@ -569,7 +449,7 @@ ObjString* tableFindString(Table* table, const char* chars,
 in <em>tableFindString</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">hash</span> &amp; <span class="i">table</span>-&gt;<span class="i">capacity</span>;
+  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">hash</span> &amp; (<span class="i">table</span>-&gt;<span class="i">capacity</span> - <span class="n">1</span>);
 </pre><pre class="insert-after">
 
   for (;;) {
@@ -585,63 +465,15 @@ replace 1 line</div>
 in <em>tableFindString</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="i">index</span> = (<span class="i">index</span> + <span class="n">1</span>) &amp; <span class="i">table</span>-&gt;<span class="i">capacity</span>;
+    <span class="i">index</span> = (<span class="i">index</span> + <span class="n">1</span>) &amp; (<span class="i">table</span>-&gt;<span class="i">capacity</span> - <span class="n">1</span>);
 </pre><pre class="insert-after">
   }
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableFindString</em>(), replace 1 line</div>
 
-<p>These are real optimizations. This function is called only when interning
-strings, which wasn&rsquo;t heavily stressed by our benchmark. But a Lox program that
-created lots of strings might noticeably benefit from this change.</p>
-<h3><a href="#memory-manager-changes" name="memory-manager-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;3</small>Memory manager changes</a></h3>
-<p>There are a few places in the memory management code where we access a hash
-table&rsquo;s capacity. First, we need a <code>&lt;=</code> in the loop when we mark all of the
-entries in a table.</p>
-<div class="codehilite"><pre class="insert-before">
-void markTable(Table* table) {
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>markTable</em>()<br>
-replace 1 line</div>
-<pre class="insert">
-  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt;= <span class="i">table</span>-&gt;<span class="i">capacity</span>; <span class="i">i</span>++) {
-</pre><pre class="insert-after">
-    Entry* entry = &amp;table-&gt;entries[i];
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>markTable</em>(), replace 1 line</div>
-
-<p>And another one in the loop to remove unmarked entries from the string table.</p>
-<div class="codehilite"><pre class="insert-before">
-void tableRemoveWhite(Table* table) {
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>tableRemoveWhite</em>()<br>
-replace 1 line</div>
-<pre class="insert">
-  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt;= <span class="i">table</span>-&gt;<span class="i">capacity</span>; <span class="i">i</span>++) {
-</pre><pre class="insert-after">
-    Entry* entry = &amp;table-&gt;entries[i];
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>tableRemoveWhite</em>(), replace 1 line</div>
-
-<p>Finally, the garbage collector tracks the amount of memory freed, so it needs an
-accurate count of the entry array size.</p>
-<div class="codehilite"><pre class="insert-before">
-void freeTable(Table* table) {
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>freeTable</em>()<br>
-replace 1 line</div>
-<pre class="insert">
-  <span class="a">FREE_ARRAY</span>(<span class="t">Entry</span>, <span class="i">table</span>-&gt;<span class="i">entries</span>, <span class="i">table</span>-&gt;<span class="i">capacity</span> + <span class="n">1</span>);
-</pre><pre class="insert-after">
-  initTable(table);
-</pre></div>
-<div class="source-file-narrow"><em>table.c</em>, in <em>freeTable</em>(), replace 1 line</div>
-
-<p>That&rsquo;s our last <code>+ 1</code>! That was a lot of plumbing just to turn a couple of <code>%</code>
-operators into <code>&amp;</code>.</p>
-<p>Let&rsquo;s see if it was worth it. I tweaked that zoological benchmark to count how
-many <span name="batch">batches</span> of 10,000 calls it can run in ten
-seconds. More batches equals faster performance. On my machine using the
+<p>Let&rsquo;s see if our fixes were worth it. I tweaked that zoological benchmark to
+count how many <span name="batch">batches</span> of 10,000 calls it can run in
+ten seconds. More batches equals faster performance. On my machine using the
 unoptimized code, the benchmark gets through 3,192 batches. After this
 optimization, that jumps to 6,249.</p><img src="image/optimization/hash-chart.png" alt="Bar chart comparing the performance before and after the optimization." />
 <p>That&rsquo;s almost exactly twice as much work in the same amount of time. We made the
