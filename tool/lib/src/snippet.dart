@@ -71,7 +71,7 @@ class Snippet {
   /// Describes where in the file this snippet appears.
   String get locationXml {
     var result = StringBuffer();
-    result.writeln("<location-file>${file.nicePath}</location-file>");
+    result.write("<location-file>${file.nicePath}</location-file>");
 
     var xml = _location.toXml(precedingLocation, removed);
     var changes = [
@@ -84,7 +84,11 @@ class Snippet {
         "add <location-comma>&ldquo;,&rdquo;</location-comma> to previous line"
     ].map((change) => "<location-change>$change</location-change>");
 
-    result.writeAll(changes, "\n");
+    if (changes.isNotEmpty) {
+      result.writeln();
+      result.writeAll(changes, "\n");
+    }
+
     return result.toString();
   }
 
