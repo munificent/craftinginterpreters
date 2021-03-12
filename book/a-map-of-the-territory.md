@@ -559,7 +559,7 @@ the other. There are fruits that aren't vegetables (apples) and vegetables that
 aren't fruits (carrots), but also edible plants that are both fruits *and*
 vegetables, like tomatoes.
 
-<span name="veg"></span></span>
+<span name="veg"></span>
 
 <img src="image/a-map-of-the-territory/plants.png" alt="A Venn diagram of edible plants" />
 
