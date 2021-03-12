@@ -498,10 +498,10 @@ runtime.
 
 This function adds a new upvalue to that array. It also keeps track of the
 number of upvalues the function uses. It stores that count directly in the
-ObjFunction itself because we'll also <span name="span">need that number for use
-at runtime.
+ObjFunction itself because we'll also <span name="bridge">need</span> that
+number for use at runtime.
 
-<aside name="span">
+<aside name="bridge">
 
 Like constants and function arity, the upvalue count is another one of those
 little pieces of data that form the bridge between the compiler and runtime.
@@ -672,7 +672,7 @@ both. The recursive call is right in the middle.
 
 We'll walk through it slowly. First, we look for a matching local variable in
 the enclosing function. If we find one, we capture that local and return. That's
-the <span name="base">base case.
+the <span name="base">base</span> case.
 
 <aside name="base">
 

@@ -2,8 +2,7 @@
 > twenty-six phonetic symbols, ten Arabic numbers, and about eight punctuation
 > marks.
 >
-> <cite>Kurt Vonnegut, <em>Like Shaking Hands With God: A Conversation about
-> Writing</em></cite>
+> <cite>Kurt Vonnegut, <em>Like Shaking Hands With God: A Conversation about Writing</em></cite>
 
 Our second interpreter, clox, has three phases -- scanner, compiler, and virtual
 machine. A data structure joins each pair of phases. Tokens flow from scanner to
