@@ -113,7 +113,7 @@ Another is:
 2. For the left-hand `expression`, pick `binary` again.
 3. In that nested `binary` expression, pick `6 / 3`.
 4. Back at the outer `binary`, for the operator, pick `"-"`.
-4. For the right-hand `expression`, pick `NUMBER`, and use `1`.
+5. For the right-hand `expression`, pick `NUMBER`, and use `1`.
 
 Those produce the same *strings*, but not the same *syntax trees*:
 

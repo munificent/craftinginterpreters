@@ -1,16 +1,19 @@
 import 'package:markdown/markdown.dart';
 
+final _imagePathPattern = RegExp(r'"([^"]+.png)"');
+
 class XmlRenderer implements NodeVisitor {
-  static final _imagePathPattern = RegExp(r'"([^"]+.png)"');
+  /// The list of paragraph-level tags.
+  final List<_Paragraph> _paragraphs = [];
 
-  final List<Paragraph> _paragraphs = [];
+  /// Whether we need to create a new paragraph before appending the next text.
+  bool _pendingParagraph = true;
 
-  final List<Inline> _inlineStack = [];
+  /// The nested stack of current inline tags.
+  final List<_Inline> _inlineStack = [];
 
-  _ChapterSection _section = _ChapterSection.main;
-
-  /// What kind of text we're in: "p", "aside", "ordered", etc.
-  String _region;
+  /// The stack tracking where we are in the document.
+  _Context _context = _Context("main");
 
   String render(List<Node> nodes) {
     for (final node in nodes) {
@@ -20,56 +23,27 @@ class XmlRenderer implements NodeVisitor {
     var buffer = StringBuffer();
     buffer.writeln("<chapter>");
 
-    var firstParagraph = true;
-    var firstAside = true;
+    // var i = 0;
+    // for (var paragraph in _paragraphs) {
+    //   var text = paragraph.contents.map((i) => i.text).join();
+    //   if (text.length > 40) text = text.substring(0, 40);
+    //   print("${paragraph.context} :: $text");
+    //   // if (i++ > 10) break;
+    // }
+
+    _Paragraph previousMain;
+    _Paragraph previousAside;
 
     for (var paragraph in _paragraphs) {
-      var isFirst = true;
-      switch (paragraph.tag) {
-        case "p":
-          isFirst = firstParagraph;
-          break;
-        case "aside":
-          isFirst = firstAside;
-          break;
-      }
+      if (paragraph.context.has("aside")) {
+        paragraph.prettyPrint(buffer, previousAside);
+        previousAside = paragraph;
+      } else {
+        paragraph.prettyPrint(buffer, previousMain);
+        previousMain = paragraph;
 
-      paragraph.prettyPrint(buffer, isFirst);
-
-      switch (paragraph.tag) {
-        case "p":
-          firstParagraph = false;
-          firstAside = true;
-          break;
-
-        case "aside":
-          firstAside = false;
-          break;
-
-        case "aside-image":
-        case "aside-pre":
-          firstAside = true;
-          break;
-
-        case "":
-        case "heading":
-        case "heading-challenges":
-        case "heading-design":
-        case "image":
-        case "list":
-        case "list-pre":
-        case "ordered":
-        case "pre":
-        case "quote":
-        case "subheading":
-        case "unordered":
-          firstParagraph = true;
-          firstAside = true;
-          break;
-
-        default:
-          print("unhandled tag ${paragraph.tag} in calculating next");
-          break;
+        // Reached the end of an aside.
+        previousAside = null;
       }
     }
 
@@ -79,6 +53,8 @@ class XmlRenderer implements NodeVisitor {
 
   void visitText(Text node) {
     var text = node.text;
+
+    if (text.isEmpty) return;
 
     text = text
         .replaceAll("&eacute;", "&#233;")
@@ -93,99 +69,104 @@ class XmlRenderer implements NodeVisitor {
         .replaceAll("&times;", "&#215;")
         .replaceAll("<br>", "<br/>");
 
+    // Discard the challenge and design note divs.
+    if (text.startsWith("<div") || text.startsWith("</div>")) return;
+
+    // Convert image tags to just their paths.
+    if (text.startsWith("<img")) {
+      var imagePath = _imagePathPattern.firstMatch(text)[1];
+
+      // The GC chapter has a couple of tiny inline images that happen to be in
+      // an unordered list. Don't create paragraphs for them.
+      var isInline = _context.has("unordered");
+
+      // Put main column images in their own paragraph.
+      if (!isInline) _push("image");
+      _addText(imagePath);
+      if (!isInline) _pop();
+      return;
+    }
+
+    // Include code snippet XML as-is.
+    if (text.startsWith("<location-file>") ||
+        text.startsWith("<interpreter>")) {
+      _push("xml");
+      _addText(text);
+      _pop();
+      return;
+    }
+
     // Since aside tags appear in the Markdown as literal HTML, they are parsed
     // as text, not Markdown elements.
     if (text.startsWith("<aside")) {
-      _startRegion("aside");
-    } else if (text.startsWith("</aside>")) {
-      _endRegion();
-    } else if (text.startsWith("<img")) {
-      var imagePath = _imagePathPattern.firstMatch(text)[1];
+      _push("aside");
+      return;
+    }
 
-      // Put main column images in their own paragraph.
-      if (_region == null) {
-        _paragraphs.add(Paragraph("image"));
-      } else if (_region == "aside") {
-        _paragraphs.add(Paragraph("aside-image"));
-      } else if (_region == "unordered") {
-        // Inline three-color GC icons. Do nothing to leave image inline.
-      } else {
-        print("Image in unexpected region $_region.");
-      }
+    if (text.startsWith("</aside>")) {
+      _pop();
+      return;
+    }
 
-      _paragraphs.last.addText(imagePath);
-    } else if (text.startsWith("<div") || text.startsWith("</div>")) {
-      // Discard the challenge and design note divs.
-    } else if (text.startsWith("<cite>") ||
-        text.startsWith("<location-file>")) {
-      // Include block-level XML content as-is.
-      _endRegion();
-      _paragraphs.add(Paragraph.xml(text));
+    if (text.trimLeft().startsWith("<cite>")) {
+      _push("xml");
+      _addText(text.trimLeft());
     } else if (_inlineStack.isNotEmpty) {
+      // We're in an inline tag, so add it to that.
       _inlineStack.last.text += text;
     } else {
-      // If we've changed regions, start a new paragraph.
-      if (_region != null && _paragraphs.last.tag != _region) {
-        _paragraphs.add(Paragraph(_region));
-      }
-      _paragraphs.last.addText(text);
+      _addText(text);
     }
+
+    if (text.endsWith("</cite>")) _pop();
   }
 
   bool visitElementBefore(Element element) {
-    // TODO: Handle <blockquote> tags inside asides.
-
-    var tag = element.tag;
-    switch (tag) {
+    switch (element.tag) {
       case "p":
-        _startParagraph();
+        _resetParagraph();
         break;
 
       case "blockquote":
-        _startRegion("quote");
+        _push("quote");
         break;
 
       case "h2":
         var text = element.textContent;
         if (text == "Challenges") {
-          _section = _ChapterSection.challenges;
-          _startRegion("heading-challenges");
+          _context = _Context("challenges");
         } else if (text.contains("Design Note")) {
-          _section = _ChapterSection.designNote;
-          _startRegion("heading-design");
-        } else {
-          _startRegion("heading");
+          _context = _Context("design");
         }
+        _push("heading");
         break;
 
       case "h3":
-        _startRegion("subheading");
+        _push("subheading");
         break;
 
       case "ol":
-        _startRegion("ordered");
+        _push("ordered");
+
+        // Immediately push a subcontext to mark the first list item.
+        _push("first");
         break;
 
       case "pre":
-        if (_region == "aside") {
-          _startRegion("aside-pre");
-        } else if (_region == "ordered" ||
-            _region == "unordered" ||
-            _region == "list") {
-          _startRegion("list-pre");
-        } else if (_region != null) {
-          print("pre in $_region");
-        } else {
-          _startRegion("pre");
-        }
+        _push("pre");
         break;
 
       case "ul":
-        _startRegion("unordered");
+        _push("unordered");
+
+        // Immediately push a subcontext to mark the first list item.
+        _push("first");
         break;
 
       case "li":
-        // Discard. There will be <p> tags nested within.
+        // If we're on the first item, discard it and replace it with the next
+        // item. The first item restarts numbering but later ones don't.
+        if (_context.name != "first") _push("item");
         break;
 
       case "a":
@@ -202,12 +183,12 @@ class XmlRenderer implements NodeVisitor {
         // If we're in an inline tags already, flatten them by emitting inline
         // segments for any text they have. Leave them on the stack so that
         // they get resumed when the nested inline tags end.
-        var tagParts = [tag];
+        var tagParts = [element.tag];
         for (var i = 0; i < _inlineStack.length; i++) {
           var inline = _inlineStack[i];
           if (inline.text.isNotEmpty) {
-            _paragraphs.last.contents.add(inline);
-            _inlineStack[i] = Inline.tag(inline.tag);
+            _addInline(inline);
+            _inlineStack[i] = _Inline(inline.tag);
           }
 
           tagParts.add(inline.tag);
@@ -216,44 +197,49 @@ class XmlRenderer implements NodeVisitor {
         tagParts.sort();
         // Make a tag name that includes all nested tags. We'll define separate
         // styles for each combination.
-        _inlineStack.add(Inline.tag(tagParts.join("-")));
+        _inlineStack.add(_Inline(tagParts.join("-")));
         break;
 
       default:
-        print("unexpected open tag $tag");
+        print("Unexpected open tag ${element.tag}.");
     }
 
     return !element.isEmpty;
   }
 
   void visitElementAfter(Element element) {
-    var tag = element.tag;
-    switch (tag) {
+    switch (element.tag) {
       case "blockquote":
       case "h2":
       case "h3":
-      case "ol":
-      case "ul":
-        _endRegion();
+      case "pre":
+        _pop();
         break;
 
-      case "pre":
-        switch (_region) {
-          case "aside-pre":
-            _startRegion("aside");
-            break;
-          case "list-pre":
-            _startRegion("list");
-            break;
-          default:
-            _endRegion();
-        }
+      case "ol":
+      case "ul":
+        // If we still have a context for the item, it means we have a Markdown
+        // list with no paragraph tags inside the items. There are a couple of
+        // those in the book.
+        if (_context.name == "first" || _context.name == "item") _pop();
+
+        // Pop the list itself.
+        _pop();
         break;
 
       case "a":
+        // Nothing to do.
+        break;
+
       case "li":
       case "p":
-        // Nothing to do.
+        // The first paragraph in each list item has a special style so that
+        // apply the bullet or number. Later paragraphs in the same list item
+        // do not.
+
+        // We match both <p> and <li> so that lists without paragraphs inside
+        // don't leave lingering item contexts.
+        if (_context.name == "first" || _context.name == "item") _pop();
         break;
 
       case "code":
@@ -261,106 +247,203 @@ class XmlRenderer implements NodeVisitor {
       case "small":
       case "strong":
         // Inline tags.
-        var inline = _inlineStack.removeLast();
-        _paragraphs.last.contents.add(inline);
+        _addInline(_inlineStack.removeLast());
         break;
 
       default:
-        print("unexpected close tag $tag");
+        print("Unexpected close tag ${element.tag}.");
     }
   }
 
-  void _startRegion(String region) {
-    _region = region;
+  void _push(String name) {
+    _context = _Context(name, _context);
+    _resetParagraph();
   }
 
-  void _endRegion() {
-    _region = null;
+  void _pop() {
+    _context = _context.parent;
+    _resetParagraph();
   }
 
-  void _startParagraph() {
-    _paragraphs.add(Paragraph(_region ?? "p"));
-  }
-}
+  void _addText(String text) {
+    _flushParagraph();
 
-enum _ChapterSection {
-  main,
-  challenges,
-  designNote,
-}
-
-/// A paragraph-level tag that contains text and inline tags.
-class Paragraph {
-  /// The tag for this paragraph of the empty string if it contains literal XML.
-  final String tag;
-
-  final List<Inline> contents = [];
-
-  /// Instantiates a [tag] Element with [children].
-  Paragraph(this.tag);
-
-  Paragraph.xml(String text) : tag = "" {
-    contents.add(Inline.text(text));
-  }
-
-  void addText(String text) {
     // Discard any leading whitespace at the beginning of list items.
-    if (tag == "ordered" || tag == "unordered" && contents.isEmpty) {
+    var paragraph = _paragraphs.last;
+    if (paragraph.contents.isEmpty &&
+        (_context.has("ordered") || _context.has("unordered"))) {
       text = text.trimLeft();
     }
 
-    contents.add(Inline.text(text));
+    paragraph.contents.add(_Inline(null, text));
   }
 
-  void prettyPrint(StringBuffer buffer, bool firstParagraph) {
-    if (contents.isEmpty) return;
+  void _addInline(_Inline inline) {
+    _flushParagraph();
+    _paragraphs.last.contents.add(inline);
+  }
 
-    if (tag == "") {
-      // Literal XML like from code snippet.
-      for (var inline in contents) {
-        inline.prettyPrint(buffer, tag);
+  void _resetParagraph() {
+    _pendingParagraph = true;
+  }
+
+  void _flushParagraph() {
+    if (!_pendingParagraph) return;
+    _paragraphs.add(_Paragraph(_context));
+    _pendingParagraph = false;
+  }
+}
+
+class _Context {
+  final String name;
+  final _Context parent;
+
+  _Context(this.name, [this.parent]);
+
+  /// Whether any of the contexts in this chain are [name].
+  bool has(String name) {
+    var context = this;
+    while (context != null) {
+      if (context.name == name) return true;
+      context = context.parent;
+    }
+
+    return false;
+  }
+
+  /// Whether [parent] has [name].
+  bool isIn(String name) => parent != null && parent.has(name);
+
+  /// How many levels of list nesting this context contains.
+  int get listDepth {
+    var depth = 0;
+
+    for (var context = this; context != null; context = context.parent) {
+      if (context.name == "ordered" || context.name == "unordered") {
+        depth++;
       }
-      buffer.writeln();
-      return;
     }
 
-    var fullTag = tag;
-    if (!firstParagraph && fullTag != "aside-image") fullTag += "-next";
+    return depth;
+  }
 
-    buffer.write("<$fullTag>");
+  String get paragraphTag {
+    if (name == "main") return "p";
+    if (name == "challenges") return "challenges-p";
+    if (name == "design") return "design-p";
+    if (name == "aside") return "aside";
+    if (name == "xml") return "xml";
+
+    if (isIn("aside")) return "aside-$name";
+
+    var tag = name;
+    var depth = listDepth;
+    if (depth > 2) print("Unexpected deep list nesting $this.");
+
+    if (name == "first" || name == "item") {
+      tag = "${parent.name}-$name";
+      if (depth > 1) tag = "sublist-$tag";
+    } else if (name == "ordered" || name == "unordered") {
+      tag = "list-p";
+      if (depth > 1) tag = "sublist-$tag";
+    } else if (depth > 1) {
+      tag = "sublist-$tag";
+    } else if (depth > 0) {
+      tag = "list-$tag";
+    }
+
+    if (isIn("challenges")) tag = "challenges-$tag";
+    if (isIn("design")) tag = "design-$tag";
+    return tag;
+  }
+
+  /// The prefix to apply to inline tags within this context or the empty string
+  /// it none should be added.
+  String get inlinePrefix {
+    if (has("aside")) return "aside";
+    if (has("challenges")) return "challenges";
+    if (has("design")) return "design";
+    if (has("quote")) return "quote";
+
+    return "";
+  }
+
+  String toString() {
+    if (parent == null) return name;
+    return "$parent > $name";
+  }
+}
+
+/// A paragraph-level tag that contains text and inline tags.
+class _Paragraph {
+  final _Context context;
+
+  final List<_Inline> contents = [];
+
+  _Paragraph(this.context);
+
+  bool _isNext(String tag, String previousTag) {
+    const nextTags = {
+      "aside",
+      "challenges-p",
+      "challenges-list-p",
+      "design-p",
+      "design-list-p",
+      "list-p",
+      "p"
+    };
+
+    if (tag == previousTag) return nextTags.contains(tag);
+
+    // The paragraph after a bullet item is also a next.
+    if (tag.endsWith("list-p")) {
+      // This includes both "unordered" and "ordered", tags that start with
+      // "challenges" or "design", and ones that end with "first" or "item".
+      return previousTag.contains("ordered-");
+    }
+
+    return false;
+  }
+
+  void prettyPrint(StringBuffer buffer, _Paragraph previous) {
+    var tag = context.paragraphTag;
+
+    if (previous != null && _isNext(tag, previous.context.paragraphTag)) {
+      tag += "-next";
+    }
+
+    if (tag != "xml") buffer.write("<$tag>");
+
     for (var inline in contents) {
-      inline.prettyPrint(buffer, tag);
+      inline.prettyPrint(buffer, context);
     }
-    buffer.write("</$fullTag>");
+
+    if (tag != "xml") buffer.write("</$tag>");
     buffer.writeln();
   }
 }
 
 /// An inline tag or plain text.
-class Inline {
-  /// The paragraph types that use normal prose text so don't need their inline
-  /// tags prefixed.
-  static const _proseParagraphs = {"p", "list", "ordered", "unordered"};
-
-  /// The tag name if this is an inline tag or the empty string if it is text.
+class _Inline {
+  /// The tag name if this is an inline tag or `null` if it is text.
   final String tag;
 
   String text;
 
-  Inline.tag(this.tag) : text = "";
+  _Inline(this.tag, [this.text = ""]);
 
-  Inline.text(this.text) : tag = "";
+  bool get isText => tag == null;
 
-  bool get isText => tag == "";
-
-  void prettyPrint(StringBuffer buffer, String paragraph) {
-    if (tag == "") {
+  void prettyPrint(StringBuffer buffer, _Context context) {
+    if (tag == null) {
       buffer.write(text);
       return;
     }
 
     var fullTag = tag;
-    if (!_proseParagraphs.contains(paragraph)) fullTag = "$paragraph-$tag";
+    var prefix = context.inlinePrefix;
+    if (prefix != "") fullTag = "$prefix-$fullTag";
+
     buffer.write("<$fullTag>$text</$fullTag>");
   }
 }
