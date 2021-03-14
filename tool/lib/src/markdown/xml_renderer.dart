@@ -328,6 +328,10 @@ class _Context {
     for (var context = this; context != null; context = context.parent) {
       if (context.name == "ordered" || context.name == "unordered") {
         depth++;
+      } else if (context.name == "aside") {
+        // Content inside an aside inside a list item isn't really part of the
+        // list.
+        break;
       }
     }
 
@@ -335,32 +339,46 @@ class _Context {
   }
 
   String get paragraphTag {
-    if (name == "main") return "p";
-    if (name == "challenges") return "challenges-p";
-    if (name == "design") return "design-p";
-    if (name == "aside") return "aside";
-    if (name == "xml") return "xml";
-
-    if (isIn("aside")) return "aside-$name";
-
     var tag = name;
     var depth = listDepth;
     if (depth > 2) print("Unexpected deep list nesting $this.");
 
-    if (name == "first" || name == "item") {
-      tag = "${parent.name}-$name";
-      if (depth > 1) tag = "sublist-$tag";
-    } else if (name == "ordered" || name == "unordered") {
-      tag = "list-p";
-      if (depth > 1) tag = "sublist-$tag";
-    } else if (depth > 1) {
-      tag = "sublist-$tag";
-    } else if (depth > 0) {
-      tag = "list-$tag";
+    switch (tag) {
+      case "main": return "p";
+      case "main": return "p";
+      case "challenges": return "challenges-p";
+      case "design": return "design-p";
+      case "aside": return "aside";
+      case "xml": return "xml";
+
+      case "first":
+      case "item":
+        tag = "${parent.name}-$tag";
+        if (depth > 1) tag = "sublist-$tag";
+        break;
+
+      case "ordered":
+      case "unordered":
+        tag = "list-p";
+        if (depth > 1) tag = "sublist-$tag";
+        break;
+
+      default:
+        if (depth > 1) {
+          tag = "sublist-$tag";
+        } else if (depth > 0) {
+          tag = "list-$tag";
+        }
     }
 
-    if (isIn("challenges")) tag = "challenges-$tag";
-    if (isIn("design")) tag = "design-$tag";
+    if (isIn("aside")) {
+      tag = "aside-$tag";
+    } else if (isIn("challenges")) {
+      tag = "challenges-$tag";
+    } else if (isIn("design")) {
+      tag = "design-$tag";
+    }
+
     return tag;
   }
 
