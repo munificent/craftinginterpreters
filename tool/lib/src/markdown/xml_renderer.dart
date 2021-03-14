@@ -194,10 +194,17 @@ class XmlRenderer implements NodeVisitor {
           tagParts.add(inline.tag);
         }
 
-        tagParts.sort();
+        String tag;
+        if (tagParts.contains("code")) {
+          // Code formatting wipes out italics or bold.
+          tag = "code";
+        } else {
+          tagParts.sort();
+          tag = tagParts.join("-");
+        }
         // Make a tag name that includes all nested tags. We'll define separate
         // styles for each combination.
-        _inlineStack.add(_Inline(tagParts.join("-")));
+        _inlineStack.add(_Inline(tag));
         break;
 
       default:
