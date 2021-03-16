@@ -110,11 +110,24 @@ class XmlRenderer implements NodeVisitor {
 
     if (text.trimLeft().startsWith("<cite>")) {
       _push("xml");
+
+      // Use a custom inline style for cite emphasis.
+      text = text
+          .replaceAll("<em>", "<cite-em>")
+          .replaceAll("</em>", "</cite-em>");
+
       _addText(text.trimLeft());
     } else if (_inlineStack.isNotEmpty) {
       // We're in an inline tag, so add it to that.
       _inlineStack.last.text += text;
     } else {
+      if (_context.name == "xml") {
+        // Hackish. Assume the only <em> tags inside XML blocks are in cites.
+        text = text
+            .replaceAll("<em>", "<cite-em>")
+            .replaceAll("</em>", "</cite-em>");
+      }
+
       _addText(text);
     }
 
@@ -341,12 +354,18 @@ class _Context {
     if (depth > 2) print("Unexpected deep list nesting $this.");
 
     switch (tag) {
-      case "main": return "p";
-      case "main": return "p";
-      case "challenges": return "challenges-p";
-      case "design": return "design-p";
-      case "aside": return "aside";
-      case "xml": return "xml";
+      case "main":
+        return "p";
+      case "main":
+        return "p";
+      case "challenges":
+        return "challenges-p";
+      case "design":
+        return "design-p";
+      case "aside":
+        return "aside";
+      case "xml":
+        return "xml";
 
       case "first":
       case "item":
