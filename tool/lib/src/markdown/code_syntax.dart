@@ -166,7 +166,9 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
 
   if (tag.showLocation) buffer.writeln(snippet.locationXml);
 
-  _writeContextXml(buffer, snippet.contextBefore);
+  if (snippet.contextBefore.isNotEmpty) {
+    _writeContextXml(buffer, snippet.contextBefore, "before");
+  }
 
   if (snippet.addedComma != null) {
     // TODO: How should this look in print?
@@ -180,12 +182,31 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.added != null) {
-    buffer.write("<interpreter>");
+    // Use different tags based on whether there is context before, after,
+    // neither, or both.
+    String insertTag;
+    if (tag.beforeCount > 0) {
+      if (tag.afterCount > 0) {
+        insertTag = "interpreter-between";
+      } else {
+        insertTag = "interpreter-after";
+      }
+    } else {
+      if (tag.afterCount > 0) {
+        insertTag = "interpreter-before";
+      } else {
+        insertTag = "interpreter";
+      }
+    }
+
+    buffer.write("<$insertTag>");
     buffer.write(formatCode(snippet.file.language, snippet.added, xml: true));
-    buffer.write("</interpreter>");
+    buffer.write("</$insertTag>");
   }
 
-  _writeContextXml(buffer, snippet.contextAfter);
+  if (snippet.contextAfter.isNotEmpty) {
+    _writeContextXml(buffer, snippet.contextAfter, "after");
+  }
 
   return buffer.toString();
 }
@@ -203,12 +224,12 @@ void _writeContextHtml(StringBuffer buffer, List<String> lines,
   buffer.write("</pre>");
 }
 
-void _writeContextXml(StringBuffer buffer, List<String> lines) {
+void _writeContextXml(StringBuffer buffer, List<String> lines, String tag) {
   if (lines.isEmpty) return;
 
-  buffer.write("<context>");
+  buffer.write("<context-$tag>");
   for (var line in lines) {
     buffer.writeln(line.escapeHtml);
   }
-  buffer.write("</context>");
+  buffer.write("</context-$tag>");
 }
