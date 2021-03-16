@@ -158,9 +158,6 @@ class XmlRenderer implements NodeVisitor {
 
       case "ul":
         _push("unordered");
-
-        // Immediately push a subcontext to mark the first list item.
-        _push("first");
         break;
 
       case "li":
