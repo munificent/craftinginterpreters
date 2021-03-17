@@ -359,7 +359,10 @@ class _Context {
       case "main":
         return "p";
       case "challenges":
-        return "challenges-p";
+        // There's only paragraph of non-list prose text and that's also
+        // indented like a list (so that it lines up with the heading), so just
+        // use the same style for both.
+        return "challenges-list-p";
       case "design":
         return "design-p";
       case "aside":
