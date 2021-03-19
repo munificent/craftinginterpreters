@@ -66,8 +66,10 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
       code = formatCode(language, childLines, indent: indent, xml: _isXml);
     }
 
-    // Don't wrap in a div for XML.
-    if (_isXml) return Element.text("pre", code);
+    // Don't wrap in a div for XML. Remove the trailing newline since we'll
+    // write a newline after the "</pre>" and we don't want InDesign to insert
+    // a blank line.
+    if (_isXml) return Element.text("pre", code.trimRight());
 
     var element = Element.text("div", code);
     element.attributes["class"] = "codehilite";
