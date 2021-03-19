@@ -2,7 +2,17 @@ import 'package:markdown/markdown.dart';
 
 final _imagePathPattern = RegExp(r'"([^"]+.png)"');
 
+/// Matches opening XML tag names.
+final _tagPattern = RegExp(r"<([a-z-_0-9]+)");
+
 class XmlRenderer implements NodeVisitor {
+  /// While building, also fill a StringBuffer with the minimal set of
+  /// paragraphs needed to cover all tags in the book.
+  static final tagFileBuffer = StringBuffer();
+
+  /// Keeps track of which XML tags [tagFileBuffer] contains.
+  static final allTags = <String>{};
+
   /// The list of paragraph-level tags.
   final List<_Paragraph> _paragraphs = [];
 
@@ -23,27 +33,30 @@ class XmlRenderer implements NodeVisitor {
     var buffer = StringBuffer();
     buffer.writeln("<chapter>");
 
-    // var i = 0;
-    // for (var paragraph in _paragraphs) {
-    //   var text = paragraph.contents.map((i) => i.text).join();
-    //   if (text.length > 40) text = text.substring(0, 40);
-    //   print("${paragraph.context} :: $text");
-    //   // if (i++ > 10) break;
-    // }
-
     _Paragraph previousMain;
     _Paragraph previousAside;
 
     for (var paragraph in _paragraphs) {
+      String text;
+
       if (paragraph.context.has("aside")) {
-        paragraph.prettyPrint(buffer, previousAside);
+        text = paragraph.prettyPrint(previousAside);
         previousAside = paragraph;
       } else {
-        paragraph.prettyPrint(buffer, previousMain);
+        text = paragraph.prettyPrint(previousMain);
         previousMain = paragraph;
 
         // Reached the end of an aside.
         previousAside = null;
+      }
+
+      buffer.write(text);
+
+      // Only add the paragraph to the tag file buffer if it has a unique tag.
+      var tags = _tagPattern.allMatches(text).map((match) => match[1]).toSet();
+      if (tags.difference(allTags).isNotEmpty) {
+        tagFileBuffer.write(text);
+        allTags.addAll(tags);
       }
     }
 
@@ -449,7 +462,8 @@ class _Paragraph {
     return false;
   }
 
-  void prettyPrint(StringBuffer buffer, _Paragraph previous) {
+  String prettyPrint(_Paragraph previous) {
+    var buffer = StringBuffer();
     var tag = context.paragraphTag;
 
     if (previous != null && _isNext(tag, previous.context.paragraphTag)) {
@@ -464,6 +478,7 @@ class _Paragraph {
 
     if (tag != "xml") buffer.write("</$tag>");
     buffer.writeln();
+    return buffer.toString();
   }
 }
 
