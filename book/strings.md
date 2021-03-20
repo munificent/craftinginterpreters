@@ -779,7 +779,7 @@ This covers all your bases but is really complex. It's a lot to implement,
 debug, and optimize. When serializing strings or interoperating with other
 systems, you have to deal with all of the encodings. Users need to understand
 the two indexing APIs and know which to use when. This is the approach that
-newer, big languages tend to take -- like Perl 6 and Swift.
+newer, big languages tend to take -- like Raku and Swift.
 
 A simpler compromise is to always encode using UTF-8 and only expose an API that
 works with code points. For users that want to work with grapheme clusters, let
