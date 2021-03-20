@@ -430,7 +430,7 @@ This implementation style is common for student projects and little languages,
 but is not widely used for <span name="ruby">general-purpose</span> languages
 since it tends to be slow. Some people use "interpreter" to mean only these
 kinds of implementations, but others define that word more generally, so I'll
-use the inarguably explicit **"tree-walk interpreter"** to refer to these. Our
+use the inarguably explicit **tree-walk interpreter** to refer to these. Our
 first interpreter rolls this way.
 
 <aside name="ruby">
