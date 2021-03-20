@@ -5,6 +5,8 @@ final _imagePathPattern = RegExp(r'"([^"]+.png)"');
 /// Matches opening XML tag names.
 final _tagPattern = RegExp(r"<([a-z-_0-9]+)");
 
+final _spanPattern = RegExp(r'<span\s+name="[^"]+">');
+
 final _smallCapsPattern = RegExp(r'<span\s+class="small-caps">([A-Z]+)</span>');
 
 class XmlRenderer implements NodeVisitor {
@@ -105,6 +107,11 @@ class XmlRenderer implements NodeVisitor {
         .replaceAll("</tr>", "[/tr]")
         .replaceAll("<td>", "[td]")
         .replaceAll("</td>", "[/td]");
+
+    // Turn aside span locators into little visible markers.
+    text = text
+        .replaceAll(_spanPattern, "<mark>@</mark>")
+        .replaceAll("</span>", "");
 
     // Discard the challenge and design note divs.
     if (text.startsWith("<div") || text.startsWith("</div>")) return;
