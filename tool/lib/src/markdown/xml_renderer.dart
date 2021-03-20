@@ -5,6 +5,8 @@ final _imagePathPattern = RegExp(r'"([^"]+.png)"');
 /// Matches opening XML tag names.
 final _tagPattern = RegExp(r"<([a-z-_0-9]+)");
 
+final _smallCapsPattern = RegExp(r'<span\s+class="small-caps">([A-Z]+)</span>');
+
 class XmlRenderer implements NodeVisitor {
   /// While building, also fill a StringBuffer with the minimal set of
   /// paragraphs needed to cover all tags in the book.
@@ -68,6 +70,15 @@ class XmlRenderer implements NodeVisitor {
     var text = node.text;
 
     if (text.isEmpty) return;
+
+    // There are a couple of hand-coded HTML ellipses inside an HTML table.
+    text = text.replaceAll(
+        '<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.</span>', "&#8230;");
+
+    // Convert the small-caps bitwise operator spans in "Optimization" to
+    // custom tags.
+    text = text.replaceAllMapped(
+        _smallCapsPattern, (match) => "<bitwise>${match[1]}</bitwise>");
 
     text = text
         .replaceAll("&eacute;", "&#233;")
