@@ -948,13 +948,13 @@ InterpretResult interpret(const char* source) {
   frame->slots = vm.stack;
 */
 /* Calls and Functions interpret < Closures interpret
-  callValue(OBJ_VAL(function), 0);
+  call(function, 0);
 */
 //> Closures interpret
   ObjClosure* closure = newClosure(function);
   pop();
   push(OBJ_VAL(closure));
-  callValue(OBJ_VAL(closure), 0);
+  call(closure, 0);
 //< Closures interpret
 //< Scanning on Demand vm-interpret-c
 //> Compiling Expressions interpret-chunk
