@@ -84,8 +84,7 @@ void markObject(Obj* object) {
 //< Garbage Collection mark-object
 //> Garbage Collection mark-value
 void markValue(Value value) {
-  if (!IS_OBJ(value)) return;
-  markObject(AS_OBJ(value));
+  if (IS_OBJ(value)) markObject(AS_OBJ(value));
 }
 //< Garbage Collection mark-value
 //> Garbage Collection mark-array
