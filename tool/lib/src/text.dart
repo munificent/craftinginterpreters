@@ -65,4 +65,10 @@ extension StringExtensions on String {
       const HtmlEscape(HtmlEscapeMode.attribute).convert(this);
 
   int get wordCount => split(_whitespace).length;
+
+  /// Removes a single newline from the end of the string.
+  String trimTrailingNewline() {
+    if (endsWith("\n")) return substring(0, length - 1);
+    return this;
+  }
 }
