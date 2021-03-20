@@ -82,6 +82,19 @@ class XmlRenderer implements NodeVisitor {
         .replaceAll("&times;", "&#215;")
         .replaceAll("<br>", "<br/>");
 
+    // Don't send tables to InDesign as XML.
+    text = text
+        .replaceAll("<table>", "[table]")
+        .replaceAll("</table>", "[/table]")
+        .replaceAll("<thead>", "[thead]")
+        .replaceAll("</thead>", "[/thead]")
+        .replaceAll("<tbody>", "[tbody]")
+        .replaceAll("</tbody>", "[/tbody]")
+        .replaceAll("<tr>", "[tr]")
+        .replaceAll("</tr>", "[/tr]")
+        .replaceAll("<td>", "[td]")
+        .replaceAll("</td>", "[/td]");
+
     // Discard the challenge and design note divs.
     if (text.startsWith("<div") || text.startsWith("</div>")) return;
 
