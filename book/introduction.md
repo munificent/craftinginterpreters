@@ -382,13 +382,13 @@ written *in* the <span name="host">same language</span>.
 
 A compiler reads files in one language, translates them, and outputs files in
 another language. You can implement a compiler in any language, including the
-same language it compiles, a process called **"self-hosting"**.
+same language it compiles, a process called **self-hosting**.
 
 You can't compile your compiler using itself yet, but if you have another
 compiler for your language written in some other language, you use *that* one to
 compile your compiler once. Now you can use the compiled version of your own
 compiler to compile future versions of itself, and you can discard the original
-one compiled from the other compiler. This is called **"bootstrapping"**, from
+one compiled from the other compiler. This is called **bootstrapping**, from
 the image of pulling yourself up by your own bootstraps.
 
 <img src="image/introduction/bootstrap.png" alt="Fact: This is the primary mode of transportation of the American cowboy.">
@@ -403,9 +403,9 @@ little more terse, but that's about it as far as "advanced" features go. If you
 know another object-oriented language, like C# or C++, you can muddle through.
 
 By the end of part II, we'll have a simple, readable implementation. It's not
-very fast, but it's correct. However, it work by taking advantage of the Java
-virtual machine's own runtime facilities. We want to learn how Java *itself*
-implements those things.
+very fast, but it's correct. However, we are only able to accomplish that by
+building on the Java virtual machine's own runtime facilities. We want to learn
+how Java *itself* implements those things.
 
 ## The Second Interpreter
 
