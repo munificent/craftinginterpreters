@@ -12,7 +12,7 @@ class EllipseSyntax extends InlineSyntax {
     // A Unicode ellipsis doesn't have as much space between the dots as
     // Chicago style mandates so do our own thing.
     parser.addNode(Text(_isXml
-        ? "&#8230;"
+        ? "&thinsp;.&thinsp;.&thinsp;.&thinsp;"
         : '<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>'));
     return true;
   }
