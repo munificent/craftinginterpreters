@@ -56,7 +56,14 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
         // Strip off any leading indentation.
         if (line.length > indent) line = line.substring(indent);
         checkLineLength(line);
-        buffer.writeln(line.escapeHtml);
+
+        buffer.write(line.escapeHtml);
+        if (_isXml) {
+          // Soft break, so that the code stays one paragraph.
+          buffer.write("&#x2028;");
+        } else {
+          buffer.writeln();
+        }
       }
 
       if (!_isXml) buffer.write("</pre>");
@@ -66,10 +73,18 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
       code = formatCode(language, childLines, indent: indent, xml: _isXml);
     }
 
-    // Don't wrap in a div for XML. Remove the trailing newline since we'll
-    // write a newline after the "</pre>" and we don't want InDesign to insert
-    // a blank line.
-    if (_isXml) return Element.text("pre", code.trimTrailingNewline());
+    if (_isXml) {
+      // Remove the trailing newline since we'll write a newline after the
+      // "</pre>" and we don't want InDesign to insert a blank paragraph.
+      code = code.trimTrailingNewline();
+
+      // Replace newlines with soft breaks so that InDesign treats the entire
+      // snippet as a single paragraph and keeps it together.
+      code = code.replaceAll("\n", "&#x2028;");
+
+      // Don't wrap in a div for XML.
+      return Element.text("pre", code);
+    }
 
     var element = Element.text("div", code);
     element.attributes["class"] = "codehilite";
@@ -203,10 +218,17 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
 
     if (snippet.contextBefore.isNotEmpty) buffer.writeln();
     buffer.write("<$insertTag>");
+
+    var code = formatCode(snippet.file.language, snippet.added, xml: true);
     // Discard the trailing newline so we don't end up with a blank paragraph
     // in InDesign.
-    buffer.write(formatCode(snippet.file.language, snippet.added, xml: true)
-        .trimTrailingNewline());
+    code = code.trimTrailingNewline();
+
+    // Replace newlines with soft breaks so that InDesign treats the entire
+    // snippet as a single paragraph and keeps it together.
+    code = code.replaceAll("\n", "&#x2028;");
+
+    buffer.write(code);
     buffer.write("</$insertTag>");
   }
 
@@ -237,7 +259,8 @@ void _writeContextXml(StringBuffer buffer, List<String> lines, String tag) {
   buffer.write("<context-$tag>");
   var first = true;
   for (var line in lines) {
-    if (!first) buffer.writeln();
+    // Soft break, so that the context stays one paragraph.
+    if (!first) buffer.write("&#x2028;");
     first = false;
     buffer.write(line.escapeHtml);
   }
