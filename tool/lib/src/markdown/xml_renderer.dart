@@ -133,7 +133,10 @@ class XmlRenderer implements NodeVisitor {
 
     // Include code snippet XML as-is.
     if (text.startsWith("<location-file>") ||
-        text.startsWith("<interpreter>")) {
+        // "Representing Code" has a few inserted snippets with no location tag.
+        text.startsWith("<context-before>") ||
+        text.startsWith("<interpreter>") ||
+        text.startsWith("<interpreter-between>")) {
       _push("xml");
       _addText(text);
       _pop();
