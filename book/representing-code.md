@@ -134,7 +134,7 @@ Oof. Maybe a table will help:
   <td>Expression</td>
 </tr>
 <tr>
-  <td>It&apos;s implemented by the<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.</span></td>
+  <td>It&rsquo;s implemented by the<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.</span></td>
   <td>&rarr;&ensp;</td>
   <td>Scanner</td>
   <td>Parser</td>
