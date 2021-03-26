@@ -258,7 +258,6 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   }
 //< omit
 /* Representing Code printer-main < Representing Code omit
-
   public static void main(String[] args) {
     Expr expression = new Expr.Binary(
         new Expr.Unary(
