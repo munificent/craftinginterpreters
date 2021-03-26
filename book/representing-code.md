@@ -330,11 +330,11 @@ expressions in the body of a rule:
     protein → ( "scrambled" | "poached" | "fried" ) "eggs" ;
     ```
 
-*   Using <span name="recursion">recursion</span> to support repeated sequences
-    of symbols has a certain appealing <span name="purity">purity</span>, but
-    it's kind of a chore to make a separate named sub-rule each time we want to
-    loop. So, we also use a postfix `*` to allow the previous symbol or group to
-    be repeated zero or more times.
+*   Using recursion to support repeated sequences of symbols has a certain
+    appealing <span name="purity">purity</span>, but it's kind of a chore to
+    make a separate named sub-rule each time we want to loop. So, we also use a
+    postfix `*` to allow the previous symbol or group to be repeated zero or
+    more times.
 
     ```ebnf
     crispiness → "really" "really"* ;
