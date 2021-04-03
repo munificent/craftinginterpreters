@@ -294,7 +294,7 @@ class Test {
   /// Invoke the interpreter and run the test.
   List<String> run() {
     var args = [
-      if (_customArguments != null) ...?_customArguments else ..._suite.args,
+      if (_customInterpreter != null) ...?_customArguments else ..._suite.args,
       _path
     ];
     var result = Process.runSync(_customInterpreter ?? _suite.executable, args);
