@@ -402,18 +402,18 @@ minimal subset of it. I use the diamond operator from Java 7 to make things a
 little more terse, but that's about it as far as "advanced" features go. If you
 know another object-oriented language, like C# or C++, you can muddle through.
 
-By the end of part II, we'll have a simple, readable implementation. It's not
-very fast, but it's correct. However, we are only able to accomplish that by
-building on the Java virtual machine's own runtime facilities. We want to learn
-how Java *itself* implements those things.
+By the end of part II, we will have a simple, readable implementation. It won't 
+be very fast, but it would be correct. To get to this point, we'd have
+leveraged the Java virtual machine’s runtime facilities. However, we
+want to learn how Java *itself* implements those things.
 
 ## The Second Interpreter
 
-So in the next part, we start all over again, but this time in C. C is the
+So in the next part, we will start all over again, but this time in C. C is the
 perfect language for understanding how an implementation *really* works, all the
 way down to the bytes in memory and the code flowing through the CPU.
 
-A big reason that we're using C is so I can show you things C is particularly
+A big reason that we'll use C is so I can show you things C is particularly
 good at, but that *does* mean you'll need to be pretty comfortable with it. You
 don't have to be the reincarnation of Dennis Ritchie, but you shouldn't be
 spooked by pointers either.
