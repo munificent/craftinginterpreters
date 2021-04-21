@@ -433,9 +433,6 @@ static InterpretResult run() {
 //> Global Variables read-string
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 //< Global Variables read-string
-//> binary-op
-
-//< binary-op
 /* A Virtual Machine binary-op < Types of Values binary-op
 #define BINARY_OP(op) \
     do { \

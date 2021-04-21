@@ -456,7 +456,7 @@ value if the key happens to already be in the hash table.
 
 There's another little helper macro:
 
-^code read-string (1 before, 2 after)
+^code read-string (1 before, 1 after)
 
 It reads a one-byte operand from the bytecode chunk. It treats that as an index
 into the chunk's constant table and returns the string at that index. It doesn't

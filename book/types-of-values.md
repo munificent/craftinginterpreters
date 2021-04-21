@@ -356,7 +356,7 @@ place.
 
 [few chapters ago]: a-virtual-machine.html#binary-operators
 
-^code binary-op (2 before, 2 after)
+^code binary-op (1 before, 2 after)
 
 Yeah, I realize that's a monster of a macro. It's not what I'd normally consider
 good C practice, but let's roll with it. The changes are similar to what we did
