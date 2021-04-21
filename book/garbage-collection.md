@@ -41,7 +41,7 @@ knew.
 
 </aside>
 
-### Reachability
+## Reachability
 
 This raises a surprisingly difficult question: how does a VM tell what memory is
 *not* needed? Memory is only needed if it is read in the future, but short of

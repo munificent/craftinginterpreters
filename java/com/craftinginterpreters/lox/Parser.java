@@ -452,7 +452,6 @@ class Parser {
   }
 //< Functions call
 //> primary
-
   private Expr primary() {
     if (match(FALSE)) return new Expr.Literal(false);
     if (match(TRUE)) return new Expr.Literal(true);

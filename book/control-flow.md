@@ -227,7 +227,7 @@ affects how the code executes:
     called if `first` is truthy and `second` is falsey.
 
 Since else clauses are optional, and there is no explicit delimiter marking the
-end of the `if` statement, the grammar is ambiguous when you nest ifs in this
+end of the `if` statement, the grammar is ambiguous when you nest `if`s in this
 way. This classic pitfall of syntax is called the **[dangling else][]** problem.
 
 [dangling else]: https://en.wikipedia.org/wiki/Dangling_else

@@ -578,7 +578,7 @@ Scheme allows redefining variables at the top level.
 So, to keep the two modes consistent, we'll allow it -- at least for global
 variables. Once a variable exists, we need a way to look it up.
 
-^code environment-get (3 before, 1 after)
+^code environment-get (2 before, 1 after)
 
 This is a little more semantically interesting. If the variable is found, it
 simply returns the value bound to it. But what if it's not? Again, we have a
@@ -667,7 +667,7 @@ tell the user where in their code they messed up.
 
 The Interpreter class gets an instance of the new Environment class.
 
-^code environment-field (1 before, 1 after)
+^code environment-field (2 before, 1 after)
 
 We store it as a field directly in Interpreter so that the variables stay in
 memory as long as the interpreter is still running.
@@ -1052,7 +1052,7 @@ Scope and environments are close cousins. The former is the theoretical concept,
 and the latter is the machinery that implements it. As our interpreter works its
 way through code, syntax tree nodes that affect scope will change the
 environment. In a C-ish syntax like Lox's, scope is controlled by curly-braced
-<span name="block">blocks</span>. (That's why we call it **block scope**.)
+blocks. (That's why we call it **block scope**.)
 
 ```lox
 {
