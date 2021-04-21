@@ -969,15 +969,20 @@ add after <em>execute</em>()</div>
 variable or assignment expression is later executed, but where? One obvious
 place is right in the syntax tree node itself. That&rsquo;s a fine approach, and
 that&rsquo;s where many compilers store the results of analyses like this.</p>
-<p>We could do that, but it would require <span name="side">mucking</span> around
-with our syntax tree generator. Instead, we&rsquo;ll take another common approach and
-store it off to the side in a map that associates each syntax tree node with its
-resolved data.</p>
+<p>We could do that, but it would require mucking around with our syntax tree
+generator. Instead, we&rsquo;ll take another common approach and store it off to the
+<span name="side">side</span> in a map that associates each syntax tree node
+with its resolved data.</p>
 <aside name="side">
 <p>I <em>think</em> I&rsquo;ve heard this map called a &ldquo;side table&rdquo; since it&rsquo;s a tabular data
 structure that stores data separately from the objects it relates to. But
 whenever I try to Google for that term, I get pages about furniture.</p>
 </aside>
+<p>Interactive tools like IDEs often incrementally reparse and re-resolve parts of
+the user&rsquo;s program. It may be hard to find all of the bits of state that need
+recalculating when they&rsquo;re hiding in the foliage of the syntax tree. A benefit
+of storing this data outside of the nodes is that it makes it easy to <em>discard</em>
+it<span class="em">&mdash;</span>simply clear the map.</p>
 <div class="codehilite"><pre class="insert-before">
   private Environment environment = globals;
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
@@ -990,18 +995,10 @@ in class <em>Interpreter</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
 
-<p>You might think we&rsquo;d need some sort of <span name="discard">nested</span> tree
-structure to avoid getting confused when there are multiple expressions that
-reference the same variable, but each expression node is its own Java object
-with its own unique identity. A single monolithic map doesn&rsquo;t have any trouble
-keeping them separated.</p>
-<aside name="discard">
-<p>Interactive tools like IDEs often incrementally reparse and re-resolve parts of
-the user&rsquo;s program. It may be hard to find all of the bits of state that need
-recalculating when they&rsquo;re hiding in the foliage of the syntax tree. A benefit
-of storing this data outside of the nodes is that it makes it easy to <em>discard</em>
-it<span class="em">&mdash;</span>simply clear the map.</p>
-</aside>
+<p>You might think we&rsquo;d need some sort of nested tree structure to avoid getting
+confused when there are multiple expressions that reference the same variable,
+but each expression node is its own Java object with its own unique identity. A
+single monolithic map doesn&rsquo;t have any trouble keeping them separated.</p>
 <p>As usual, using a collection requires us to import a couple of names.</p>
 <div class="codehilite"><pre class="insert-before">
 import java.util.ArrayList;

@@ -130,11 +130,11 @@ those is the resolver.
 ^code resolve-superclass (1 before, 2 after)
 
 The class declaration AST node has a new subexpression, so we traverse into and
-<span name="self">resolve</span> that. Since classes are usually declared at the
-top level, the superclass name will most likely be a global variable, so this
-doesn't usually do anything useful. However, Lox allows class declarations even
-inside blocks, so it's possible the superclass name refers to a local variable.
-In that case, we need to make sure it's resolved.
+resolve that. Since classes are usually declared at the top level, the
+superclass name will most likely be a global variable, so this doesn't usually
+do anything useful. However, Lox allows class declarations even inside blocks,
+so it's possible the superclass name refers to a local variable. In that case,
+we need to make sure it's resolved.
 
 Because even well-intentioned programmers sometimes write weird code, there's a
 silly edge case we need to worry about while we're in here. Take a look at this:

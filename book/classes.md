@@ -29,7 +29,7 @@ closer, details emerge and I gain a more nuanced perspective.
 
 </aside>
 
-### OOP and classes
+## OOP and Classes
 
 There are three broad paths to object-oriented programming: classes,
 [prototypes][], and <span name="multimethods">[multimethods][]</span>. Classes

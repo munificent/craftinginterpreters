@@ -392,7 +392,7 @@ successive invocations tells you how much time elapsed between the two calls.
 This function is defined in the global scope, so let's ensure the interpreter
 has access to that.
 
-^code global-environment (1 before, 2 after)
+^code global-environment (2 before, 2 after)
 
 The `environment` field in the interpreter changes as we enter and exit local
 scopes. It tracks the *current* environment. This new `globals` field holds a
@@ -541,11 +541,10 @@ Finally, we parse the body and wrap it all up in a function node.
 
 ^code parse-body (1 before, 1 after)
 
-Note that we consume the `{` at the beginning of the body <span
-name="curly">here</span> before calling `block()`. That's because `block()`
-assumes the brace token has already been matched. Consuming it here lets us
-report a more precise error message if the `{` isn't found since we know it's in
-the context of a function declaration.
+Note that we consume the `{` at the beginning of the body here before calling
+`block()`. That's because `block()` assumes the brace token has already been
+matched. Consuming it here lets us report a more precise error message if the
+`{` isn't found since we know it's in the context of a function declaration.
 
 ## Function Objects
 

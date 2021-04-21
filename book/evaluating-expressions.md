@@ -348,7 +348,7 @@ equality, which may be different from Java's.
 Fortunately, the two are pretty similar. Lox doesn't do implicit conversions in
 equality and Java does not either. We do have to handle `nil`/`null` specially
 so that we don't throw a NullPointerException if we try to call `equals()` on
-`null`. Otherwise, we're fine. Java's <span name="nan">`.equals()`</span> method
+`null`. Otherwise, we're fine. Java's <span name="nan">`equals()`</span> method
 on Boolean, Double, and String have the behavior we want for Lox.
 
 <aside name="nan">
@@ -537,7 +537,7 @@ we need to do is fail if neither of the two success cases match.
 
 ^code string-wrong-type (3 before, 1 after)
 
-That gets us detecting runtime errors deep in the bowels of the evaluator. The
+That gets us detecting runtime errors deep in the innards of the evaluator. The
 errors are getting thrown. The next step is to write the code that catches them.
 For that, we need to wire up the Interpreter class into the main Lox class that
 drives it.
@@ -717,11 +717,9 @@ cast on the first line. It could make arrays *invariant* such that an array of
 Integers is *not* an array of Objects. That's statically sound, but it prohibits
 common and safe patterns of code that only read from arrays. Covariance is safe
 if you never *write* to the array. Those patterns were particularly important
-for usability in Java 1.0 before it supported generics.
-
-James Gosling and the other Java designers traded off a little static safety and
-performance -- those array store checks take time -- in return for some
-flexibility.
+for usability in Java 1.0 before it supported generics. James Gosling and the
+other Java designers traded off a little static safety and performance -- those
+array store checks take time -- in return for some flexibility.
 
 There are few modern statically typed languages that don't make that trade-off
 *somewhere*. Even Haskell will let you run code with non-exhaustive matches. If

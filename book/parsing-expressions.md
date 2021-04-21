@@ -789,8 +789,8 @@ not. Instead of getting confused when the parser stumbles onto a `+` at the
 beginning of an expression, we could extend the unary rule to allow it.
 
 ```ebnf
-unary          → ( "!" | "-" | "+" ) unary
-               | primary ;
+unary → ( "!" | "-" | "+" ) unary
+      | primary ;
 ```
 
 This lets the parser consume `+` without going into panic mode or leaving the

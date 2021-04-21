@@ -716,10 +716,10 @@ variable or assignment expression is later executed, but where? One obvious
 place is right in the syntax tree node itself. That's a fine approach, and
 that's where many compilers store the results of analyses like this.
 
-We could do that, but it would require <span name="side">mucking</span> around
-with our syntax tree generator. Instead, we'll take another common approach and
-store it off to the side in a map that associates each syntax tree node with its
-resolved data.
+We could do that, but it would require mucking around with our syntax tree
+generator. Instead, we'll take another common approach and store it off to the
+<span name="side">side</span> in a map that associates each syntax tree node
+with its resolved data.
 
 <aside name="side">
 
@@ -729,23 +729,18 @@ whenever I try to Google for that term, I get pages about furniture.
 
 </aside>
 
-^code locals-field (1 before, 2 after)
-
-You might think we'd need some sort of <span name="discard">nested</span> tree
-structure to avoid getting confused when there are multiple expressions that
-reference the same variable, but each expression node is its own Java object
-with its own unique identity. A single monolithic map doesn't have any trouble
-keeping them separated.
-
-<aside name="discard">
-
 Interactive tools like IDEs often incrementally reparse and re-resolve parts of
 the user's program. It may be hard to find all of the bits of state that need
 recalculating when they're hiding in the foliage of the syntax tree. A benefit
 of storing this data outside of the nodes is that it makes it easy to *discard*
 it -- simply clear the map.
 
-</aside>
+^code locals-field (1 before, 2 after)
+
+You might think we'd need some sort of nested tree structure to avoid getting
+confused when there are multiple expressions that reference the same variable,
+but each expression node is its own Java object with its own unique identity. A
+single monolithic map doesn't have any trouble keeping them separated.
 
 As usual, using a collection requires us to import a couple of names.
 
