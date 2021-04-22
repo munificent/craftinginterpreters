@@ -586,24 +586,20 @@ identical to the one in jlox, so let&rsquo;s just hammer out the whole thing.</p
   <span class="a">TOKEN_LEFT_BRACE</span>, <span class="a">TOKEN_RIGHT_BRACE</span>,
   <span class="a">TOKEN_COMMA</span>, <span class="a">TOKEN_DOT</span>, <span class="a">TOKEN_MINUS</span>, <span class="a">TOKEN_PLUS</span>,
   <span class="a">TOKEN_SEMICOLON</span>, <span class="a">TOKEN_SLASH</span>, <span class="a">TOKEN_STAR</span>,
-
   <span class="c">// One or two character tokens.</span>
   <span class="a">TOKEN_BANG</span>, <span class="a">TOKEN_BANG_EQUAL</span>,
   <span class="a">TOKEN_EQUAL</span>, <span class="a">TOKEN_EQUAL_EQUAL</span>,
   <span class="a">TOKEN_GREATER</span>, <span class="a">TOKEN_GREATER_EQUAL</span>,
   <span class="a">TOKEN_LESS</span>, <span class="a">TOKEN_LESS_EQUAL</span>,
-
   <span class="c">// Literals.</span>
   <span class="a">TOKEN_IDENTIFIER</span>, <span class="a">TOKEN_STRING</span>, <span class="a">TOKEN_NUMBER</span>,
-
   <span class="c">// Keywords.</span>
   <span class="a">TOKEN_AND</span>, <span class="a">TOKEN_CLASS</span>, <span class="a">TOKEN_ELSE</span>, <span class="a">TOKEN_FALSE</span>,
   <span class="a">TOKEN_FOR</span>, <span class="a">TOKEN_FUN</span>, <span class="a">TOKEN_IF</span>, <span class="a">TOKEN_NIL</span>, <span class="a">TOKEN_OR</span>,
   <span class="a">TOKEN_PRINT</span>, <span class="a">TOKEN_RETURN</span>, <span class="a">TOKEN_SUPER</span>, <span class="a">TOKEN_THIS</span>,
   <span class="a">TOKEN_TRUE</span>, <span class="a">TOKEN_VAR</span>, <span class="a">TOKEN_WHILE</span>,
 
-  <span class="a">TOKEN_ERROR</span>,
-  <span class="a">TOKEN_EOF</span>
+  <span class="a">TOKEN_ERROR</span>, <span class="a">TOKEN_EOF</span>
 } <span class="t">TokenType</span>;
 </pre><pre class="insert-after">
 
@@ -685,7 +681,6 @@ add after <em>isAtEnd</em>()</div>
   <span class="i">token</span>.<span class="i">start</span> = <span class="i">scanner</span>.<span class="i">start</span>;
   <span class="i">token</span>.<span class="i">length</span> = (<span class="t">int</span>)(<span class="i">scanner</span>.<span class="i">current</span> - <span class="i">scanner</span>.<span class="i">start</span>);
   <span class="i">token</span>.<span class="i">line</span> = <span class="i">scanner</span>.<span class="i">line</span>;
-
   <span class="k">return</span> <span class="i">token</span>;
 }
 </pre></div>
@@ -703,7 +698,6 @@ add after <em>makeToken</em>()</div>
   <span class="i">token</span>.<span class="i">start</span> = <span class="i">message</span>;
   <span class="i">token</span>.<span class="i">length</span> = (<span class="t">int</span>)<span class="i">strlen</span>(<span class="i">message</span>);
   <span class="i">token</span>.<span class="i">line</span> = <span class="i">scanner</span>.<span class="i">line</span>;
-
   <span class="k">return</span> <span class="i">token</span>;
 }
 </pre></div>
@@ -788,7 +782,6 @@ in <em>scanToken</em>()</div>
           <span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="a">TOKEN_GREATER_EQUAL</span> : <span class="a">TOKEN_GREATER</span>);
 </pre><pre class="insert-after">
   }
-
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -803,7 +796,6 @@ add after <em>advance</em>()</div>
 <span class="k">static</span> <span class="t">bool</span> <span class="i">match</span>(<span class="t">char</span> <span class="i">expected</span>) {
   <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="k">false</span>;
   <span class="k">if</span> (*<span class="i">scanner</span>.<span class="i">current</span> != <span class="i">expected</span>) <span class="k">return</span> <span class="k">false</span>;
-
   <span class="i">scanner</span>.<span class="i">current</span>++;
   <span class="k">return</span> <span class="k">true</span>;
 }
@@ -829,10 +821,8 @@ Token scanToken() {
 in <em>scanToken</em>()</div>
 <pre class="insert">
   <span class="i">skipWhitespace</span>();
-
 </pre><pre class="insert-after">
   scanner.start = scanner.current;
-
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -851,7 +841,6 @@ add after <em>errorToken</em>()</div>
       <span class="k">case</span> <span class="s">&#39;\t&#39;</span>:
         <span class="i">advance</span>();
         <span class="k">break</span>;
-
       <span class="k">default</span>:
         <span class="k">return</span>;
     }
@@ -879,14 +868,13 @@ code handles all the whitespace characters except for newlines.</p>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="s">&#39;\n&#39;</span>:
         <span class="i">scanner</span>.<span class="i">line</span>++;
         <span class="i">advance</span>();
         <span class="k">break</span>;
 </pre><pre class="insert-after">
-
       default:
+        return;
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>skipWhitespace</em>()</div>
 
@@ -900,7 +888,6 @@ skip those too.</p>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="s">&#39;/&#39;</span>:
         <span class="k">if</span> (<span class="i">peekNext</span>() == <span class="s">&#39;/&#39;</span>) {
           <span class="c">// A comment goes until the end of the line.</span>
@@ -910,8 +897,8 @@ in <em>skipWhitespace</em>()</div>
         }
         <span class="k">break</span>;
 </pre><pre class="insert-after">
-
       default:
+        return;
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>skipWhitespace</em>()</div>
 
@@ -945,11 +932,9 @@ recognize<span class="em">&mdash;</span>they always begin with a double quote.</
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
-
     <span class="k">case</span> <span class="s">&#39;&quot;&#39;</span>: <span class="k">return</span> <span class="i">string</span>();
 </pre><pre class="insert-after">
   }
-
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -1054,11 +1039,9 @@ underscore.</p>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
-
   <span class="k">if</span> (<span class="i">isAlpha</span>(<span class="i">c</span>)) <span class="k">return</span> <span class="i">identifier</span>();
 </pre><pre class="insert-after">
   if (isDigit(c)) return number();
-
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -1080,7 +1063,6 @@ add after <em>skipWhitespace</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">Token</span> <span class="i">identifier</span>() {
   <span class="k">while</span> (<span class="i">isAlpha</span>(<span class="i">peek</span>()) || <span class="i">isDigit</span>(<span class="i">peek</span>())) <span class="i">advance</span>();
-
   <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">identifierType</span>());
 }
 </pre></div>
@@ -1132,6 +1114,7 @@ letter in the lexeme and so on. If at any point the next letter in the lexeme
 doesn&rsquo;t match a child node, then the identifier must not be a keyword and we
 stop. If we reach a double-lined box, and we&rsquo;re at the last character of the
 lexeme, then we found a keyword.</p>
+<h3><a href="#tries-and-state-machines" name="tries-and-state-machines"><small>16&#8202;.&#8202;4&#8202;.&#8202;1</small>Tries and state machines</a></h3>
 <p>This tree diagram is an example of a thing called a <span
 name="trie"><a href="https://en.wikipedia.org/wiki/Trie"><strong>trie</strong></a></span>. A trie stores a set of strings. Most other
 data structures for storing strings contain the raw character arrays and then

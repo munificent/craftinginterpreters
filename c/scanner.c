@@ -57,7 +57,6 @@ static char peekNext() {
 static bool match(char expected) {
   if (isAtEnd()) return false;
   if (*scanner.current != expected) return false;
-
   scanner.current++;
   return true;
 }
@@ -69,7 +68,6 @@ static Token makeToken(TokenType type) {
   token.start = scanner.start;
   token.length = (int)(scanner.current - scanner.start);
   token.line = scanner.line;
-
   return token;
 }
 //< make-token
@@ -80,7 +78,6 @@ static Token errorToken(const char* message) {
   token.start = message;
   token.length = (int)strlen(message);
   token.line = scanner.line;
-
   return token;
 }
 //< error-token
@@ -95,14 +92,12 @@ static void skipWhitespace() {
         advance();
         break;
 //> newline
-
       case '\n':
         scanner.line++;
         advance();
         break;
 //< newline
 //> comment
-        
       case '/':
         if (peekNext() == '/') {
           // A comment goes until the end of the line.
@@ -112,7 +107,6 @@ static void skipWhitespace() {
         }
         break;
 //< comment
-
       default:
         return;
     }
@@ -175,7 +169,6 @@ static TokenType identifierType() {
 //> identifier
 static Token identifier() {
   while (isAlpha(peek()) || isDigit(peek())) advance();
-
   return makeToken(identifierType());
 }
 //< identifier
@@ -212,7 +205,6 @@ static Token string() {
 Token scanToken() {
 //> call-skip-whitespace
   skipWhitespace();
-
 //< call-skip-whitespace
   scanner.start = scanner.current;
 
@@ -221,7 +213,6 @@ Token scanToken() {
   
   char c = advance();
 //> scan-identifier
-  
   if (isAlpha(c)) return identifier();
 //< scan-identifier
 //> scan-number
@@ -255,7 +246,6 @@ Token scanToken() {
           match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
 //< two-char
 //> scan-string
-      
     case '"': return string();
 //< scan-string
   }
