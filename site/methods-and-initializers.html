@@ -963,7 +963,6 @@ add after struct <em>Compiler</em></div>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="t">ClassCompiler</span> {
   <span class="k">struct</span> <span class="t">ClassCompiler</span>* <span class="i">enclosing</span>;
-  <span class="t">Token</span> <span class="i">name</span>;
 } <span class="t">ClassCompiler</span>;
 </pre><pre class="insert-after">
 
@@ -971,12 +970,11 @@ Parser parser;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Compiler</em></div>
 
-<p>Right now we store only the class&rsquo;s name. We also keep a pointer to the
-ClassCompiler for the enclosing class, if any. Nesting a class declaration
-inside a method in some other class is an uncommon thing to do, but Lox supports
-it. Just like the Compiler struct, this means ClassCompiler forms a linked list
-from the current innermost class being compiled out through all of the enclosing
-classes.</p>
+<p>Right now we store only a pointer to the ClassCompiler for the enclosing class,
+if any. Nesting a class declaration inside a method in some other class is an
+uncommon thing to do, but Lox supports it. Just like the Compiler struct, this
+means ClassCompiler forms a linked list from the current innermost class being
+compiled out through all of the enclosing classes.</p>
 <p>If we aren&rsquo;t inside any class declaration at all, the module variable
 <code>currentClass</code> is <code>NULL</code>. When the compiler begins compiling a class, it pushes
 a new ClassCompiler onto that implict linked stack.</p>
@@ -987,7 +985,6 @@ a new ClassCompiler onto that implict linked stack.</p>
 in <em>classDeclaration</em>()</div>
 <pre class="insert">
   <span class="t">ClassCompiler</span> <span class="i">classCompiler</span>;
-  <span class="i">classCompiler</span>.<span class="i">name</span> = <span class="i">parser</span>.<span class="i">previous</span>;
   <span class="i">classCompiler</span>.<span class="i">enclosing</span> = <span class="i">currentClass</span>;
   <span class="i">currentClass</span> = &amp;<span class="i">classCompiler</span>;
 
