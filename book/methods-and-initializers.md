@@ -627,12 +627,11 @@ class being compiled. The new type looks like this:
 
 ^code class-compiler-struct (1 before, 2 after)
 
-Right now we store only the class's name. We also keep a pointer to the
-ClassCompiler for the enclosing class, if any. Nesting a class declaration
-inside a method in some other class is an uncommon thing to do, but Lox supports
-it. Just like the Compiler struct, this means ClassCompiler forms a linked list
-from the current innermost class being compiled out through all of the enclosing
-classes.
+Right now we store only a pointer to the ClassCompiler for the enclosing class,
+if any. Nesting a class declaration inside a method in some other class is an
+uncommon thing to do, but Lox supports it. Just like the Compiler struct, this
+means ClassCompiler forms a linked list from the current innermost class being
+compiled out through all of the enclosing classes.
 
 If we aren't inside any class declaration at all, the module variable
 `currentClass` is `NULL`. When the compiler begins compiling a class, it pushes

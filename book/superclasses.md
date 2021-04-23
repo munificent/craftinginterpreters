@@ -344,7 +344,7 @@ But soon, other functions in the compiler will need to know whether the
 surrounding class is a subclass or not. So we may as well give our future selves
 a hand and store this fact as a field in the ClassCompiler now.
 
-^code has-superclass (3 before, 1 after)
+^code has-superclass (2 before, 1 after)
 
 When we first initialize a ClassCompiler, we assume it is not a subclass.
 

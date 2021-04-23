@@ -118,7 +118,6 @@ typedef struct Compiler {
 
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
-  Token name;
 //> Superclasses has-superclass
   bool hasSuperclass;
 //< Superclasses has-superclass
@@ -1132,7 +1131,6 @@ static void classDeclaration() {
 
 //> Methods and Initializers create-class-compiler
   ClassCompiler classCompiler;
-  classCompiler.name = parser.previous;
 //> Superclasses init-has-superclass
   classCompiler.hasSuperclass = false;
 //< Superclasses init-has-superclass
