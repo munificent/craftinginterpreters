@@ -209,8 +209,8 @@ superclass, so we don't.
 
 That won't be sufficient to support super calls. Since a subclass <span
 name="may">may</span> override the superclass method, we need to be able to get
-our hands on superclass method tables. Before we get to mechanism, I want to
-refresh your memory on how super calls are statically resolved.
+our hands on superclass method tables. Before we get to that mechanism, I want 
+to refresh your memory on how super calls are statically resolved.
 
 <aside name="may">
 
