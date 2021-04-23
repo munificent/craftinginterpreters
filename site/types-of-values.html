@@ -399,7 +399,6 @@ replace 1 line</div>
           <span class="i">runtimeError</span>(<span class="s">&quot;Operand must be a number.&quot;</span>);
           <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span>;
         }
-
         <span class="i">push</span>(<span class="a">NUMBER_VAL</span>(-<span class="a">AS_NUMBER</span>(<span class="i">pop</span>())));
         <span class="k">break</span>;
 </pre><pre class="insert-after">
@@ -451,7 +450,6 @@ add after <em>resetStack</em>()</div>
   <span class="t">size_t</span> <span class="i">instruction</span> = <span class="i">vm</span>.<span class="i">ip</span> - <span class="i">vm</span>.<span class="i">chunk</span>-&gt;<span class="i">code</span> - <span class="n">1</span>;
   <span class="t">int</span> <span class="i">line</span> = <span class="i">vm</span>.<span class="i">chunk</span>-&gt;<span class="i">lines</span>[<span class="i">instruction</span>];
   <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;[line %d] in script</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">line</span>);
-
   <span class="i">resetStack</span>();
 }
 </pre></div>
@@ -939,14 +937,12 @@ operation.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_EQUAL</span>: {
         <span class="t">Value</span> <span class="i">b</span> = <span class="i">pop</span>();
         <span class="t">Value</span> <span class="i">a</span> = <span class="i">pop</span>();
         <span class="i">push</span>(<span class="a">BOOL_VAL</span>(<span class="i">valuesEqual</span>(<span class="i">a</span>, <span class="i">b</span>)));
         <span class="k">break</span>;
       }
-
 </pre><pre class="insert-after">
       case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
 </pre></div>
@@ -975,7 +971,6 @@ add after <em>printValue</em>()</div>
 <pre>
 <span class="t">bool</span> <span class="i">valuesEqual</span>(<span class="t">Value</span> <span class="i">a</span>, <span class="t">Value</span> <span class="i">b</span>) {
   <span class="k">if</span> (<span class="i">a</span>.<span class="i">type</span> != <span class="i">b</span>.<span class="i">type</span>) <span class="k">return</span> <span class="k">false</span>;
-
   <span class="k">switch</span> (<span class="i">a</span>.<span class="i">type</span>) {
     <span class="k">case</span> <span class="a">VAL_BOOL</span>:   <span class="k">return</span> <span class="a">AS_BOOL</span>(<span class="i">a</span>) == <span class="a">AS_BOOL</span>(<span class="i">b</span>);
     <span class="k">case</span> <span class="a">VAL_NIL</span>:    <span class="k">return</span> <span class="k">true</span>;
@@ -1015,10 +1010,10 @@ equal Values actually differ in memory that isn&rsquo;t used.</p><img src="image
 now, these three are sufficient. The other comparison operators are easier since
 they work only on numbers.</p>
 <div class="codehilite"><pre class="insert-before">
+        Value a = pop();
         push(BOOL_VAL(valuesEqual(a, b)));
         break;
       }
-
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">

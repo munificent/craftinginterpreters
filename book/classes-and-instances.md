@@ -175,7 +175,7 @@ And add it to the disassembler:
 
 For such a large-seeming feature, the interpreter support is minimal.
 
-^code interpret-class (3 before, 1 after)
+^code interpret-class (2 before, 1 after)
 
 We load the string for the class's name from the constant table and pass that to
 `newClass()`. That creates a new class object with the given name. We push that
@@ -295,7 +295,7 @@ table to an empty hash table. A new baby object is born!
 
 At the sadder end of the instance's lifespan, it gets freed.
 
-^code free-instance (4 before, 1 after)
+^code free-instance (3 before, 1 after)
 
 The instance owns its field table so when freeing the instance, we also free the
 table. We don't explicitly free the entries *in* the table, because there may
@@ -305,7 +305,7 @@ those for us. Here we free only the entry array of the table itself.
 Speaking of the garbage collector, it needs support for tracing through
 instances.
 
-^code blacken-instance (4 before, 1 after)
+^code blacken-instance (3 before, 1 after)
 
 If the instance is alive, we need to keep its class around. Also, we need to
 keep every object referenced by the instance's fields. Most live objects that
@@ -315,7 +315,7 @@ tracing them easy.
 
 Less critical but still important is printing.
 
-^code print-instance (3 before, 1 after)
+^code print-instance (1 before, 1 after)
 
 <span name="print">An</span> instance prints its name followed by "instance".
 (The "instance" part is mainly so that classes and instances don't print the
@@ -466,7 +466,7 @@ And add support for disassembling them:
 Sliding over to the runtime, we'll start with get expressions since those are a
 little simpler.
 
-^code interpret-get-property (3 before, 2 after)
+^code interpret-get-property (1 before, 1 after)
 
 When the interpreter reaches this instruction, the expression to the left of the
 dot has already been executed and the resulting instance is on top of the stack.
@@ -477,7 +477,7 @@ instance and push the entry's value as the result.
 Of course, the field might not exist. In Lox, we've defined that to be a runtime
 error. So we add a check for that and abort if it happens.
 
-^code get-undefined (3 before, 3 after)
+^code get-undefined (3 before, 2 after)
 
 <span name="field">There</span> is another failure mode to handle which you've
 probably noticed. The above code assumes the expression to the left of the dot
@@ -519,7 +519,7 @@ safely exit.
 Of course, get expressions are not very useful when no instances have any
 fields. For that we need setters.
 
-^code interpret-set-property (3 before, 2 after)
+^code interpret-set-property (2 before, 1 after)
 
 This is a little more complex than `OP_GET_PROPERTY`. When this executes, the
 top of the stack has the instance whose field is being set and above that, the

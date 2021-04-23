@@ -440,7 +440,6 @@ in <em>collectGarbage</em>()</div>
 <span class="a">#endif</span>
 </pre><pre class="insert-after">
 }
-void freeObjects() {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
@@ -1073,7 +1072,6 @@ in <em>blackenObject</em>()</div>
     <span class="k">case</span> <span class="a">OBJ_UPVALUE</span>:
       <span class="i">markValue</span>(((<span class="t">ObjUpvalue</span>*)<span class="i">object</span>)-&gt;<span class="i">closed</span>);
       <span class="k">break</span>;
-
 </pre><pre class="insert-after">
     case OBJ_NATIVE:
 </pre></div>
@@ -1094,7 +1092,6 @@ in <em>blackenObject</em>()</div>
       <span class="i">markArray</span>(&amp;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">constants</span>);
       <span class="k">break</span>;
     }
-
 </pre><pre class="insert-after">
     case OBJ_UPVALUE:
 </pre></div>
@@ -1129,7 +1126,6 @@ in <em>blackenObject</em>()</div>
       }
       <span class="k">break</span>;
     }
-
 </pre><pre class="insert-after">
     case OBJ_FUNCTION: {
 </pre></div>
@@ -1543,8 +1539,6 @@ in <em>reallocate</em>()</div>
 
 <p>When the total crosses the limit, we run the collector.</p>
 <div class="codehilite"><pre class="insert-before">
-  if (newSize &gt; oldSize) {
-#ifdef DEBUG_STRESS_GC
     collectGarbage();
 #endif
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1727,11 +1721,12 @@ is going. Since the string is brand new, it isn&rsquo;t reachable anywhere. And
 resizing the string pool can trigger a collection. Again, we go ahead and stash
 the string on the stack first.</p>
 <div class="codehilite"><pre class="insert-before">
+  string-&gt;chars = chars;
   string-&gt;hash = hash;
-
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateString</em>()</div>
 <pre class="insert">
+
   <span class="i">push</span>(<span class="a">OBJ_VAL</span>(<span class="i">string</span>));
 </pre><pre class="insert-after">
   tableSet(&amp;vm.strings, string, NIL_VAL);
@@ -1745,9 +1740,10 @@ in <em>allocateString</em>()</div>
 in <em>allocateString</em>()</div>
 <pre class="insert">
   <span class="i">pop</span>();
-</pre><pre class="insert-after">
 
+</pre><pre class="insert-after">
   return string;
+}
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
 

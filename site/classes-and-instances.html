@@ -244,7 +244,6 @@ in <em>freeObject</em>()</div>
       <span class="a">FREE</span>(<span class="t">ObjClass</span>, <span class="i">object</span>);
       <span class="k">break</span>;
     }<span name="braces"> </span>
-
 </pre><pre class="insert-after">
     case OBJ_CLOSURE: {
 </pre></div>
@@ -266,7 +265,6 @@ in <em>blackenObject</em>()</div>
       <span class="i">markObject</span>((<span class="t">Obj</span>*)<span class="i">klass</span>-&gt;<span class="i">name</span>);
       <span class="k">break</span>;
     }
-
 </pre><pre class="insert-after">
     case OBJ_CLOSURE: {
 </pre></div>
@@ -382,13 +380,11 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>For such a large-seeming feature, the interpreter support is minimal.</p>
 <div class="codehilite"><pre class="insert-before">
-        frame = &amp;vm.frames[vm.frameCount - 1];
         break;
       }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_CLASS</span>:
         <span class="i">push</span>(<span class="a">OBJ_VAL</span>(<span class="i">newClass</span>(<span class="a">READ_STRING</span>())));
         <span class="k">break</span>;
@@ -560,7 +556,6 @@ table to an empty hash table. A new baby object is born!</p>
       FREE(ObjFunction, object);
       break;
     }
-
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
@@ -570,7 +565,6 @@ in <em>freeObject</em>()</div>
       <span class="a">FREE</span>(<span class="t">ObjInstance</span>, <span class="i">object</span>);
       <span class="k">break</span>;
     }
-
 </pre><pre class="insert-after">
     case OBJ_NATIVE:
 </pre></div>
@@ -586,7 +580,6 @@ instances.</p>
       markArray(&amp;function-&gt;chunk.constants);
       break;
     }
-
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
 <pre class="insert">
@@ -596,7 +589,6 @@ in <em>blackenObject</em>()</div>
       <span class="i">markTable</span>(&amp;<span class="i">instance</span>-&gt;<span class="i">fields</span>);
       <span class="k">break</span>;
     }
-
 </pre><pre class="insert-after">
     case OBJ_UPVALUE:
 </pre></div>
@@ -609,8 +601,6 @@ field. Fortunately, we already have a nice <code>markTable()</code> function to 
 tracing them easy.</p>
 <p>Less critical but still important is printing.</p>
 <div class="codehilite"><pre class="insert-before">
-    case OBJ_FUNCTION:
-      printFunction(AS_FUNCTION(value));
       break;
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
@@ -793,13 +783,10 @@ in <em>disassembleInstruction</em>()</div>
 <p>Sliding over to the runtime, we&rsquo;ll start with get expressions since those are a
 little simpler.</p>
 <div class="codehilite"><pre class="insert-before">
-        *frame-&gt;closure-&gt;upvalues[slot]-&gt;location = peek(0);
-        break;
       }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_GET_PROPERTY</span>: {
         <span class="t">ObjInstance</span>* <span class="i">instance</span> = <span class="a">AS_INSTANCE</span>(<span class="i">peek</span>(<span class="n">0</span>));
         <span class="t">ObjString</span>* <span class="i">name</span> = <span class="a">READ_STRING</span>();
@@ -812,7 +799,6 @@ in <em>run</em>()</div>
         }
       }
 </pre><pre class="insert-after">
-
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -836,7 +822,6 @@ in <em>run</em>()</div>
         <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span>;
 </pre><pre class="insert-after">
       }
-
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -885,13 +870,11 @@ safely exit.</p>
 <p>Of course, get expressions are not very useful when no instances have any
 fields. For that we need setters.</p>
 <div class="codehilite"><pre class="insert-before">
-        runtimeError(&quot;Undefined property '%s'.&quot;, name-&gt;chars);
         return INTERPRET_RUNTIME_ERROR;
       }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_SET_PROPERTY</span>: {
         <span class="t">ObjInstance</span>* <span class="i">instance</span> = <span class="a">AS_INSTANCE</span>(<span class="i">peek</span>(<span class="n">1</span>));
         <span class="i">tableSet</span>(&amp;<span class="i">instance</span>-&gt;<span class="i">fields</span>, <span class="a">READ_STRING</span>(), <span class="i">peek</span>(<span class="n">0</span>));
@@ -902,7 +885,6 @@ in <em>run</em>()</div>
         <span class="k">break</span>;
       }
 </pre><pre class="insert-after">
-
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>

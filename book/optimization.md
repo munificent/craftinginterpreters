@@ -267,10 +267,9 @@ static Entry* findEntry(Entry* entries, int capacity,
                         ObjString* key) {
   uint32_t index = key->hash % capacity;
   Entry* tombstone = NULL;
-  
+
   for (;;) {
     Entry* entry = &entries[index];
-
     if (entry->key == NULL) {
       if (IS_NIL(entry->value)) {
         // Empty entry.
@@ -371,7 +370,7 @@ optimizations there too. This function is called only when interning strings,
 which wasn't heavily stressed by our benchmark. But a Lox program that created
 lots of strings might noticeably benefit from this change.
 
-^code find-string-index (4 before, 2 after)
+^code find-string-index (2 before, 2 after)
 
 And also when the linear probing wraps around.
 

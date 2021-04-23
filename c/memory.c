@@ -112,7 +112,6 @@ static void blackenObject(Obj* object) {
       markObject((Obj*)bound->method);
       break;
     }
-    
 //< Methods and Initializers blacken-bound-method
 //> Classes and Instances blacken-class
     case OBJ_CLASS: {
@@ -123,7 +122,6 @@ static void blackenObject(Obj* object) {
 //< Methods and Initializers mark-methods
       break;
     }
-
 //< Classes and Instances blacken-class
 //> blacken-closure
     case OBJ_CLOSURE: {
@@ -134,7 +132,6 @@ static void blackenObject(Obj* object) {
       }
       break;
     }
-
 //< blacken-closure
 //> blacken-function
     case OBJ_FUNCTION: {
@@ -143,7 +140,6 @@ static void blackenObject(Obj* object) {
       markArray(&function->chunk.constants);
       break;
     }
-
 //< blacken-function
 //> Classes and Instances blacken-instance
     case OBJ_INSTANCE: {
@@ -152,13 +148,11 @@ static void blackenObject(Obj* object) {
       markTable(&instance->fields);
       break;
     }
-
 //< Classes and Instances blacken-instance
 //> blacken-upvalue
     case OBJ_UPVALUE:
       markValue(((ObjUpvalue*)object)->closed);
       break;
-
 //< blacken-upvalue
     case OBJ_NATIVE:
     case OBJ_STRING:
@@ -179,7 +173,6 @@ static void freeObject(Obj* object) {
     case OBJ_BOUND_METHOD:
       FREE(ObjBoundMethod, object);
       break;
-
 //< Methods and Initializers free-bound-method
 //> Classes and Instances free-class
     case OBJ_CLASS: {
@@ -190,7 +183,6 @@ static void freeObject(Obj* object) {
       FREE(ObjClass, object);
       break;
     } // [braces]
-
 //< Classes and Instances free-class
 //> Closures free-closure
     case OBJ_CLOSURE: {
@@ -202,7 +194,6 @@ static void freeObject(Obj* object) {
       FREE(ObjClosure, object);
       break;
     }
-
 //< Closures free-closure
 //> Calls and Functions free-function
     case OBJ_FUNCTION: {
@@ -211,7 +202,6 @@ static void freeObject(Obj* object) {
       FREE(ObjFunction, object);
       break;
     }
-
 //< Calls and Functions free-function
 //> Classes and Instances free-instance
     case OBJ_INSTANCE: {
@@ -220,13 +210,11 @@ static void freeObject(Obj* object) {
       FREE(ObjInstance, object);
       break;
     }
-
 //< Classes and Instances free-instance
 //> Calls and Functions free-native
     case OBJ_NATIVE:
       FREE(ObjNative, object);
       break;
-
 //< Calls and Functions free-native
     case OBJ_STRING: {
       ObjString* string = (ObjString*)object;
@@ -235,7 +223,6 @@ static void freeObject(Obj* object) {
       break;
     }
 //> Closures free-upvalue
-
     case OBJ_UPVALUE:
       FREE(ObjUpvalue, object);
       break;

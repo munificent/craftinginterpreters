@@ -312,7 +312,7 @@ We need a couple of includes.
 We don't have a collector yet, but we can start putting in some of the logging
 now. We'll want to know when a collection run starts.
 
-^code log-before-collect (1 before, 2 after)
+^code log-before-collect (1 before, 1 after)
 
 Eventually we will log some other operations during the collection, so we'll
 also want to know when the show's over.
@@ -1045,7 +1045,7 @@ Every time we allocate or free some memory, we adjust the counter by that delta.
 
 When the total crosses the limit, we run the collector.
 
-^code collect-on-next (4 before, 1 after)
+^code collect-on-next (2 before, 1 after)
 
 Now, finally, our garbage collector actually does something when the user runs a
 program without our hidden diagnostic flag enabled. The sweep phase frees

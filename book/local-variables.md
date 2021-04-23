@@ -177,7 +177,7 @@ global variable is a *bad* idea.
 
 </aside>
 
-^code current-compiler (2 before, 2 after)
+^code current-compiler (1 before, 1 after)
 
 Here's a little function to initialize the compiler:
 
@@ -222,7 +222,7 @@ statements. It could be worse, I suppose. Algol 58 called `begin` and `end`
 Blocks are a kind of statement, so the rule for them goes in the `statement`
 production. The corresponding code to compile one looks like this:
 
-^code parse-block (3 before, 1 after)
+^code parse-block (2 before, 1 after)
 
 After <span name="helper">parsing</span> the initial curly brace, we use this
 helper function to compile the rest of the block:
@@ -512,7 +512,7 @@ is loading a local variable:
 
 And its implementation:
 
-^code interpret-get-local (1 before, 2 after)
+^code interpret-get-local (1 before, 1 after)
 
 It takes a single-byte operand for the stack slot where the local lives. It
 loads the value from that index and then pushes it on top of the stack where
@@ -537,7 +537,7 @@ Next is assignment:
 
 You can probably predict the implementation.
 
-^code interpret-set-local (1 before, 2 after)
+^code interpret-set-local (1 before, 1 after)
 
 It takes the assigned value from the top of the stack and stores it in the stack
 slot corresponding to the local variable. Note that it doesn't pop the value

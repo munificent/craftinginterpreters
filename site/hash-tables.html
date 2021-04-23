@@ -576,8 +576,8 @@ in <em>allocateString</em>()</div>
 <pre class="insert">
   <span class="i">string</span>-&gt;<span class="i">hash</span> = <span class="i">hash</span>;
 </pre><pre class="insert-after">
-
   return string;
+}
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
 
@@ -590,7 +590,6 @@ ObjString* copyString(const char* chars, int length) {
 in <em>copyString</em>()</div>
 <pre class="insert">
   <span class="t">uint32_t</span> <span class="i">hash</span> = <span class="i">hashString</span>(<span class="i">chars</span>, <span class="i">length</span>);
-
 </pre><pre class="insert-after">
   char* heapChars = ALLOCATE(char, length + 1);
 </pre></div>
@@ -598,8 +597,8 @@ in <em>copyString</em>()</div>
 
 <p>No magic here. We calculate the hash code and then pass it along.</p>
 <div class="codehilite"><pre class="insert-before">
+  memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
-
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>copyString</em>()<br>
 replace 1 line</div>
@@ -630,12 +629,10 @@ add after <em>allocateString</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">uint32_t</span> <span class="i">hashString</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">key</span>, <span class="t">int</span> <span class="i">length</span>) {
   <span class="t">uint32_t</span> <span class="i">hash</span> = <span class="n">2166136261u</span>;
-
   <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">length</span>; <span class="i">i</span>++) {
     <span class="i">hash</span> ^= (<span class="t">uint8_t</span>)<span class="i">key</span>[<span class="i">i</span>];
     <span class="i">hash</span> *= <span class="n">16777619</span>;
   }
-
   <span class="k">return</span> <span class="i">hash</span>;
 }
 </pre></div>
@@ -676,7 +673,6 @@ add after <em>freeTable</em>()</div>
 <pre>
 <span class="t">bool</span> <span class="i">tableSet</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>, <span class="t">Value</span> <span class="i">value</span>) {
   <span class="t">Entry</span>* <span class="i">entry</span> = <span class="i">findEntry</span>(<span class="i">table</span>-&gt;<span class="i">entries</span>, <span class="i">table</span>-&gt;<span class="i">capacity</span>, <span class="i">key</span>);
-
   <span class="t">bool</span> <span class="i">isNewKey</span> = <span class="i">entry</span>-&gt;<span class="i">key</span> == <span class="a">NULL</span>;
   <span class="k">if</span> (<span class="i">isNewKey</span>) <span class="i">table</span>-&gt;<span class="i">count</span>++;
 
@@ -751,7 +747,6 @@ add after <em>freeTable</em>()</div>
   <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> % <span class="i">capacity</span>;
   <span class="k">for</span> (;;) {
     <span class="t">Entry</span>* <span class="i">entry</span> = &amp;<span class="i">entries</span>[<span class="i">index</span>];
-
     <span class="k">if</span> (<span class="i">entry</span>-&gt;<span class="i">key</span> == <span class="i">key</span> || <span class="i">entry</span>-&gt;<span class="i">key</span> == <span class="a">NULL</span>) {
       <span class="k">return</span> <span class="i">entry</span>;
     }
@@ -881,8 +876,6 @@ in <em>adjustCapacity</em>()</div>
   <span class="a">FREE_ARRAY</span>(<span class="t">Entry</span>, <span class="i">table</span>-&gt;<span class="i">entries</span>, <span class="i">table</span>-&gt;<span class="i">capacity</span>);
 </pre><pre class="insert-after">
   table-&gt;entries = entries;
-  table-&gt;capacity = capacity;
-}
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>()</div>
 
@@ -1049,8 +1042,8 @@ of the characteristics of an empty one.</p>
 <p>When we are following a probe sequence during a lookup, and we hit a tombstone,
 we note it and keep going.</p>
 <div class="codehilite"><pre class="insert-before">
+  for (;;) {
     Entry* entry = &amp;entries[index];
-
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>findEntry</em>()<br>
 replace 3 lines</div>
@@ -1116,7 +1109,6 @@ code. The count is no longer the number of entries in the hash table, it&rsquo;s
 number of entries plus tombstones. That implies that we increment the count
 during insertion only if the new entry goes into an entirely empty bucket.</p>
 <div class="codehilite"><pre class="insert-before">
-
   bool isNewKey = entry-&gt;key == NULL;
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableSet</em>()<br>
@@ -1288,12 +1280,10 @@ clox, we&rsquo;ll automatically intern every one. That means whenever we create 
 unique string, we add it to the table.</p>
 <div class="codehilite"><pre class="insert-before">
   string-&gt;hash = hash;
-
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateString</em>()</div>
 <pre class="insert">
   <span class="i">tableSet</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>, <span class="i">string</span>, <span class="a">NIL_VAL</span>);
-
 </pre><pre class="insert-after">
   return string;
 </pre></div>
@@ -1313,8 +1303,8 @@ in <em>copyString</em>()</div>
   <span class="t">ObjString</span>* <span class="i">interned</span> = <span class="i">tableFindString</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>, <span class="i">chars</span>, <span class="i">length</span>,
                                         <span class="i">hash</span>);
   <span class="k">if</span> (<span class="i">interned</span> != <span class="a">NULL</span>) <span class="k">return</span> <span class="i">interned</span>;
-</pre><pre class="insert-after">
 
+</pre><pre class="insert-after">
   char* heapChars = ALLOCATE(char, length + 1);
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>copyString</em>()</div>
@@ -1381,10 +1371,8 @@ add after <em>tableAddAll</em>()</div>
   <span class="k">if</span> (<span class="i">table</span>-&gt;<span class="i">count</span> == <span class="n">0</span>) <span class="k">return</span> <span class="a">NULL</span>;
 
   <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">hash</span> % <span class="i">table</span>-&gt;<span class="i">capacity</span>;
-
   <span class="k">for</span> (;;) {
     <span class="t">Entry</span>* <span class="i">entry</span> = &amp;<span class="i">table</span>-&gt;<span class="i">entries</span>[<span class="i">index</span>];
-
     <span class="k">if</span> (<span class="i">entry</span>-&gt;<span class="i">key</span> == <span class="a">NULL</span>) {
       <span class="c">// Stop if we find an empty non-tombstone entry.</span>
       <span class="k">if</span> (<span class="a">IS_NIL</span>(<span class="i">entry</span>-&gt;<span class="i">value</span>)) <span class="k">return</span> <span class="a">NULL</span>;
