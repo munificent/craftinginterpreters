@@ -285,7 +285,7 @@ associated with that line.
 The chunk that we're writing gets passed into `compile()`, but it needs to make
 its way to `emitByte()`. To do that, we rely on this intermediary function:
 
-^code compiling-chunk (2 before, 1 after)
+^code compiling-chunk (1 before, 1 after)
 
 Right now, the chunk pointer is stored in a module-level variable like we store
 other global state. Later, when we start compiling user-defined functions, the

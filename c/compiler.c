@@ -126,17 +126,14 @@ typedef struct ClassCompiler {
 //< Methods and Initializers class-compiler-struct
 
 Parser parser;
-
 //< Compiling Expressions parser
 //> Local Variables current-compiler
 Compiler* current = NULL;
 //< Local Variables current-compiler
 //> Methods and Initializers current-class
-
 ClassCompiler* currentClass = NULL;
 //< Methods and Initializers current-class
 //> Compiling Expressions compiling-chunk
-
 /* Compiling Expressions compiling-chunk < Calls and Functions current-chunk
 Chunk* compilingChunk;
 
@@ -145,6 +142,7 @@ static Chunk* currentChunk() {
 }
 */
 //> Calls and Functions current-chunk
+
 static Chunk* currentChunk() {
   return &current->function->chunk;
 }
@@ -158,7 +156,6 @@ static void errorAt(Token* token, const char* message) {
 //< check-panic-mode
 //> set-panic-mode
   parser.panicMode = true;
-
 //< set-panic-mode
   fprintf(stderr, "[line %d] Error", token->line);
 
@@ -488,7 +485,6 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
     return addUpvalue(compiler, (uint8_t)upvalue, false);
   }
 //< resolve-upvalue-recurse
-
   return -1;
 }
 //< Closures resolve-upvalue
@@ -1061,7 +1057,6 @@ static void function(FunctionType type) {
   initCompiler(&compiler, type);
   beginScope(); // [no-end-scope]
 
-  // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
 //> parameters
   if (!check(TOKEN_RIGHT_PAREN)) {
@@ -1071,19 +1066,16 @@ static void function(FunctionType type) {
         errorAtCurrent("Can't have more than 255 parameters.");
       }
       
-      uint8_t paramConstant = parseVariable(
-          "Expect parameter name.");
-      defineVariable(paramConstant);
+      uint8_t constant = parseVariable("Expect parameter name.");
+      defineVariable(constant);
     } while (match(TOKEN_COMMA));
   }
 //< parameters
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
 
-  // The body.
   consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
   block();
 
-  // Create the function object.
   ObjFunction* function = endCompiler();
 /* Calls and Functions compile-function < Closures emit-closure
   emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
@@ -1387,7 +1379,6 @@ static void synchronize() {
 
   while (parser.current.type != TOKEN_EOF) {
     if (parser.previous.type == TOKEN_SEMICOLON) return;
-
     switch (parser.current.type) {
       case TOKEN_CLASS:
       case TOKEN_FUN:
@@ -1400,8 +1391,7 @@ static void synchronize() {
         return;
 
       default:
-        // Do nothing.
-        ;
+        ; // Do nothing.
     }
 
     advance();

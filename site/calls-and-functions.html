@@ -210,7 +210,6 @@ add after <em>allocateObject</em>()</div>
 <pre>
 <span class="t">ObjFunction</span>* <span class="i">newFunction</span>() {
   <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="a">ALLOCATE_OBJ</span>(<span class="t">ObjFunction</span>, <span class="a">OBJ_FUNCTION</span>);
-
   <span class="i">function</span>-&gt;<span class="i">arity</span> = <span class="n">0</span>;
   <span class="i">function</span>-&gt;<span class="i">name</span> = <span class="a">NULL</span>;
   <span class="i">initChunk</span>(&amp;<span class="i">function</span>-&gt;<span class="i">chunk</span>);
@@ -250,7 +249,6 @@ in <em>freeObject</em>()</div>
       <span class="a">FREE</span>(<span class="t">ObjFunction</span>, <span class="i">object</span>);
       <span class="k">break</span>;
     }
-
 </pre><pre class="insert-after">
     case OBJ_STRING: {
 </pre></div>
@@ -379,11 +377,11 @@ code for the book before any of the text.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
 Compiler* current = NULL;
-
 </pre><div class="source-file"><em>compiler.c</em><br>
-function <em>currentChunk</em>()<br>
+add after variable <em>current</em><br>
 replace 5 lines</div>
 <pre class="insert">
+
 <span class="k">static</span> <span class="t">Chunk</span>* <span class="i">currentChunk</span>() {
   <span class="k">return</span> &amp;<span class="i">current</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>;
 }
@@ -391,7 +389,7 @@ replace 5 lines</div>
 
 static void errorAt(Token* token, const char* message) {
 </pre></div>
-<div class="source-file-narrow"><em>compiler.c</em>, function <em>currentChunk</em>(), replace 5 lines</div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>current</em>, replace 5 lines</div>
 
 <p>The current chunk is always the chunk owned by the function we&rsquo;re in the middle
 of compiling. Next, we need to actually create that function. Previously, the VM
@@ -1045,7 +1043,6 @@ replace 2 lines</div>
   <span class="t">int</span> <span class="i">line</span> = <span class="i">frame</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">lines</span>[<span class="i">instruction</span>];
 </pre><pre class="insert-after">
   fprintf(stderr, &quot;[line %d] in script\n&quot;, line);
-
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 2 lines</div>
 
@@ -1139,15 +1136,12 @@ add after <em>block</em>()</div>
   <span class="i">initCompiler</span>(&amp;<span class="i">compiler</span>, <span class="i">type</span>);
   <span class="i">beginScope</span>();<span name="no-end-scope"> </span>
 
-  <span class="c">// Compile the parameter list.</span>
   <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after function name.&quot;</span>);
   <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span>);
 
-  <span class="c">// The body.</span>
   <span class="i">consume</span>(<span class="a">TOKEN_LEFT_BRACE</span>, <span class="s">&quot;Expect &#39;{&#39; before function body.&quot;</span>);
   <span class="i">block</span>();
 
-  <span class="c">// Create the function object.</span>
   <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="i">endCompiler</span>();
   <span class="i">emitBytes</span>(<span class="a">OP_CONSTANT</span>, <span class="i">makeConstant</span>(<span class="a">OBJ_VAL</span>(<span class="i">function</span>)));
 }
@@ -1262,9 +1256,8 @@ in <em>function</em>()</div>
         <span class="i">errorAtCurrent</span>(<span class="s">&quot;Can&#39;t have more than 255 parameters.&quot;</span>);
       }
 
-      <span class="t">uint8_t</span> <span class="i">paramConstant</span> = <span class="i">parseVariable</span>(
-          <span class="s">&quot;Expect parameter name.&quot;</span>);
-      <span class="i">defineVariable</span>(<span class="i">paramConstant</span>);
+      <span class="t">uint8_t</span> <span class="i">constant</span> = <span class="i">parseVariable</span>(<span class="s">&quot;Expect parameter name.&quot;</span>);
+      <span class="i">defineVariable</span>(<span class="i">constant</span>);
     } <span class="k">while</span> (<span class="i">match</span>(<span class="a">TOKEN_COMMA</span>));
   }
 </pre><pre class="insert-after">
@@ -1454,13 +1447,10 @@ arguments are already exactly where they need to be. It&rsquo;s hard to beat tha
 performance.</p>
 <p>Time to implement the call instruction.</p>
 <div class="codehilite"><pre class="insert-before">
-        frame-&gt;ip -= offset;
-        break;
       }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_CALL</span>: {
         <span class="t">int</span> <span class="i">argCount</span> = <span class="a">READ_BYTE</span>();
         <span class="k">if</span> (!<span class="i">callValue</span>(<span class="i">peek</span>(<span class="i">argCount</span>), <span class="i">argCount</span>)) {
@@ -1468,7 +1458,6 @@ in <em>run</em>()</div>
         }
         <span class="k">break</span>;
       }
-
 </pre><pre class="insert-after">
       case OP_RETURN: {
 </pre></div>
@@ -1507,10 +1496,8 @@ add after <em>peek</em>()</div>
     <span class="k">switch</span> (<span class="a">OBJ_TYPE</span>(<span class="i">callee</span>)) {
       <span class="k">case</span> <span class="a">OBJ_FUNCTION</span>:<span name="switch"> </span>
         <span class="k">return</span> <span class="i">call</span>(<span class="a">AS_FUNCTION</span>(<span class="i">callee</span>), <span class="i">argCount</span>);
-
       <span class="k">default</span>:
-        <span class="c">// Non-callable object type.</span>
-        <span class="k">break</span>;
+        <span class="k">break</span>; <span class="c">// Non-callable object type.</span>
     }
   }
 
@@ -1541,7 +1528,6 @@ add after <em>peek</em>()</div>
   <span class="t">CallFrame</span>* <span class="i">frame</span> = &amp;<span class="i">vm</span>.<span class="i">frames</span>[<span class="i">vm</span>.<span class="i">frameCount</span>++];
   <span class="i">frame</span>-&gt;<span class="i">function</span> = <span class="i">function</span>;
   <span class="i">frame</span>-&gt;<span class="i">ip</span> = <span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span>;
-
   <span class="i">frame</span>-&gt;<span class="i">slots</span> = <span class="i">vm</span>.<span class="i">stackTop</span> - <span class="i">argCount</span> - <span class="n">1</span>;
   <span class="k">return</span> <span class="k">true</span>;
 }
@@ -1653,10 +1639,8 @@ replace 4 lines</div>
   <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="i">vm</span>.<span class="i">frameCount</span> - <span class="n">1</span>; <span class="i">i</span> &gt;= <span class="n">0</span>; <span class="i">i</span>--) {
     <span class="t">CallFrame</span>* <span class="i">frame</span> = &amp;<span class="i">vm</span>.<span class="i">frames</span>[<span class="i">i</span>];
     <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="i">frame</span>-&gt;<span class="i">function</span>;
-    <span class="c">// -1 because the IP is sitting on the next instruction to be</span>
-    <span class="c">// executed.</span>
     <span class="t">size_t</span> <span class="i">instruction</span> = <span class="i">frame</span>-&gt;<span class="i">ip</span> - <span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span> - <span class="n">1</span>;
-    <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;[line %d] in &quot;</span>,
+    <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;[line %d] in &quot;</span>,<span name="minus"> </span>
             <span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">lines</span>[<span class="i">instruction</span>]);
     <span class="k">if</span> (<span class="i">function</span>-&gt;<span class="i">name</span> == <span class="a">NULL</span>) {
       <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;script</span><span class="e">\n</span><span class="s">&quot;</span>);
@@ -1664,12 +1648,18 @@ replace 4 lines</div>
       <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;%s()</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">function</span>-&gt;<span class="i">name</span>-&gt;<span class="i">chars</span>);
     }
   }
-</pre><pre class="insert-after">
 
+</pre><pre class="insert-after">
   resetStack();
+}
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 4 lines</div>
 
+<aside name="minus">
+<p>The <code>- 1</code> is because the IP is already sitting on the next instruction to be
+executed but we want the stack trace to point to the previous failed
+instruction.</p>
+</aside>
 <p>After printing the error message itself, we walk the call stack from <span
 name="top">top</span> (the most recently called function) to bottom (the
 top-level code). For each frame, we find the line number that corresponds to the
@@ -1719,7 +1709,6 @@ in <em>run</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
         <span class="t">Value</span> <span class="i">result</span> = <span class="i">pop</span>();
-
         <span class="i">vm</span>.<span class="i">frameCount</span>--;
         <span class="k">if</span> (<span class="i">vm</span>.<span class="i">frameCount</span> == <span class="n">0</span>) {
           <span class="i">pop</span>();
@@ -1728,7 +1717,6 @@ replace 2 lines</div>
 
         <span class="i">vm</span>.<span class="i">stackTop</span> = <span class="i">frame</span>-&gt;<span class="i">slots</span>;
         <span class="i">push</span>(<span class="i">result</span>);
-
         <span class="i">frame</span> = &amp;<span class="i">vm</span>.<span class="i">frames</span>[<span class="i">vm</span>.<span class="i">frameCount</span> - <span class="n">1</span>];
         <span class="k">break</span>;
 </pre><pre class="insert-after">
@@ -1950,17 +1938,13 @@ in enum <em>ObjType</em></div>
 
 <p>The VM also needs to know how to deallocate a native function object.</p>
 <div class="codehilite"><pre class="insert-before">
-      FREE(ObjFunction, object);
-      break;
     }
-
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OBJ_NATIVE</span>:
       <span class="a">FREE</span>(<span class="t">ObjNative</span>, <span class="i">object</span>);
       <span class="k">break</span>;
-
 </pre><pre class="insert-after">
     case OBJ_STRING: {
 </pre></div>
@@ -1969,7 +1953,6 @@ in <em>freeObject</em>()</div>
 <p>There isn&rsquo;t much here since ObjNative doesn&rsquo;t own any extra memory. The other
 capability all Lox objects support is being printed.</p>
 <div class="codehilite"><pre class="insert-before">
-      printFunction(AS_FUNCTION(value));
       break;
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
@@ -2018,7 +2001,6 @@ one as the left-hand operand in a call expression.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>callValue</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OBJ_NATIVE</span>: {
         <span class="t">NativeFn</span> <span class="i">native</span> = <span class="a">AS_NATIVE</span>(<span class="i">callee</span>);
         <span class="t">Value</span> <span class="i">result</span> = <span class="i">native</span>(<span class="i">argCount</span>, <span class="i">vm</span>.<span class="i">stackTop</span> - <span class="i">argCount</span>);
@@ -2027,7 +2009,6 @@ in <em>callValue</em>()</div>
         <span class="k">return</span> <span class="k">true</span>;
       }
 </pre><pre class="insert-after">
-
       default:
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>

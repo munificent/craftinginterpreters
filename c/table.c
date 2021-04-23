@@ -41,7 +41,6 @@ static Entry* findEntry(Entry* entries, int capacity,
 //< find-entry-tombstone
   for (;;) {
     Entry* entry = &entries[index];
-
 /* Hash Tables find-entry < Hash Tables find-tombstone
     if (entry->key == key || entry->key == NULL) {
       return entry;
@@ -124,7 +123,6 @@ bool tableSet(Table* table, ObjString* key, Value value) {
 
 //< table-set-grow
   Entry* entry = findEntry(table->entries, table->capacity, key);
-  
   bool isNewKey = entry->key == NULL;
 /* Hash Tables table-set < Hash Tables set-increment-count
   if (isNewKey) table->count++;
@@ -174,10 +172,8 @@ ObjString* tableFindString(Table* table, const char* chars,
 //> Optimization find-string-index
   uint32_t index = hash & (table->capacity - 1);
 //< Optimization find-string-index
-
   for (;;) {
     Entry* entry = &table->entries[index];
-
     if (entry->key == NULL) {
       // Stop if we find an empty non-tombstone entry.
       if (IS_NIL(entry->value)) return NULL;

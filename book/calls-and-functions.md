@@ -173,7 +173,7 @@ code for the book before any of the text.
 
 </aside>
 
-^code current-chunk (2 before, 2 after)
+^code current-chunk (1 before, 2 after)
 
 The current chunk is always the chunk owned by the function we're in the middle
 of compiling. Next, we need to actually create that function. Previously, the VM
@@ -627,7 +627,7 @@ don't need to do that anymore, so the end of `interpret()` is simply this:
 The last piece of code referring to the old VM fields is `runtimeError()`. We'll
 revisit that later in the chapter, but for now let's change it to this:
 
-^code runtime-error-temp (2 before, 2 after)
+^code runtime-error-temp (2 before, 1 after)
 
 Instead of reading the chunk and `ip` directly from the VM, it pulls those from
 the topmost CallFrame on the stack. That should get the function working again
@@ -936,7 +936,7 @@ performance.
 
 Time to implement the call instruction.
 
-^code interpret-call (3 before, 1 after)
+^code interpret-call (1 before, 1 after)
 
 We need to know the function being called and the number of arguments passed to
 it. We get the latter from the instruction's operand. That also tells us where
@@ -1041,6 +1041,14 @@ stack when a runtime error disrupts the harmony of the user's existence. It
 looks like this:
 
 ^code runtime-error-stack (2 before, 2 after)
+
+<aside name="minus">
+
+The `- 1` is because the IP is already sitting on the next instruction to be
+executed but we want the stack trace to point to the previous failed
+instruction.
+
+</aside>
 
 After printing the error message itself, we walk the call stack from <span
 name="top">top</span> (the most recently called function) to bottom (the
@@ -1258,12 +1266,12 @@ type.
 
 The VM also needs to know how to deallocate a native function object.
 
-^code free-native (4 before, 1 after)
+^code free-native (1 before, 1 after)
 
 There isn't much here since ObjNative doesn't own any extra memory. The other
 capability all Lox objects support is being printed.
 
-^code print-native (2 before, 1 after)
+^code print-native (1 before, 1 after)
 
 In order to support dynamic typing, we have a macro to see if a value is a
 native function.
@@ -1282,7 +1290,7 @@ one as the left-hand operand in a call expression.
 
 Over in `callValue()` we add another type case.
 
-^code call-native (2 before, 2 after)
+^code call-native (2 before, 1 after)
 
 If the object being called is a native function, we invoke the C function right
 then and there. There's no need to muck with CallFrames or anything. We just

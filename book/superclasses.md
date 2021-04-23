@@ -105,7 +105,7 @@ subclass -- are both found on the stack. That means disassembling is easy.
 
 The interpreter is where the action happens.
 
-^code interpret-inherit (1 before, 2 after)
+^code interpret-inherit (1 before, 1 after)
 
 From the top of the stack down, we have the subclass then the superclass. We
 grab both of those and then do the inherit-y bit. This is where clox takes a
@@ -194,7 +194,7 @@ Obviously, no self-respecting programmer would write that, but we have to guard
 against potential Lox users who have no self respect. A simple runtime check
 fixes that.
 
-^code inherit-non-class (1 before, 2 after)
+^code inherit-non-class (1 before, 1 after)
 
 If the value we loaded from the identifier in the superclass clause isn't an
 ObjClass, we report a runtime error to let the user know what we think of them
@@ -496,7 +496,7 @@ We disassemble it like other opcodes that take a constant table index operand.
 You might anticipate something harder, but interpreting the new instruction is
 similar to executing a normal property access.
 
-^code interpret-get-super (1 before, 2 after)
+^code interpret-get-super (1 before, 1 after)
 
 As with properties, we read the method name from the
 constant table. Then we pass that to `bindMethod()` which looks up the method in

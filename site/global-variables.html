@@ -344,13 +344,11 @@ in enum <em>OpCode</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_PRINT</span>: {
         <span class="i">printValue</span>(<span class="i">pop</span>());
         <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);
         <span class="k">break</span>;
       }
-
 </pre><pre class="insert-after">
       case OP_RETURN: {
 </pre></div>
@@ -476,7 +474,6 @@ in <em>run</em>()</div>
 <pre class="insert">
       <span class="k">case</span> <span class="a">OP_POP</span>: <span class="i">pop</span>(); <span class="k">break</span>;
 </pre><pre class="insert-after">
-
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -531,7 +528,6 @@ add after <em>printStatement</em>()</div>
 
   <span class="k">while</span> (<span class="i">parser</span>.<span class="i">current</span>.<span class="i">type</span> != <span class="a">TOKEN_EOF</span>) {
     <span class="k">if</span> (<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">type</span> == <span class="a">TOKEN_SEMICOLON</span>) <span class="k">return</span>;
-
     <span class="k">switch</span> (<span class="i">parser</span>.<span class="i">current</span>.<span class="i">type</span>) {
       <span class="k">case</span> <span class="a">TOKEN_CLASS</span>:
       <span class="k">case</span> <span class="a">TOKEN_FUN</span>:
@@ -544,8 +540,7 @@ add after <em>printStatement</em>()</div>
         <span class="k">return</span>;
 
       <span class="k">default</span>:
-        <span class="c">// Do nothing.</span>
-        ;
+        ; <span class="c">// Do nothing.</span>
     }
 
     <span class="i">advance</span>();
@@ -710,7 +705,6 @@ in enum <em>OpCode</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_DEFINE_GLOBAL</span>: {
         <span class="t">ObjString</span>* <span class="i">name</span> = <span class="a">READ_STRING</span>();
         <span class="i">tableSet</span>(&amp;<span class="i">vm</span>.<span class="i">globals</span>, <span class="i">name</span>, <span class="i">peek</span>(<span class="n">0</span>));
@@ -718,7 +712,6 @@ in <em>run</em>()</div>
         <span class="k">break</span>;
       }
 </pre><pre class="insert-after">
-
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -883,7 +876,6 @@ in enum <em>OpCode</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_GET_GLOBAL</span>: {
         <span class="t">ObjString</span>* <span class="i">name</span> = <span class="a">READ_STRING</span>();
         <span class="t">Value</span> <span class="i">value</span>;
@@ -895,7 +887,6 @@ in <em>run</em>()</div>
         <span class="k">break</span>;
       }
 </pre><pre class="insert-after">
-
       case OP_DEFINE_GLOBAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -1001,7 +992,6 @@ in enum <em>OpCode</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_SET_GLOBAL</span>: {
         <span class="t">ObjString</span>* <span class="i">name</span> = <span class="a">READ_STRING</span>();
         <span class="k">if</span> (<span class="i">tableSet</span>(&amp;<span class="i">vm</span>.<span class="i">globals</span>, <span class="i">name</span>, <span class="i">peek</span>(<span class="n">0</span>))) {
@@ -1012,7 +1002,6 @@ in <em>run</em>()</div>
         <span class="k">break</span>;
       }
 </pre><pre class="insert-after">
-
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -1146,9 +1135,6 @@ associated with <code>=</code>, so it skips that loop.</p>
 right. If the <code>=</code> doesn&rsquo;t get consumed as part of the expression, nothing else
 is going to consume it. It&rsquo;s an error and we should report it.</p>
 <div class="codehilite"><pre class="insert-before">
-  while (precedence &lt;= getRule(parser.current.type)-&gt;precedence) {
-    advance();
-    ParseFn infixRule = getRule(parser.previous.type)-&gt;infix;
     infixRule();
   }
 </pre><div class="source-file"><em>compiler.c</em><br>

@@ -171,7 +171,7 @@ method's closure on top with the class right under it. Once we've reached the
 end of the methods, we no longer need the class and tell the VM to pop it off
 the stack.
 
-^code pop-class (1 before, 2 after)
+^code pop-class (1 before, 1 after)
 
 Putting all of that together, here is an example class declaration to throw at
 the compiler:
@@ -742,7 +742,7 @@ simply returns the new uninitialized instance. However, if there is no `init()`
 method, then it doesn't make any sense to pass arguments to the class when
 creating the instance. We make that an error.
 
-^code no-init-arity-error (2 before, 1 after)
+^code no-init-arity-error (1 before, 1 after)
 
 When the class *does* provide an initializer, we also need to ensure that the
 number of arguments passed matches the initializer's arity. Fortunately, the
@@ -941,7 +941,7 @@ We read the two operands and then print out both the method name and the
 argument count. Over in the interpreter's bytecode dispatch loop is where the
 real action begins.
 
-^code interpret-invoke (4 before, 1 after)
+^code interpret-invoke (1 before, 1 after)
 
 Most of the work happens in `invoke()`, which we'll get to. Here, we look up the
 method name from the first operand and then read the argument count operand.

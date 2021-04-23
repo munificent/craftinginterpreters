@@ -300,7 +300,6 @@ in <em>freeObject</em>()</div>
       <span class="a">FREE</span>(<span class="t">ObjClosure</span>, <span class="i">object</span>);
       <span class="k">break</span>;
     }
-
 </pre><pre class="insert-after">
     case OBJ_FUNCTION: {
 </pre></div>
@@ -396,7 +395,6 @@ do something more interesting.</p>
 <p>First, let&rsquo;s be diligent VM hackers and slot in disassembler support for the
 instruction.</p>
 <div class="codehilite"><pre class="insert-before">
-      return jumpInstruction(&quot;OP_LOOP&quot;, -1, chunk, offset);
     case OP_CALL:
       return byteInstruction(&quot;OP_CALL&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -427,7 +425,6 @@ that works with ObjFunction and change it to use ObjClosure instead<span class="
 calls, call frames, etc. We&rsquo;ll start with the instruction, though.</p>
 <div class="codehilite"><pre class="insert-before">
       }
-
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -437,7 +434,6 @@ in <em>run</em>()</div>
         <span class="i">push</span>(<span class="a">OBJ_VAL</span>(<span class="i">closure</span>));
         <span class="k">break</span>;
       }
-
 </pre><pre class="insert-after">
       case OP_RETURN: {
 </pre></div>
@@ -456,7 +452,7 @@ replace 2 lines</div>
       <span class="k">case</span> <span class="a">OBJ_CLOSURE</span>:
         <span class="k">return</span> <span class="i">call</span>(<span class="a">AS_CLOSURE</span>(<span class="i">callee</span>), <span class="i">argCount</span>);
 </pre><pre class="insert-after">
-
+      case OBJ_NATIVE: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>(), replace 2 lines</div>
 
@@ -512,7 +508,6 @@ replace 2 lines</div>
   <span class="i">frame</span>-&gt;<span class="i">closure</span> = <span class="i">closure</span>;
   <span class="i">frame</span>-&gt;<span class="i">ip</span> = <span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span>;
 </pre><pre class="insert-after">
-
   frame-&gt;slots = vm.stackTop - argCount - 1;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>(), replace 2 lines</div>
@@ -570,16 +565,13 @@ replace 1 line</div>
 <pre class="insert">
     <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">function</span>;
 </pre><pre class="insert-after">
-    // -1 because the IP is sitting on the next instruction to be
+    size_t instruction = frame-&gt;ip - function-&gt;chunk.code - 1;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 1 line</div>
 
 <p>Almost there. The last piece is the blob of code that sets up the very first
 CallFrame to begin executing the top-level code for a Lox script.</p>
 <div class="codehilite"><pre class="insert-before">
-  ObjFunction* function = compile(source);
-  if (function == NULL) return INTERPRET_COMPILE_ERROR;
-
   push(OBJ_VAL(function));
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>interpret</em>()<br>
@@ -727,7 +719,6 @@ add after <em>resolveLocal</em>()</div>
   <span class="k">if</span> (<span class="i">local</span> != -<span class="n">1</span>) {
     <span class="k">return</span> <span class="i">addUpvalue</span>(<span class="i">compiler</span>, (<span class="t">uint8_t</span>)<span class="i">local</span>, <span class="k">true</span>);
   }
-
   <span class="k">return</span> -<span class="n">1</span>;
 }
 </pre></div>
@@ -994,8 +985,8 @@ in <em>resolveUpvalue</em>()</div>
     <span class="k">return</span> <span class="i">addUpvalue</span>(<span class="i">compiler</span>, (<span class="t">uint8_t</span>)<span class="i">upvalue</span>, <span class="k">false</span>);
   }
 </pre><pre class="insert-after">
-
   return -1;
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>resolveUpvalue</em>()</div>
 
@@ -1228,7 +1219,6 @@ in enum <em>ObjType</em></div>
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
-
     <span class="k">case</span> <span class="a">OBJ_UPVALUE</span>:
       <span class="a">FREE</span>(<span class="t">ObjUpvalue</span>, <span class="i">object</span>);
       <span class="k">break</span>;
@@ -1404,14 +1394,12 @@ upvalues.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_GET_UPVALUE</span>: {
         <span class="t">uint8_t</span> <span class="i">slot</span> = <span class="a">READ_BYTE</span>();
         <span class="i">push</span>(*<span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">slot</span>]-&gt;<span class="i">location</span>);
         <span class="k">break</span>;
       }
 </pre><pre class="insert-after">
-
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -1424,14 +1412,12 @@ the value in that slot. Setting a variable is similar.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_SET_UPVALUE</span>: {
         <span class="t">uint8_t</span> <span class="i">slot</span> = <span class="a">READ_BYTE</span>();
         *<span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">slot</span>]-&gt;<span class="i">location</span> = <span class="i">peek</span>(<span class="n">0</span>);
         <span class="k">break</span>;
       }
 </pre><pre class="insert-after">
-
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -1819,7 +1805,6 @@ in <em>captureUpvalue</em>()</div>
 <pre class="insert">
   <span class="t">ObjUpvalue</span>* <span class="i">prevUpvalue</span> = <span class="a">NULL</span>;
   <span class="t">ObjUpvalue</span>* <span class="i">upvalue</span> = <span class="i">vm</span>.<span class="i">openUpvalues</span>;
-
   <span class="k">while</span> (<span class="i">upvalue</span> != <span class="a">NULL</span> &amp;&amp; <span class="i">upvalue</span>-&gt;<span class="i">location</span> &gt; <span class="i">local</span>) {
     <span class="i">prevUpvalue</span> = <span class="i">upvalue</span>;
     <span class="i">upvalue</span> = <span class="i">upvalue</span>-&gt;<span class="i">next</span>;
@@ -1911,7 +1896,6 @@ exactly when a local variable should be hoisted onto the heap. Executing that
 instruction is the interpreter&rsquo;s responsibility.</p>
 <div class="codehilite"><pre class="insert-before">
       }
-
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -1919,7 +1903,6 @@ in <em>run</em>()</div>
         <span class="i">closeUpvalues</span>(<span class="i">vm</span>.<span class="i">stackTop</span> - <span class="n">1</span>);
         <span class="i">pop</span>();
         <span class="k">break</span>;
-
 </pre><pre class="insert-after">
       case OP_RETURN: {
 </pre></div>
@@ -2014,10 +1997,8 @@ owned by the function.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
         <span class="i">closeUpvalues</span>(<span class="i">frame</span>-&gt;<span class="i">slots</span>);
 </pre><pre class="insert-after">
-
         vm.frameCount--;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>

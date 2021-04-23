@@ -337,7 +337,6 @@ your memory, here it is in full:</p>
 
   <span class="k">for</span> (;;) {
     <span class="t">Entry</span>* <span class="i">entry</span> = &amp;<span class="i">entries</span>[<span class="i">index</span>];
-
     <span class="k">if</span> (<span class="i">entry</span>-&gt;<span class="i">key</span> == <span class="a">NULL</span>) {
       <span class="k">if</span> (<span class="a">IS_NIL</span>(<span class="i">entry</span>-&gt;<span class="i">value</span>)) {
         <span class="c">// Empty entry.</span>
@@ -441,8 +440,6 @@ optimizations there too. This function is called only when interning strings,
 which wasn&rsquo;t heavily stressed by our benchmark. But a Lox program that created
 lots of strings might noticeably benefit from this change.</p>
 <div class="codehilite"><pre class="insert-before">
-ObjString* tableFindString(Table* table, const char* chars,
-                           int length, uint32_t hash) {
   if (table-&gt;count == 0) return NULL;
 
 </pre><div class="source-file"><em>table.c</em><br>
@@ -451,8 +448,8 @@ replace 1 line</div>
 <pre class="insert">
   <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">hash</span> &amp; (<span class="i">table</span>-&gt;<span class="i">capacity</span> - <span class="n">1</span>);
 </pre><pre class="insert-after">
-
   for (;;) {
+    Entry* entry = &amp;table-&gt;entries[index];
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableFindString</em>(), replace 1 line</div>
 
