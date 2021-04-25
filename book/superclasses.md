@@ -41,7 +41,7 @@ class Doughnut {
 
 class Cruller < Doughnut {
   finish() {
-    print "Glaze with icing";
+    print "Glaze with icing.";
   }
 }
 ```
