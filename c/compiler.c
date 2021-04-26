@@ -602,14 +602,10 @@ static void binary() {
 //> Global Variables binary
 static void binary(bool canAssign) {
 //< Global Variables binary
-  // Remember the operator.
   TokenType operatorType = parser.previous.type;
-
-  // Compile the right operand.
   ParseRule* rule = getRule(operatorType);
   parsePrecedence((Precedence)(rule->precedence + 1));
 
-  // Emit the operator instruction.
   switch (operatorType) {
 //> Types of Values comparison-operators
     case TOKEN_BANG_EQUAL:    emitBytes(OP_EQUAL, OP_NOT); break;
