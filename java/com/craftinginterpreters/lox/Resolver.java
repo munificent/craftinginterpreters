@@ -382,7 +382,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //> duplicate-variable
     if (scope.containsKey(name.lexeme)) {
       Lox.error(name,
-          "Already variable with this name in this scope.");
+          "Variable with this name already exists in this scope.");
     }
 
 //< duplicate-variable
