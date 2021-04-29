@@ -619,8 +619,7 @@ static void binary(bool canAssign) {
     case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
     case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
     case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
-    default:
-      return; // Unreachable.
+    default: return; // Unreachable.
   }
 }
 //< Compiling Expressions binary
@@ -660,8 +659,7 @@ static void literal(bool canAssign) {
     case TOKEN_FALSE: emitByte(OP_FALSE); break;
     case TOKEN_NIL: emitByte(OP_NIL); break;
     case TOKEN_TRUE: emitByte(OP_TRUE); break;
-    default:
-      return; // Unreachable.
+    default: return; // Unreachable.
   }
 }
 //< Types of Values parse-literal
@@ -857,8 +855,7 @@ static void unary(bool canAssign) {
     case TOKEN_BANG: emitByte(OP_NOT); break;
 //< Types of Values compile-not
     case TOKEN_MINUS: emitByte(OP_NEGATE); break;
-    default:
-      return; // Unreachable.
+    default: return; // Unreachable.
   }
 }
 //< Compiling Expressions unary
