@@ -101,8 +101,7 @@ bool valuesEqual(Value a, Value b) {
 //> Hash Tables equal
     case VAL_OBJ:    return AS_OBJ(a) == AS_OBJ(b);
 //< Hash Tables equal
-    default:
-      return false; // Unreachable.
+    default:         return false; // Unreachable.
   }
 //> Optimization end-values-equal
 #endif
