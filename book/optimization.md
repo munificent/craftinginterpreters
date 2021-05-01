@@ -155,8 +155,7 @@ my own through trial and error. Profilers are wonderful, magical tools.
 
 Enough pontificating, let's get some performance charts going up and to the
 right. The first optimization we'll do, it turns out, is about the *tiniest*
-possible change we could make to our VM. There's a lot of scaffolding around the
-change we'll have to deal with, but the main optimization itself is pint-sized.
+possible change we could make to our VM.
 
 When I first got the bytecode virtual machine that clox is descended from
 working, I did what any self-respecting VM hacker would do. I cobbled together a
@@ -485,7 +484,7 @@ Dynamic language folks hate losing ground to the static camp, so they've come up
 with a number of very clever ways to pack type information and a payload into a
 small number of bits. NaN boxing is one of those. It's a particularly good fit
 for languages like JavaScript and Lua, where all numbers are double-precision
-floating point. Lox is in that same camp.
+floating point. Lox is in that same boat.
 
 ### What is (and is not) a number?
 
@@ -696,10 +695,9 @@ I know, weird, right? The way to treat a series of bytes as having a different
 type without changing their value at all is `memcpy()`? This looks horrendously
 slow: Create a local variable. Pass its address to the operating system through
 a syscall to copy a few bytes. Then return the result, which is the exact same
-bytes as the input.
-
-Fortunately, because this *is* the supported idiom for type punning, most
-compilers recognize the pattern and optimize away the `memcpy()` entirely.
+bytes as the input. Thankfully, because this *is* the supported idiom for type
+punning, most compilers recognize the pattern and optimize away the `memcpy()`
+entirely.
 
 "Unwrapping" a Lox number is the mirror image.
 
