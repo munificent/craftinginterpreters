@@ -281,8 +281,8 @@ terminate it.
 
 <aside name="terminator" class="bottom">
 
-We need to terminate it explicitly ourselves because the lexeme points at a
-range of characters inside the monolithic source string and isn't terminated.
+We need to terminate the string ourselves because the lexeme points at a range
+of characters inside the monolithic source string and isn't terminated.
 
 Since ObjString stores the length explicitly, we *could* leave the character
 array unterminated, but slapping a terminator on the end costs us only a byte
@@ -625,7 +625,7 @@ keep a running count of the number of bytes of allocated memory.
 
 As usual, we need an include to wire everything together.
 
-^code memory-include-object (2 before, 2 after)
+^code memory-include-object (1 before, 2 after)
 
 Then in the implementation file:
 

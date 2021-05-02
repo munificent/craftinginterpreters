@@ -198,5 +198,9 @@ split_chapters:
 compile_snippets:
 	@ dart tool/bin/compile_snippets.dart
 
+# Generate the XML for importing into InDesign.
+xml: $(TOOL_SOURCES)
+	@ dart --enable-asserts tool/bin/build_xml.dart
+
 .PHONY: book c_chapters clean clox compile_snippets debug default diffs \
 	get java_chapters jlox serve split_chapters test test_all test_c test_java
