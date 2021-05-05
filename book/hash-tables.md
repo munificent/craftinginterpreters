@@ -730,14 +730,14 @@ their desire to overlook it. As we'll see, deleting from a hash table that uses
 
 <aside name="delete">
 
-With separate chaining, deleting is as simple as removing a node from a linked
+With separate chaining, deleting is as easy as removing a node from a linked
 list.
 
 </aside>
 
 At least the declaration is simple.
 
-^code table-delete-h (1 before, 2 after)
+^code table-delete-h (1 before, 1 after)
 
 The obvious approach is to mirror insertion. Use `findEntry()` to look up the
 entry's bucket. Then clear out the bucket. Done!
@@ -955,7 +955,7 @@ once we intern all the strings. In order to reliably deduplicate all strings,
 the VM needs to be able to find every string that's created. We do that by
 giving it a hash table to store them all.
 
-^code vm-strings (1 before, 2 after)
+^code vm-strings (1 before, 1 after)
 
 As usual, we need an include.
 

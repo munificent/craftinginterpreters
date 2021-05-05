@@ -1244,7 +1244,7 @@ When we allocate an upvalue, it is not attached to any list yet so the link is
 
 The VM owns the list, so the head pointer goes right inside the main VM struct.
 
-^code open-upvalues-field (1 before, 3 after)
+^code open-upvalues-field (1 before, 1 after)
 
 The list starts out empty.
 
