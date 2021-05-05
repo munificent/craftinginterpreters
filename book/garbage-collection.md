@@ -1015,7 +1015,7 @@ frequently so that we don't lose too much latency by waiting too long.
 
 The implementation requires two new bookkeeping fields in the VM.
 
-^code vm-fields (1 before, 2 after)
+^code vm-fields (1 before, 1 after)
 
 The first is a running total of the number of bytes of managed memory the VM has
 allocated. The second is the threshold that triggers the next collection. We
