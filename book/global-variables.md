@@ -633,7 +633,7 @@ there in case the assignment is nested inside some larger expression.
 
 Add a dash of disassembly:
 
-^code disassemble-set-global (1 before, 1 after)
+^code disassemble-set-global (2 before, 1 after)
 
 So we're done, right? Well... not quite. We've made a mistake! Take a gander at:
 
