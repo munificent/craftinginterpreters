@@ -351,7 +351,7 @@ one time.
 If we try to go over that, not only could we not refer to them at runtime, but
 the compiler would overwrite its own locals array, too. Let's prevent that.
 
-^code too-many-locals (1 before, 2 after)
+^code too-many-locals (1 before, 1 after)
 
 The next case is trickier. Consider:
 

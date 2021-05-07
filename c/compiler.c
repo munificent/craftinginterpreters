@@ -1215,7 +1215,6 @@ static void expressionStatement() {
 static void forStatement() {
 //> for-begin-scope
   beginScope();
-
 //< for-begin-scope
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
 /* Jumping Back and Forth for-statement < Jumping Back and Forth for-initializer
@@ -1232,7 +1231,6 @@ static void forStatement() {
 //< for-initializer
 
   int loopStart = currentChunk()->count;
-
 /* Jumping Back and Forth for-statement < Jumping Back and Forth for-exit
   consume(TOKEN_SEMICOLON, "Expect ';'.");
 */
@@ -1254,7 +1252,6 @@ static void forStatement() {
 //> for-increment
   if (!match(TOKEN_RIGHT_PAREN)) {
     int bodyJump = emitJump(OP_JUMP);
-
     int incrementStart = currentChunk()->count;
     expression();
     emitByte(OP_POP);
@@ -1267,7 +1264,6 @@ static void forStatement() {
 //< for-increment
 
   statement();
-
   emitLoop(loopStart);
 //> exit-jump
 
@@ -1275,9 +1271,9 @@ static void forStatement() {
     patchJump(exitJump);
     emitByte(OP_POP); // Condition.
   }
+
 //< exit-jump
 //> for-end-scope
-
   endScope();
 //< for-end-scope
 }
@@ -1345,18 +1341,15 @@ static void returnStatement() {
 static void whileStatement() {
 //> loop-start
   int loopStart = currentChunk()->count;
-
 //< loop-start
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
   int exitJump = emitJump(OP_JUMP_IF_FALSE);
-
   emitByte(OP_POP);
   statement();
 //> loop
-
   emitLoop(loopStart);
 //< loop
 

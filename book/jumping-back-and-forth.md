@@ -122,13 +122,12 @@ But we have a problem. When we're writing the `OP_JUMP_IF_FALSE` instruction's
 operand, how do we know how far to jump? We haven't compiled the then branch
 yet, so we don't know how much bytecode it contains.
 
-To fix that, we use a classic trick called <span
-name="patch">**backpatching**</span>. We emit the jump instruction first with a
-placeholder offset operand. We keep track of where that half-finished
-instruction is. Next, we compile the then body. Once that's done, we know how
-far to jump. So we go back and replace that placeholder offset with the real one
-now that we can calculate it. Sort of like sewing a patch onto the existing
-fabric of the compiled code.
+To fix that, we use a classic trick called **backpatching**. We emit the jump
+instruction first with a placeholder offset operand. We keep track of where that
+half-finished instruction is. Next, we compile the then body. Once that's done,
+we know how far to jump. So we go back and replace that placeholder offset with
+the real one now that we can calculate it. Sort of like sewing a patch onto the
+existing fabric of the compiled code.
 
 <img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." />
 
@@ -548,7 +547,7 @@ Then we close it at the end.
 
 Next, is the condition expression that can be used to exit the loop.
 
-^code for-exit (2 before, 1 after)
+^code for-exit (1 before, 1 after)
 
 Since the clause is optional, we need to see if it's actually present. If the
 clause is omitted, the next token must be a semicolon, so we look for that to
@@ -561,7 +560,7 @@ the value when the condition is true.
 
 After the loop body, we need to patch that jump.
 
-^code exit-jump (2 before, 2 after)
+^code exit-jump (1 before, 2 after)
 
 We do this only when there is a condition clause. If there isn't, there's no
 jump to patch and no condition value on the stack to pop.
