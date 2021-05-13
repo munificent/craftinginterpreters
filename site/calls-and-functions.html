@@ -867,11 +867,14 @@ replace 4 lines</div>
   <span class="t">CallFrame</span>* <span class="i">frame</span> = &amp;<span class="i">vm</span>.<span class="i">frames</span>[<span class="i">vm</span>.<span class="i">frameCount</span> - <span class="n">1</span>];
 
 <span class="a">#define READ_BYTE() (*frame-&gt;ip++)</span>
+
 <span class="a">#define READ_SHORT() \</span>
 <span class="a">    (frame-&gt;ip += 2, \</span>
 <span class="a">    (uint16_t)((frame-&gt;ip[-2] &lt;&lt; 8) | frame-&gt;ip[-1]))</span>
+
 <span class="a">#define READ_CONSTANT() \</span>
 <span class="a">    (frame-&gt;function-&gt;chunk.constants.values[READ_BYTE()])</span>
+
 </pre><pre class="insert-after">
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 </pre></div>
@@ -1138,7 +1141,6 @@ add after <em>block</em>()</div>
 
   <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after function name.&quot;</span>);
   <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span>);
-
   <span class="i">consume</span>(<span class="a">TOKEN_LEFT_BRACE</span>, <span class="s">&quot;Expect &#39;{&#39; before function body.&quot;</span>);
   <span class="i">block</span>();
 
@@ -1215,8 +1217,6 @@ in <em>initCompiler</em>()</div>
 <p>Then when a Compiler finishes, it pops itself off the stack by restoring the
 previous compiler to be the new current one.</p>
 <div class="codehilite"><pre class="insert-before">
-        ? function-&gt;name-&gt;chars : &quot;&lt;script&gt;&quot;);
-  }
 #endif
 
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -1255,7 +1255,6 @@ in <em>function</em>()</div>
       <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">function</span>-&gt;<span class="i">arity</span> &gt; <span class="n">255</span>) {
         <span class="i">errorAtCurrent</span>(<span class="s">&quot;Can&#39;t have more than 255 parameters.&quot;</span>);
       }
-
       <span class="t">uint8_t</span> <span class="i">constant</span> = <span class="i">parseVariable</span>(<span class="s">&quot;Expect parameter name.&quot;</span>);
       <span class="i">defineVariable</span>(<span class="i">constant</span>);
     } <span class="k">while</span> (<span class="i">match</span>(<span class="a">TOKEN_COMMA</span>));
@@ -1281,7 +1280,6 @@ previous token.</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()</div>
 <pre class="insert">
-
   <span class="k">if</span> (<span class="i">type</span> != <span class="a">TYPE_SCRIPT</span>) {
     <span class="i">current</span>-&gt;<span class="i">function</span>-&gt;<span class="i">name</span> = <span class="i">copyString</span>(<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">start</span>,
                                          <span class="i">parser</span>.<span class="i">previous</span>.<span class="i">length</span>);
@@ -1359,7 +1357,6 @@ add after <em>defineVariable</em>()</div>
       <span class="i">argCount</span>++;
     } <span class="k">while</span> (<span class="i">match</span>(<span class="a">TOKEN_COMMA</span>));
   }
-
   <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span>);
   <span class="k">return</span> <span class="i">argCount</span>;
 }
@@ -1379,7 +1376,6 @@ need to verify that in this compiler too.</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>argumentList</em>()</div>
 <pre class="insert">
-
       <span class="k">if</span> (<span class="i">argCount</span> == <span class="n">255</span>) {
         <span class="i">error</span>(<span class="s">&quot;Can&#39;t have more than 255 arguments.&quot;</span>);
       }
@@ -1500,7 +1496,6 @@ add after <em>peek</em>()</div>
         <span class="k">break</span>; <span class="c">// Non-callable object type.</span>
     }
   }
-
   <span class="i">runtimeError</span>(<span class="s">&quot;Can only call functions and classes.&quot;</span>);
   <span class="k">return</span> <span class="k">false</span>;
 }
@@ -1559,7 +1554,6 @@ in <em>disassembleInstruction</em>()</div>
 CallFrame, we may as well use it to set up the first frame for executing the
 top-level code.</p>
 <div class="codehilite"><pre class="insert-before">
-
   push(OBJ_VAL(function));
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>interpret</em>()<br>

@@ -306,7 +306,7 @@ That change triggers a few other cascading changes. Every place in the VM that
 accessed CallFrame's function needs to use a closure instead. First, the macro
 for reading a constant from the current function's constant table:
 
-^code read-constant (1 before, 1 after)
+^code read-constant (2 before, 2 after)
 
 When `DEBUG_TRACE_EXECUTION` is enabled, it needs to get to the chunk from the
 closure.

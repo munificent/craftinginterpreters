@@ -259,7 +259,6 @@ static bool callValue(Value callee, int argCount) {
         break; // Non-callable object type.
     }
   }
-
   runtimeError("Can only call functions and classes.");
   return false;
 }
@@ -400,18 +399,19 @@ static InterpretResult run() {
 /* A Virtual Machine run < Calls and Functions run
 #define READ_BYTE() (*vm.ip++)
 */
+#define READ_BYTE() (*frame->ip++)
 /* A Virtual Machine read-constant < Calls and Functions run
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 */
+
 /* Jumping Back and Forth read-short < Calls and Functions run
 #define READ_SHORT() \
     (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 */
-#define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() \
     (frame->ip += 2, \
     (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
-//< Calls and Functions run
+
 /* Calls and Functions run < Closures read-constant
 #define READ_CONSTANT() \
     (frame->function->chunk.constants.values[READ_BYTE()])
@@ -420,6 +420,8 @@ static InterpretResult run() {
 #define READ_CONSTANT() \
     (frame->closure->function->chunk.constants.values[READ_BYTE()])
 //< Closures read-constant
+
+//< Calls and Functions run
 //> Global Variables read-string
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 //< Global Variables read-string
