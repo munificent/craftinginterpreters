@@ -760,7 +760,7 @@ one in that pointer.
 Then when a Compiler finishes, it pops itself off the stack by restoring the
 previous compiler to be the new current one.
 
-^code restore-enclosing (4 before, 1 after)
+^code restore-enclosing (2 before, 1 after)
 
 Note that we don't even need to <span name="compiler">dynamically</span>
 allocate the Compiler structs. Each is stored as a local variable in the C stack
@@ -1000,7 +1000,7 @@ And one more quick side trip. Now that we have a handy function for initiating a
 CallFrame, we may as well use it to set up the first frame for executing the
 top-level code.
 
-^code interpret (2 before, 2 after)
+^code interpret (1 before, 2 after)
 
 OK, now back to calls...
 

@@ -309,7 +309,6 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
 //< Calls and Functions init-function
   current = compiler;
 //> Calls and Functions init-function-name
-
   if (type != TYPE_SCRIPT) {
     current->function->name = copyString(parser.previous.start,
                                          parser.previous.length);
@@ -572,7 +571,6 @@ static uint8_t argumentList() {
     do {
       expression();
 //> arg-limit
-
       if (argCount == 255) {
         error("Can't have more than 255 arguments.");
       }
@@ -580,7 +578,6 @@ static uint8_t argumentList() {
       argCount++;
     } while (match(TOKEN_COMMA));
   }
-
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
   return argCount;
 }
@@ -1057,14 +1054,12 @@ static void function(FunctionType type) {
       if (current->function->arity > 255) {
         errorAtCurrent("Can't have more than 255 parameters.");
       }
-      
       uint8_t constant = parseVariable("Expect parameter name.");
       defineVariable(constant);
     } while (match(TOKEN_COMMA));
   }
 //< parameters
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
-
   consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
   block();
 
