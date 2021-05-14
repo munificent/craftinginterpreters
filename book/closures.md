@@ -660,7 +660,7 @@ executes.
 
 In order to implement this, `resolveUpvalue()` becomes recursive.
 
-^code resolve-upvalue-recurse (3 before, 2 after)
+^code resolve-upvalue-recurse (4 before, 1 after)
 
 It's only another three lines of code, but I found this function really
 challenging to get right the first time. This in spite of the fact that I wasn't
@@ -734,7 +734,7 @@ capture.
 This odd encoding means we need some bespoke support in the disassembly code
 for `OP_CLOSURE`.
 
-^code disassemble-upvalues (4 before, 1 after)
+^code disassemble-upvalues (1 before, 1 after)
 
 For example, take this script:
 

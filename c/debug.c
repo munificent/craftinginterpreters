@@ -187,8 +187,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
       printf("%-16s %4d ", "OP_CLOSURE", constant);
       printValue(chunk->constants.values[constant]);
       printf("\n");
-      
 //> disassemble-upvalues
+
       ObjFunction* function = AS_FUNCTION(
           chunk->constants.values[constant]);
       for (int j = 0; j < function->upvalueCount; j++) {

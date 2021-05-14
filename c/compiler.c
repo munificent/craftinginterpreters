@@ -476,12 +476,13 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
 //< mark-local-captured
     return addUpvalue(compiler, (uint8_t)local, true);
   }
-//> resolve-upvalue-recurse
 
+//> resolve-upvalue-recurse
   int upvalue = resolveUpvalue(compiler->enclosing, name);
   if (upvalue != -1) {
     return addUpvalue(compiler, (uint8_t)upvalue, false);
   }
+  
 //< resolve-upvalue-recurse
   return -1;
 }

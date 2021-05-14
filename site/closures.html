@@ -406,7 +406,6 @@ in <em>disassembleInstruction</em>()</div>
       <span class="i">printf</span>(<span class="s">&quot;%-16s %4d &quot;</span>, <span class="s">&quot;OP_CLOSURE&quot;</span>, <span class="i">constant</span>);
       <span class="i">printValue</span>(<span class="i">chunk</span>-&gt;<span class="i">constants</span>.<span class="i">values</span>[<span class="i">constant</span>]);
       <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);
-
       <span class="k">return</span> <span class="i">offset</span>;
     }
 </pre><pre class="insert-after">
@@ -721,6 +720,7 @@ add after <em>resolveLocal</em>()</div>
   <span class="k">if</span> (<span class="i">local</span> != -<span class="n">1</span>) {
     <span class="k">return</span> <span class="i">addUpvalue</span>(<span class="i">compiler</span>, (<span class="t">uint8_t</span>)<span class="i">local</span>, <span class="k">true</span>);
   }
+
   <span class="k">return</span> -<span class="n">1</span>;
 }
 </pre></div>
@@ -978,17 +978,17 @@ executes.</p>
   if (local != -1) {
     return addUpvalue(compiler, (uint8_t)local, true);
   }
+
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>resolveUpvalue</em>()</div>
 <pre class="insert">
-
   <span class="t">int</span> <span class="i">upvalue</span> = <span class="i">resolveUpvalue</span>(<span class="i">compiler</span>-&gt;<span class="i">enclosing</span>, <span class="i">name</span>);
   <span class="k">if</span> (<span class="i">upvalue</span> != -<span class="n">1</span>) {
     <span class="k">return</span> <span class="i">addUpvalue</span>(<span class="i">compiler</span>, (<span class="t">uint8_t</span>)<span class="i">upvalue</span>, <span class="k">false</span>);
   }
+
 </pre><pre class="insert-after">
   return -1;
-}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>resolveUpvalue</em>()</div>
 
@@ -1061,13 +1061,11 @@ capture.</p>
 <p>This odd encoding means we need some bespoke support in the disassembly code
 for <code>OP_CLOSURE</code>.</p>
 <div class="codehilite"><pre class="insert-before">
-      printf(&quot;%-16s %4d &quot;, &quot;OP_CLOSURE&quot;, constant);
-      printValue(chunk-&gt;constants.values[constant]);
       printf(&quot;\n&quot;);
-
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
+
       <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="a">AS_FUNCTION</span>(
           <span class="i">chunk</span>-&gt;<span class="i">constants</span>.<span class="i">values</span>[<span class="i">constant</span>]);
       <span class="k">for</span> (<span class="t">int</span> <span class="i">j</span> = <span class="n">0</span>; <span class="i">j</span> &lt; <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>; <span class="i">j</span>++) {
