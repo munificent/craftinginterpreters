@@ -266,7 +266,7 @@ horrendous for performance. But it's great for flushing out memory management
 bugs that occur only when a GC is triggered at just the right moment. If *every*
 moment triggers a GC, you're likely to find those bugs.
 
-^code call-collect (2 before, 1 after)
+^code call-collect (1 before, 1 after)
 
 Whenever we call `reallocate()` to acquire more memory, we force a collection to
 run. The if check is because `reallocate()` is also called to free or shrink an

@@ -609,7 +609,6 @@ static InterpretResult run() {
 //< set-not-instance
         ObjInstance* instance = AS_INSTANCE(peek(1));
         tableSet(&instance->fields, READ_STRING(), peek(0));
-        
         Value value = pop();
         pop();
         push(value);

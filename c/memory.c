@@ -23,7 +23,6 @@
 void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
 //> Garbage Collection updated-bytes-allocated
   vm.bytesAllocated += newSize - oldSize;
-
 //< Garbage Collection updated-bytes-allocated
 //> Garbage Collection call-collect
   if (newSize > oldSize) {
