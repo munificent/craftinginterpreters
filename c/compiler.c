@@ -826,6 +826,7 @@ static void this_(bool canAssign) {
     error("Can't use 'this' outside of a class.");
     return;
   }
+  
 //< this-outside-class
   variable(false);
 } // [this]
