@@ -880,7 +880,7 @@ the three lowest bits of an Obj pointer will always be zero. We could store
 whatever we wanted in there and just mask it off before dereferencing the
 pointer.
 
-This is another value representation optimization called "pointer tagging".
+This is another value representation optimization called **pointer tagging**.
 
 </aside>
 
