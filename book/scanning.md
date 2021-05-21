@@ -664,7 +664,7 @@ multiple-character operators like `<=`.
 
 ```java
 case 'o':
-  if (match() == 'r') {
+  if (match('r')) {
     addToken(OR);
   }
   break;
