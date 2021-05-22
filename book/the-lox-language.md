@@ -752,8 +752,18 @@ accidentally took over the world.
 In class-based languages, there are two core concepts: instances and classes.
 Instances store the state for each object and have a reference to the instance's
 class. Classes contain the methods and inheritance chain. To call a method on an
-instance, there is always a level of indirection. You look up the instance's
-class and then you find the method *there*:
+instance, there is always a level of indirection. You <span name="dispatch">look
+up the instance's class and then you find the method *there*:
+
+<aside name="dispatch">
+
+In a statically typed language like C++, method lookup typically happens at
+compile time based on the *static* type of the instance, giving you **static
+dispatch**. In contrast, **dynamic dispatch** looks up the class of the actual
+instance object at runtime. This is how virtual methods in statically typed
+languages and all methods in a dynamically typed language like Lox work.
+
+</aside>
 
 <img src="image/the-lox-language/class-lookup.png" alt="How fields and methods are looked up on classes and instances" />
 
