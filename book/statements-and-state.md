@@ -353,7 +353,7 @@ the "higher" precedence statements that don't declare names.
 
 <aside name="brace">
 
-In this analogy, blocks statement work sort of like parentheses do for
+In this analogy, block statements work sort of like parentheses do for
 expressions. A block is itself in the "higher" precedence level and can be used
 anywhere, like in the clauses of an `if` statement. But the statements it
 *contains* can be lower precedence. You're allowed to declare variables and
