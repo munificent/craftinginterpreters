@@ -916,7 +916,7 @@ qualifiers and equivocation. My claim is that *parsing doesn't matter*.
 Over the years, many programming language people, especially in academia, have
 gotten *really* into parsers and taken them very seriously. Initially, it was
 the compiler folks who got into <span name="yacc">compiler-compilers</span>,
-LALR, and other stuff like that. The first half of the Dragon book is a long
+LALR, and other stuff like that. The first half of the dragon book is a long
 love letter to the wonders of parser generators.
 
 <aside name="yacc">

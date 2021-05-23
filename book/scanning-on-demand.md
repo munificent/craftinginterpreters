@@ -703,7 +703,7 @@ text editors work under the hood. They take your regex string and convert it to
 a DFA, which they then use to match strings.
 
 If you want to learn the algorithm to convert a regular expression into a DFA,
-[the Dragon Book][dragon] has you covered.
+[the dragon book][dragon] has you covered.
 
 [dragon]: https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools
 

@@ -319,7 +319,7 @@ It pains me to gloss over the theory so much, especially when it's as
 interesting as I think the [Chomsky hierarchy][] and [finite-state machines][]
 are. But the honest truth is other books cover this better than I could.
 [*Compilers: Principles, Techniques, and Tools*][dragon] (universally known as
-"the Dragon Book") is the canonical reference.
+"the dragon book") is the canonical reference.
 
 [chomsky hierarchy]: https://en.wikipedia.org/wiki/Chomsky_hierarchy
 [dragon]: https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools
