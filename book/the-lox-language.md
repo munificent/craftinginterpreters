@@ -414,7 +414,7 @@ statement-hood. This is called (imaginatively enough), an **expression
 statement**.
 
 If you want to pack a series of statements where a single one is expected, you
-can wrap them up in a block.
+can wrap them up in a **block**.
 
 ```lox
 {

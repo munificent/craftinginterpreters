@@ -454,7 +454,7 @@ infrastructure in place to do error recovery? We are finally ready to hook that
 up.
 
 [parsing]: parsing-expressions.html
-[error recovery]: http://localhost:8000/parsing-expressions.html#panic-mode-error-recovery
+[error recovery]: parsing-expressions.html#panic-mode-error-recovery
 
 This `declaration()` method is the method we call repeatedly when parsing a
 series of statements in a block or a script, so it's the right place to

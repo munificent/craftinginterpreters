@@ -27,8 +27,8 @@ Future<void> main(List<String> arguments) async {
 
   // Output a minimal XML file that contains all tags used in the book.
   var allTagsPath = p.join("build", "xml", "all-tags.xml");
-  File(allTagsPath).writeAsStringSync(
-      "<chapter>\n${XmlRenderer.tagFileBuffer}\n</chapter>");
+  File(allTagsPath)
+      .writeAsStringSync("<chapter>\n${XmlRenderer.tagFileBuffer}\n</chapter>");
 }
 
 void _buildPage(Book book, Mustache mustache, Page page) {
