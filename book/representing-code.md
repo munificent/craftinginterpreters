@@ -197,9 +197,9 @@ To make this concrete, we need a <span name="turtles">way</span> to write down
 these production rules. People have been trying to crystallize grammar all the
 way back to Pāṇini's *Ashtadhyayi*, which codified Sanskrit grammar a mere
 couple thousand years ago. Not much progress happened until John Backus and
-company needed a notation for specifying ALGOL 58 and came up with [Backus-Naur
-form][bnf] (**BNF**). Since then, nearly everyone uses some flavor of BNF,
-tweaked to their own tastes.
+company needed a notation for specifying ALGOL 58 and came up with
+[**Backus-Naur form**][bnf] (**BNF**). Since then, nearly everyone uses some
+flavor of BNF, tweaked to their own tastes.
 
 [bnf]: https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 
@@ -1034,7 +1034,7 @@ maintain AstPrinter, feel free to delete it. We won't need it again.
     (SML or Haskell would be ideal for this exercise, but Scheme or another Lisp
     works as well.)
 
-1.  In [Reverse Polish Notation][rpn] (RPN), the operands to an arithmetic
+1.  In [reverse Polish notation][rpn] (RPN), the operands to an arithmetic
     operator are both placed before the operator, so `1 + 2` becomes `1 2 +`.
     Evaluation proceeds from left to right. Numbers are pushed onto an implicit
     stack. An arithmetic operator pops the top two numbers, performs the
