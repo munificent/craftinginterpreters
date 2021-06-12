@@ -72,7 +72,6 @@ typedef struct {
   size_t nextGC;
 //< Garbage Collection vm-fields
 //> Strings objects-root
-
   Obj* objects;
 //< Strings objects-root
 //> Garbage Collection vm-gray-stack

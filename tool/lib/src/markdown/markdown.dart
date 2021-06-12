@@ -4,8 +4,9 @@ import '../book.dart';
 import '../page.dart';
 import 'block_syntax.dart';
 import 'code_syntax.dart';
+import 'html_renderer.dart';
 import 'inline_syntax.dart';
-import 'renderer.dart';
+import 'xml_renderer.dart';
 
 String renderMarkdown(Book book, Page page, List<String> lines,
     {bool xml = false}) {
@@ -21,8 +22,7 @@ String renderMarkdown(Book book, Page page, List<String> lines,
     ApostropheSyntax(xml: xml),
     SmartQuoteSyntax(xml: xml),
     EmDashSyntax(xml: xml),
-    if (xml)
-      NewlineSyntax(),
+    if (xml) NewlineSyntax(),
   ], extensionSet: ExtensionSet.gitHubFlavored);
 
   var ast = document.parseLines(lines);

@@ -30,7 +30,7 @@ static Obj* allocateObject(size_t size, ObjType type) {
 //> Garbage Collection debug-log-allocate
 
 #ifdef DEBUG_LOG_GC
-  printf("%p allocate %ld for %d\n", (void*)object, size, type);
+  printf("%p allocate %zu for %d\n", (void*)object, size, type);
 #endif
 
 //< Garbage Collection debug-log-allocate
@@ -79,7 +79,6 @@ ObjClosure* newClosure(ObjFunction* function) {
 //> Calls and Functions new-function
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
-
   function->arity = 0;
 //> Closures init-upvalue-count
   function->upvalueCount = 0;
@@ -119,16 +118,16 @@ static ObjString* allocateString(char* chars, int length,
 //> Hash Tables allocate-store-hash
   string->hash = hash;
 //< Hash Tables allocate-store-hash
-
+//> Hash Tables allocate-store-string
 //> Garbage Collection push-string
+
   push(OBJ_VAL(string));
 //< Garbage Collection push-string
-//> Hash Tables allocate-store-string
   tableSet(&vm.strings, string, NIL_VAL);
 //> Garbage Collection pop-string
   pop();
-//< Garbage Collection pop-string
 
+//< Garbage Collection pop-string
 //< Hash Tables allocate-store-string
   return string;
 }
@@ -136,12 +135,10 @@ static ObjString* allocateString(char* chars, int length,
 //> Hash Tables hash-string
 static uint32_t hashString(const char* key, int length) {
   uint32_t hash = 2166136261u;
-
   for (int i = 0; i < length; i++) {
-    hash ^= key[i];
+    hash ^= (uint8_t)key[i];
     hash *= 16777619;
   }
-
   return hash;
 }
 //< Hash Tables hash-string
@@ -172,13 +169,12 @@ ObjString* copyString(const char* chars, int length) {
   ObjString* interned = tableFindString(&vm.strings, chars, length,
                                         hash);
   if (interned != NULL) return interned;
-//< copy-string-intern
 
+//< copy-string-intern
 //< Hash Tables copy-string-hash
   char* heapChars = ALLOCATE(char, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
-
 /* Strings object-c < Hash Tables copy-string-allocate
   return allocateString(heapChars, length);
 */
@@ -213,16 +209,16 @@ static void printFunction(ObjFunction* function) {
 //> print-object
 void printObject(Value value) {
   switch (OBJ_TYPE(value)) {
-//> Classes and Instances print-class
-    case OBJ_CLASS:
-      printf("%s", AS_CLASS(value)->name->chars);
-      break;
-//< Classes and Instances print-class
 //> Methods and Initializers print-bound-method
     case OBJ_BOUND_METHOD:
       printFunction(AS_BOUND_METHOD(value)->method->function);
       break;
 //< Methods and Initializers print-bound-method
+//> Classes and Instances print-class
+    case OBJ_CLASS:
+      printf("%s", AS_CLASS(value)->name->chars);
+      break;
+//< Classes and Instances print-class
 //> Closures print-closure
     case OBJ_CLOSURE:
       printFunction(AS_CLOSURE(value)->function);

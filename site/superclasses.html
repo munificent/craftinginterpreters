@@ -112,8 +112,8 @@
 
 <blockquote>
 <p>You can choose your friends but you sho&rsquo; can&rsquo;t choose your family, an&rsquo; they&rsquo;re
-still kin to you no matter whether you acknowledge &lsquo;em or not, and it makes
-you look right silly when you don&rsquo;t.</p>
+still kin to you no matter whether you acknowledge &rsquo;em or not, and it
+makes you look right silly when you don&rsquo;t.</p>
 <p><cite>Harper Lee, <em>To Kill a Mockingbird</em></cite></p>
 </blockquote>
 <p>This is the very last chapter where we add new functionality to our VM. We&rsquo;ve
@@ -144,11 +144,11 @@ refresh your memory, Lox inheritance syntax looks like this:</p>
 
 <span class="k">class</span> <span class="t">Cruller</span> &lt; <span class="t">Doughnut</span> {
   <span class="i">finish</span>() {
-    <span class="k">print</span> <span class="s">&quot;Glaze with icing&quot;</span>;
+    <span class="k">print</span> <span class="s">&quot;Glaze with icing.&quot;</span>;
   }
 }
 </pre></div>
-<p>Here, the Cruller class inherits from Doughnut and thus instances of Cruller
+<p>Here, the Cruller class inherits from Doughnut and thus, instances of Cruller
 inherit the <code>cook()</code> method. I don&rsquo;t know why I&rsquo;m belaboring this. You know how
 inheritance works. Let&rsquo;s start compiling the new syntax.</p>
 <div class="codehilite"><pre class="insert-before">
@@ -169,7 +169,7 @@ in <em>classDeclaration</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
-<p>After we compile the class name, if the next token is a <code>&lt;</code> then we found a
+<p>After we compile the class name, if the next token is a <code>&lt;</code>, then we found a
 superclass clause. We consume the superclass&rsquo;s identifier token, then call
 <code>variable()</code>. That function takes the previously consumed token, treats it as a
 variable reference, and emits code to load the variable&rsquo;s value. In other words,
@@ -243,7 +243,6 @@ in <em>disassembleInstruction</em>()</div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_INHERIT</span>: {
         <span class="t">Value</span> <span class="i">superclass</span> = <span class="i">peek</span>(<span class="n">1</span>);
         <span class="t">ObjClass</span>* <span class="i">subclass</span> = <span class="a">AS_CLASS</span>(<span class="i">peek</span>(<span class="n">0</span>));
@@ -253,7 +252,6 @@ in <em>run</em>()</div>
         <span class="k">break</span>;
       }
 </pre><pre class="insert-after">
-
       case OP_METHOD:
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -266,7 +264,7 @@ the subclass&rsquo;s method table, we recursed through the inheritance chain loo
 at each ancestor&rsquo;s method table until we found it.</p>
 <p>For example, calling <code>cook()</code> on an instance of Cruller sends jlox on this
 journey:</p><img src="image/superclasses/jlox-resolve.png" alt="Resolving a call to cook() in an instance of Cruller means walking the superclass chain." />
-<p>That&rsquo;s a lot of work to perform during method <em>invocation</em> time. It&rsquo;s slow and,
+<p>That&rsquo;s a lot of work to perform during method <em>invocation</em> time. It&rsquo;s slow, and
 worse, the farther an inherited method is up the ancestor chain, the slower it
 gets. Not a great performance story.</p>
 <p>The new approach is much faster. When the subclass is declared, we copy all of
@@ -280,7 +278,7 @@ This means inherited method calls are exactly as fast as normal method calls<spa
 field on the instance doesn&rsquo;t shadow the method.</p>
 </aside>
 <p>I&rsquo;ve sometimes heard this technique called &ldquo;copy-down inheritance&rdquo;. It&rsquo;s simple
-and fast, but, like most optimizations, you only get to use it under certain
+and fast, but, like most optimizations, you get to use it only under certain
 constraints. It works in Lox because Lox classes are <em>closed</em>. Once a class
 declaration is finished executing, the set of methods for that class can never
 change.</p>
@@ -331,7 +329,6 @@ in <em>run</em>()</div>
 
 </pre><pre class="insert-after">
         ObjClass* subclass = AS_CLASS(peek(0));
-        tableAddAll(&amp;AS_CLASS(superclass)-&gt;methods,
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -339,14 +336,14 @@ in <em>run</em>()</div>
 ObjClass, we report a runtime error to let the user know what we think of them
 and their code.</p>
 <h2><a href="#storing-superclasses" name="storing-superclasses"><small>29&#8202;.&#8202;2</small>Storing Superclasses</a></h2>
-<p>Did you notice that when we added method inheritance we didn&rsquo;t actually add any
+<p>Did you notice that when we added method inheritance, we didn&rsquo;t actually add any
 reference from a subclass to its superclass? After we copy the inherited methods
 over, we forget the superclass entirely. We don&rsquo;t need to keep a handle on the
 superclass, so we don&rsquo;t.</p>
 <p>That won&rsquo;t be sufficient to support super calls. Since a subclass <span
 name="may">may</span> override the superclass method, we need to be able to get
-our hands on superclass method tables. Before we get to mechanism, I want to
-refresh your memory on how super calls are statically resolved.</p>
+our hands on superclass method tables. Before we get to that mechanism, I want 
+to refresh your memory on how super calls are statically resolved.</p>
 <aside name="may">
 <p>&ldquo;May&rdquo; might not be a strong enough word. Presumably the method <em>has</em> been
 overridden. Otherwise, why are you bothering to use <code>super</code> instead of just
@@ -376,10 +373,10 @@ explain the way super calls are dispatched:</p>
 <span class="t">C</span>().<span class="i">test</span>();
 </pre></div>
 <p>Inside the body of the <code>test()</code> method, <code>this</code> is an instance of C. If super
-calls were resolved relative to the superclass of the <em>receiver</em> then we would
+calls were resolved relative to the superclass of the <em>receiver</em>, then we would
 look in C&rsquo;s superclass, B. But super calls are resolved relative to the
 superclass of the <em>surrounding class where the super call occurs</em>. In this case,
-we are in B&rsquo;s <code>test()</code> method, so the superclass is A and the program should
+we are in B&rsquo;s <code>test()</code> method, so the superclass is A, and the program should
 print &ldquo;A method&rdquo;.</p>
 <p>This means that super calls are not resolved dynamically based on the runtime
 instance. The superclass used to look up the method is a static<span class="em">&mdash;</span>practically
@@ -417,7 +414,6 @@ variable and tell the runtime to start looking for methods there.</p>
 heap-allocated Environment class, we have the bytecode VM&rsquo;s value stack and
 upvalue system. The machinery is a little different, but the overall effect is
 the same.</p>
-<hr />
 <h3><a href="#a-superclass-local-variable" name="a-superclass-local-variable"><small>29&#8202;.&#8202;2&#8202;.&#8202;1</small>A superclass local variable</a></h3>
 <p>Our compiler already emits code to load the superclass onto the stack. Instead
 of leaving that slot as a temporary, we create a new scope and make it a local
@@ -487,17 +483,16 @@ in <em>classDeclaration</em>()</div>
 
 <p>We pop the scope and discard the &ldquo;super&rdquo; variable after compiling the class body
 and its methods. That way, the variable is accessible in all of the methods of
-the subclass. It&rsquo;s a somewhat pointless optimization, but we only create the
-scope if there <em>is</em> a superclass clause. Thus we only need to close the scope if
+the subclass. It&rsquo;s a somewhat pointless optimization, but we create the scope
+only if there <em>is</em> a superclass clause. Thus we need to close the scope only if
 there is one.</p>
 <p>To track that, we could declare a little local variable in <code>classDeclaration()</code>.
-But soon other functions in the compiler will need to know whether the
+But soon, other functions in the compiler will need to know whether the
 surrounding class is a subclass or not. So we may as well give our future selves
 a hand and store this fact as a field in the ClassCompiler now.</p>
 <div class="codehilite"><pre class="insert-before">
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
-  Token name;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>ClassCompiler</em></div>
 <pre class="insert">
@@ -509,7 +504,7 @@ in struct <em>ClassCompiler</em></div>
 
 <p>When we first initialize a ClassCompiler, we assume it is not a subclass.</p>
 <div class="codehilite"><pre class="insert-before">
-  classCompiler.name = parser.previous;
+  ClassCompiler classCompiler;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
 <pre class="insert">
@@ -556,7 +551,7 @@ replace 1 line</div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>When the expression parser lands on a <code>super</code> token, control jumps to a new
-parsing function which starts off like so.</p>
+parsing function which starts off like so:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>syntheticToken</em>()</div>
 <pre>
@@ -679,7 +674,7 @@ in <em>super_</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>super_</em>()</div>
 
-<p>A super call is only meaningful inside the body of a method (or in a function
+<p>A super call is meaningful only inside the body of a method (or in a function
 nested inside a method), and only inside the method of a class that has a
 superclass. We detect both of these cases using the value of <code>currentClass</code>. If
 that&rsquo;s <code>NULL</code> or points to a class with no superclass, we report those errors.</p>
@@ -718,17 +713,16 @@ similar to executing a normal property access.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-
       <span class="k">case</span> <span class="a">OP_GET_SUPER</span>: {
         <span class="t">ObjString</span>* <span class="i">name</span> = <span class="a">READ_STRING</span>();
         <span class="t">ObjClass</span>* <span class="i">superclass</span> = <span class="a">AS_CLASS</span>(<span class="i">pop</span>());
+
         <span class="k">if</span> (!<span class="i">bindMethod</span>(<span class="i">superclass</span>, <span class="i">name</span>)) {
           <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span>;
         }
         <span class="k">break</span>;
       }
 </pre><pre class="insert-after">
-
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -753,17 +747,17 @@ pushes the new bound method. Otherwise, it reports a runtime error and returns
 <code>false</code>. In that case, we abort the interpreter.</p>
 <aside name="field">
 <p>Another difference compared to <code>OP_GET_PROPERTY</code> is that we don&rsquo;t try to look
-for a shadowing field first. Fields are not inherited so <code>super</code> expressions
+for a shadowing field first. Fields are not inherited, so <code>super</code> expressions
 always resolve to methods.</p>
 <p>If Lox were a prototype-based language that used <em>delegation</em> instead of
 <em>inheritance</em>, then instead of one <em>class</em> inheriting from another <em>class</em>,
 instances would inherit from (&ldquo;delegate to&rdquo;) other instances. In that case,
-fields <em>can</em> be inherited and we would need to check for them here.</p>
+fields <em>could</em> be inherited, and we would need to check for them here.</p>
 </aside>
 <h3><a href="#faster-super-calls" name="faster-super-calls"><small>29&#8202;.&#8202;3&#8202;.&#8202;2</small>Faster super calls</a></h3>
 <p>We have superclass method accesses working now. And since the returned object is
 an ObjBoundMethod that you can then invoke, we&rsquo;ve got super <em>calls</em> working too.
-Just like last chapter, we&rsquo;ve reached a point where our VM has the complete
+Just like last chapter, we&rsquo;ve reached a point where our VM has the complete,
 correct semantics.</p>
 <p>But, also like last chapter, it&rsquo;s pretty slow. Again, we&rsquo;re heap allocating an
 ObjBoundMethod for each super call even though most of the time the very next
@@ -776,7 +770,7 @@ you invoke it immediately or not.</p>
 <p>The compiler can certainly answer that question for itself if it sees a left
 parenthesis after the superclass method name, so we&rsquo;ll go ahead and perform the
 same optimization we did for method calls. Take out the two lines of code that
-load the superclass and emit <code>OP_GET_SUPER</code> and replace them with this:</p>
+load the superclass and emit <code>OP_GET_SUPER</code>, and replace them with this:</p>
 <div class="codehilite"><pre class="insert-before">
   namedVariable(syntheticToken(&quot;this&quot;), false);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -802,10 +796,10 @@ find one, we compile that. Then we load the superclass. After that, we emit a
 new <code>OP_SUPER_INVOKE</code> instruction. This <span
 name="superinstruction">superinstruction</span> combines the behavior of
 <code>OP_GET_SUPER</code> and <code>OP_CALL</code>, so it takes two operands: the constant table index
-of the method name to lookup and the number of arguments to pass to it.</p>
+of the method name to look up and the number of arguments to pass to it.</p>
 <aside name="superinstruction">
 <p>This is a particularly <em>super</em> superinstruction, if you get what I&rsquo;m saying.
-I&hellip; I&rsquo;m sorry for this terrible joke.</p>
+I<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>I&rsquo;m sorry for this terrible joke.</p>
 </aside>
 <p>Otherwise, if we don&rsquo;t find a <code>(</code>, we continue to compile the expression as a
 super access like we did before and emit an <code>OP_GET_SUPER</code>.</p>
@@ -838,8 +832,8 @@ in <em>disassembleInstruction</em>()</div>
 we reuse the same helper to disassemble it. Finally, the pipeline dumps us into
 the interpreter.</p>
 <div class="codehilite"><pre class="insert-before">
+        break;
       }
-
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -853,7 +847,6 @@ in <em>run</em>()</div>
         <span class="i">frame</span> = &amp;<span class="i">vm</span>.<span class="i">frames</span>[<span class="i">vm</span>.<span class="i">frameCount</span> - <span class="n">1</span>];
         <span class="k">break</span>;
       }
-
 </pre><pre class="insert-after">
       case OP_CLOSURE: {
 </pre></div>
@@ -878,14 +871,14 @@ for a method call.</p>
 <p>We pass the superclass, method name, and argument count to our existing
 <code>invokeFromClass()</code> function. That function looks up the given method on the
 given class and attempts to create a call to it with the given arity. If a
-method could not be found, it returns <code>false</code> and we bail out of the
+method could not be found, it returns <code>false</code>, and we bail out of the
 interpreter. Otherwise, <code>invokeFromClass()</code> pushes a new CallFrame onto the call
 stack for the method&rsquo;s closure. That invalidates the interpreter&rsquo;s cached
 CallFrame pointer, so we refresh <code>frame</code>.</p>
 <h2><a href="#a-complete-virtual-machine" name="a-complete-virtual-machine"><small>29&#8202;.&#8202;4</small>A Complete Virtual Machine</a></h2>
 <p>Take a look back at what we&rsquo;ve created. By my count, we wrote around 2,500 lines
 of fairly clean, straightforward C. That little program contains a complete
-implementation of the<span class="em">&mdash;</span>quite high-level!<span class="em">&mdash;</span>Lox language with a whole
+implementation of the<span class="em">&mdash;</span>quite high-level!<span class="em">&mdash;</span>Lox language, with a whole
 precedence table full of expression types and a suite of control flow
 statements. We implemented variables, functions, closures, classes, fields,
 methods, and inheritance.</p>
@@ -898,14 +891,14 @@ variables without heap allocation, and a precise garbage collector.</p>
 Ruby, you will be surprised by how much of it now looks familiar to you. You
 have seriously leveled up your knowledge of how programming languages work,
 which in turn gives you a deeper understanding of programming itself. It&rsquo;s like
-you used to be a race car driver and now you can pop the hood and repair the
+you used to be a race car driver, and now you can pop the hood and repair the
 engine too.</p>
 <p>You can stop here if you like. The two implementations of Lox you have are
-complete and full-featured. You built the car and can drive it wherever you want
+complete and full featured. You built the car and can drive it wherever you want
 now. But if you are looking to have more fun tuning and tweaking for even
 greater performance out on the track, there is one more chapter. We don&rsquo;t add
 any new capabilities, but we roll in a couple of classic optimizations to
-squeeze even more perf out. If that sounds fun, <a href="optimization.html">keep reading</a>&hellip;</p>
+squeeze even more perf out. If that sounds fun, <a href="optimization.html">keep reading</a><span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 <ol>
@@ -924,12 +917,12 @@ leave you with an instance in a broken state.</p>
 would change the language, implement your change.</p>
 </li>
 <li>
-<p>Our copy-down inheritance optimization is only valid because Lox does not
+<p>Our copy-down inheritance optimization is valid only because Lox does not
 permit you to modify a class&rsquo;s methods after its declaration. This means we
 don&rsquo;t have to worry about the copied methods in the subclass getting out of
 sync with later changes to the superclass.</p>
-<p>Other languages like Ruby <em>do</em> allow classes to be modified after the fact.
-How do implementations of languages like that support class
+<p>Other languages, like Ruby, <em>do</em> allow classes to be modified after the
+fact. How do implementations of languages like that support class
 modification while keeping method resolution efficient?</p>
 </li>
 <li>
@@ -950,12 +943,12 @@ hierarchy.</p>
 refine its behavior. If the superclass method doesn&rsquo;t call <code>inner</code> at all,
 then the subclass has no way of overriding or modifying the superclass&rsquo;s
 behavior.</p>
-<p>Take out Lox&rsquo;s current overriding and <code>super</code> behavior and replace it with
+<p>Take out Lox&rsquo;s current overriding and <code>super</code> behavior, and replace it with
 BETA&rsquo;s semantics. In short:</p>
 <ul>
 <li>
-<p>When calling a method on a class, prefer the method <em>highest</em> on the
-class&rsquo;s inheritance chain.</p>
+<p>When calling a method on a class, the method <em>highest</em> on the
+class&rsquo;s inheritance chain takes precedence.</p>
 </li>
 <li>
 <p>Inside the body of a method, a call to <code>inner</code> looks for a method with

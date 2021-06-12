@@ -10,7 +10,7 @@ granted that things like `instanceof` in Java work *somehow*. And we never for a
 second worry about memory management because the JVM's garbage collector takes
 care of it for us.
 
-When we were focused on high level concepts, it was fine to gloss over those.
+When we were focused on high-level concepts, it was fine to gloss over those.
 But now that we know our way around an interpreter, it's time to dig down to
 those lower layers and build our own virtual machine from scratch using nothing
 more than the C standard library...

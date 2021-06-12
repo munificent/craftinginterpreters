@@ -118,7 +118,6 @@ typedef struct Compiler {
 
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
-  Token name;
 //> Superclasses has-superclass
   bool hasSuperclass;
 //< Superclasses has-superclass
@@ -126,17 +125,14 @@ typedef struct ClassCompiler {
 //< Methods and Initializers class-compiler-struct
 
 Parser parser;
-
 //< Compiling Expressions parser
 //> Local Variables current-compiler
 Compiler* current = NULL;
 //< Local Variables current-compiler
 //> Methods and Initializers current-class
-
 ClassCompiler* currentClass = NULL;
 //< Methods and Initializers current-class
 //> Compiling Expressions compiling-chunk
-
 /* Compiling Expressions compiling-chunk < Calls and Functions current-chunk
 Chunk* compilingChunk;
 
@@ -145,6 +141,7 @@ static Chunk* currentChunk() {
 }
 */
 //> Calls and Functions current-chunk
+
 static Chunk* currentChunk() {
   return &current->function->chunk;
 }
@@ -158,7 +155,6 @@ static void errorAt(Token* token, const char* message) {
 //< check-panic-mode
 //> set-panic-mode
   parser.panicMode = true;
-
 //< set-panic-mode
   fprintf(stderr, "[line %d] Error", token->line);
 
@@ -313,7 +309,6 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
 //< Calls and Functions init-function
   current = compiler;
 //> Calls and Functions init-function-name
-
   if (type != TYPE_SCRIPT) {
     current->function->name = copyString(parser.previous.start,
                                          parser.previous.length);
@@ -481,14 +476,14 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
 //< mark-local-captured
     return addUpvalue(compiler, (uint8_t)local, true);
   }
-//> resolve-upvalue-recurse
 
+//> resolve-upvalue-recurse
   int upvalue = resolveUpvalue(compiler->enclosing, name);
   if (upvalue != -1) {
     return addUpvalue(compiler, (uint8_t)upvalue, false);
   }
+  
 //< resolve-upvalue-recurse
-
   return -1;
 }
 //< Closures resolve-upvalue
@@ -577,7 +572,6 @@ static uint8_t argumentList() {
     do {
       expression();
 //> arg-limit
-
       if (argCount == 255) {
         error("Can't have more than 255 arguments.");
       }
@@ -585,7 +579,6 @@ static uint8_t argumentList() {
       argCount++;
     } while (match(TOKEN_COMMA));
   }
-
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
   return argCount;
 }
@@ -607,14 +600,10 @@ static void binary() {
 //> Global Variables binary
 static void binary(bool canAssign) {
 //< Global Variables binary
-  // Remember the operator.
   TokenType operatorType = parser.previous.type;
-
-  // Compile the right operand.
   ParseRule* rule = getRule(operatorType);
   parsePrecedence((Precedence)(rule->precedence + 1));
 
-  // Emit the operator instruction.
   switch (operatorType) {
 //> Types of Values comparison-operators
     case TOKEN_BANG_EQUAL:    emitBytes(OP_EQUAL, OP_NOT); break;
@@ -628,8 +617,7 @@ static void binary(bool canAssign) {
     case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
     case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
     case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
-    default:
-      return; // Unreachable.
+    default: return; // Unreachable.
   }
 }
 //< Compiling Expressions binary
@@ -669,8 +657,7 @@ static void literal(bool canAssign) {
     case TOKEN_FALSE: emitByte(OP_FALSE); break;
     case TOKEN_NIL: emitByte(OP_NIL); break;
     case TOKEN_TRUE: emitByte(OP_TRUE); break;
-    default:
-      return; // Unreachable.
+    default: return; // Unreachable.
   }
 }
 //< Types of Values parse-literal
@@ -839,6 +826,7 @@ static void this_(bool canAssign) {
     error("Can't use 'this' outside of a class.");
     return;
   }
+  
 //< this-outside-class
   variable(false);
 } // [this]
@@ -866,8 +854,7 @@ static void unary(bool canAssign) {
     case TOKEN_BANG: emitByte(OP_NOT); break;
 //< Types of Values compile-not
     case TOKEN_MINUS: emitByte(OP_NEGATE); break;
-    default:
-      return; // Unreachable.
+    default: return; // Unreachable.
   }
 }
 //< Compiling Expressions unary
@@ -1061,7 +1048,6 @@ static void function(FunctionType type) {
   initCompiler(&compiler, type);
   beginScope(); // [no-end-scope]
 
-  // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
 //> parameters
   if (!check(TOKEN_RIGHT_PAREN)) {
@@ -1070,20 +1056,15 @@ static void function(FunctionType type) {
       if (current->function->arity > 255) {
         errorAtCurrent("Can't have more than 255 parameters.");
       }
-      
-      uint8_t paramConstant = parseVariable(
-          "Expect parameter name.");
-      defineVariable(paramConstant);
+      uint8_t constant = parseVariable("Expect parameter name.");
+      defineVariable(constant);
     } while (match(TOKEN_COMMA));
   }
 //< parameters
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
-
-  // The body.
   consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
   block();
 
-  // Create the function object.
   ObjFunction* function = endCompiler();
 /* Calls and Functions compile-function < Closures emit-closure
   emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
@@ -1140,7 +1121,6 @@ static void classDeclaration() {
 
 //> Methods and Initializers create-class-compiler
   ClassCompiler classCompiler;
-  classCompiler.name = parser.previous;
 //> Superclasses init-has-superclass
   classCompiler.hasSuperclass = false;
 //< Superclasses init-has-superclass
@@ -1232,7 +1212,6 @@ static void expressionStatement() {
 static void forStatement() {
 //> for-begin-scope
   beginScope();
-
 //< for-begin-scope
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
 /* Jumping Back and Forth for-statement < Jumping Back and Forth for-initializer
@@ -1249,7 +1228,6 @@ static void forStatement() {
 //< for-initializer
 
   int loopStart = currentChunk()->count;
-
 /* Jumping Back and Forth for-statement < Jumping Back and Forth for-exit
   consume(TOKEN_SEMICOLON, "Expect ';'.");
 */
@@ -1271,7 +1249,6 @@ static void forStatement() {
 //> for-increment
   if (!match(TOKEN_RIGHT_PAREN)) {
     int bodyJump = emitJump(OP_JUMP);
-
     int incrementStart = currentChunk()->count;
     expression();
     emitByte(OP_POP);
@@ -1284,7 +1261,6 @@ static void forStatement() {
 //< for-increment
 
   statement();
-
   emitLoop(loopStart);
 //> exit-jump
 
@@ -1292,9 +1268,9 @@ static void forStatement() {
     patchJump(exitJump);
     emitByte(OP_POP); // Condition.
   }
+
 //< exit-jump
 //> for-end-scope
-
   endScope();
 //< for-end-scope
 }
@@ -1362,18 +1338,15 @@ static void returnStatement() {
 static void whileStatement() {
 //> loop-start
   int loopStart = currentChunk()->count;
-
 //< loop-start
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
   int exitJump = emitJump(OP_JUMP_IF_FALSE);
-
   emitByte(OP_POP);
   statement();
 //> loop
-
   emitLoop(loopStart);
 //< loop
 
@@ -1387,7 +1360,6 @@ static void synchronize() {
 
   while (parser.current.type != TOKEN_EOF) {
     if (parser.previous.type == TOKEN_SEMICOLON) return;
-
     switch (parser.current.type) {
       case TOKEN_CLASS:
       case TOKEN_FUN:
@@ -1400,8 +1372,7 @@ static void synchronize() {
         return;
 
       default:
-        // Do nothing.
-        ;
+        ; // Do nothing.
     }
 
     advance();

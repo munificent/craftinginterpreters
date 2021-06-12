@@ -56,7 +56,14 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
         // Strip off any leading indentation.
         if (line.length > indent) line = line.substring(indent);
         checkLineLength(line);
-        buffer.writeln(line.escapeHtml);
+
+        buffer.write(line.escapeHtml);
+        if (_isXml) {
+          // Soft break, so that the code stays one paragraph.
+          buffer.write("&#x2028;");
+        } else {
+          buffer.writeln();
+        }
       }
 
       if (!_isXml) buffer.write("</pre>");
@@ -66,8 +73,18 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
       code = formatCode(language, childLines, indent: indent, xml: _isXml);
     }
 
-    // Don't wrap in a div for XML.
-    if (_isXml) return Element.text("pre", code);
+    if (_isXml) {
+      // Remove the trailing newline since we'll write a newline after the
+      // "</pre>" and we don't want InDesign to insert a blank paragraph.
+      code = code.trimTrailingNewline();
+
+      // Replace newlines with soft breaks so that InDesign treats the entire
+      // snippet as a single paragraph and keeps it together.
+      code = code.replaceAll("\n", "&#x2028;");
+
+      // Don't wrap in a div for XML.
+      return Element.text("pre", code);
+    }
 
     var element = Element.text("div", code);
     element.attributes["class"] = "codehilite";
@@ -110,18 +127,10 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
 
-//  if name not in snippets:
-//    errors.append("Undefined snippet {}".format(name))
-//    contents += "**ERROR: Missing snippet {}**\n".format(name)
-//    return contents
-//
-//  if snippets[name] == False:
-//    errors.append("Reused snippet {}".format(name))
-//    contents += "**ERROR: Reused snippet {}**\n".format(name)
-//    return contents
-
-//  # Consume it.
-//  snippets[name] = False
+  if (snippet == null) {
+    print("Undefined snippet ${tag.name}");
+    return "<strong>ERROR: Missing snippet ${tag.name}</strong>\n";
+  }
 
   var location = <String>[];
   if (tag.showLocation) location = snippet.locationHtmlLines;
@@ -207,12 +216,24 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
       }
     }
 
+    if (snippet.contextBefore.isNotEmpty) buffer.writeln();
     buffer.write("<$insertTag>");
-    buffer.write(formatCode(snippet.file.language, snippet.added, xml: true));
+
+    var code = formatCode(snippet.file.language, snippet.added, xml: true);
+    // Discard the trailing newline so we don't end up with a blank paragraph
+    // in InDesign.
+    code = code.trimTrailingNewline();
+
+    // Replace newlines with soft breaks so that InDesign treats the entire
+    // snippet as a single paragraph and keeps it together.
+    code = code.replaceAll("\n", "&#x2028;");
+
+    buffer.write(code);
     buffer.write("</$insertTag>");
   }
 
   if (snippet.contextAfter.isNotEmpty) {
+    buffer.writeln();
     _writeContextXml(buffer, snippet.contextAfter, "after");
   }
 
@@ -233,9 +254,15 @@ void _writeContextHtml(StringBuffer buffer, List<String> lines,
 }
 
 void _writeContextXml(StringBuffer buffer, List<String> lines, String tag) {
+  if (lines.isEmpty) return;
+
   buffer.write("<context-$tag>");
+  var first = true;
   for (var line in lines) {
-    buffer.writeln(line.escapeHtml);
+    // Soft break, so that the context stays one paragraph.
+    if (!first) buffer.write("&#x2028;");
+    first = false;
+    buffer.write(line.escapeHtml);
   }
   buffer.write("</context-$tag>");
 }

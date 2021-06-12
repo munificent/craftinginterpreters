@@ -1,7 +1,7 @@
 With this part, we begin jlox, the first of our two interpreters. Programming
 languages are a huge topic with piles of concepts and terminology to cram into
 your brain all at once. Programming language theory requires a level of mental
-rigor that you probably haven't had to summon since your last Calculus final.
+rigor that you probably haven't had to summon since your last calculus final.
 (Fortunately there isn't too much theory in this book.)
 
 Implementing an interpreter uses a few architectural tricks and design

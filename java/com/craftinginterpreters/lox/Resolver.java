@@ -247,7 +247,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     resolve(expr.object);
     return null;
   }
-
 //< Classes resolver-visit-get
 //> visit-grouping-expr
   @Override

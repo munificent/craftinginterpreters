@@ -23,7 +23,6 @@
 void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
 //> Garbage Collection updated-bytes-allocated
   vm.bytesAllocated += newSize - oldSize;
-
 //< Garbage Collection updated-bytes-allocated
 //> Garbage Collection call-collect
   if (newSize > oldSize) {
@@ -70,8 +69,8 @@ void markObject(Obj* object) {
 
   if (vm.grayCapacity < vm.grayCount + 1) {
     vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
-    vm.grayStack = realloc(vm.grayStack,
-                           sizeof(Obj*) * vm.grayCapacity);
+    vm.grayStack = (Obj**)realloc(vm.grayStack,
+                                  sizeof(Obj*) * vm.grayCapacity);
 //> exit-gray-stack
 
     if (vm.grayStack == NULL) exit(1);
@@ -84,8 +83,7 @@ void markObject(Obj* object) {
 //< Garbage Collection mark-object
 //> Garbage Collection mark-value
 void markValue(Value value) {
-  if (!IS_OBJ(value)) return;
-  markObject(AS_OBJ(value));
+  if (IS_OBJ(value)) markObject(AS_OBJ(value));
 }
 //< Garbage Collection mark-value
 //> Garbage Collection mark-array
@@ -113,7 +111,6 @@ static void blackenObject(Obj* object) {
       markObject((Obj*)bound->method);
       break;
     }
-    
 //< Methods and Initializers blacken-bound-method
 //> Classes and Instances blacken-class
     case OBJ_CLASS: {
@@ -124,7 +121,6 @@ static void blackenObject(Obj* object) {
 //< Methods and Initializers mark-methods
       break;
     }
-
 //< Classes and Instances blacken-class
 //> blacken-closure
     case OBJ_CLOSURE: {
@@ -135,7 +131,6 @@ static void blackenObject(Obj* object) {
       }
       break;
     }
-
 //< blacken-closure
 //> blacken-function
     case OBJ_FUNCTION: {
@@ -144,7 +139,6 @@ static void blackenObject(Obj* object) {
       markArray(&function->chunk.constants);
       break;
     }
-
 //< blacken-function
 //> Classes and Instances blacken-instance
     case OBJ_INSTANCE: {
@@ -153,13 +147,11 @@ static void blackenObject(Obj* object) {
       markTable(&instance->fields);
       break;
     }
-
 //< Classes and Instances blacken-instance
 //> blacken-upvalue
     case OBJ_UPVALUE:
       markValue(((ObjUpvalue*)object)->closed);
       break;
-
 //< blacken-upvalue
     case OBJ_NATIVE:
     case OBJ_STRING:
@@ -180,7 +172,6 @@ static void freeObject(Obj* object) {
     case OBJ_BOUND_METHOD:
       FREE(ObjBoundMethod, object);
       break;
-
 //< Methods and Initializers free-bound-method
 //> Classes and Instances free-class
     case OBJ_CLASS: {
@@ -191,7 +182,6 @@ static void freeObject(Obj* object) {
       FREE(ObjClass, object);
       break;
     } // [braces]
-
 //< Classes and Instances free-class
 //> Closures free-closure
     case OBJ_CLOSURE: {
@@ -203,7 +193,6 @@ static void freeObject(Obj* object) {
       FREE(ObjClosure, object);
       break;
     }
-
 //< Closures free-closure
 //> Calls and Functions free-function
     case OBJ_FUNCTION: {
@@ -212,7 +201,6 @@ static void freeObject(Obj* object) {
       FREE(ObjFunction, object);
       break;
     }
-
 //< Calls and Functions free-function
 //> Classes and Instances free-instance
     case OBJ_INSTANCE: {
@@ -221,13 +209,11 @@ static void freeObject(Obj* object) {
       FREE(ObjInstance, object);
       break;
     }
-
 //< Classes and Instances free-instance
 //> Calls and Functions free-native
     case OBJ_NATIVE:
       FREE(ObjNative, object);
       break;
-
 //< Calls and Functions free-native
     case OBJ_STRING: {
       ObjString* string = (ObjString*)object;
@@ -236,7 +222,6 @@ static void freeObject(Obj* object) {
       break;
     }
 //> Closures free-upvalue
-
     case OBJ_UPVALUE:
       FREE(ObjUpvalue, object);
       break;
@@ -340,7 +325,7 @@ void collectGarbage() {
 #ifdef DEBUG_LOG_GC
   printf("-- gc end\n");
 //> log-collected-amount
-  printf("   collected %ld bytes (from %ld to %ld) next at %ld\n",
+  printf("   collected %zu bytes (from %zu to %zu) next at %zu\n",
          before - vm.bytesAllocated, before, vm.bytesAllocated,
          vm.nextGC);
 //< log-collected-amount

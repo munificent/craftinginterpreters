@@ -85,7 +85,6 @@ bool valuesEqual(Value a, Value b) {
 #else
 //< Optimization values-equal
   if (a.type != b.type) return false;
-
   switch (a.type) {
     case VAL_BOOL:   return AS_BOOL(a) == AS_BOOL(b);
     case VAL_NIL:    return true;
@@ -102,8 +101,7 @@ bool valuesEqual(Value a, Value b) {
 //> Hash Tables equal
     case VAL_OBJ:    return AS_OBJ(a) == AS_OBJ(b);
 //< Hash Tables equal
-    default:
-      return false; // Unreachable.
+    default:         return false; // Unreachable.
   }
 //> Optimization end-values-equal
 #endif

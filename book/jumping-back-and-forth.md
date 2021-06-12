@@ -6,7 +6,7 @@
 
 It's taken a while to get here, but we're finally ready to add control flow to
 our virtual machine. In the tree-walk interpreter we built for jlox, we
-implemented Lox's control flow in terms of Java's. To execute a Lox if
+implemented Lox's control flow in terms of Java's. To execute a Lox `if`
 statement, we used a Java `if` statement to run the chosen branch. That works,
 but isn't entirely satisfying. By what magic does the *JVM itself* or a native
 CPU implement `if` statements? Now that we have our own bytecode VM to hack on,
@@ -16,7 +16,7 @@ When we talk about "control flow", what are we referring to? By "flow" we mean
 the way execution moves through the text of the program. Almost like there is a
 little robot inside the computer wandering through our code, executing bits and
 pieces here and there. Flow is the path that robot takes, and by *controlling*
-it, we drive which pieces of code it executes.
+the robot, we drive which pieces of code it executes.
 
 In jlox, the robot's locus of attention -- the *current* bit of code -- was
 implicit based on which AST nodes were stored in various Java variables and what
@@ -27,7 +27,7 @@ value of that field is exactly "where we are" in the program.
 Execution proceeds normally by incrementing the `ip`. But we can mutate that
 variable however we want to. In order to implement control flow, all that's
 necessary is to change the `ip` in more interesting ways. The simplest control
-flow construct is an `if` statement with no else clause:
+flow construct is an `if` statement with no `else` clause:
 
 ```lox
 if (condition) print("condition was truthy");
@@ -48,8 +48,8 @@ instruction as usual.
 When we compile to bytecode, the explicit nested block structure of the code
 evaporates, leaving only a flat series of instructions behind. Lox is a
 [structured programming][] language, but clox bytecode isn't. The right -- or
-wrong depending on how you look at it -- set of bytecode instructions could jump
-into the middle of a block, or from one scope into another.
+wrong, depending on how you look at it -- set of bytecode instructions could
+jump into the middle of a block, or from one scope into another.
 
 The VM will happily execute that, even if the result leaves the stack in an
 unknown, inconsistent state. So even though the bytecode is unstructured, we'll
@@ -64,9 +64,9 @@ control flow.
 [structured programming]: https://en.wikipedia.org/wiki/Structured_programming
 
 Anyway, I didn't mean to get all philosophical. The important bit is that if we
-have that one conditional jump instruction, that's enough to implement Lox's if
-statement, as long as it doesn't have an `else` clause. So let's go ahead and
-get started with that.
+have that one conditional jump instruction, that's enough to implement Lox's
+`if` statement, as long as it doesn't have an `else` clause. So let's go ahead
+and get started with that.
 
 ## If Statements
 
@@ -122,13 +122,12 @@ But we have a problem. When we're writing the `OP_JUMP_IF_FALSE` instruction's
 operand, how do we know how far to jump? We haven't compiled the then branch
 yet, so we don't know how much bytecode it contains.
 
-To fix that, we use a classic trick called <span
-name="patch">**backpatching**</span>. We emit the jump instruction first with a
-placeholder offset operand. We keep track of where that half-finished
-instruction is. Next, we compile the then body. Once that's done, we know how
-far to jump. So we go back and replace that placeholder offset with the real one
-now that we can calculate it. Sort of like sewing a patch onto the existing
-fabric of the compiled code.
+To fix that, we use a classic trick called **backpatching**. We emit the jump
+instruction first with a placeholder offset operand. We keep track of where that
+half-finished instruction is. Next, we compile the then body. Once that's done,
+we know how far to jump. So we go back and replace that placeholder offset with
+the real one now that we can calculate it. Sort of like sewing a patch onto the
+existing fabric of the compiled code.
 
 <img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." />
 
@@ -247,9 +246,9 @@ We patch that offset after the end of the else body.
 
 ^code patch-else (1 before, 1 after)
 
-After executing the then branch this jumps to the next statement after the else.
-Unlike the other jump, this jump is unconditional. We always take it, so we need
-another instruction that expresses that.
+After executing the then branch, this jumps to the next statement after the else
+branch. Unlike the other jump, this jump is unconditional. We always take it, so
+we need another instruction that expresses that.
 
 ^code jump-op (1 before, 1 after)
 
@@ -288,8 +287,8 @@ The full correct flow looks like this:
 
 <img src="image/jumping-back-and-forth/full-if-else.png" alt="Flowchart of the compiled bytecode including necessary pop instructions." />
 
-If you trace through you can see that it always executes a single branch and
-ensures the condition is popped first. All that remains it a little disassembler
+If you trace through, you can see that it always executes a single branch and
+ensures the condition is popped first. All that remains is a little disassembler
 support.
 
 ^code disassemble-jump (1 before, 1 after)
@@ -299,9 +298,9 @@ utility function to disassemble them.
 
 ^code jump-instruction
 
-There we go, that's one complete control flow construct. If this were an 80's
+There we go, that's one complete control flow construct. If this were an '80s
 movie, the montage music would kick in and the rest of the control flow syntax
-would take care of itself. Alas, the <span name="80s">80s</span> are long over,
+would take care of itself. Alas, the <span name="80s">'80s</span> are long over,
 so we'll have to grind it out ourselves.
 
 <aside name="80s">
@@ -349,8 +348,8 @@ value sticks around to become the result of the entire expression.
 We've got plenty of space left in our opcode range, so we could have separate
 instructions for conditional jumps that implicitly pop and those that don't, I
 suppose. But I'm trying to keep things minimal for the book. In your bytecode
-VM, it's worth exploring adding more specialized instructions and see how they
-affect performance.
+VM, it's worth exploring adding more specialized instructions and seeing how
+they affect performance.
 
 </aside>
 
@@ -390,7 +389,7 @@ and maybe a conditional expression like `?:`, but Lox keeps it simple.
 
 ## While Statements
 
-That takes us to the *looping* statements, which jump *backwards* so that code
+That takes us to the *looping* statements, which jump *backward* so that code
 can be executed more than once. Lox only has two loop constructs, `while` and
 `for`. A `while` loop is (much) simpler, so we start the party there.
 
@@ -465,7 +464,7 @@ Disassembly is similar too.
 
 That's our `while` statement. It contains two jumps -- a conditional forward one
 to escape the loop when the condition is not met, and an unconditional loop
-backwards after we have executed the body. The flow looks like this:
+backward after we have executed the body. The flow looks like this:
 
 <img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." />
 
@@ -496,7 +495,7 @@ semantics [in more detail][jlox].
 
 In jlox, the parser desugared a `for` loop to a synthesized AST for a `while`
 loop with some extra stuff before it and at the end of the body. We'll do
-something similiar, though we won't go through anything like an AST. Instead,
+something similar, though we won't go through anything like an AST. Instead,
 our bytecode compiler will use the jump and loop instructions we already have.
 
 We'll work our way through the implementation a piece at a time, starting with
@@ -523,7 +522,7 @@ a runtime error.
 
 ### Initializer clause
 
-Now we'll add the first clause, the initializer. It only executes once, before
+Now we'll add the first clause, the initializer. It executes only once, before
 the body, so compiling is straightforward.
 
 ^code for-initializer (1 before, 2 after)
@@ -548,7 +547,7 @@ Then we close it at the end.
 
 Next, is the condition expression that can be used to exit the loop.
 
-^code for-exit (2 before, 1 after)
+^code for-exit (1 before, 1 after)
 
 Since the clause is optional, we need to see if it's actually present. If the
 clause is omitted, the next token must be a semicolon, so we look for that to
@@ -561,9 +560,9 @@ the value when the condition is true.
 
 After the loop body, we need to patch that jump.
 
-^code exit-jump (2 before, 2 after)
+^code exit-jump (1 before, 2 after)
 
-We only do this when there is a condition clause. If there isn't, there's no
+We do this only when there is a condition clause. If there isn't, there's no
 jump to patch and no condition value on the stack to pop.
 
 ### Increment clause
@@ -578,8 +577,8 @@ only makes a single pass over the code. Instead, we'll *jump over* the
 increment, run the body, jump *back* up to the increment, run it, and then go to
 the next iteration.
 
-I know, a little weird, but, hey, it beats manually managing ASTs in memory in
-C, right? Here's the code:
+I know, a little weird, but hey, it beats manually managing ASTs in memory in C,
+right? Here's the code:
 
 ^code for-increment (2 before, 2 after)
 
@@ -691,17 +690,17 @@ long time since that style was common. These days, it's a boogie man we invoke
 in scary stories around the campfire.
 
 The reason we rarely confront that monster in person is because Edsger Dijkstra
-slayed it with his famous letter "Goto Considered Harmful", published in
-*Communications of the ACM*. Debate around structured programming had been
-fierce for some time with adherents on both sides, but I think Dijkstra deserves
-the most credit for effectively ending it. Most new languages today have no
-unstructured jump statements.
+slayed it with his famous letter "Go To Statement Considered Harmful", published
+in *Communications of the ACM* (March, 1968). Debate around structured
+programming had been fierce for some time with adherents on both sides, but I
+think Dijkstra deserves the most credit for effectively ending it. Most new
+languages today have no unstructured jump statements.
 
 A one-and-a-half page letter that almost single-handedly destroyed a language
 feature must be pretty impressive stuff. If you haven't read it, I encourage you
 to do so. It's a seminal piece of computer science lore, one of our tribe's
-ancestral songs. Also, it's a nice short bit of practice for reading academic CS
-<span name="style">writing</span>, which is a useful skill to develop.
+ancestral songs. Also, it's a nice, short bit of practice for reading academic
+CS <span name="style">writing</span>, which is a useful skill to develop.
 
 <aside name="style">
 
@@ -709,7 +708,7 @@ That is, if you can get past Dijkstra's insufferable faux-modest
 self-aggrandizing writing style:
 
 > More recently I discovered why the use of the go to statement has such
-> disastrous effects... . At that time I did not attach too much importance to
+> disastrous effects. ...At that time I did not attach too much importance to
 > this discovery; I now submit my considerations for publication because in very
 > recent discussions in which the subject turned up, I have been urged to do so.
 
@@ -718,8 +717,8 @@ it up until the clamoring masses begged me to.
 
 </aside>
 
-I've read it through a number of times, as well as a few critiques, responses,
-and commentaries. I ended up with mixed feelings, at best. At a very high level
+I've read it through a number of times, along with a few critiques, responses,
+and commentaries. I ended up with mixed feelings, at best. At a very high level,
 I'm with him. His general argument is something like this:
 
 1.  As programmers, we write programs -- static text -- but what we care about
@@ -744,11 +743,11 @@ programming, his definition is pretty hand-wavey. He says:
 > process until the very same point?)
 
 Imagine it like this. You have two computers with the same program running on
-the same exact same inputs -- so totally deterministic. You pause one of them at
-an arbitrary point in its execution. What data would you need to send to the
-other computer to be able to stop it exactly as far along as the first one was?
+the exact same inputs -- so totally deterministic. You pause one of them at an
+arbitrary point in its execution. What data would you need to send to the other
+computer to be able to stop it exactly as far along as the first one was?
 
-If your program only allows simple statements like assignment, it's easy. You
+If your program allows only simple statements like assignment, it's easy. You
 just need to know the point after the last statement you executed. Basically a
 breakpoint, the `ip` in our VM, or the line number in an error message. Adding
 branching control flow like `if` and `switch` doesn't add any more to this. Even
@@ -808,7 +807,7 @@ bytecode instruction set without using any gotos itself.
 That seems to offer a counter-argument to Dijkstra's claim: you *can* define a
 correspondence for a program using gotos by transforming it to one that doesn't
 and then use the correspondence from that program, which -- according to him --
-is acceptable because it only uses branches and loops.
+is acceptable because it uses only branches and loops.
 
 But, honestly, my argument here is also weak. I think both of us are basically
 doing pretend math and using fake logic to make what should be an empirical,

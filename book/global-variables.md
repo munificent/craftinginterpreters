@@ -12,8 +12,8 @@ fewer intellectual pretensions. There are no large ideas to learn. Instead, it's
 a handful of straightforward engineering tasks. Once we've completed them, our
 virtual machine will support variables.
 
-Actually, it will only support *global* variables. Locals are coming in the
-[next chapter][]. In jlox, we managed to cram them both into a single chapter,
+Actually, it will support only *global* variables. Locals are coming in the
+[next chapter][]. In jlox, we managed to cram them both into a single chapter
 because we used the same implementation technique for all variables. We built a
 chain of environments, one for each scope, all the way up to the top. That was a
 simple, clean way to learn how to manage state.
@@ -40,11 +40,11 @@ based on the number of cases and how densely packed the case values are.
 
 [hash]: hash-tables.html
 
-A quick refresher on Lox semantics: Global variables in Lox are "late bound" or
+A quick refresher on Lox semantics: Global variables in Lox are "late bound", or
 resolved dynamically. This means you can compile a chunk of code that refers to
 a global variable before it's defined. As long as the code doesn't *execute*
 before the definition happens, everything is fine. In practice, that means you
-can refer to later variables inside the body of functions:
+can refer to later variables inside the body of functions.
 
 ```lox
 fun showVariable() {
@@ -81,7 +81,7 @@ if (monday) var croissant = "yes"; // Error.
 Allowing it would raise confusing questions around the scope of the variable.
 So, like other languages, we prohibit it syntactically by having a separate
 grammar rule for the subset of statements that *are* allowed inside a control
-flow body:
+flow body.
 
 ```ebnf
 statement      → exprStmt
@@ -93,7 +93,7 @@ statement      → exprStmt
                | block ;
 ```
 
-Then we use a separate rule for the top level of a script and inside a block:
+Then we use a separate rule for the top level of a script and inside a block.
 
 ```ebnf
 declaration    → classDecl
@@ -103,7 +103,7 @@ declaration    → classDecl
 ```
 
 The `declaration` rule contains the statements that declare names, and also
-includes `statement` so that all statements types are allowed. Since `block`
+includes `statement` so that all statement types are allowed. Since `block`
 itself is in `statement`, you can put declarations <span
 name="parens">inside</span> a control flow construct by nesting them inside a
 block.
@@ -111,13 +111,13 @@ block.
 <aside name="parens">
 
 Blocks work sort of like parentheses do for expressions. A block lets you put
-the "lower precedence" declaration statements in places where only a "higher
-precedence" non-declaring statement is allowed.
+the "lower-precedence" declaration statements in places where only a
+"higher-precedence" non-declaring statement is allowed.
 
 </aside>
 
-In this chapter, we'll only cover a couple of statements and one
-declaration:
+In this chapter, we'll cover only a couple of statements and one
+declaration.
 
 ```ebnf
 statement      → exprStmt
@@ -128,8 +128,8 @@ declaration    → varDecl
 ```
 
 Up to now, our VM considered a "program" to be a single expression since that's
-all we could parse and compile. In a real Lox program, a script is a sequence of
-declarations. We're ready to support that now.
+all we could parse and compile. In a full Lox implementation, a program is a
+sequence of declarations. We're ready to support that now.
 
 ^code compile (1 before, 1 after)
 
@@ -138,12 +138,12 @@ compile a single declaration using this:
 
 ^code declaration
 
-We'll get to variable declarations later in the chapter, so, for now, we simply
+We'll get to variable declarations later in the chapter, so for now, we simply
 forward to `statement()`.
 
 ^code statement
 
-Blocks can contain declarations and control flow statements can contain other
+Blocks can contain declarations, and control flow statements can contain other
 statements. That means these two functions will eventually be recursive. We may
 as well write out the forward declarations now.
 
@@ -172,12 +172,12 @@ It's helpers all the way down!
 
 The `check()` function returns `true` if the current token has the given type.
 It seems a little <span name="read">silly</span> to wrap this in a function, but
-we'll use it more later and I think short verb-named functions like this make
+we'll use it more later, and I think short verb-named functions like this make
 the parser easier to read.
 
 <aside name="read">
 
-This sounds trivial but hand-written parsers for non-toy languages get pretty
+This sounds trivial, but handwritten parsers for non-toy languages get pretty
 big. When you have thousands of lines of code, a utility function that turns two
 lines into one and makes the result a little more readable easily earns its
 keep.
@@ -289,7 +289,7 @@ and then emits an `OP_POP` instruction.
 As the name implies, that instruction pops the top value off the stack and
 forgets it.
 
-^code interpret-pop (1 before, 2 after)
+^code interpret-pop (1 before, 1 after)
 
 We can disassemble it too.
 
@@ -343,7 +343,7 @@ operations we need to support:
 <aside name="fair">
 
 I can't help but imagine a "language fair" like some country 4H thing. Rows of
-straw-lined stalls full of baby languages *moo*-ing and *baa*-ing at each other.
+straw-lined stalls full of baby languages *moo*ing and *baa*ing at each other.
 
 </aside>
 
@@ -434,7 +434,7 @@ Over in the runtime, we begin with this new instruction:
 
 Thanks to our handy-dandy hash table, the implementation isn't too hard.
 
-^code interpret-define-global (1 before, 2 after)
+^code interpret-define-global (1 before, 1 after)
 
 We get the name of the variable from the constant table. Then we <span
 name="pop">take</span> the value from the top of the stack and store it in a
@@ -456,7 +456,7 @@ value if the key happens to already be in the hash table.
 
 There's another little helper macro:
 
-^code read-string (1 before, 2 after)
+^code read-string (1 before, 1 after)
 
 It reads a one-byte operand from the bytecode chunk. It treats that as an index
 into the chunk's constant table and returns the string at that index. It doesn't
@@ -521,9 +521,9 @@ variable with that name. Here's the instruction:
 
 ^code get-global-op (1 before, 1 after)
 
-Over in the interpreter, the implementation mirrors `OP_DEFINE_GLOBAL`:
+Over in the interpreter, the implementation mirrors `OP_DEFINE_GLOBAL`.
 
-^code interpret-get-global (1 before, 2 after)
+^code interpret-get-global (1 before, 1 after)
 
 We pull the constant table index from the instruction's operand and get the
 variable name. Then we use that as a key to look up the variable's value in the
@@ -536,8 +536,8 @@ onto the stack.
 
 ^code disassemble-get-global (1 before, 1 after)
 
-A little bit of disassembling, and we're done. Our interpreter now able to run
-code like this:
+A little bit of disassembling, and we're done. Our interpreter is now able to
+run code like this:
 
 ```lox
 var beverage = "cafe au lait";
@@ -595,7 +595,7 @@ be used as an assignment target, we look for a subsequent `=` token. If we see
 one, we compile it as an assignment or setter instead of a variable access or
 getter.
 
-We don't have setters to worry about yet, so all we need to handle is variables.
+We don't have setters to worry about yet, so all we need to handle are variables.
 
 ^code named-variable (1 before, 1 after)
 
@@ -609,7 +609,7 @@ That's the last instruction we need to add in this chapter.
 
 As you'd expect, its runtime behavior is similar to defining a new variable.
 
-^code interpret-set-global (1 before, 2 after)
+^code interpret-set-global (1 before, 1 after)
 
 The main difference is what happens when the key doesn't already exist in the
 globals hash table. If the variable hasn't been defined yet, it's a runtime
@@ -633,7 +633,7 @@ there in case the assignment is nested inside some larger expression.
 
 Add a dash of disassembly:
 
-^code disassemble-set-global (1 before, 1 after)
+^code disassemble-set-global (2 before, 1 after)
 
 So we're done, right? Well... not quite. We've made a mistake! Take a gander at:
 
@@ -653,7 +653,7 @@ this should be a syntax error. But here's what our parser does:
 
 Wouldn't it be wild if `a * b` *was* a valid assignment target, though? You
 could imagine some algebra-like language that tried to divide the assigned value
-up in some reasonable way and distribute it to `a` and `b`. ...That's probably
+up in some reasonable way and distribute it to `a` and `b`... that's probably
 a terrible idea.
 
 </aside>
@@ -676,15 +676,15 @@ If the variable happens to be the right-hand side of an infix operator, or the
 operand of a unary operator, then that containing expression is too high
 precedence to permit the `=`.
 
-To fix this, `variable()` should only look for and consume the `=` if it's in
-the context of a low precedence expression. The code that knows the current
+To fix this, `variable()` should look for and consume the `=` only if it's in
+the context of a low-precedence expression. The code that knows the current
 precedence is, logically enough, `parsePrecedence()`. The `variable()` function
 doesn't need to know the actual level. It just cares that the precedence is low
 enough to allow assignment, so we pass that fact in as a Boolean.
 
 ^code prefix-rule (4 before, 2 after)
 
-Since assignment is the lowest precedence expression, the only time we allow an
+Since assignment is the lowest-precedence expression, the only time we allow an
 assignment is when parsing an assignment expression or top-level expression like
 in an expression statement. That flag makes its way to the parser function here:
 
@@ -701,11 +701,11 @@ And then finally uses it here:
 That's a lot of plumbing to get literally one bit of data to the right place in
 the compiler, but arrived it has. If the variable is nested inside some
 expression with higher precedence, `canAssign` will be `false` and this will
-ignore the `=` even if there is one there. Then `namedVariable()` returns and
+ignore the `=` even if there is one there. Then `namedVariable()` returns, and
 execution eventually makes its way back to `parsePrecedence()`.
 
 Then what? What does the compiler do with our broken example from before? Right
-now, `variable()` won't consume the `=` so that will be the current token. The
+now, `variable()` won't consume the `=`, so that will be the current token. The
 compiler returns back to `parsePrecedence()` from the `variable()` prefix parser
 and then tries to enter the infix parsing loop. There is no parsing function
 associated with `=`, so it skips that loop.
@@ -714,7 +714,7 @@ Then `parsePrecedence()` silently returns back to the caller. That also isn't
 right. If the `=` doesn't get consumed as part of the expression, nothing else
 is going to consume it. It's an error and we should report it.
 
-^code invalid-assign (5 before, 1 after)
+^code invalid-assign (2 before, 1 after)
 
 With that, the previous bad program correctly gets an error at compile time. OK,
 *now* are we done? Still not quite. See, we're passing an argument to one of the
@@ -787,9 +787,9 @@ It's starting to look like real code for an actual language!
     every time an identifier is encountered. It creates a new constant each
     time, even if that variable name is already in a previous slot in the
     constant table. That's wasteful in cases where the same variable is
-    referenced multiple times by the same function. That in turn increases the
-    odds of filling up the constant table and running out of slots, since we
-    only allow 256 constants in a single chunk.
+    referenced multiple times by the same function. That, in turn, increases the
+    odds of filling up the constant table and running out of slots since we
+    allow only 256 constants in a single chunk.
 
     Optimize this. How does your optimization affect the performance of the
     compiler compared to the runtime? Is this the right trade-off?
