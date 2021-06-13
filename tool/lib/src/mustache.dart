@@ -36,10 +36,16 @@ class Mustache {
       chapters = _makeChapterList(page);
     }
 
+    var isFrontmatter = const {
+      "Acknowledgements",
+      "Dedication",
+    }.contains(page.title);
+
     var data = <String, dynamic>{
-      "has_title": page.title != null,
+      "is_chapter": part != null,
+      "is_part": part == null && page.title != null && !isFrontmatter,
+      "is_frontmatter": isFrontmatter,
       "title": page.title,
-      "has_part": part != null,
       "part": part,
       "body": body,
       "sections": _makeSections(page),

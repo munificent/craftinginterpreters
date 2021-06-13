@@ -11,6 +11,8 @@ import 'package:path/path.dart' as p;
 const _tableOfContents = {
   '': [
     'Crafting Interpreters',
+    'Dedication',
+    'Acknowledgements',
     'Table of Contents',
   ],
   'Welcome': [
