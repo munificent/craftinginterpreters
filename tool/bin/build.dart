@@ -124,9 +124,7 @@ List<int> _buildPage(Book book, Mustache mustache, Page page,
     number = "${page.numberString}. ";
   }
 
-  if (const ["index", "contents"].contains(page.fileName)) {
-    print("${term.green('•')} $number${page.title}");
-  } else if (page.isChapter) {
+  if (page.isChapter) {
     print("  ${term.green('✓')} $number${page.title} $words");
   } else {
     print("${term.green('✓')} $number${page.title} $words");
