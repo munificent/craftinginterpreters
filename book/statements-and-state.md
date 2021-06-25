@@ -405,7 +405,7 @@ That `IDENTIFIER` clause matches a single identifier token, which is understood
 to be the name of the variable being accessed.
 
 These new grammar rules get their corresponding syntax trees. Over in the AST
-generator, we add a <span name="var-stmt-ast">new statement</span> tree for a
+generator, we add a <span name="var-stmt-ast">new statement</span> node for a
 variable declaration.
 
 ^code var-stmt-ast (1 before, 1 after)
