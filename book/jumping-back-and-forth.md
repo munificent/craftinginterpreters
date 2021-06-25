@@ -139,7 +139,7 @@ The first emits a bytecode instruction and writes a placeholder operand for the
 jump offset. We pass in the opcode as an argument because later we'll have two
 different instructions that use this helper. We use two bytes for the jump
 offset operand. A 16-bit <span name="offset">offset</span> lets us jump over up
-to 65,536 bytes of code, which should be plenty for our needs.
+to 65,535 bytes of code, which should be plenty for our needs.
 
 <aside name="offset">
 
