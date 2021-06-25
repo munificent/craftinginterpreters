@@ -8,6 +8,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 
 import 'package:tool/src/book.dart';
+import 'package:tool/src/format.dart';
 import 'package:tool/src/markdown/markdown.dart';
 import 'package:tool/src/mustache.dart';
 import 'package:tool/src/page.dart';
@@ -95,7 +96,7 @@ List<int> _buildPage(Book book, Mustache mustache, Page page,
     for (var line in snippet.contextAfter) wordCount += line.wordCount;
   }
 
-  var body = renderMarkdown(book, page, page.lines);
+  var body = renderMarkdown(book, page, page.lines, Format.web);
   var output = mustache.render(book, page, body);
 
   // Turn aside markers in code into spans. In the empty span case, insert a

@@ -2,6 +2,7 @@ import 'package:markdown/markdown.dart';
 
 import '../book.dart';
 import '../code_tag.dart';
+import '../format.dart';
 import '../page.dart';
 import '../snippet.dart';
 import '../syntax/highlighter.dart';
@@ -11,11 +12,11 @@ import '../text.dart';
 class HighlightedCodeBlockSyntax extends BlockSyntax {
   static final _codeFencePattern = RegExp(r'^(\s*)```(.*)$');
 
-  final bool _isXml;
+  final Format _format;
 
   RegExp get pattern => _codeFencePattern;
 
-  HighlightedCodeBlockSyntax({bool xml = false}) : _isXml = xml;
+  HighlightedCodeBlockSyntax(this._format);
 
   bool canParse(BlockParser parser) =>
       pattern.firstMatch(parser.current) != null;
@@ -50,7 +51,7 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
     if (language == "text") {
       // Don't syntax highlight text.
       var buffer = StringBuffer();
-      if (!_isXml) buffer.write("<pre>");
+      if (_format.isWeb) buffer.write("<pre>");
 
       for (var line in childLines) {
         // Strip off any leading indentation.
@@ -58,7 +59,7 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
         checkLineLength(line);
 
         buffer.write(line.escapeHtml);
-        if (_isXml) {
+        if (_format.isPrint) {
           // Soft break, so that the code stays one paragraph.
           buffer.write("&#x2028;");
         } else {
@@ -66,14 +67,14 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
         }
       }
 
-      if (!_isXml) buffer.write("</pre>");
+      if (_format.isWeb) buffer.write("</pre>");
 
       code = buffer.toString();
     } else {
-      code = formatCode(language, childLines, indent: indent, xml: _isXml);
+      code = formatCode(language, childLines, _format, indent: indent);
     }
 
-    if (_isXml) {
+    if (_format.isPrint) {
       // Remove the trailing newline since we'll write a newline after the
       // "</pre>" and we don't want InDesign to insert a blank paragraph.
       code = code.trimTrailingNewline();
@@ -98,9 +99,9 @@ class CodeTagBlockSyntax extends BlockSyntax {
 
   final Book _book;
   final Page _page;
-  final bool _isXml;
+  final Format _format;
 
-  CodeTagBlockSyntax(this._book, this._page, {bool xml = false}) : _isXml = xml;
+  CodeTagBlockSyntax(this._book, this._page, this._format);
 
   RegExp get pattern => _startPattern;
 
@@ -114,7 +115,7 @@ class CodeTagBlockSyntax extends BlockSyntax {
 
     var codeTag = _page.findCodeTag(name);
     String snippet;
-    if (_isXml) {
+    if (_format.isPrint) {
       snippet = _buildSnippetXml(codeTag, _book.findSnippet(codeTag));
     } else {
       snippet = _buildSnippet(codeTag, _book.findSnippet(codeTag));
@@ -144,7 +145,8 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.addedComma != null) {
-    var commaLine = formatCode(snippet.file.language, [snippet.addedComma],
+    var commaLine = formatCode(
+        snippet.file.language, [snippet.addedComma], Format.web,
         preClass: "insert-before");
     var comma = commaLine.lastIndexOf(",");
     buffer.write(commaLine.substring(0, comma));
@@ -158,7 +160,7 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.added != null) {
-    var added = formatCode(snippet.file.language, snippet.added,
+    var added = formatCode(snippet.file.language, snippet.added, Format.web,
         preClass: tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
     buffer.write(added);
   }
@@ -219,7 +221,7 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
     if (snippet.contextBefore.isNotEmpty) buffer.writeln();
     buffer.write("<$insertTag>");
 
-    var code = formatCode(snippet.file.language, snippet.added, xml: true);
+    var code = formatCode(snippet.file.language, snippet.added, Format.print);
     // Discard the trailing newline so we don't end up with a blank paragraph
     // in InDesign.
     code = code.trimTrailingNewline();
