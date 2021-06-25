@@ -635,7 +635,7 @@ compiled out through all of the enclosing classes.
 
 If we aren't inside any class declaration at all, the module variable
 `currentClass` is `NULL`. When the compiler begins compiling a class, it pushes
-a new ClassCompiler onto that implict linked stack.
+a new ClassCompiler onto that implicit linked stack.
 
 ^code create-class-compiler (2 before, 1 after)
 
