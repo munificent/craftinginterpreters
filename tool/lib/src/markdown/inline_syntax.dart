@@ -1,17 +1,17 @@
 import 'package:charcode/ascii.dart';
 import 'package:markdown/markdown.dart';
 
-class EllipseSyntax extends InlineSyntax {
-  final bool _isXml;
+import '../format.dart';
 
-  EllipseSyntax({bool xml = false})
-      : _isXml = xml,
-        super(r"\.\.\. ?", startCharacter: $dot);
+class EllipseSyntax extends InlineSyntax {
+  final Format _format;
+
+  EllipseSyntax(this._format) : super(r"\.\.\. ?", startCharacter: $dot);
 
   bool onMatch(InlineParser parser, Match match) {
     // A Unicode ellipsis doesn't have as much space between the dots as
     // Chicago style mandates so do our own thing.
-    parser.addNode(Text(_isXml
+    parser.addNode(Text(_format.isPrint
         ? "&thinsp;.&thinsp;.&thinsp;.&thinsp;"
         : '<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>'));
     return true;
@@ -19,11 +19,9 @@ class EllipseSyntax extends InlineSyntax {
 }
 
 class ApostropheSyntax extends InlineSyntax {
-  final bool _isXml;
+  final Format _format;
 
-  ApostropheSyntax({bool xml = false})
-      : _isXml = xml,
-        super(r"'", startCharacter: $apostrophe);
+  ApostropheSyntax(this._format) : super(r"'", startCharacter: $apostrophe);
 
   bool onMatch(InlineParser parser, Match match) {
     var before = -1;
@@ -37,7 +35,7 @@ class ApostropheSyntax extends InlineSyntax {
 
     var isRight = _isRight(before, after);
     String quote;
-    if (_isXml) {
+    if (_format.isPrint) {
       quote = isRight ? "#8217" : "#8216";
     } else {
       quote = isRight ? "rsquo" : "lsquo";
@@ -62,11 +60,9 @@ class ApostropheSyntax extends InlineSyntax {
 }
 
 class SmartQuoteSyntax extends InlineSyntax {
-  final bool _isXml;
+  final Format _format;
 
-  SmartQuoteSyntax({bool xml = false})
-      : _isXml = xml,
-        super(r'"', startCharacter: $double_quote);
+  SmartQuoteSyntax(this._format) : super(r'"', startCharacter: $double_quote);
 
   bool onMatch(InlineParser parser, Match match) {
     var before = -1;
@@ -80,7 +76,7 @@ class SmartQuoteSyntax extends InlineSyntax {
 
     var isRight = _isRight(before, after);
     String quote;
-    if (_isXml) {
+    if (_format.isPrint) {
       quote = isRight ? "#8221" : "#8220";
     } else {
       quote = isRight ? "rdquo" : "ldquo";
@@ -109,14 +105,13 @@ class SmartQuoteSyntax extends InlineSyntax {
 }
 
 class EmDashSyntax extends InlineSyntax {
-  final bool _isXml;
+  final Format _format;
 
-  EmDashSyntax({bool xml = false})
-      : _isXml = xml,
-        super(r"\s--\s");
+  EmDashSyntax(this._format) : super(r"\s--\s");
 
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Text(_isXml ? '—' : '<span class="em">&mdash;</span>'));
+    parser.addNode(
+        Text(_format.isPrint ? '—' : '<span class="em">&mdash;</span>'));
     return true;
   }
 }

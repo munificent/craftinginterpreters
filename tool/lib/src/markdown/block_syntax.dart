@@ -1,5 +1,6 @@
 import 'package:markdown/markdown.dart';
 
+import '../format.dart';
 import '../page.dart';
 
 /// Parses atx-style headers like `## Header` and gives them the book's special
@@ -12,17 +13,17 @@ class BookHeaderSyntax extends BlockSyntax {
   static final _headerPattern = RegExp(r'^(#{1,6}) (.*)$');
 
   final Page _page;
-  final bool _isXml;
+  final Format _format;
 
   RegExp get pattern => _headerPattern;
 
-  BookHeaderSyntax(this._page, {bool xml = false}) : _isXml = xml;
+  BookHeaderSyntax(this._page, this._format);
 
   Node parse(BlockParser parser) {
     var header = _page.headers[parser.current];
     parser.advance();
 
-    if (_isXml) {
+    if (_format.isPrint) {
       return Element("h${header.level}", [UnparsedContent(header.name)]);
     }
 

@@ -1,6 +1,7 @@
 import 'package:charcode/ascii.dart';
 import 'package:string_scanner/string_scanner.dart';
 
+import '../format.dart';
 import '../term.dart' as term;
 import 'grammar.dart' as grammar;
 import 'language.dart';
@@ -11,9 +12,9 @@ const _maxLineLength = 67;
 /// syntax highlighting.
 ///
 /// Wraps the result in a <pre> tag with the given [preClass].
-String formatCode(String language, List<String> lines,
-    {String preClass, int indent = 0, bool xml = false}) {
-  return Highlighter(language, xml: xml)._highlight(lines, preClass, indent);
+String formatCode(String language, List<String> lines, Format format,
+    {String preClass, int indent = 0}) {
+  return Highlighter(language, format)._highlight(lines, preClass, indent);
 }
 
 void checkLineLength(String line) {
@@ -30,7 +31,7 @@ void checkLineLength(String line) {
 }
 
 class Highlighter {
-  final bool _isXml;
+  final Format _format;
   final StringBuffer _buffer = StringBuffer();
   StringScanner scanner;
   final Language language;
@@ -38,13 +39,12 @@ class Highlighter {
   /// Whether we are in a multi-line macro started on a previous line.
   bool _inMacro = false;
 
-  Highlighter(String language, {bool xml = false})
+  Highlighter(String language, this._format)
       : language = grammar.languages[language] ??
-            (throw "Unknown language '$language'."),
-        _isXml = xml;
+            (throw "Unknown language '$language'.");
 
   String _highlight(List<String> lines, String preClass, int indent) {
-    if (!_isXml) {
+    if (_format.isWeb) {
       _buffer.write("<pre");
       if (preClass != null) _buffer.write(' class="$preClass"');
       _buffer.writeln(">");
@@ -54,7 +54,7 @@ class Highlighter {
       _scanLine(line, indent);
     }
 
-    if (!_isXml) _buffer.write("</pre>");
+    if (_format.isWeb) _buffer.write("</pre>");
     return _buffer.toString();
   }
 
@@ -100,7 +100,7 @@ class Highlighter {
   void writeToken(String type, [String text]) {
     text ??= scanner.lastMatch[0];
 
-    if (_isXml) {
+    if (_format.isPrint) {
       // Only highlight keywords and comments in XML.
       var tag = {"k": "keyword", "c": "comment"}[type];
 
