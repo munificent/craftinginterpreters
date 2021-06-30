@@ -752,8 +752,9 @@ accidentally took over the world.
 In class-based languages, there are two core concepts: instances and classes.
 Instances store the state for each object and have a reference to the instance's
 class. Classes contain the methods and inheritance chain. To call a method on an
-instance, there is always a level of indirection. You <span name="dispatch">look
-up the instance's class and then you find the method *there*:
+instance, there is always a level of indirection. You <span
+name="dispatch">look</span> up the instance's class and then you find the method
+*there*:
 
 <aside name="dispatch">
 

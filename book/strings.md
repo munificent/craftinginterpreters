@@ -22,7 +22,7 @@ Instead of using a terminating null byte to indicate the end of the string like
 C, Pascal strings started with a length value. Since UCSD used only a single
 byte to store the length, strings couldn't be any longer than 255 characters.
 
-<img src="image/strings/pstring.png" alt="The Pascal string 'hello' with a length byte of 5 preceding it.">
+<img src="image/strings/pstring.png" alt="The Pascal string 'hello' with a length byte of 5 preceding it." />
 
 </aside>
 
@@ -45,7 +45,7 @@ heap-allocated types in clox: strings, instances, functions, you get the idea.
 Each type has its own unique data, but there is also state they all share that
 [our future garbage collector][gc] will use to manage their memory.
 
-<img src="image/strings/value.png" class="wide" alt="Field layout of number and obj values.">
+<img src="image/strings/value.png" class="wide" alt="Field layout of number and obj values." />
 
 [gc]: garbage-collection.html
 
@@ -338,7 +338,7 @@ literals.
 
 <aside name="viola">
 
-<img src="image/strings/viola.png" class="above" alt="A viola.">
+<img src="image/strings/viola.png" class="above" alt="A viola." />
 
 Don't get "voilà" confused with "viola". One means "there it is" and the other
 is a string instrument, the middle child between a violin and a cello. Yes, I
@@ -487,7 +487,7 @@ generates this <span name="stack">bytecode</span>:
 
 Here's what the stack looks like after each instruction:
 
-<img src="image/strings/stack.png" alt="The state of the stack at each instruction.">
+<img src="image/strings/stack.png" alt="The state of the stack at each instruction." />
 
 </aside>
 

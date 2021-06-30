@@ -1,6 +1,6 @@
-> And as imagination bodies forth<br>
-> The forms of things unknown, the poet's pen<br>
-> Turns them to shapes and gives to airy nothing<br>
+> And as imagination bodies forth<br />
+> The forms of things unknown, the poet's pen<br />
+> Turns them to shapes and gives to airy nothing<br />
 > A local habitation and a name.
 > <cite>William Shakespeare, <em>A Midsummer Night's Dream</em></cite>
 

@@ -324,7 +324,7 @@ remainder of a number modulo a power of two: **bit masking**. Let's say we want
 to calculate 229 modulo 64. The answer is 37, which is not particularly apparent
 in decimal, but is clearer when you view those numbers in binary:
 
-<img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 & 63 = 37." />
+<img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 &amp; 63 = 37." />
 
 On the left side of the illustration, notice how the result (37) is simply the
 dividend (229) with the highest two bits shaved off? Those two highest bits are

@@ -455,26 +455,28 @@ perform:
       <td>Operation</td>
     </tr>
   </thead>
-  <tr>
-    <td>0</td>
-    <td>Non&#8209;zero</td>
-    <td>Allocate new block.</td>
-  </tr>
-  <tr>
-    <td>Non&#8209;zero</td>
-    <td>0</td>
-    <td>Free allocation.</td>
-  </tr>
-  <tr>
-    <td>Non&#8209;zero</td>
-    <td>Smaller&nbsp;than&nbsp;<code>oldSize</code></td>
-    <td>Shrink existing allocation.</td>
-  </tr>
-  <tr>
-    <td>Non&#8209;zero</td>
-    <td>Larger&nbsp;than&nbsp;<code>oldSize</code></td>
-    <td>Grow existing allocation.</td>
-  </tr>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>Non&#8209;zero</td>
+      <td>Allocate new block.</td>
+    </tr>
+    <tr>
+      <td>Non&#8209;zero</td>
+      <td>0</td>
+      <td>Free allocation.</td>
+    </tr>
+    <tr>
+      <td>Non&#8209;zero</td>
+      <td>Smaller&nbsp;than&nbsp;<code>oldSize</code></td>
+      <td>Shrink existing allocation.</td>
+    </tr>
+    <tr>
+      <td>Non&#8209;zero</td>
+      <td>Larger&nbsp;than&nbsp;<code>oldSize</code></td>
+      <td>Grow existing allocation.</td>
+    </tr>
+  </tbody>
 </table>
 
 That sounds like a lot of cases to handle, but here's the implementation:
@@ -578,7 +580,7 @@ interpreter's internal representation of code.
 
 In jlox, our analogous tool was the [AstPrinter class][].
 
-[astprinter class]: representing-code.html#a-(not-very)-pretty-printer
+[astprinter class]: representing-code.html#a-not-very-pretty-printer
 
 </aside>
 

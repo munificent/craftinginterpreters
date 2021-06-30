@@ -234,7 +234,7 @@ way. This classic pitfall of syntax is called the **[dangling else][]** problem.
 
 <span name="else"></span>
 
-<img class="above" src="image/control-flow/dangling-else.png" alt="Two ways the else can be interpreted.">
+<img class="above" src="image/control-flow/dangling-else.png" alt="Two ways the else can be interpreted." />
 
 <aside name="else">
 
@@ -522,7 +522,7 @@ how some of the nice expression forms supported by languages like ALGOL were a
 sweetener sprinkled over the more fundamental -- but presumably less palatable
 -- lambda calculus underneath.
 
-<img class="above" src="image/control-flow/sugar.png" alt="Slightly more than a spoonful of sugar.">
+<img class="above" src="image/control-flow/sugar.png" alt="Slightly more than a spoonful of sugar." />
 
 </aside>
 

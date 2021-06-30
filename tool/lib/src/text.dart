@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 /// Punctuation characters removed from file names and anchors.
-final _punctuation = RegExp(r'[,.?!:/"]');
+final _punctuation = RegExp(r'[,.?!:' "'" '/"()]');
 
 final _whitespace = RegExp(r"\s+");
 
