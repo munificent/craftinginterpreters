@@ -10,7 +10,13 @@ import 'text.dart';
 
 /// Maintains the cache of loaded partials and allows rendering templates.
 class Mustache {
+  /// The directory where template files can be found.
+  final String _templateDirectory;
+
   final Map<String, Template> _templates = {};
+
+  Mustache([String templateDirectory])
+      : _templateDirectory = templateDirectory ?? p.join("asset", "mustache");
 
   String render(Book book, Page page, String body, {String template}) {
     var part = page.part?.title;
@@ -118,7 +124,7 @@ class Mustache {
 
   Template _load(String name) {
     return _templates.putIfAbsent(name, () {
-      var path = p.join("asset", "mustache", "$name.html");
+      var path = p.join(_templateDirectory, "$name.html");
       return Template(File(path).readAsStringSync(),
           name: path, partialResolver: _load);
     });
