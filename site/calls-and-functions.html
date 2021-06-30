@@ -146,8 +146,7 @@ solid blob of machine code. But for our bytecode VM, we can do something a
 little higher level. I think a cleaner model is to give each function its own
 Chunk. We&rsquo;ll want some other metadata too, so let&rsquo;s go ahead and stuff it all in
 a struct now.</p>
-<div class="codehilite"><pre class="insert-before">
-  struct Obj* next;
+<div class="codehilite"><pre class="insert-before">  struct Obj* next;
 };
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>Obj</em></div>
@@ -160,7 +159,6 @@ add after struct <em>Obj</em></div>
   <span class="t">ObjString</span>* <span class="i">name</span>;
 } <span class="t">ObjFunction</span>;
 </pre><pre class="insert-after">
-
 struct ObjString {
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>Obj</em></div>
@@ -176,29 +174,25 @@ crash dumps.</p>
 </aside>
 <p>This is the first time the &ldquo;object&rdquo; module has needed to reference Chunk, so we
 get an include.</p>
-<div class="codehilite"><pre class="insert-before">
-#include &quot;common.h&quot;
+<div class="codehilite"><pre class="insert-before">#include &quot;common.h&quot;
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#include &quot;chunk.h&quot;</span>
-</pre><pre class="insert-after">
-#include &quot;value.h&quot;
+</pre><pre class="insert-after">#include &quot;value.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Like we did with strings, we define some accessories to make Lox functions
 easier to work with in C. Sort of a poor man&rsquo;s object orientation. First, we&rsquo;ll
 declare a C function to create a new Lox function.</p>
-<div class="codehilite"><pre class="insert-before">
-  uint32_t hash;
+<div class="codehilite"><pre class="insert-before">  uint32_t hash;
 };
 
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjString</em></div>
 <pre class="insert">
 <span class="t">ObjFunction</span>* <span class="i">newFunction</span>();
-</pre><pre class="insert-after">
-ObjString* takeString(char* chars, int length);
+</pre><pre class="insert-after">ObjString* takeString(char* chars, int length);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjString</em></div>
 
@@ -222,22 +216,19 @@ passing in arguments to initialize the function like we did with ObjString, we
 set the function up in a sort of blank state<span class="em">&mdash;</span>zero arity, no name, and no
 code. That will get filled in later after the function is created.</p>
 <p>Since we have a new kind of object, we need a new object type in the enum.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef enum {
+<div class="codehilite"><pre class="insert-before">typedef enum {
 </pre><div class="source-file"><em>object.h</em><br>
 in enum <em>ObjType</em></div>
 <pre class="insert">
   <span class="a">OBJ_FUNCTION</span>,
-</pre><pre class="insert-after">
-  OBJ_STRING,
+</pre><pre class="insert-after">  OBJ_STRING,
 } ObjType;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>When we&rsquo;re done with a function object, we must return the bits it borrowed back
 to the operating system.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (object-&gt;type) {
+<div class="codehilite"><pre class="insert-before">  switch (object-&gt;type) {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
@@ -247,8 +238,7 @@ in <em>freeObject</em>()</div>
       <span class="a">FREE</span>(<span class="t">ObjFunction</span>, <span class="i">object</span>);
       <span class="k">break</span>;
     }
-</pre><pre class="insert-after">
-    case OBJ_STRING: {
+</pre><pre class="insert-after">    case OBJ_STRING: {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
@@ -262,16 +252,14 @@ least, we&rsquo;ll be able to once we <a href="garbage-collection.html">implemen
 </aside>
 <p>Lox lets you print any object, and functions are first-class objects, so we
 need to handle them too.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (OBJ_TYPE(value)) {
+<div class="codehilite"><pre class="insert-before">  switch (OBJ_TYPE(value)) {
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OBJ_FUNCTION</span>:
       <span class="i">printFunction</span>(<span class="a">AS_FUNCTION</span>(<span class="i">value</span>));
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case OBJ_STRING:
+</pre><pre class="insert-after">    case OBJ_STRING:
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
@@ -288,27 +276,23 @@ add after <em>copyString</em>()</div>
 <p>Since a function knows its name, it may as well say it.</p>
 <p>Finally, we have a couple of macros for converting values to functions. First,
 make sure your value actually <em>is</em> a function.</p>
-<div class="codehilite"><pre class="insert-before">
-#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
+<div class="codehilite"><pre class="insert-before">#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)</span>
-</pre><pre class="insert-after">
-#define IS_STRING(value)       isObjType(value, OBJ_STRING)
+</pre><pre class="insert-after">#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Assuming that evaluates to true, you can then safely cast the Value to an
 ObjFunction pointer using this:</p>
-<div class="codehilite"><pre class="insert-before">
-#define IS_STRING(value)       isObjType(value, OBJ_STRING)
+<div class="codehilite"><pre class="insert-before">#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))</span>
-</pre><pre class="insert-after">
-#define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
+</pre><pre class="insert-after">#define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
@@ -336,16 +320,14 @@ top level of a script isn&rsquo;t like a function body.</p>
 support that implicit top-level function. It starts with the Compiler struct.
 Instead of pointing directly to a Chunk that the compiler writes to, it instead
 has a reference to the function object being built.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef struct {
+<div class="codehilite"><pre class="insert-before">typedef struct {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Compiler</em></div>
 <pre class="insert">
   <span class="t">ObjFunction</span>* <span class="i">function</span>;
   <span class="t">FunctionType</span> <span class="i">type</span>;
 
-</pre><pre class="insert-after">
-  Local locals[UINT8_COUNT];
+</pre><pre class="insert-after">  Local locals[UINT8_COUNT];
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
 
@@ -373,8 +355,7 @@ is happy.</p>
 we&rsquo;d need to change the code later. But, really, it&rsquo;s because I wrote all the
 code for the book before any of the text.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-Compiler* current = NULL;
+<div class="codehilite"><pre class="insert-before">Compiler* current = NULL;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>current</em><br>
 replace 5 lines</div>
@@ -384,7 +365,6 @@ replace 5 lines</div>
   <span class="k">return</span> &amp;<span class="i">current</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>;
 }
 </pre><pre class="insert-after">
-
 static void errorAt(Token* token, const char* message) {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>current</em>, replace 5 lines</div>
@@ -396,15 +376,13 @@ will create and return a function that contains the compiled top-level code<span
 <h3><a href="#creating-functions-at-compile-time" name="creating-functions-at-compile-time"><small>24&#8202;.&#8202;2&#8202;.&#8202;1</small>Creating functions at compile time</a></h3>
 <p>We start threading this through in <code>compile()</code>, which is the main entry point
 into the compiler.</p>
-<div class="codehilite"><pre class="insert-before">
-  Compiler compiler;
+<div class="codehilite"><pre class="insert-before">  Compiler compiler;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
   <span class="i">initCompiler</span>(&amp;<span class="i">compiler</span>, <span class="a">TYPE_SCRIPT</span>);
 </pre><pre class="insert-after">
-
   parser.hadError = false;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>(), replace 2 lines</div>
@@ -418,20 +396,17 @@ replace 1 line</div>
 <span class="k">static</span> <span class="t">void</span> <span class="i">initCompiler</span>(<span class="t">Compiler</span>* <span class="i">compiler</span>, <span class="t">FunctionType</span> <span class="i">type</span>) {
   <span class="i">compiler</span>-&gt;<span class="i">function</span> = <span class="a">NULL</span>;
   <span class="i">compiler</span>-&gt;<span class="i">type</span> = <span class="i">type</span>;
-</pre><pre class="insert-after">
-  compiler-&gt;localCount = 0;
+</pre><pre class="insert-after">  compiler-&gt;localCount = 0;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>initCompiler</em>(), replace 1 line</div>
 
 <p>Then we allocate a new function object to compile into.</p>
-<div class="codehilite"><pre class="insert-before">
-  compiler-&gt;scopeDepth = 0;
+<div class="codehilite"><pre class="insert-before">  compiler-&gt;scopeDepth = 0;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()</div>
 <pre class="insert">
   <span class="i">compiler</span>-&gt;<span class="i">function</span> = <span class="i">newFunction</span>();
-</pre><pre class="insert-after">
-  current = compiler;
+</pre><pre class="insert-after">  current = compiler;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
 
@@ -454,8 +429,7 @@ closures in the <a href="closures.html">next chapter</a>, which capture variable
 the story gets more complex.</p>
 </aside>
 <p>Here is another strange piece of code:</p>
-<div class="codehilite"><pre class="insert-before">
-  current = compiler;
+<div class="codehilite"><pre class="insert-before">  current = compiler;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()</div>
 <pre class="insert">
@@ -464,8 +438,7 @@ in <em>initCompiler</em>()</div>
   <span class="i">local</span>-&gt;<span class="i">depth</span> = <span class="n">0</span>;
   <span class="i">local</span>-&gt;<span class="i">name</span>.<span class="i">start</span> = <span class="s">&quot;&quot;</span>;
   <span class="i">local</span>-&gt;<span class="i">name</span>.<span class="i">length</span> = <span class="n">0</span>;
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
 
@@ -481,36 +454,31 @@ function <em>endCompiler</em>()<br>
 replace 1 line</div>
 <pre class="insert">
 <span class="k">static</span> <span class="t">ObjFunction</span>* <span class="i">endCompiler</span>() {
-</pre><pre class="insert-after">
-  emitReturn();
+</pre><pre class="insert-after">  emitReturn();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>endCompiler</em>(), replace 1 line</div>
 
 <p>Previously, when <code>interpret()</code> called into the compiler, it passed in a Chunk to
 be written to. Now that the compiler creates the function object itself, we
 return that function. We grab it from the current compiler here:</p>
-<div class="codehilite"><pre class="insert-before">
-  emitReturn();
+<div class="codehilite"><pre class="insert-before">  emitReturn();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>endCompiler</em>()</div>
 <pre class="insert">
   <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="i">current</span>-&gt;<span class="i">function</span>;
 
-</pre><pre class="insert-after">
-#ifdef DEBUG_PRINT_CODE
+</pre><pre class="insert-after">#ifdef DEBUG_PRINT_CODE
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
 
 <p>And then return it to <code>compile()</code> like so:</p>
-<div class="codehilite"><pre class="insert-before">
-#endif
+<div class="codehilite"><pre class="insert-before">#endif
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>endCompiler</em>()</div>
 <pre class="insert">
 
   <span class="k">return</span> <span class="i">function</span>;
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
 
@@ -518,8 +486,7 @@ in <em>endCompiler</em>()</div>
 some diagnostic code to have the VM dump the disassembled bytecode so we could
 debug the compiler. We should fix that to keep working now that the generated
 chunk is wrapped in a function.</p>
-<div class="codehilite"><pre class="insert-before">
-#ifdef DEBUG_PRINT_CODE
+<div class="codehilite"><pre class="insert-before">#ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>endCompiler</em>()<br>
@@ -527,8 +494,7 @@ replace 1 line</div>
 <pre class="insert">
     <span class="i">disassembleChunk</span>(<span class="i">currentChunk</span>(), <span class="i">function</span>-&gt;<span class="i">name</span> != <span class="a">NULL</span>
         ? <span class="i">function</span>-&gt;<span class="i">name</span>-&gt;<span class="i">chars</span> : <span class="s">&quot;&lt;script&gt;&quot;</span>);
-</pre><pre class="insert-after">
-  }
+</pre><pre class="insert-after">  }
 #endif
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>(), replace 1 line</div>
@@ -537,8 +503,7 @@ replace 1 line</div>
 functions have names, but the implicit function we create for the top-level code
 does not, and we need to handle that gracefully even in our own diagnostic code.
 Speaking of which:</p>
-<div class="codehilite"><pre class="insert-before">
-static void printFunction(ObjFunction* function) {
+<div class="codehilite"><pre class="insert-before">static void printFunction(ObjFunction* function) {
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printFunction</em>()</div>
 <pre class="insert">
@@ -546,8 +511,7 @@ in <em>printFunction</em>()</div>
     <span class="i">printf</span>(<span class="s">&quot;&lt;script&gt;&quot;</span>);
     <span class="k">return</span>;
   }
-</pre><pre class="insert-after">
-  printf(&quot;&lt;fn %s&gt;&quot;, function-&gt;name-&gt;chars);
+</pre><pre class="insert-after">  printf(&quot;&lt;fn %s&gt;&quot;, function-&gt;name-&gt;chars);
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>printFunction</em>()</div>
 
@@ -559,8 +523,7 @@ name="debug">diagnostic</span> code that prints the entire stack can and does.</
 segfault!</p>
 </aside>
 <p>Bumping up a level to <code>compile()</code>, we adjust its signature.</p>
-<div class="codehilite"><pre class="insert-before">
-#include &quot;vm.h&quot;
+<div class="codehilite"><pre class="insert-before">#include &quot;vm.h&quot;
 
 </pre><div class="source-file"><em>compiler.h</em><br>
 function <em>compile</em>()<br>
@@ -568,7 +531,6 @@ replace 1 line</div>
 <pre class="insert">
 <span class="t">ObjFunction</span>* <span class="i">compile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>);
 </pre><pre class="insert-after">
-
 #endif
 </pre></div>
 <div class="source-file-narrow"><em>compiler.h</em>, function <em>compile</em>(), replace 1 line</div>
@@ -580,15 +542,13 @@ function <em>compile</em>()<br>
 replace 1 line</div>
 <pre class="insert">
 <span class="t">ObjFunction</span>* <span class="i">compile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>) {
-</pre><pre class="insert-after">
-  initScanner(source);
+</pre><pre class="insert-after">  initScanner(source);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>compile</em>(), replace 1 line</div>
 
 <p>Finally we get to some actual code. We change the very end of the function to
 this:</p>
-<div class="codehilite"><pre class="insert-before">
-  while (!match(TOKEN_EOF)) {
+<div class="codehilite"><pre class="insert-before">  while (!match(TOKEN_EOF)) {
     declaration();
   }
 
@@ -598,8 +558,7 @@ replace 2 lines</div>
 <pre class="insert">
   <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="i">endCompiler</span>();
   <span class="k">return</span> <span class="i">parser</span>.<span class="i">hadError</span> ? <span class="a">NULL</span> : <span class="i">function</span>;
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>(), replace 2 lines</div>
 
@@ -744,8 +703,7 @@ line between genius and madness is hair thin.</p>
 need to track where on the stack that function&rsquo;s locals begin, and where the
 caller should resume. We&rsquo;ll put this, along with some other stuff, in a new
 struct.</p>
-<div class="codehilite"><pre class="insert-before">
-#define STACK_MAX 256
+<div class="codehilite"><pre class="insert-before">#define STACK_MAX 256
 </pre><div class="source-file"><em>vm.h</em></div>
 <pre class="insert">
 
@@ -755,7 +713,6 @@ struct.</p>
   <span class="t">Value</span>* <span class="i">slots</span>;
 } <span class="t">CallFrame</span>;
 </pre><pre class="insert-after">
-
 typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em></div>
@@ -783,8 +740,7 @@ continuations, then function calls do <em>not</em> always have stack semantics.<
 </aside>
 <p>So over in the VM, we create an array of these CallFrame structs up front and
 treat it as a stack, like we do with the value array.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef struct {
+<div class="codehilite"><pre class="insert-before">typedef struct {
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em><br>
 replace 2 lines</div>
@@ -792,8 +748,7 @@ replace 2 lines</div>
   <span class="t">CallFrame</span> <span class="i">frames</span>[<span class="a">FRAMES_MAX</span>];
   <span class="t">int</span> <span class="i">frameCount</span>;
 
-</pre><pre class="insert-after">
-  Value stack[STACK_MAX];
+</pre><pre class="insert-after">  Value stack[STACK_MAX];
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em>, replace 2 lines</div>
 
@@ -804,8 +759,7 @@ that it&rsquo;s executing. From there, we can get to the function&rsquo;s chunk.
 stack<span class="em">&mdash;</span>the number of ongoing function calls. To keep clox simple, the array&rsquo;s
 capacity is fixed. This means, as in many language implementations, there is a
 maximum call depth we can handle. For clox, it&rsquo;s defined here:</p>
-<div class="codehilite"><pre class="insert-before">
-#include &quot;value.h&quot;
+<div class="codehilite"><pre class="insert-before">#include &quot;value.h&quot;
 
 </pre><div class="source-file"><em>vm.h</em><br>
 replace 1 line</div>
@@ -813,7 +767,6 @@ replace 1 line</div>
 <span class="a">#define FRAMES_MAX 64</span>
 <span class="a">#define STACK_MAX (FRAMES_MAX * UINT8_COUNT)</span>
 </pre><pre class="insert-after">
-
 typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, replace 1 line</div>
@@ -826,27 +779,23 @@ When the VM starts up, the CallFrame stack is empty.</p>
 temporaries in addition to locals. A robust implementation would guard against
 this, but I&rsquo;m trying to keep things simple.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-  vm.stackTop = vm.stack;
+<div class="codehilite"><pre class="insert-before">  vm.stackTop = vm.stack;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>resetStack</em>()</div>
 <pre class="insert">
   <span class="i">vm</span>.<span class="i">frameCount</span> = <span class="n">0</span>;
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>resetStack</em>()</div>
 
 <p>The &ldquo;vm.h&rdquo; header needs access to ObjFunction, so we add an include.</p>
-<div class="codehilite"><pre class="insert-before">
-#define clox_vm_h
+<div class="codehilite"><pre class="insert-before">#define clox_vm_h
 
 </pre><div class="source-file"><em>vm.h</em><br>
 replace 1 line</div>
 <pre class="insert">
 <span class="a">#include &quot;object.h&quot;</span>
-</pre><pre class="insert-after">
-#include &quot;table.h&quot;
+</pre><pre class="insert-after">#include &quot;table.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, replace 1 line</div>
 
@@ -856,8 +805,7 @@ CallFrame. We need to fix every line of code in the VM that touches <code>ip</co
 handle that. Also, the instructions that access local variables by stack slot
 need to be updated to do so relative to the current CallFrame&rsquo;s <code>slots</code> field.</p>
 <p>We&rsquo;ll start at the top and plow through it.</p>
-<div class="codehilite"><pre class="insert-before">
-static InterpretResult run() {
+<div class="codehilite"><pre class="insert-before">static InterpretResult run() {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 4 lines</div>
@@ -873,8 +821,7 @@ replace 4 lines</div>
 <span class="a">#define READ_CONSTANT() \</span>
 <span class="a">    (frame-&gt;function-&gt;chunk.constants.values[READ_BYTE()])</span>
 
-</pre><pre class="insert-after">
-#define READ_STRING() AS_STRING(READ_CONSTANT())
+</pre><pre class="insert-after">#define READ_STRING() AS_STRING(READ_CONSTANT())
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 4 lines</div>
 
@@ -890,16 +837,14 @@ speeds up access to the frame&rsquo;s <code>ip</code>. There&rsquo;s no <em>guar
 will do this, but there&rsquo;s a good chance it will.</p>
 </aside>
 <p>Now onto each instruction that needs a little tender loving care.</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_GET_LOCAL: {
+<div class="codehilite"><pre class="insert-before">      case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
 <pre class="insert">
         <span class="i">push</span>(<span class="i">frame</span>-&gt;<span class="i">slots</span>[<span class="i">slot</span>]);
-</pre><pre class="insert-after">
-        break;
+</pre><pre class="insert-after">        break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
 
@@ -908,74 +853,64 @@ stack array, which meant it indexed the slot starting from the bottom of the
 stack. Now, it accesses the current frame&rsquo;s <code>slots</code> array, which means it
 accesses the given numbered slot relative to the beginning of that frame.</p>
 <p>Setting a local variable works the same way.</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_SET_LOCAL: {
+<div class="codehilite"><pre class="insert-before">      case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
 <pre class="insert">
         <span class="i">frame</span>-&gt;<span class="i">slots</span>[<span class="i">slot</span>] = <span class="i">peek</span>(<span class="n">0</span>);
-</pre><pre class="insert-after">
-        break;
+</pre><pre class="insert-after">        break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
 
 <p>The jump instructions used to modify the VM&rsquo;s <code>ip</code> field. Now, they do the same
 for the current frame&rsquo;s <code>ip</code>.</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_JUMP: {
+<div class="codehilite"><pre class="insert-before">      case OP_JUMP: {
         uint16_t offset = READ_SHORT();
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
 <pre class="insert">
         <span class="i">frame</span>-&gt;<span class="i">ip</span> += <span class="i">offset</span>;
-</pre><pre class="insert-after">
-        break;
+</pre><pre class="insert-after">        break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
 
 <p>Same with the conditional jump:</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_JUMP_IF_FALSE: {
+<div class="codehilite"><pre class="insert-before">      case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
 <pre class="insert">
         <span class="k">if</span> (<span class="i">isFalsey</span>(<span class="i">peek</span>(<span class="n">0</span>))) <span class="i">frame</span>-&gt;<span class="i">ip</span> += <span class="i">offset</span>;
-</pre><pre class="insert-after">
-        break;
+</pre><pre class="insert-after">        break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
 
 <p>And our backward-jumping loop instruction:</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_LOOP: {
+<div class="codehilite"><pre class="insert-before">      case OP_LOOP: {
         uint16_t offset = READ_SHORT();
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
 <pre class="insert">
         <span class="i">frame</span>-&gt;<span class="i">ip</span> -= <span class="i">offset</span>;
-</pre><pre class="insert-after">
-        break;
+</pre><pre class="insert-after">        break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
 
 <p>We have some diagnostic code that prints each instruction as it executes to help
 us debug our VM. That needs to work with the new structure too.</p>
-<div class="codehilite"><pre class="insert-before">
-    printf(&quot;\n&quot;);
+<div class="codehilite"><pre class="insert-before">    printf(&quot;\n&quot;);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
     <span class="i">disassembleInstruction</span>(&amp;<span class="i">frame</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>,
         (<span class="t">int</span>)(<span class="i">frame</span>-&gt;<span class="i">ip</span> - <span class="i">frame</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span>));
-</pre><pre class="insert-after">
-#endif
+</pre><pre class="insert-after">#endif
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
@@ -984,8 +919,7 @@ current CallFrame.</p>
 <p>You know, that wasn&rsquo;t too bad, actually. Most instructions just use the macros
 so didn&rsquo;t need to be touched. Next, we jump up a level to the code that calls
 <code>run()</code>.</p>
-<div class="codehilite"><pre class="insert-before">
-InterpretResult interpret(const char* source) {
+<div class="codehilite"><pre class="insert-before">InterpretResult interpret(const char* source) {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>interpret</em>()<br>
 replace 10 lines</div>
@@ -999,7 +933,6 @@ replace 10 lines</div>
   <span class="i">frame</span>-&gt;<span class="i">ip</span> = <span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span>;
   <span class="i">frame</span>-&gt;<span class="i">slots</span> = <span class="i">vm</span>.<span class="i">stack</span>;
 </pre><pre class="insert-after">
-
   InterpretResult result = run();
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 10 lines</div>
@@ -1017,23 +950,20 @@ value stack.</p>
 <p>This gets the interpreter ready to start executing code. After finishing, the VM
 used to free the hardcoded chunk. Now that the ObjFunction owns that code, we
 don&rsquo;t need to do that anymore, so the end of <code>interpret()</code> is simply this:</p>
-<div class="codehilite"><pre class="insert-before">
-  frame-&gt;slots = vm.stack;
+<div class="codehilite"><pre class="insert-before">  frame-&gt;slots = vm.stack;
 
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>interpret</em>()<br>
 replace 4 lines</div>
 <pre class="insert">
   <span class="k">return</span> <span class="i">run</span>();
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 4 lines</div>
 
 <p>The last piece of code referring to the old VM fields is <code>runtimeError()</code>. We&rsquo;ll
 revisit that later in the chapter, but for now let&rsquo;s change it to this:</p>
-<div class="codehilite"><pre class="insert-before">
-  fputs(&quot;\n&quot;, stderr);
+<div class="codehilite"><pre class="insert-before">  fputs(&quot;\n&quot;, stderr);
 
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>runtimeError</em>()<br>
@@ -1042,8 +972,7 @@ replace 2 lines</div>
   <span class="t">CallFrame</span>* <span class="i">frame</span> = &amp;<span class="i">vm</span>.<span class="i">frames</span>[<span class="i">vm</span>.<span class="i">frameCount</span> - <span class="n">1</span>];
   <span class="t">size_t</span> <span class="i">instruction</span> = <span class="i">frame</span>-&gt;<span class="i">ip</span> - <span class="i">frame</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span> - <span class="n">1</span>;
   <span class="t">int</span> <span class="i">line</span> = <span class="i">frame</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">lines</span>[<span class="i">instruction</span>];
-</pre><pre class="insert-after">
-  fprintf(stderr, &quot;[line %d] in script\n&quot;, line);
+</pre><pre class="insert-after">  fprintf(stderr, &quot;[line %d] in script\n&quot;, line);
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 2 lines</div>
 
@@ -1061,8 +990,7 @@ keyword.</p>
 <aside name="fun">
 <p>Yes, I <em>am</em> proud of myself for this dumb joke, thank you for asking.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-static void declaration() {
+<div class="codehilite"><pre class="insert-before">static void declaration() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>declaration</em>()<br>
 replace 1 line</div>
@@ -1070,8 +998,7 @@ replace 1 line</div>
   <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_FUN</span>)) {
     <span class="i">funDeclaration</span>();
   } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_VAR</span>)) {
-</pre><pre class="insert-after">
-    varDeclaration();
+</pre><pre class="insert-after">    varDeclaration();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>declaration</em>(), replace 1 line</div>
 
@@ -1106,14 +1033,12 @@ support recursive local functions.</p>
 soon as we compile the name, before we compile the body. That way the name can
 be referenced inside the body without generating an error.</p>
 <p>We do need one check, though.</p>
-<div class="codehilite"><pre class="insert-before">
-static void markInitialized() {
+<div class="codehilite"><pre class="insert-before">static void markInitialized() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>markInitialized</em>()</div>
 <pre class="insert">
   <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">scopeDepth</span> == <span class="n">0</span>) <span class="k">return</span>;
-</pre><pre class="insert-after">
-  current-&gt;locals[current-&gt;localCount - 1].depth =
+</pre><pre class="insert-after">  current-&gt;locals[current-&gt;localCount - 1].depth =
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>markInitialized</em>()</div>
 
@@ -1182,8 +1107,7 @@ compiler pointer.</p>
 the Value and CallFrame stacks in the VM, we won&rsquo;t use an array. Instead, we use
 a linked list. Each Compiler points back to the Compiler for the function that
 encloses it, all the way back to the root Compiler for the top-level code.</p>
-<div class="codehilite"><pre class="insert-before">
-} FunctionType;
+<div class="codehilite"><pre class="insert-before">} FunctionType;
 
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after enum <em>FunctionType</em><br>
@@ -1191,8 +1115,7 @@ replace 1 line</div>
 <pre class="insert">
 <span class="k">typedef</span> <span class="k">struct</span> <span class="t">Compiler</span> {
   <span class="k">struct</span> <span class="t">Compiler</span>* <span class="i">enclosing</span>;
-</pre><pre class="insert-after">
-  ObjFunction* function;
+</pre><pre class="insert-after">  ObjFunction* function;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after enum <em>FunctionType</em>, replace 1 line</div>
 
@@ -1201,28 +1124,24 @@ declaration hasn&rsquo;t finished yet. Instead, we give a name to the struct its
 and use that for the field&rsquo;s type. C is weird.</p>
 <p>When initializing a new Compiler, we capture the about-to-no-longer-be-current
 one in that pointer.</p>
-<div class="codehilite"><pre class="insert-before">
-static void initCompiler(Compiler* compiler, FunctionType type) {
+<div class="codehilite"><pre class="insert-before">static void initCompiler(Compiler* compiler, FunctionType type) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()</div>
 <pre class="insert">
   <span class="i">compiler</span>-&gt;<span class="i">enclosing</span> = <span class="i">current</span>;
-</pre><pre class="insert-after">
-  compiler-&gt;function = NULL;
+</pre><pre class="insert-after">  compiler-&gt;function = NULL;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
 
 <p>Then when a Compiler finishes, it pops itself off the stack by restoring the
 previous compiler to be the new current one.</p>
-<div class="codehilite"><pre class="insert-before">
-#endif
+<div class="codehilite"><pre class="insert-before">#endif
 
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>endCompiler</em>()</div>
 <pre class="insert">
   <span class="i">current</span> = <span class="i">current</span>-&gt;<span class="i">enclosing</span>;
-</pre><pre class="insert-after">
-  return function;
+</pre><pre class="insert-after">  return function;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
 
@@ -1242,8 +1161,7 @@ amount of function nesting it permits.</p>
 <h3><a href="#function-parameters" name="function-parameters"><small>24&#8202;.&#8202;4&#8202;.&#8202;2</small>Function parameters</a></h3>
 <p>Functions aren&rsquo;t very useful if you can&rsquo;t pass arguments to them, so let&rsquo;s do
 parameters next.</p>
-<div class="codehilite"><pre class="insert-before">
-  consume(TOKEN_LEFT_PAREN, &quot;Expect '(' after function name.&quot;);
+<div class="codehilite"><pre class="insert-before">  consume(TOKEN_LEFT_PAREN, &quot;Expect '(' after function name.&quot;);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>function</em>()</div>
 <pre class="insert">
@@ -1257,8 +1175,7 @@ in <em>function</em>()</div>
       <span class="i">defineVariable</span>(<span class="i">constant</span>);
     } <span class="k">while</span> (<span class="i">match</span>(<span class="a">TOKEN_COMMA</span>));
   }
-</pre><pre class="insert-after">
-  consume(TOKEN_RIGHT_PAREN, &quot;Expect ')' after parameters.&quot;);
+</pre><pre class="insert-after">  consume(TOKEN_RIGHT_PAREN, &quot;Expect ')' after parameters.&quot;);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>function</em>()</div>
 
@@ -1273,8 +1190,7 @@ we parse. The other piece of metadata we store with a function is its name. When
 compiling a function declaration, we call <code>initCompiler()</code> right after we parse
 the function&rsquo;s name. That means we can grab the name right then from the
 previous token.</p>
-<div class="codehilite"><pre class="insert-before">
-  current = compiler;
+<div class="codehilite"><pre class="insert-before">  current = compiler;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()</div>
 <pre class="insert">
@@ -1283,7 +1199,6 @@ in <em>initCompiler</em>()</div>
                                          <span class="i">parser</span>.<span class="i">previous</span>.<span class="i">length</span>);
   }
 </pre><pre class="insert-after">
-
   Local* local = &amp;current-&gt;locals[current-&gt;localCount++];
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
@@ -1314,15 +1229,13 @@ just a single identifier. Then the <code>(</code> in the middle, followed by the
 expressions separated by commas, and a final <code>)</code> to wrap it up at the end.</p>
 <p>That odd grammatical perspective explains how to hook the syntax into our
 parsing table.</p>
-<div class="codehilite"><pre class="insert-before">
-ParseRule rules[] = {
+<div class="codehilite"><pre class="insert-before">ParseRule rules[] = {
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>unary</em>()<br>
 replace 1 line</div>
 <pre class="insert">
   [<span class="a">TOKEN_LEFT_PAREN</span>]    = {<span class="i">grouping</span>, <span class="i">call</span>,   <span class="a">PREC_CALL</span>},
-</pre><pre class="insert-after">
-  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
+</pre><pre class="insert-after">  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>unary</em>(), replace 1 line</div>
 
@@ -1369,29 +1282,25 @@ more than 255 arguments to a call. At the time, I said that was because clox
 would need a similar limit. Now you can see why<span class="em">&mdash;</span>since we stuff the argument
 count into the bytecode as a single-byte operand, we can only go up to 255. We
 need to verify that in this compiler too.</p>
-<div class="codehilite"><pre class="insert-before">
-      expression();
+<div class="codehilite"><pre class="insert-before">      expression();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>argumentList</em>()</div>
 <pre class="insert">
       <span class="k">if</span> (<span class="i">argCount</span> == <span class="n">255</span>) {
         <span class="i">error</span>(<span class="s">&quot;Can&#39;t have more than 255 arguments.&quot;</span>);
       }
-</pre><pre class="insert-after">
-      argCount++;
+</pre><pre class="insert-after">      argCount++;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>argumentList</em>()</div>
 
 <p>That&rsquo;s the front end. Let&rsquo;s skip over to the back end, with a quick stop in the
 middle to declare the new instruction.</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_LOOP,
+<div class="codehilite"><pre class="insert-before">  OP_LOOP,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_CALL</span>,
-</pre><pre class="insert-after">
-  OP_RETURN,
+</pre><pre class="insert-after">  OP_RETURN,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
@@ -1440,8 +1349,7 @@ parameter&rdquo;. There&rsquo;s no copying values between slots or across enviro
 arguments are already exactly where they need to be. It&rsquo;s hard to beat that for
 performance.</p>
 <p>Time to implement the call instruction.</p>
-<div class="codehilite"><pre class="insert-before">
-      }
+<div class="codehilite"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -1452,8 +1360,7 @@ in <em>run</em>()</div>
         }
         <span class="k">break</span>;
       }
-</pre><pre class="insert-after">
-      case OP_RETURN: {
+</pre><pre class="insert-after">      case OP_RETURN: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -1466,15 +1373,13 @@ that happens, we abort the interpreter.</p>
 <p>If <code>callValue()</code> is successful, there will be a new frame on the CallFrame stack
 for the called function. The <code>run()</code> function has its own cached pointer to the
 current frame, so we need to update that.</p>
-<div class="codehilite"><pre class="insert-before">
-          return INTERPRET_RUNTIME_ERROR;
+<div class="codehilite"><pre class="insert-before">          return INTERPRET_RUNTIME_ERROR;
         }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
         <span class="i">frame</span> = &amp;<span class="i">vm</span>.<span class="i">frames</span>[<span class="i">vm</span>.<span class="i">frameCount</span> - <span class="n">1</span>];
-</pre><pre class="insert-after">
-        break;
+</pre><pre class="insert-after">        break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -1536,30 +1441,26 @@ already on the stack line up with the function&rsquo;s parameters:</p><img src="
 aside for when we add methods later. The parameters start at slot one so we
 make the window start one slot earlier to align them with the arguments.</p>
 <p>Before we move on, let&rsquo;s add the new instruction to our disassembler.</p>
-<div class="codehilite"><pre class="insert-before">
-      return jumpInstruction(&quot;OP_LOOP&quot;, -1, chunk, offset);
+<div class="codehilite"><pre class="insert-before">      return jumpInstruction(&quot;OP_LOOP&quot;, -1, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OP_CALL</span>:
       <span class="k">return</span> <span class="i">byteInstruction</span>(<span class="s">&quot;OP_CALL&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    case OP_RETURN:
+</pre><pre class="insert-after">    case OP_RETURN:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>And one more quick side trip. Now that we have a handy function for initiating a
 CallFrame, we may as well use it to set up the first frame for executing the
 top-level code.</p>
-<div class="codehilite"><pre class="insert-before">
-  push(OBJ_VAL(function));
+<div class="codehilite"><pre class="insert-before">  push(OBJ_VAL(function));
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>interpret</em>()<br>
 replace 4 lines</div>
 <pre class="insert">
   <span class="i">call</span>(<span class="i">function</span>, <span class="n">0</span>);
 </pre><pre class="insert-after">
-
   return run();
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 4 lines</div>
@@ -1571,8 +1472,7 @@ exactly one argument for each of the function&rsquo;s parameters. But, again, be
 Lox ain&rsquo;t statically typed, a foolish user could pass too many or too few
 arguments. In Lox, we&rsquo;ve defined that to be a runtime error, which we report
 like so:</p>
-<div class="codehilite"><pre class="insert-before">
-static bool call(ObjFunction* function, int argCount) {
+<div class="codehilite"><pre class="insert-before">static bool call(ObjFunction* function, int argCount) {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>call</em>()</div>
 <pre class="insert">
@@ -1582,8 +1482,7 @@ in <em>call</em>()</div>
     <span class="k">return</span> <span class="k">false</span>;
   }
 
-</pre><pre class="insert-after">
-  CallFrame* frame = &amp;vm.frames[vm.frameCount++];
+</pre><pre class="insert-after">  CallFrame* frame = &amp;vm.frames[vm.frameCount++];
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>()</div>
 
@@ -1592,8 +1491,7 @@ the ObjFunction for it.</p>
 <p>There&rsquo;s another error we need to report that&rsquo;s less to do with the user&rsquo;s
 foolishness than our own. Because the CallFrame array has a fixed size, we need
 to ensure a deep call chain doesn&rsquo;t overflow it.</p>
-<div class="codehilite"><pre class="insert-before">
-  }
+<div class="codehilite"><pre class="insert-before">  }
 
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>call</em>()</div>
@@ -1603,8 +1501,7 @@ in <em>call</em>()</div>
     <span class="k">return</span> <span class="k">false</span>;
   }
 
-</pre><pre class="insert-after">
-  CallFrame* frame = &amp;vm.frames[vm.frameCount++];
+</pre><pre class="insert-after">  CallFrame* frame = &amp;vm.frames[vm.frameCount++];
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>()</div>
 
@@ -1621,8 +1518,7 @@ where the execution was at the point that it died. Now that we have a call stack
 and we&rsquo;ve conveniently stored each function&rsquo;s name, we can show that entire
 stack when a runtime error disrupts the harmony of the user&rsquo;s existence. It
 looks like this:</p>
-<div class="codehilite"><pre class="insert-before">
-  fputs(&quot;\n&quot;, stderr);
+<div class="codehilite"><pre class="insert-before">  fputs(&quot;\n&quot;, stderr);
 
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>runtimeError</em>()<br>
@@ -1641,8 +1537,7 @@ replace 4 lines</div>
     }
   }
 
-</pre><pre class="insert-after">
-  resetStack();
+</pre><pre class="insert-after">  resetStack();
 }
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 4 lines</div>
@@ -1694,8 +1589,7 @@ can&rsquo;t <em>return</em> from them yet. We&rsquo;ve had an <code>OP_RETURN</c
 some time, but it&rsquo;s always had some kind of temporary code hanging out in it
 just to get us out of the bytecode loop. The time has arrived for a real
 implementation.</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_RETURN: {
+<div class="codehilite"><pre class="insert-before">      case OP_RETURN: {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 2 lines</div>
@@ -1711,8 +1605,7 @@ replace 2 lines</div>
         <span class="i">push</span>(<span class="i">result</span>);
         <span class="i">frame</span> = &amp;<span class="i">vm</span>.<span class="i">frames</span>[<span class="i">vm</span>.<span class="i">frameCount</span> - <span class="n">1</span>];
         <span class="k">break</span>;
-</pre><pre class="insert-after">
-      }
+</pre><pre class="insert-after">      }
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
@@ -1744,14 +1637,12 @@ a function can implicitly return by reaching the end of its body:</p>
 </pre></div>
 <p>We need to handle that correctly too. The language is specified to implicitly
 return <code>nil</code> in that case. To make that happen, we add this:</p>
-<div class="codehilite"><pre class="insert-before">
-static void emitReturn() {
+<div class="codehilite"><pre class="insert-before">static void emitReturn() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>emitReturn</em>()</div>
 <pre class="insert">
   <span class="i">emitByte</span>(<span class="a">OP_NIL</span>);
-</pre><pre class="insert-after">
-  emitByte(OP_RETURN);
+</pre><pre class="insert-after">  emitByte(OP_RETURN);
 }
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>emitReturn</em>()</div>
@@ -1763,15 +1654,13 @@ take parameters! It almost looks like we know what we&rsquo;re doing here.</p>
 <h2><a href="#return-statements" name="return-statements"><small>24&#8202;.&#8202;6</small>Return Statements</a></h2>
 <p>If you want a function that returns something other than the implicit <code>nil</code>, you
 need a <code>return</code> statement. Let&rsquo;s get that working.</p>
-<div class="codehilite"><pre class="insert-before">
-    ifStatement();
+<div class="codehilite"><pre class="insert-before">    ifStatement();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
   } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_RETURN</span>)) {
     <span class="i">returnStatement</span>();
-</pre><pre class="insert-after">
-  } else if (match(TOKEN_WHILE)) {
+</pre><pre class="insert-after">  } else if (match(TOKEN_WHILE)) {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
 
@@ -1821,8 +1710,7 @@ returned number to indicate the process&rsquo;s exit code.</p>
 </aside>
 <p>We&rsquo;ve specified that it&rsquo;s a compile error to have a <code>return</code> statement outside
 of any function, which we implement like so:</p>
-<div class="codehilite"><pre class="insert-before">
-static void returnStatement() {
+<div class="codehilite"><pre class="insert-before">static void returnStatement() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>returnStatement</em>()</div>
 <pre class="insert">
@@ -1830,8 +1718,7 @@ in <em>returnStatement</em>()</div>
     <span class="i">error</span>(<span class="s">&quot;Can&#39;t return from top-level code.&quot;</span>);
   }
 
-</pre><pre class="insert-after">
-  if (match(TOKEN_SEMICOLON)) {
+</pre><pre class="insert-after">  if (match(TOKEN_SEMICOLON)) {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>returnStatement</em>()</div>
 
@@ -1864,8 +1751,7 @@ frame to point to. They have no bytecode chunk. Instead, they somehow reference
 a piece of native C code.</p>
 <p>We handle this in clox by defining native functions as an entirely different
 object type.</p>
-<div class="codehilite"><pre class="insert-before">
-} ObjFunction;
+<div class="codehilite"><pre class="insert-before">} ObjFunction;
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjFunction</em></div>
 <pre class="insert">
@@ -1877,7 +1763,6 @@ add after struct <em>ObjFunction</em></div>
   <span class="t">NativeFn</span> <span class="i">function</span>;
 } <span class="t">ObjNative</span>;
 </pre><pre class="insert-after">
-
 struct ObjString {
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjFunction</em></div>
@@ -1889,14 +1774,12 @@ stack. It accesses the arguments through that pointer. Once it&rsquo;s done, it
 returns the result value.</p>
 <p>As always, a new object type carries some accoutrements with it. To create an
 ObjNative, we declare a constructor-like function.</p>
-<div class="codehilite"><pre class="insert-before">
-ObjFunction* newFunction();
+<div class="codehilite"><pre class="insert-before">ObjFunction* newFunction();
 </pre><div class="source-file"><em>object.h</em><br>
 add after <em>newFunction</em>()</div>
 <pre class="insert">
 <span class="t">ObjNative</span>* <span class="i">newNative</span>(<span class="t">NativeFn</span> <span class="i">function</span>);
-</pre><pre class="insert-after">
-ObjString* takeString(char* chars, int length);
+</pre><pre class="insert-after">ObjString* takeString(char* chars, int length);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after <em>newFunction</em>()</div>
 
@@ -1915,70 +1798,60 @@ add after <em>newFunction</em>()</div>
 <p>The constructor takes a C function pointer to wrap in an ObjNative. It sets up
 the object header and stores the function. For the header, we need a new object
 type.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef enum {
+<div class="codehilite"><pre class="insert-before">typedef enum {
   OBJ_FUNCTION,
 </pre><div class="source-file"><em>object.h</em><br>
 in enum <em>ObjType</em></div>
 <pre class="insert">
   <span class="a">OBJ_NATIVE</span>,
-</pre><pre class="insert-after">
-  OBJ_STRING,
+</pre><pre class="insert-after">  OBJ_STRING,
 } ObjType;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>The VM also needs to know how to deallocate a native function object.</p>
-<div class="codehilite"><pre class="insert-before">
-    }
+<div class="codehilite"><pre class="insert-before">    }
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OBJ_NATIVE</span>:
       <span class="a">FREE</span>(<span class="t">ObjNative</span>, <span class="i">object</span>);
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case OBJ_STRING: {
+</pre><pre class="insert-after">    case OBJ_STRING: {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>There isn&rsquo;t much here since ObjNative doesn&rsquo;t own any extra memory. The other
 capability all Lox objects support is being printed.</p>
-<div class="codehilite"><pre class="insert-before">
-      break;
+<div class="codehilite"><pre class="insert-before">      break;
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OBJ_NATIVE</span>:
       <span class="i">printf</span>(<span class="s">&quot;&lt;native fn&gt;&quot;</span>);
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case OBJ_STRING:
+</pre><pre class="insert-after">    case OBJ_STRING:
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
 <p>In order to support dynamic typing, we have a macro to see if a value is a
 native function.</p>
-<div class="codehilite"><pre class="insert-before">
-#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
+<div class="codehilite"><pre class="insert-before">#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define IS_NATIVE(value)       isObjType(value, OBJ_NATIVE)</span>
-</pre><pre class="insert-after">
-#define IS_STRING(value)       isObjType(value, OBJ_STRING)
+</pre><pre class="insert-after">#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Assuming that returns true, this macro extracts the C function pointer from a
 Value representing a native function:</p>
-<div class="codehilite"><pre class="insert-before">
-#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
+<div class="codehilite"><pre class="insert-before">#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define AS_NATIVE(value) \</span>
 <span class="a">    (((ObjNative*)AS_OBJ(value))-&gt;function)</span>
-</pre><pre class="insert-after">
-#define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
+</pre><pre class="insert-after">#define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
@@ -1987,8 +1860,7 @@ You can store them in variables, pass them around, throw them birthday parties,
 etc. Of course, the operation we actually care about is <em>calling</em> them<span class="em">&mdash;</span>using
 one as the left-hand operand in a call expression.</p>
 <p>Over in <code>callValue()</code> we add another type case.</p>
-<div class="codehilite"><pre class="insert-before">
-      case OBJ_FUNCTION:<span name="switch"> </span>
+<div class="codehilite"><pre class="insert-before">      case OBJ_FUNCTION:<span name="switch"> </span>
         return call(AS_FUNCTION(callee), argCount);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>callValue</em>()</div>
@@ -2000,8 +1872,7 @@ in <em>callValue</em>()</div>
         <span class="i">push</span>(<span class="i">result</span>);
         <span class="k">return</span> <span class="k">true</span>;
       }
-</pre><pre class="insert-after">
-      default:
+</pre><pre class="insert-after">      default:
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
@@ -2054,27 +1925,23 @@ add after variable <em>vm</em></div>
 
 <p>This returns the elapsed time since the program started running, in seconds. It&rsquo;s
 handy for benchmarking Lox programs. In Lox, we&rsquo;ll name it <code>clock()</code>.</p>
-<div class="codehilite"><pre class="insert-before">
-  initTable(&amp;vm.strings);
+<div class="codehilite"><pre class="insert-before">  initTable(&amp;vm.strings);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
 <pre class="insert">
 
   <span class="i">defineNative</span>(<span class="s">&quot;clock&quot;</span>, <span class="i">clockNative</span>);
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
 <p>To get to the C standard library <code>clock()</code> function, the &ldquo;vm&rdquo; module needs an
 include.</p>
-<div class="codehilite"><pre class="insert-before">
-#include &lt;string.h&gt;
+<div class="codehilite"><pre class="insert-before">#include &lt;string.h&gt;
 </pre><div class="source-file"><em>vm.c</em></div>
 <pre class="insert">
 <span class="a">#include &lt;time.h&gt;</span>
 </pre><pre class="insert-after">
-
 #include &quot;common.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em></div>

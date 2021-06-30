@@ -246,7 +246,7 @@ void _writeContextHtml(StringBuffer buffer, List<String> lines,
     {String cssClass}) {
   buffer.write("<pre");
   if (cssClass != null) buffer.write(' class="$cssClass"');
-  buffer.writeln(">");
+  buffer.write(">");
 
   for (var line in lines) {
     buffer.writeln(line.escapeHtml);

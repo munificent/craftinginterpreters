@@ -143,8 +143,7 @@ produce new instances. Going bottom-up, we&rsquo;ll start with their runtime
 representation and then hook that into the language.</p>
 <p>By this point, we&rsquo;re well-acquainted with the process of adding a new object
 type to the VM. We start with a struct.</p>
-<div class="codehilite"><pre class="insert-before">
-} ObjClosure;
+<div class="codehilite"><pre class="insert-before">} ObjClosure;
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjClosure</em></div>
 <pre class="insert">
@@ -154,7 +153,6 @@ add after struct <em>ObjClosure</em></div>
   <span class="t">ObjString</span>* <span class="i">name</span>;
 } <span class="t">ObjClass</span>;
 </pre><pre class="insert-after">
-
 ObjClosure* newClosure(ObjFunction* function);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjClosure</em></div>
@@ -163,52 +161,44 @@ ObjClosure* newClosure(ObjFunction* function);
 the user&rsquo;s program, but it lets us show the name at runtime for things like
 stack traces.</p>
 <p>The new type needs a corresponding case in the ObjType enum.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef enum {
+<div class="codehilite"><pre class="insert-before">typedef enum {
 </pre><div class="source-file"><em>object.h</em><br>
 in enum <em>ObjType</em></div>
 <pre class="insert">
   <span class="a">OBJ_CLASS</span>,
-</pre><pre class="insert-after">
-  OBJ_CLOSURE,
+</pre><pre class="insert-after">  OBJ_CLOSURE,
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>And that type gets a corresponding pair of macros. First, for testing an
 object&rsquo;s type:</p>
-<div class="codehilite"><pre class="insert-before">
-#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
+<div class="codehilite"><pre class="insert-before">#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define IS_CLASS(value)        isObjType(value, OBJ_CLASS)</span>
-</pre><pre class="insert-after">
-#define IS_CLOSURE(value)      isObjType(value, OBJ_CLOSURE)
+</pre><pre class="insert-after">#define IS_CLOSURE(value)      isObjType(value, OBJ_CLOSURE)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>And then for casting a Value to an ObjClass pointer:</p>
-<div class="codehilite"><pre class="insert-before">
-#define IS_STRING(value)       isObjType(value, OBJ_STRING)
+<div class="codehilite"><pre class="insert-before">#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define AS_CLASS(value)        ((ObjClass*)AS_OBJ(value))</span>
-</pre><pre class="insert-after">
-#define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))
+</pre><pre class="insert-after">#define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>The VM creates new class objects using this function:</p>
-<div class="codehilite"><pre class="insert-before">
-} ObjClass;
+<div class="codehilite"><pre class="insert-before">} ObjClass;
 
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjClass</em></div>
 <pre class="insert">
 <span class="t">ObjClass</span>* <span class="i">newClass</span>(<span class="t">ObjString</span>* <span class="i">name</span>);
-</pre><pre class="insert-after">
-ObjClosure* newClosure(ObjFunction* function);
+</pre><pre class="insert-after">ObjClosure* newClosure(ObjFunction* function);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjClass</em></div>
 
@@ -233,8 +223,7 @@ Korner&rdquo; feel. It makes it easier to get clox compiling as C++ where &ldquo
 a reserved word.</p>
 </aside>
 <p>When the VM no longer needs a class, it frees it like so:</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (object-&gt;type) {
+<div class="codehilite"><pre class="insert-before">  switch (object-&gt;type) {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
@@ -242,8 +231,7 @@ in <em>freeObject</em>()</div>
       <span class="a">FREE</span>(<span class="t">ObjClass</span>, <span class="i">object</span>);
       <span class="k">break</span>;
     }<span name="braces"> </span>
-</pre><pre class="insert-after">
-    case OBJ_CLOSURE: {
+</pre><pre class="insert-after">    case OBJ_CLOSURE: {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
@@ -253,8 +241,7 @@ we add some more code to the switch case.</p>
 </aside>
 <p>We have a memory manager now, so we also need to support tracing through class
 objects.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (object-&gt;type) {
+<div class="codehilite"><pre class="insert-before">  switch (object-&gt;type) {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
 <pre class="insert">
@@ -263,24 +250,21 @@ in <em>blackenObject</em>()</div>
       <span class="i">markObject</span>((<span class="t">Obj</span>*)<span class="i">klass</span>-&gt;<span class="i">name</span>);
       <span class="k">break</span>;
     }
-</pre><pre class="insert-after">
-    case OBJ_CLOSURE: {
+</pre><pre class="insert-after">    case OBJ_CLOSURE: {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
 <p>When the GC reaches a class object, it marks the class&rsquo;s name to keep that
 string alive too.</p>
 <p>The last operation the VM can perform on a class is printing it.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (OBJ_TYPE(value)) {
+<div class="codehilite"><pre class="insert-before">  switch (OBJ_TYPE(value)) {
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OBJ_CLASS</span>:
       <span class="i">printf</span>(<span class="s">&quot;%s&quot;</span>, <span class="a">AS_CLASS</span>(<span class="i">value</span>)-&gt;<span class="i">name</span>-&gt;<span class="i">chars</span>);
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case OBJ_CLOSURE:
+</pre><pre class="insert-after">    case OBJ_CLOSURE:
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
@@ -288,8 +272,7 @@ in <em>printObject</em>()</div>
 <h2><a href="#class-declarations" name="class-declarations"><small>27&#8202;.&#8202;2</small>Class Declarations</a></h2>
 <p>Runtime representation in hand, we are ready to add support for classes to the
 language. Next, we move into the parser.</p>
-<div class="codehilite"><pre class="insert-before">
-static void declaration() {
+<div class="codehilite"><pre class="insert-before">static void declaration() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>declaration</em>()<br>
 replace 1 line</div>
@@ -297,8 +280,7 @@ replace 1 line</div>
   <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_CLASS</span>)) {
     <span class="i">classDeclaration</span>();
   } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_FUN</span>)) {
-</pre><pre class="insert-after">
-    funDeclaration();
+</pre><pre class="insert-after">    funDeclaration();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>declaration</em>(), replace 1 line</div>
 
@@ -351,34 +333,29 @@ useful for things like factory methods that produce new instances of the class.<
 simply an empty pair of braces. Lox doesn&rsquo;t require fields to be declared in the
 class, so we&rsquo;re done with the body<span class="em">&mdash;</span>and the parser<span class="em">&mdash;</span>for now.</p>
 <p>The compiler is emitting a new instruction, so let&rsquo;s define that.</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_RETURN,
+<div class="codehilite"><pre class="insert-before">  OP_RETURN,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_CLASS</span>,
-</pre><pre class="insert-after">
-} OpCode;
+</pre><pre class="insert-after">} OpCode;
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And add it to the disassembler:</p>
-<div class="codehilite"><pre class="insert-before">
-    case OP_RETURN:
+<div class="codehilite"><pre class="insert-before">    case OP_RETURN:
       return simpleInstruction(&quot;OP_RETURN&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OP_CLASS</span>:
       <span class="k">return</span> <span class="i">constantInstruction</span>(<span class="s">&quot;OP_CLASS&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    default:
+</pre><pre class="insert-after">    default:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>For such a large-seeming feature, the interpreter support is minimal.</p>
-<div class="codehilite"><pre class="insert-before">
-        break;
+<div class="codehilite"><pre class="insert-before">        break;
       }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
@@ -386,8 +363,7 @@ in <em>run</em>()</div>
       <span class="k">case</span> <span class="a">OP_CLASS</span>:
         <span class="i">push</span>(<span class="a">OBJ_VAL</span>(<span class="i">newClass</span>(<span class="a">READ_STRING</span>())));
         <span class="k">break</span>;
-</pre><pre class="insert-after">
-    }
+</pre><pre class="insert-after">    }
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -428,8 +404,7 @@ behave.</p>
 <p>We won&rsquo;t get to methods until the next chapter, so for now we will only worry
 about the first part. Before classes can create instances, we need a
 representation for them.</p>
-<div class="codehilite"><pre class="insert-before">
-} ObjClass;
+<div class="codehilite"><pre class="insert-before">} ObjClass;
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjClass</em></div>
 <pre class="insert">
@@ -440,7 +415,6 @@ add after struct <em>ObjClass</em></div>
   <span class="t">Table</span> <span class="i">fields</span>;<span name="fields"> </span>
 } <span class="t">ObjInstance</span>;
 </pre><pre class="insert-after">
-
 ObjClass* newClass(ObjString* name);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjClass</em></div>
@@ -466,25 +440,21 @@ lookup. Constant time, but still pretty heavyweight. In a language like C++,
 accessing a field is as fast as offsetting a pointer by an integer constant.</p>
 </aside>
 <p>We only need to add an include, and we&rsquo;ve got it.</p>
-<div class="codehilite"><pre class="insert-before">
-#include &quot;chunk.h&quot;
+<div class="codehilite"><pre class="insert-before">#include &quot;chunk.h&quot;
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#include &quot;table.h&quot;</span>
-</pre><pre class="insert-after">
-#include &quot;value.h&quot;
+</pre><pre class="insert-after">#include &quot;value.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>This new struct gets a new object type.</p>
-<div class="codehilite"><pre class="insert-before">
-  OBJ_FUNCTION,
+<div class="codehilite"><pre class="insert-before">  OBJ_FUNCTION,
 </pre><div class="source-file"><em>object.h</em><br>
 in enum <em>ObjType</em></div>
 <pre class="insert">
   <span class="a">OBJ_INSTANCE</span>,
-</pre><pre class="insert-after">
-  OBJ_NATIVE,
+</pre><pre class="insert-after">  OBJ_NATIVE,
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
@@ -500,37 +470,31 @@ of type ObjClass. Likewise, each instance in the user&rsquo;s program, no matter
 class it is an instance of, is an ObjInstance. That one VM object type covers
 instances of all classes. The two worlds map to each other something like this:</p><img src="image/classes-and-instances/lox-clox.png" alt="A set of class declarations and instances, and the runtime representations each maps to."/>
 <p>Got it? OK, back to the implementation. We also get our usual macros.</p>
-<div class="codehilite"><pre class="insert-before">
-#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
+<div class="codehilite"><pre class="insert-before">#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define IS_INSTANCE(value)     isObjType(value, OBJ_INSTANCE)</span>
-</pre><pre class="insert-after">
-#define IS_NATIVE(value)       isObjType(value, OBJ_NATIVE)
+</pre><pre class="insert-after">#define IS_NATIVE(value)       isObjType(value, OBJ_NATIVE)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>And:</p>
-<div class="codehilite"><pre class="insert-before">
-#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
+<div class="codehilite"><pre class="insert-before">#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define AS_INSTANCE(value)     ((ObjInstance*)AS_OBJ(value))</span>
-</pre><pre class="insert-after">
-#define AS_NATIVE(value) \
+</pre><pre class="insert-after">#define AS_NATIVE(value) \
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Since fields are added after the instance is created, the &ldquo;constructor&rdquo; function
 only needs to know the class.</p>
-<div class="codehilite"><pre class="insert-before">
-ObjFunction* newFunction();
+<div class="codehilite"><pre class="insert-before">ObjFunction* newFunction();
 </pre><div class="source-file"><em>object.h</em><br>
 add after <em>newFunction</em>()</div>
 <pre class="insert">
 <span class="t">ObjInstance</span>* <span class="i">newInstance</span>(<span class="t">ObjClass</span>* <span class="i">klass</span>);
-</pre><pre class="insert-after">
-ObjNative* newNative(NativeFn function);
+</pre><pre class="insert-after">ObjNative* newNative(NativeFn function);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after <em>newFunction</em>()</div>
 
@@ -550,8 +514,7 @@ add after <em>newFunction</em>()</div>
 <p>We store a reference to the instance&rsquo;s class. Then we initialize the field
 table to an empty hash table. A new baby object is born!</p>
 <p>At the sadder end of the instance&rsquo;s lifespan, it gets freed.</p>
-<div class="codehilite"><pre class="insert-before">
-      FREE(ObjFunction, object);
+<div class="codehilite"><pre class="insert-before">      FREE(ObjFunction, object);
       break;
     }
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -563,8 +526,7 @@ in <em>freeObject</em>()</div>
       <span class="a">FREE</span>(<span class="t">ObjInstance</span>, <span class="i">object</span>);
       <span class="k">break</span>;
     }
-</pre><pre class="insert-after">
-    case OBJ_NATIVE:
+</pre><pre class="insert-after">    case OBJ_NATIVE:
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
@@ -574,8 +536,7 @@ be other references to those objects. The garbage collector will take care of
 those for us. Here we free only the entry array of the table itself.</p>
 <p>Speaking of the garbage collector, it needs support for tracing through
 instances.</p>
-<div class="codehilite"><pre class="insert-before">
-      markArray(&amp;function-&gt;chunk.constants);
+<div class="codehilite"><pre class="insert-before">      markArray(&amp;function-&gt;chunk.constants);
       break;
     }
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -587,8 +548,7 @@ in <em>blackenObject</em>()</div>
       <span class="i">markTable</span>(&amp;<span class="i">instance</span>-&gt;<span class="i">fields</span>);
       <span class="k">break</span>;
     }
-</pre><pre class="insert-after">
-    case OBJ_UPVALUE:
+</pre><pre class="insert-after">    case OBJ_UPVALUE:
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
@@ -598,8 +558,7 @@ are not roots are reachable because some instance refers to the object in a
 field. Fortunately, we already have a nice <code>markTable()</code> function to make
 tracing them easy.</p>
 <p>Less critical but still important is printing.</p>
-<div class="codehilite"><pre class="insert-before">
-      break;
+<div class="codehilite"><pre class="insert-before">      break;
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
 <pre class="insert">
@@ -607,8 +566,7 @@ in <em>printObject</em>()</div>
       <span class="i">printf</span>(<span class="s">&quot;%s instance&quot;</span>,
              <span class="a">AS_INSTANCE</span>(<span class="i">value</span>)-&gt;<span class="i">klass</span>-&gt;<span class="i">name</span>-&gt;<span class="i">chars</span>);
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case OBJ_NATIVE:
+</pre><pre class="insert-after">    case OBJ_NATIVE:
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
@@ -627,8 +585,7 @@ were a function. The runtime already supports function calls, and it checks the
 type of object being called to make sure the user doesn&rsquo;t try to invoke a number
 or other invalid type.</p>
 <p>We extend that runtime checking with a new case.</p>
-<div class="codehilite"><pre class="insert-before">
-    switch (OBJ_TYPE(callee)) {
+<div class="codehilite"><pre class="insert-before">    switch (OBJ_TYPE(callee)) {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>callValue</em>()</div>
 <pre class="insert">
@@ -637,8 +594,7 @@ in <em>callValue</em>()</div>
         <span class="i">vm</span>.<span class="i">stackTop</span>[-<span class="i">argCount</span> - <span class="n">1</span>] = <span class="a">OBJ_VAL</span>(<span class="i">newInstance</span>(<span class="i">klass</span>));
         <span class="k">return</span> <span class="k">true</span>;
       }
-</pre><pre class="insert-after">
-      case OBJ_CLOSURE:
+</pre><pre class="insert-after">      case OBJ_CLOSURE:
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
@@ -676,14 +632,12 @@ the parse table as an infix expression.</p>
 but a single identifier whose semantics are handled by the get or set expression
 itself. It&rsquo;s really closer to a postfix expression.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-  [TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
+<div class="codehilite"><pre class="insert-before">  [TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
   [<span class="a">TOKEN_DOT</span>]           = {<span class="a">NULL</span>,     <span class="i">dot</span>,    <span class="a">PREC_CALL</span>},
-</pre><pre class="insert-after">
-  [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
+</pre><pre class="insert-after">  [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
@@ -750,21 +704,18 @@ been <code>OP_SET_FIELD</code>, but I thought it looked nicer to be consistent w
 instruction.</p>
 </aside>
 <p>Now is a good time to define these two new instructions.</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_SET_UPVALUE,
+<div class="codehilite"><pre class="insert-before">  OP_SET_UPVALUE,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_GET_PROPERTY</span>,
   <span class="a">OP_SET_PROPERTY</span>,
-</pre><pre class="insert-after">
-  OP_EQUAL,
+</pre><pre class="insert-after">  OP_EQUAL,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And add support for disassembling them:</p>
-<div class="codehilite"><pre class="insert-before">
-      return byteInstruction(&quot;OP_SET_UPVALUE&quot;, chunk, offset);
+<div class="codehilite"><pre class="insert-before">      return byteInstruction(&quot;OP_SET_UPVALUE&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
@@ -772,16 +723,14 @@ in <em>disassembleInstruction</em>()</div>
       <span class="k">return</span> <span class="i">constantInstruction</span>(<span class="s">&quot;OP_GET_PROPERTY&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
     <span class="k">case</span> <span class="a">OP_SET_PROPERTY</span>:
       <span class="k">return</span> <span class="i">constantInstruction</span>(<span class="s">&quot;OP_SET_PROPERTY&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    case OP_EQUAL:
+</pre><pre class="insert-after">    case OP_EQUAL:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <h3><a href="#interpreting-getter-and-setter-expressions" name="interpreting-getter-and-setter-expressions"><small>27&#8202;.&#8202;4&#8202;.&#8202;1</small>Interpreting getter and setter expressions</a></h3>
 <p>Sliding over to the runtime, we&rsquo;ll start with get expressions since those are a
 little simpler.</p>
-<div class="codehilite"><pre class="insert-before">
-      }
+<div class="codehilite"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -796,8 +745,7 @@ in <em>run</em>()</div>
           <span class="k">break</span>;
         }
       }
-</pre><pre class="insert-after">
-      case OP_EQUAL: {
+</pre><pre class="insert-after">      case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -808,8 +756,7 @@ field table. If the hash table contains an entry with that name, we pop the
 instance and push the entry&rsquo;s value as the result.</p>
 <p>Of course, the field might not exist. In Lox, we&rsquo;ve defined that to be a runtime
 error. So we add a check for that and abort if it happens.</p>
-<div class="codehilite"><pre class="insert-before">
-          push(value);
+<div class="codehilite"><pre class="insert-before">          push(value);
           break;
         }
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -818,8 +765,7 @@ in <em>run</em>()</div>
 
         <span class="i">runtimeError</span>(<span class="s">&quot;Undefined property &#39;%s&#39;.&quot;</span>, <span class="i">name</span>-&gt;<span class="i">chars</span>);
         <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span>;
-</pre><pre class="insert-after">
-      }
+</pre><pre class="insert-after">      }
       case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -848,8 +794,7 @@ values. If I attach a field to the number <code>3</code>, does the result of <co
 that field as well? If so, how does the implementation track that? If not, are
 those two resulting &ldquo;threes&rdquo; still considered equal?</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-      case OP_GET_PROPERTY: {
+<div class="codehilite"><pre class="insert-before">      case OP_GET_PROPERTY: {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -858,8 +803,7 @@ in <em>run</em>()</div>
           <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span>;
         }
 
-</pre><pre class="insert-after">
-        ObjInstance* instance = AS_INSTANCE(peek(0));
+</pre><pre class="insert-after">        ObjInstance* instance = AS_INSTANCE(peek(0));
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -867,8 +811,7 @@ in <em>run</em>()</div>
 safely exit.</p>
 <p>Of course, get expressions are not very useful when no instances have any
 fields. For that we need setters.</p>
-<div class="codehilite"><pre class="insert-before">
-        return INTERPRET_RUNTIME_ERROR;
+<div class="codehilite"><pre class="insert-before">        return INTERPRET_RUNTIME_ERROR;
       }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
@@ -881,8 +824,7 @@ in <em>run</em>()</div>
         <span class="i">push</span>(<span class="i">value</span>);
         <span class="k">break</span>;
       }
-</pre><pre class="insert-after">
-      case OP_EQUAL: {
+</pre><pre class="insert-after">      case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -908,8 +850,7 @@ we need to leave that value on the stack. Here&rsquo;s what I mean:</p>
 containing the field. A setter implicitly creates the field if needed. We do
 need to handle the user incorrectly trying to store a field on a value that
 isn&rsquo;t an instance.</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_SET_PROPERTY: {
+<div class="codehilite"><pre class="insert-before">      case OP_SET_PROPERTY: {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -918,8 +859,7 @@ in <em>run</em>()</div>
           <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span>;
         }
 
-</pre><pre class="insert-after">
-        ObjInstance* instance = AS_INSTANCE(peek(1));
+</pre><pre class="insert-after">        ObjInstance* instance = AS_INSTANCE(peek(1));
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
