@@ -51,7 +51,7 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
     if (language == "text") {
       // Don't syntax highlight text.
       var buffer = StringBuffer();
-      if (_format.isWeb) buffer.write("<pre>");
+      if (!_format.isPrint) buffer.write("<pre>");
 
       for (var line in childLines) {
         // Strip off any leading indentation.
@@ -67,7 +67,7 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
         }
       }
 
-      if (_format.isWeb) buffer.write("</pre>");
+      if (!_format.isPrint) buffer.write("</pre>");
 
       code = buffer.toString();
     } else {
@@ -118,13 +118,13 @@ class CodeTagBlockSyntax extends BlockSyntax {
     if (_format.isPrint) {
       snippet = _buildSnippetXml(codeTag, _book.findSnippet(codeTag));
     } else {
-      snippet = _buildSnippet(codeTag, _book.findSnippet(codeTag));
+      snippet = _buildSnippet(_format, codeTag, _book.findSnippet(codeTag));
     }
     return Text(snippet);
   }
 }
 
-String _buildSnippet(CodeTag tag, Snippet snippet) {
+String _buildSnippet(Format format, CodeTag tag, Snippet snippet) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
 
@@ -146,7 +146,7 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
 
   if (snippet.addedComma != null) {
     var commaLine = formatCode(
-        snippet.file.language, [snippet.addedComma], Format.web,
+        snippet.file.language, [snippet.addedComma], format,
         preClass: "insert-before");
     var comma = commaLine.lastIndexOf(",");
     buffer.write(commaLine.substring(0, comma));
@@ -160,7 +160,7 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.added != null) {
-    var added = formatCode(snippet.file.language, snippet.added, Format.web,
+    var added = formatCode(snippet.file.language, snippet.added, format,
         preClass: tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
     buffer.write(added);
   }

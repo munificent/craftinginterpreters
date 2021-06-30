@@ -61,6 +61,7 @@ const _tableOfContents = {
 /// parsed.
 class Book {
   final List<Page> parts = [];
+  final List<Page> frontmatter = [];
   final List<Page> pages = [];
 
   final Map<CodeTag, Snippet> _snippets = {};
@@ -80,7 +81,7 @@ class Book {
         partIndex += 1;
       }
 
-      // There are no part pages for the front- and backmatter.
+      // There is no part page for the frontmatter.
       Page partPage;
       if (part != "") {
         partPage = Page(part, null, partNumber, pages.length);
@@ -104,7 +105,11 @@ class Book {
 
         var page = Page(chapter, partPage, chapterNumber, pages.length);
         pages.add(page);
-        if (partPage != null) partPage.chapters.add(page);
+        if (partPage != null) {
+          partPage.chapters.add(page);
+        } else {
+          frontmatter.add(page);
+        }
       }
     }
 
