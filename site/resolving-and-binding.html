@@ -529,14 +529,12 @@ add after <em>resolve</em>()</div>
 <p>Lexical scopes nest in both the interpreter and the resolver. They behave like a
 stack. The interpreter implements that stack using a linked list<span class="em">&mdash;</span>the chain of
 Environment objects. In the resolver, we use an actual Java Stack.</p>
-<div class="codehilite"><pre class="insert-before">
-  private final Interpreter interpreter;
+<div class="codehilite"><pre class="insert-before">  private final Interpreter interpreter;
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in class <em>Resolver</em></div>
 <pre class="insert">
   <span class="k">private</span> <span class="k">final</span> <span class="t">Stack</span>&lt;<span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">Boolean</span>&gt;&gt; <span class="i">scopes</span> = <span class="k">new</span> <span class="t">Stack</span>&lt;&gt;();
 </pre><pre class="insert-after">
-
   Resolver(Interpreter interpreter) {
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in class <em>Resolver</em></div>
@@ -981,14 +979,12 @@ the user&rsquo;s program. It may be hard to find all of the bits of state that n
 recalculating when they&rsquo;re hiding in the foliage of the syntax tree. A benefit
 of storing this data outside of the nodes is that it makes it easy to <em>discard</em>
 it<span class="em">&mdash;</span>simply clear the map.</p>
-<div class="codehilite"><pre class="insert-before">
-  private Environment environment = globals;
+<div class="codehilite"><pre class="insert-before">  private Environment environment = globals;
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
 <pre class="insert">
   <span class="k">private</span> <span class="k">final</span> <span class="t">Map</span>&lt;<span class="t">Expr</span>, <span class="t">Integer</span>&gt; <span class="i">locals</span> = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
 </pre><pre class="insert-after">
-
   Interpreter() {
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
@@ -998,24 +994,20 @@ confused when there are multiple expressions that reference the same variable,
 but each expression node is its own Java object with its own unique identity. A
 single monolithic map doesn&rsquo;t have any trouble keeping them separated.</p>
 <p>As usual, using a collection requires us to import a couple of names.</p>
-<div class="codehilite"><pre class="insert-before">
-import java.util.ArrayList;
+<div class="codehilite"><pre class="insert-before">import java.util.ArrayList;
 </pre><div class="source-file"><em>lox/Interpreter.java</em></div>
 <pre class="insert">
 <span class="k">import</span> <span class="i">java.util.HashMap</span>;
-</pre><pre class="insert-after">
-import java.util.List;
+</pre><pre class="insert-after">import java.util.List;
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em></div>
 
 <p>And:</p>
-<div class="codehilite"><pre class="insert-before">
-import java.util.List;
+<div class="codehilite"><pre class="insert-before">import java.util.List;
 </pre><div class="source-file"><em>lox/Interpreter.java</em></div>
 <pre class="insert">
 <span class="k">import</span> <span class="i">java.util.Map</span>;
 </pre><pre class="insert-after">
-
 class Interpreter implements Expr.Visitor&lt;Object&gt;,
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em></div>
@@ -1024,15 +1016,13 @@ class Interpreter implements Expr.Visitor&lt;Object&gt;,
 <p>Our interpreter now has access to each variable&rsquo;s resolved location. Finally, we
 get to make use of that. We replace the visit method for variable expressions
 with this:</p>
-<div class="codehilite"><pre class="insert-before">
-  public Object visitVariableExpr(Expr.Variable expr) {
+<div class="codehilite"><pre class="insert-before">  public Object visitVariableExpr(Expr.Variable expr) {
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitVariableExpr</em>()<br>
 replace 1 line</div>
 <pre class="insert">
     <span class="k">return</span> <span class="i">lookUpVariable</span>(<span class="i">expr</span>.<span class="i">name</span>, <span class="i">expr</span>);
-</pre><pre class="insert-after">
-  }
+</pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitVariableExpr</em>(), replace 1 line</div>
 
@@ -1108,8 +1098,7 @@ to have already upheld.</p>
 <h3><a href="#assigning-to-a-resolved-variable" name="assigning-to-a-resolved-variable"><small>11&#8202;.&#8202;4&#8202;.&#8202;2</small>Assigning to a resolved variable</a></h3>
 <p>We can also use a variable by assigning to it. The changes to visiting an
 assignment expression are similar.</p>
-<div class="codehilite"><pre class="insert-before">
-  public Object visitAssignExpr(Expr.Assign expr) {
+<div class="codehilite"><pre class="insert-before">  public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitAssignExpr</em>()<br>
@@ -1123,8 +1112,7 @@ replace 1 line</div>
       <span class="i">globals</span>.<span class="i">assign</span>(<span class="i">expr</span>.<span class="i">name</span>, <span class="i">value</span>);
     }
 
-</pre><pre class="insert-after">
-    return value;
+</pre><pre class="insert-after">    return value;
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitAssignExpr</em>(), replace 1 line</div>
 
@@ -1148,8 +1136,7 @@ unchanged.</p>
 <h3><a href="#running-the-resolver" name="running-the-resolver"><small>11&#8202;.&#8202;4&#8202;.&#8202;3</small>Running the resolver</a></h3>
 <p>We do need to actually <em>run</em> the resolver, though. We insert the new pass after
 the parser does its magic.</p>
-<div class="codehilite"><pre class="insert-before">
-    // Stop if there was a syntax error.
+<div class="codehilite"><pre class="insert-before">    // Stop if there was a syntax error.
     if (hadError) return;
 
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
@@ -1158,8 +1145,7 @@ in <em>run</em>()</div>
     <span class="t">Resolver</span> <span class="i">resolver</span> = <span class="k">new</span> <span class="t">Resolver</span>(<span class="i">interpreter</span>);
     <span class="i">resolver</span>.<span class="i">resolve</span>(<span class="i">statements</span>);
 
-</pre><pre class="insert-after">
-    interpreter.interpret(statements);
+</pre><pre class="insert-after">    interpreter.interpret(statements);
 </pre></div>
 <div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>()</div>
 
@@ -1187,8 +1173,7 @@ variable already existed, they would have assigned to it instead of using <code>
 And if they <em>didn&rsquo;t</em> know it existed, they probably didn&rsquo;t intend to overwrite
 the previous one.</p>
 <p>We can detect this mistake statically while resolving.</p>
-<div class="codehilite"><pre class="insert-before">
-    Map&lt;String, Boolean&gt; scope = scopes.peek();
+<div class="codehilite"><pre class="insert-before">    Map&lt;String, Boolean&gt; scope = scopes.peek();
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>declare</em>()</div>
 <pre class="insert">
@@ -1197,8 +1182,7 @@ in <em>declare</em>()</div>
           <span class="s">&quot;Already a variable with this name in this scope.&quot;</span>);
     }
 
-</pre><pre class="insert-after">
-    scope.put(name.lexeme, false);
+</pre><pre class="insert-after">    scope.put(name.lexeme, false);
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>declare</em>()</div>
 
@@ -1216,14 +1200,12 @@ I don&rsquo;t think we want Lox to allow this.</p>
 <p>We can extend the resolver to detect this statically. Much like we track scopes
 as we walk the tree, we can track whether or not the code we are currently
 visiting is inside a function declaration.</p>
-<div class="codehilite"><pre class="insert-before">
-  private final Stack&lt;Map&lt;String, Boolean&gt;&gt; scopes = new Stack&lt;&gt;();
+<div class="codehilite"><pre class="insert-before">  private final Stack&lt;Map&lt;String, Boolean&gt;&gt; scopes = new Stack&lt;&gt;();
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in class <em>Resolver</em></div>
 <pre class="insert">
   <span class="k">private</span> <span class="t">FunctionType</span> <span class="i">currentFunction</span> = <span class="t">FunctionType</span>.<span class="i">NONE</span>;
 </pre><pre class="insert-after">
-
   Resolver(Interpreter interpreter) {
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in class <em>Resolver</em></div>
@@ -1242,16 +1224,14 @@ add after <em>Resolver</em>()</div>
 <p>It seems kind of dumb now, but we&rsquo;ll add a couple more cases to it later and
 then it will make more sense. When we resolve a function declaration, we pass
 that in.</p>
-<div class="codehilite"><pre class="insert-before">
-    define(stmt.name);
+<div class="codehilite"><pre class="insert-before">    define(stmt.name);
 
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitFunctionStmt</em>()<br>
 replace 1 line</div>
 <pre class="insert">
     <span class="i">resolveFunction</span>(<span class="i">stmt</span>, <span class="t">FunctionType</span>.<span class="i">FUNCTION</span>);
-</pre><pre class="insert-after">
-    return null;
+</pre><pre class="insert-after">    return null;
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitFunctionStmt</em>(), replace 1 line</div>
 
@@ -1266,8 +1246,7 @@ replace 1 line</div>
     <span class="t">FunctionType</span> <span class="i">enclosingFunction</span> = <span class="i">currentFunction</span>;
     <span class="i">currentFunction</span> = <span class="i">type</span>;
 
-</pre><pre class="insert-after">
-    beginScope();
+</pre><pre class="insert-after">    beginScope();
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, method <em>resolveFunction</em>(), replace 1 line</div>
 
@@ -1279,21 +1258,18 @@ in.</p>
 we&rsquo;ll piggyback on the JVM. We store the previous value in a local on the Java
 stack. When we&rsquo;re done resolving the function body, we restore the field to that
 value.</p>
-<div class="codehilite"><pre class="insert-before">
-    endScope();
+<div class="codehilite"><pre class="insert-before">    endScope();
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>resolveFunction</em>()</div>
 <pre class="insert">
     <span class="i">currentFunction</span> = <span class="i">enclosingFunction</span>;
-</pre><pre class="insert-after">
-  }
+</pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>resolveFunction</em>()</div>
 
 <p>Now that we can always tell whether or not we&rsquo;re inside a function declaration,
 we check that when resolving a <code>return</code> statement.</p>
-<div class="codehilite"><pre class="insert-before">
-  public Void visitReturnStmt(Stmt.Return stmt) {
+<div class="codehilite"><pre class="insert-before">  public Void visitReturnStmt(Stmt.Return stmt) {
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitReturnStmt</em>()</div>
 <pre class="insert">
@@ -1301,8 +1277,7 @@ in <em>visitReturnStmt</em>()</div>
       <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">stmt</span>.<span class="i">keyword</span>, <span class="s">&quot;Can&#39;t return from top-level code.&quot;</span>);
     }
 
-</pre><pre class="insert-after">
-    if (stmt.value != null) {
+</pre><pre class="insert-after">    if (stmt.value != null) {
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitReturnStmt</em>()</div>
 
@@ -1313,8 +1288,7 @@ encountered. That check runs <em>before</em> the resolver so that we don&rsquo;t
 resolve syntactically invalid code.</p>
 <p>But we also need to skip the interpreter if there are resolution errors, so we
 add <em>another</em> check.</p>
-<div class="codehilite"><pre class="insert-before">
-    resolver.resolve(statements);
+<div class="codehilite"><pre class="insert-before">    resolver.resolve(statements);
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -1322,7 +1296,6 @@ in <em>run</em>()</div>
     <span class="c">// Stop if there was a resolution error.</span>
     <span class="k">if</span> (<span class="i">hadError</span>) <span class="k">return</span>;
 </pre><pre class="insert-after">
-
     interpreter.interpret(statements);
 </pre></div>
 <div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>()</div>

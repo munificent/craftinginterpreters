@@ -158,8 +158,7 @@ pack the above information into as few bits as possible. For now, we&rsquo;ll st
 with the simplest, classic solution: a <strong>tagged union</strong>. A value contains two
 parts: a type &ldquo;tag&rdquo;, and a payload for the actual value. To store the value&rsquo;s
 type, we define an enum for each kind of value the VM supports.</p>
-<div class="codehilite"><pre class="insert-before">
-#include &quot;common.h&quot;
+<div class="codehilite"><pre class="insert-before">#include &quot;common.h&quot;
 
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
@@ -169,8 +168,7 @@ type, we define an enum for each kind of value the VM supports.</p>
   <span class="a">VAL_NUMBER</span>,
 } <span class="t">ValueType</span>;
 
-</pre><pre class="insert-after">
-typedef double Value;
+</pre><pre class="insert-after">typedef double Value;
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
@@ -207,8 +205,7 @@ unsafe and will happily saw your fingers off if you don&rsquo;t watch out.</p>
 </aside>
 <p>As the name &ldquo;tagged union&rdquo; implies, our new value representation combines these
 two parts into a single struct.</p>
-<div class="codehilite"><pre class="insert-before">
-} ValueType;
+<div class="codehilite"><pre class="insert-before">} ValueType;
 
 </pre><div class="source-file"><em>value.h</em><br>
 add after enum <em>ValueType</em><br>
@@ -222,7 +219,6 @@ replace 1 line</div>
   } <span class="i">as</span>;<span name="as"> </span>
 } <span class="t">Value</span>;
 </pre><pre class="insert-after">
-
 typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em>, add after enum <em>ValueType</em>, replace 1 line</div>
@@ -265,8 +261,7 @@ other. We need to go through the code and insert those conversions to get clox
 working again.</p>
 <p>We&rsquo;ll implement these conversions as a handful of macros, one for each type and
 operation. First, to promote a native C value to a clox Value:</p>
-<div class="codehilite"><pre class="insert-before">
-} Value;
+<div class="codehilite"><pre class="insert-before">} Value;
 </pre><div class="source-file"><em>value.h</em><br>
 add after struct <em>Value</em></div>
 <pre class="insert">
@@ -275,7 +270,6 @@ add after struct <em>Value</em></div>
 <span class="a">#define NIL_VAL           ((Value){VAL_NIL, {.number = 0}})</span>
 <span class="a">#define NUMBER_VAL(value) ((Value){VAL_NUMBER, {.number = value}})</span>
 </pre><pre class="insert-after">
-
 typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
@@ -285,8 +279,7 @@ that has the correct type tag and contains the underlying value. This hoists
 statically typed values up into clox&rsquo;s dynamically typed universe. In order to
 <em>do</em> anything with a Value, though, we need to unpack it and get the C value
 back out.</p>
-<div class="codehilite"><pre class="insert-before">
-} Value;
+<div class="codehilite"><pre class="insert-before">} Value;
 </pre><div class="source-file"><em>value.h</em><br>
 add after struct <em>Value</em></div>
 <pre class="insert">
@@ -294,7 +287,6 @@ add after struct <em>Value</em></div>
 <span class="a">#define AS_BOOL(value)    ((value).as.boolean)</span>
 <span class="a">#define AS_NUMBER(value)  ((value).as.number)</span>
 </pre><pre class="insert-after">
-
 #define BOOL_VAL(value)   ((Value){VAL_BOOL, {.boolean = value}})
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
@@ -314,8 +306,7 @@ union fields. If we were to do something like:</p>
 <p>Then we may open a smoldering portal to the Shadow Realm. It&rsquo;s not safe to use
 any of the <code>AS_</code> macros unless we know the Value contains the appropriate type.
 To that end, we define a last few macros to check a Value&rsquo;s type.</p>
-<div class="codehilite"><pre class="insert-before">
-} Value;
+<div class="codehilite"><pre class="insert-before">} Value;
 </pre><div class="source-file"><em>value.h</em><br>
 add after struct <em>Value</em></div>
 <pre class="insert">
@@ -324,7 +315,6 @@ add after struct <em>Value</em></div>
 <span class="a">#define IS_NIL(value)     ((value).type == VAL_NIL)</span>
 <span class="a">#define IS_NUMBER(value)  ((value).type == VAL_NUMBER)</span>
 </pre><pre class="insert-after">
-
 #define AS_BOOL(value)    ((value).as.boolean)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
@@ -346,28 +336,24 @@ single line of code, so here we are.</p>
 <p>The first values we create are the constants generated when we compile number
 literals. After we convert the lexeme to a C double, we simply wrap it in a
 Value before storing it in the constant table.</p>
-<div class="codehilite"><pre class="insert-before">
-  double value = strtod(parser.previous.start, NULL);
+<div class="codehilite"><pre class="insert-before">  double value = strtod(parser.previous.start, NULL);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>number</em>()<br>
 replace 1 line</div>
 <pre class="insert">
   <span class="i">emitConstant</span>(<span class="a">NUMBER_VAL</span>(<span class="i">value</span>));
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>number</em>(), replace 1 line</div>
 
 <p>Over in the runtime, we have a function to print values.</p>
-<div class="codehilite"><pre class="insert-before">
-void printValue(Value value) {
+<div class="codehilite"><pre class="insert-before">void printValue(Value value) {
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()<br>
 replace 1 line</div>
 <pre class="insert">
  <span class="i">printf</span>(<span class="s">&quot;%g&quot;</span>, <span class="a">AS_NUMBER</span>(<span class="i">value</span>));
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>(), replace 1 line</div>
 
@@ -385,8 +371,7 @@ can&rsquo;t assume the operand is a number anymore. The user could just as well 
 Before performing an operation that requires a certain type, we need to make
 sure the Value <em>is</em> that type.</p>
 <p>For unary negation, the check looks like this:</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_DIVIDE:   BINARY_OP(/); break;
+<div class="codehilite"><pre class="insert-before">      case OP_DIVIDE:   BINARY_OP(/); break;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
@@ -398,8 +383,7 @@ replace 1 line</div>
         }
         <span class="i">push</span>(<span class="a">NUMBER_VAL</span>(-<span class="a">AS_NUMBER</span>(<span class="i">pop</span>())));
         <span class="k">break</span>;
-</pre><pre class="insert-after">
-      case OP_RETURN: {
+</pre><pre class="insert-after">      case OP_RETURN: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
 
@@ -490,8 +474,7 @@ in a standard header.</p>
 add to top of file</div>
 <pre class="insert">
 <span class="a">#include &lt;stdarg.h&gt;</span>
-</pre><pre class="insert-after">
-#include &lt;stdio.h&gt;
+</pre><pre class="insert-after">#include &lt;stdio.h&gt;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add to top of file</div>
 
@@ -508,8 +491,7 @@ the operator token as a parameter.</p>
 <p>That macro seemed like overkill a <a href="a-virtual-machine.html#binary-operators">few chapters ago</a>, but we get the benefit
 from it today. It lets us add the necessary type checking and conversions in one
 place.</p>
-<div class="codehilite"><pre class="insert-before">
-#define READ_CONSTANT() (vm.chunk-&gt;constants.values[READ_BYTE()])
+<div class="codehilite"><pre class="insert-before">#define READ_CONSTANT() (vm.chunk-&gt;constants.values[READ_BYTE()])
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 6 lines</div>
@@ -525,7 +507,6 @@ replace 6 lines</div>
 <span class="a">      push(valueType(a op b)); \</span>
 <span class="a">    } while (false)</span>
 </pre><pre class="insert-after">
-
   for (;;) {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 6 lines</div>
@@ -543,8 +524,7 @@ existing arithmetic operators, the result is a number, so we pass in the
 <aside name="macro">
 <p>Did you know you can pass macros as parameters to macros? Now you do!</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-      }
+<div class="codehilite"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 4 lines</div>
@@ -553,8 +533,7 @@ replace 4 lines</div>
       <span class="k">case</span> <span class="a">OP_SUBTRACT</span>: <span class="a">BINARY_OP</span>(<span class="a">NUMBER_VAL</span>, -); <span class="k">break</span>;
       <span class="k">case</span> <span class="a">OP_MULTIPLY</span>: <span class="a">BINARY_OP</span>(<span class="a">NUMBER_VAL</span>, *); <span class="k">break</span>;
       <span class="k">case</span> <span class="a">OP_DIVIDE</span>:   <span class="a">BINARY_OP</span>(<span class="a">NUMBER_VAL</span>, /); <span class="k">break</span>;
-</pre><pre class="insert-after">
-      case OP_NEGATE:
+</pre><pre class="insert-after">      case OP_NEGATE:
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 4 lines</div>
 
@@ -589,16 +568,14 @@ loading 0.0, 1.0, 2.0, and the integer values from -1 through 5. (This ends up
 being a vestigial optimization given that most mature JVMs now JIT-compile the
 bytecode to machine code before execution anyway.)</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-  OP_CONSTANT,
+<div class="codehilite"><pre class="insert-before">  OP_CONSTANT,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_NIL</span>,
   <span class="a">OP_TRUE</span>,
   <span class="a">OP_FALSE</span>,
-</pre><pre class="insert-after">
-  OP_ADD,
+</pre><pre class="insert-after">  OP_ADD,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
@@ -606,38 +583,32 @@ in enum <em>OpCode</em></div>
 skip right to the parser. With our table-based Pratt parser, we just need to
 slot parser functions into the rows associated with those keyword token types.
 We&rsquo;ll use the same function in all three slots. Here:</p>
-<div class="codehilite"><pre class="insert-before">
-  [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
+<div class="codehilite"><pre class="insert-before">  [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
   [<span class="a">TOKEN_FALSE</span>]         = {<span class="i">literal</span>,  <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
-</pre><pre class="insert-after">
-  [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
+</pre><pre class="insert-after">  [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>Here:</p>
-<div class="codehilite"><pre class="insert-before">
-  [TOKEN_THIS]          = {NULL,     NULL,   PREC_NONE},
+<div class="codehilite"><pre class="insert-before">  [TOKEN_THIS]          = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
   [<span class="a">TOKEN_TRUE</span>]          = {<span class="i">literal</span>,  <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
-</pre><pre class="insert-after">
-  [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
+</pre><pre class="insert-after">  [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>And here:</p>
-<div class="codehilite"><pre class="insert-before">
-  [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
+<div class="codehilite"><pre class="insert-before">  [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
   [<span class="a">TOKEN_NIL</span>]           = {<span class="i">literal</span>,  <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
-</pre><pre class="insert-after">
-  [TOKEN_OR]            = {NULL,     NULL,   PREC_NONE},
+</pre><pre class="insert-after">  [TOKEN_OR]            = {NULL,     NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
@@ -667,8 +638,7 @@ interpreter.</p>
 ourselves a switch but that felt needlessly verbose to me. I think it&rsquo;s mostly a
 matter of taste.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-      case OP_CONSTANT: {
+<div class="codehilite"><pre class="insert-before">      case OP_CONSTANT: {
         Value constant = READ_CONSTANT();
         push(constant);
         break;
@@ -679,15 +649,13 @@ in <em>run</em>()</div>
       <span class="k">case</span> <span class="a">OP_NIL</span>: <span class="i">push</span>(<span class="a">NIL_VAL</span>); <span class="k">break</span>;
       <span class="k">case</span> <span class="a">OP_TRUE</span>: <span class="i">push</span>(<span class="a">BOOL_VAL</span>(<span class="k">true</span>)); <span class="k">break</span>;
       <span class="k">case</span> <span class="a">OP_FALSE</span>: <span class="i">push</span>(<span class="a">BOOL_VAL</span>(<span class="k">false</span>)); <span class="k">break</span>;
-</pre><pre class="insert-after">
-      case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
+</pre><pre class="insert-after">      case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>This is pretty self-explanatory. Each instruction summons the appropriate value
 and pushes it onto the stack. We shouldn&rsquo;t forget our disassembler either.</p>
-<div class="codehilite"><pre class="insert-before">
-    case OP_CONSTANT:
+<div class="codehilite"><pre class="insert-before">    case OP_CONSTANT:
       return constantInstruction(&quot;OP_CONSTANT&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
@@ -698,8 +666,7 @@ in <em>disassembleInstruction</em>()</div>
       <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_TRUE&quot;</span>, <span class="i">offset</span>);
     <span class="k">case</span> <span class="a">OP_FALSE</span>:
       <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_FALSE&quot;</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    case OP_ADD:
+</pre><pre class="insert-after">    case OP_ADD:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
@@ -709,8 +676,7 @@ in <em>disassembleInstruction</em>()</div>
 </pre></div>
 <p>Except that when the interpreter tries to print the result, it blows up. We need
 to extend <code>printValue()</code> to handle the new types too:</p>
-<div class="codehilite"><pre class="insert-before">
-void printValue(Value value) {
+<div class="codehilite"><pre class="insert-before">void printValue(Value value) {
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()<br>
 replace 1 line</div>
@@ -722,8 +688,7 @@ replace 1 line</div>
     <span class="k">case</span> <span class="a">VAL_NIL</span>: <span class="i">printf</span>(<span class="s">&quot;nil&quot;</span>); <span class="k">break</span>;
     <span class="k">case</span> <span class="a">VAL_NUMBER</span>: <span class="i">printf</span>(<span class="s">&quot;%g&quot;</span>, <span class="a">AS_NUMBER</span>(<span class="i">value</span>)); <span class="k">break</span>;
   }
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>(), replace 1 line</div>
 
@@ -737,41 +702,35 @@ logical operators.</p>
 <span class="k">print</span> !<span class="k">true</span>; <span class="c">// &quot;false&quot;</span>
 </pre></div>
 <p>This new operation gets a new instruction.</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_DIVIDE,
+<div class="codehilite"><pre class="insert-before">  OP_DIVIDE,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_NOT</span>,
-</pre><pre class="insert-after">
-  OP_NEGATE,
+</pre><pre class="insert-after">  OP_NEGATE,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>We can reuse the <code>unary()</code> parser function we wrote for unary negation to
 compile a not expression. We just need to slot it into the parsing table.</p>
-<div class="codehilite"><pre class="insert-before">
-  [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
+<div class="codehilite"><pre class="insert-before">  [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
   [<span class="a">TOKEN_BANG</span>]          = {<span class="i">unary</span>,    <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
-</pre><pre class="insert-after">
-  [TOKEN_BANG_EQUAL]    = {NULL,     NULL,   PREC_NONE},
+</pre><pre class="insert-after">  [TOKEN_BANG_EQUAL]    = {NULL,     NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>Because I knew we were going to do this, the <code>unary()</code> function already has a
 switch on the token type to figure out which bytecode instruction to output. We
 merely add another case.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (operatorType) {
+<div class="codehilite"><pre class="insert-before">  switch (operatorType) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>unary</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">TOKEN_BANG</span>: <span class="i">emitByte</span>(<span class="a">OP_NOT</span>); <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case TOKEN_MINUS: emitByte(OP_NEGATE); break;
+</pre><pre class="insert-after">    case TOKEN_MINUS: emitByte(OP_NEGATE); break;
     default: return; // Unreachable.
   }
 </pre></div>
@@ -779,16 +738,14 @@ in <em>unary</em>()</div>
 
 <p>That&rsquo;s it for the front end. Let&rsquo;s head over to the VM and conjure this
 instruction into life.</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_DIVIDE:   BINARY_OP(NUMBER_VAL, /); break;
+<div class="codehilite"><pre class="insert-before">      case OP_DIVIDE:   BINARY_OP(NUMBER_VAL, /); break;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
       <span class="k">case</span> <span class="a">OP_NOT</span>:
         <span class="i">push</span>(<span class="a">BOOL_VAL</span>(<span class="i">isFalsey</span>(<span class="i">pop</span>())));
         <span class="k">break</span>;
-</pre><pre class="insert-after">
-      case OP_NEGATE:
+</pre><pre class="insert-after">      case OP_NEGATE:
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -821,16 +778,14 @@ add after <em>peek</em>()</div>
 <p>Lox follows Ruby in that <code>nil</code> and <code>false</code> are falsey and every other value
 behaves like <code>true</code>. We&rsquo;ve got a new instruction we can generate, so we also
 need to be able to <em>un</em>generate it in the disassembler.</p>
-<div class="codehilite"><pre class="insert-before">
-    case OP_DIVIDE:
+<div class="codehilite"><pre class="insert-before">    case OP_DIVIDE:
       return simpleInstruction(&quot;OP_DIVIDE&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OP_NOT</span>:
       <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_NOT&quot;</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    case OP_NEGATE:
+</pre><pre class="insert-after">    case OP_NEGATE:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
@@ -841,16 +796,14 @@ all of the operators that return Boolean results except the logical operators
 <code>and</code> and <code>or</code>. Since those need to short-circuit (basically do a little
 control flow) we aren&rsquo;t ready for them yet.</p>
 <p>Here are the new instructions for those operators:</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_FALSE,
+<div class="codehilite"><pre class="insert-before">  OP_FALSE,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_EQUAL</span>,
   <span class="a">OP_GREATER</span>,
   <span class="a">OP_LESS</span>,
-</pre><pre class="insert-after">
-  OP_ADD,
+</pre><pre class="insert-after">  OP_ADD,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
@@ -877,20 +830,17 @@ matter in your real language implementations.</p>
 <p>Over in the parser, though, we do have six new operators to slot into the parse
 table. We use the same <code>binary()</code> parser function from before. Here&rsquo;s the row
 for <code>!=</code>:</p>
-<div class="codehilite"><pre class="insert-before">
-  [TOKEN_BANG]          = {unary,    NULL,   PREC_NONE},
+<div class="codehilite"><pre class="insert-before">  [TOKEN_BANG]          = {unary,    NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
   [<span class="a">TOKEN_BANG_EQUAL</span>]    = {<span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_EQUALITY</span>},
-</pre><pre class="insert-after">
-  [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
+</pre><pre class="insert-after">  [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>The remaining five operators are a little farther down in the table.</p>
-<div class="codehilite"><pre class="insert-before">
-  [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
+<div class="codehilite"><pre class="insert-before">  [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 5 lines</div>
 <pre class="insert">
@@ -899,15 +849,13 @@ replace 5 lines</div>
   [<span class="a">TOKEN_GREATER_EQUAL</span>] = {<span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_COMPARISON</span>},
   [<span class="a">TOKEN_LESS</span>]          = {<span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_COMPARISON</span>},
   [<span class="a">TOKEN_LESS_EQUAL</span>]    = {<span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_COMPARISON</span>},
-</pre><pre class="insert-after">
-  [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE},
+</pre><pre class="insert-after">  [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 5 lines</div>
 
 <p>Inside <code>binary()</code> we already have a switch to generate the right bytecode for
 each token type. We add cases for the six new operators.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (operatorType) {
+<div class="codehilite"><pre class="insert-before">  switch (operatorType) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>binary</em>()</div>
 <pre class="insert">
@@ -917,8 +865,7 @@ in <em>binary</em>()</div>
     <span class="k">case</span> <span class="a">TOKEN_GREATER_EQUAL</span>: <span class="i">emitBytes</span>(<span class="a">OP_LESS</span>, <span class="a">OP_NOT</span>); <span class="k">break</span>;
     <span class="k">case</span> <span class="a">TOKEN_LESS</span>:          <span class="i">emitByte</span>(<span class="a">OP_LESS</span>); <span class="k">break</span>;
     <span class="k">case</span> <span class="a">TOKEN_LESS_EQUAL</span>:    <span class="i">emitBytes</span>(<span class="a">OP_GREATER</span>, <span class="a">OP_NOT</span>); <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case TOKEN_PLUS:          emitByte(OP_ADD); break;
+</pre><pre class="insert-after">    case TOKEN_PLUS:          emitByte(OP_ADD); break;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>binary</em>()</div>
 
@@ -927,8 +874,7 @@ a pair of instructions, one to evalute the inverse operation, and then an
 <code>OP_NOT</code> to flip the result. Six operators for the price of three instructions!</p>
 <p>That means over in the VM, our job is simpler. Equality is the most general
 operation.</p>
-<div class="codehilite"><pre class="insert-before">
-      case OP_FALSE: push(BOOL_VAL(false)); break;
+<div class="codehilite"><pre class="insert-before">      case OP_FALSE: push(BOOL_VAL(false)); break;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -938,8 +884,7 @@ in <em>run</em>()</div>
         <span class="i">push</span>(<span class="a">BOOL_VAL</span>(<span class="i">valuesEqual</span>(<span class="i">a</span>, <span class="i">b</span>)));
         <span class="k">break</span>;
       }
-</pre><pre class="insert-after">
-      case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
+</pre><pre class="insert-after">      case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -948,15 +893,13 @@ There&rsquo;s enough complexity that it makes sense to shunt that logic over to 
 separate function. That function always returns a C <code>bool</code>, so we can safely
 wrap the result in a <code>BOOL_VAL</code>. The function relates to Values, so it lives
 over in the &ldquo;value&rdquo; module.</p>
-<div class="codehilite"><pre class="insert-before">
-} ValueArray;
+<div class="codehilite"><pre class="insert-before">} ValueArray;
 
 </pre><div class="source-file"><em>value.h</em><br>
 add after struct <em>ValueArray</em></div>
 <pre class="insert">
 <span class="t">bool</span> <span class="i">valuesEqual</span>(<span class="t">Value</span> <span class="i">a</span>, <span class="t">Value</span> <span class="i">b</span>);
-</pre><pre class="insert-after">
-void initValueArray(ValueArray* array);
+</pre><pre class="insert-after">void initValueArray(ValueArray* array);
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em>, add after struct <em>ValueArray</em></div>
 
@@ -1003,8 +946,7 @@ equal Values actually differ in memory that isn&rsquo;t used.</p><img src="image
 <p>Anyway, as we add more types to clox, this function will grow new cases. For
 now, these three are sufficient. The other comparison operators are easier since
 they work only on numbers.</p>
-<div class="codehilite"><pre class="insert-before">
-        push(BOOL_VAL(valuesEqual(a, b)));
+<div class="codehilite"><pre class="insert-before">        push(BOOL_VAL(valuesEqual(a, b)));
         break;
       }
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -1012,8 +954,7 @@ in <em>run</em>()</div>
 <pre class="insert">
       <span class="k">case</span> <span class="a">OP_GREATER</span>:  <span class="a">BINARY_OP</span>(<span class="a">BOOL_VAL</span>, &gt;); <span class="k">break</span>;
       <span class="k">case</span> <span class="a">OP_LESS</span>:     <span class="a">BINARY_OP</span>(<span class="a">BOOL_VAL</span>, &lt;); <span class="k">break</span>;
-</pre><pre class="insert-after">
-      case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
+</pre><pre class="insert-after">      case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -1021,8 +962,7 @@ in <em>run</em>()</div>
 non-numeric types. Now we get to use that. We pass in <code>BOOL_VAL</code> since the
 result value type is Boolean. Otherwise, it&rsquo;s no different from plus or minus.</p>
 <p>As always, the coda to today&rsquo;s aria is disassembling the new instructions.</p>
-<div class="codehilite"><pre class="insert-before">
-    case OP_FALSE:
+<div class="codehilite"><pre class="insert-before">    case OP_FALSE:
       return simpleInstruction(&quot;OP_FALSE&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
@@ -1033,8 +973,7 @@ in <em>disassembleInstruction</em>()</div>
       <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_GREATER&quot;</span>, <span class="i">offset</span>);
     <span class="k">case</span> <span class="a">OP_LESS</span>:
       <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_LESS&quot;</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    case OP_ADD:
+</pre><pre class="insert-after">    case OP_ADD:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 

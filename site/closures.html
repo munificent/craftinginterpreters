@@ -251,15 +251,13 @@ add after struct <em>ObjString</em></div>
 <p>Right now, it simply points to an ObjFunction and adds the necessary object
 header stuff. Grinding through the usual ceremony for adding a new object type
 to clox, we declare a C function to create a new closure.</p>
-<div class="codehilite"><pre class="insert-before">
-} ObjClosure;
+<div class="codehilite"><pre class="insert-before">} ObjClosure;
 
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjClosure</em></div>
 <pre class="insert">
 <span class="t">ObjClosure</span>* <span class="i">newClosure</span>(<span class="t">ObjFunction</span>* <span class="i">function</span>);
-</pre><pre class="insert-after">
-ObjFunction* newFunction();
+</pre><pre class="insert-after">ObjFunction* newFunction();
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjClosure</em></div>
 
@@ -277,20 +275,17 @@ add after <em>allocateObject</em>()</div>
 
 <p>It takes a pointer to the ObjFunction it wraps. It also initializes the type
 field to a new type.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef enum {
+<div class="codehilite"><pre class="insert-before">typedef enum {
 </pre><div class="source-file"><em>object.h</em><br>
 in enum <em>ObjType</em></div>
 <pre class="insert">
   <span class="a">OBJ_CLOSURE</span>,
-</pre><pre class="insert-after">
-  OBJ_FUNCTION,
+</pre><pre class="insert-after">  OBJ_FUNCTION,
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>And when we&rsquo;re done with a closure, we release its memory.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (object-&gt;type) {
+<div class="codehilite"><pre class="insert-before">  switch (object-&gt;type) {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
@@ -298,8 +293,7 @@ in <em>freeObject</em>()</div>
       <span class="a">FREE</span>(<span class="t">ObjClosure</span>, <span class="i">object</span>);
       <span class="k">break</span>;
     }
-</pre><pre class="insert-after">
-    case OBJ_FUNCTION: {
+</pre><pre class="insert-after">    case OBJ_FUNCTION: {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
@@ -315,40 +309,34 @@ type.</p>
 <p>Perhaps I should have defined a macro to make it easier to generate these
 macros. Maybe that would be a little too meta.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
+<div class="codehilite"><pre class="insert-before">#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define IS_CLOSURE(value)      isObjType(value, OBJ_CLOSURE)</span>
-</pre><pre class="insert-after">
-#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
+</pre><pre class="insert-after">#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>And to cast a value:</p>
-<div class="codehilite"><pre class="insert-before">
-#define IS_STRING(value)       isObjType(value, OBJ_STRING)
+<div class="codehilite"><pre class="insert-before">#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 <span class="a">#define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))</span>
-</pre><pre class="insert-after">
-#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
+</pre><pre class="insert-after">#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Closures are first-class objects, so you can print them.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (OBJ_TYPE(value)) {
+<div class="codehilite"><pre class="insert-before">  switch (OBJ_TYPE(value)) {
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OBJ_CLOSURE</span>:
       <span class="i">printFunction</span>(<span class="a">AS_CLOSURE</span>(<span class="i">value</span>)-&gt;<span class="i">function</span>);
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case OBJ_FUNCTION:
+</pre><pre class="insert-after">    case OBJ_FUNCTION:
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
@@ -361,29 +349,25 @@ closures.</p>
 the compiler to emit instructions to tell the runtime when to create a new
 ObjClosure to wrap a given ObjFunction. This happens right at the end of a
 function declaration.</p>
-<div class="codehilite"><pre class="insert-before">
-  ObjFunction* function = endCompiler();
+<div class="codehilite"><pre class="insert-before">  ObjFunction* function = endCompiler();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>function</em>()<br>
 replace 1 line</div>
 <pre class="insert">
   <span class="i">emitBytes</span>(<span class="a">OP_CLOSURE</span>, <span class="i">makeConstant</span>(<span class="a">OBJ_VAL</span>(<span class="i">function</span>)));
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>function</em>(), replace 1 line</div>
 
 <p>Before, the final bytecode for a function declaration was a single <code>OP_CONSTANT</code>
 instruction to load the compiled function from the surrounding function&rsquo;s
 constant table and push it onto the stack. Now we have a new instruction.</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_CALL,
+<div class="codehilite"><pre class="insert-before">  OP_CALL,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_CLOSURE</span>,
-</pre><pre class="insert-after">
-  OP_RETURN,
+</pre><pre class="insert-after">  OP_RETURN,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
@@ -392,8 +376,7 @@ index for the function. But when we get over to the runtime implementation, we
 do something more interesting.</p>
 <p>First, let&rsquo;s be diligent VM hackers and slot in disassembler support for the
 instruction.</p>
-<div class="codehilite"><pre class="insert-before">
-    case OP_CALL:
+<div class="codehilite"><pre class="insert-before">    case OP_CALL:
       return byteInstruction(&quot;OP_CALL&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
@@ -406,8 +389,7 @@ in <em>disassembleInstruction</em>()</div>
       <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);
       <span class="k">return</span> <span class="i">offset</span>;
     }
-</pre><pre class="insert-after">
-    case OP_RETURN:
+</pre><pre class="insert-after">    case OP_RETURN:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
@@ -420,8 +402,7 @@ we&rsquo;ll be adding to it. This code here anticipates that future.</p>
 instruction, naturally. But we also need to touch every piece of code in the VM
 that works with ObjFunction and change it to use ObjClosure instead<span class="em">&mdash;</span>function
 calls, call frames, etc. We&rsquo;ll start with the instruction, though.</p>
-<div class="codehilite"><pre class="insert-before">
-      }
+<div class="codehilite"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -431,8 +412,7 @@ in <em>run</em>()</div>
         <span class="i">push</span>(<span class="a">OBJ_VAL</span>(<span class="i">closure</span>));
         <span class="k">break</span>;
       }
-</pre><pre class="insert-after">
-      case OP_RETURN: {
+</pre><pre class="insert-after">      case OP_RETURN: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -440,16 +420,14 @@ in <em>run</em>()</div>
 function from the constant table. The difference now is that we wrap that
 function in a new ObjClosure and push the result onto the stack.</p>
 <p>Once you have a closure, you&rsquo;ll eventually want to call it.</p>
-<div class="codehilite"><pre class="insert-before">
-    switch (OBJ_TYPE(callee)) {
+<div class="codehilite"><pre class="insert-before">    switch (OBJ_TYPE(callee)) {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>callValue</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
       <span class="k">case</span> <span class="a">OBJ_CLOSURE</span>:
         <span class="k">return</span> <span class="i">call</span>(<span class="a">AS_CLOSURE</span>(<span class="i">callee</span>), <span class="i">argCount</span>);
-</pre><pre class="insert-after">
-      case OBJ_NATIVE: {
+</pre><pre class="insert-after">      case OBJ_NATIVE: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>(), replace 2 lines</div>
 
@@ -470,16 +448,14 @@ function <em>call</em>()<br>
 replace 1 line</div>
 <pre class="insert">
 <span class="k">static</span> <span class="t">bool</span> <span class="i">call</span>(<span class="t">ObjClosure</span>* <span class="i">closure</span>, <span class="t">int</span> <span class="i">argCount</span>) {
-</pre><pre class="insert-after">
-  if (argCount != function-&gt;arity) {
+</pre><pre class="insert-after">  if (argCount != function-&gt;arity) {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, function <em>call</em>(), replace 1 line</div>
 
 <p>Then, in the body, we need to fix everything that referenced the function to
 handle the fact that we&rsquo;ve introduced a layer of indirection. We start with the
 arity checking:</p>
-<div class="codehilite"><pre class="insert-before">
-static bool call(ObjClosure* closure, int argCount) {
+<div class="codehilite"><pre class="insert-before">static bool call(ObjClosure* closure, int argCount) {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>call</em>()<br>
 replace 3 lines</div>
@@ -487,8 +463,7 @@ replace 3 lines</div>
   <span class="k">if</span> (<span class="i">argCount</span> != <span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">arity</span>) {
     <span class="i">runtimeError</span>(<span class="s">&quot;Expected %d arguments but got %d.&quot;</span>,
         <span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">arity</span>, <span class="i">argCount</span>);
-</pre><pre class="insert-after">
-    return false;
+</pre><pre class="insert-after">    return false;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>(), replace 3 lines</div>
 
@@ -496,37 +471,32 @@ replace 3 lines</div>
 The next thing <code>call()</code> does is create a new CallFrame. We change that code to
 store the closure in the CallFrame and get the bytecode pointer from the
 closure&rsquo;s function.</p>
-<div class="codehilite"><pre class="insert-before">
-  CallFrame* frame = &amp;vm.frames[vm.frameCount++];
+<div class="codehilite"><pre class="insert-before">  CallFrame* frame = &amp;vm.frames[vm.frameCount++];
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>call</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
   <span class="i">frame</span>-&gt;<span class="i">closure</span> = <span class="i">closure</span>;
   <span class="i">frame</span>-&gt;<span class="i">ip</span> = <span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span>;
-</pre><pre class="insert-after">
-  frame-&gt;slots = vm.stackTop - argCount - 1;
+</pre><pre class="insert-after">  frame-&gt;slots = vm.stackTop - argCount - 1;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>(), replace 2 lines</div>
 
 <p>This necessitates changing the declaration of CallFrame too.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef struct {
+<div class="codehilite"><pre class="insert-before">typedef struct {
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>CallFrame</em><br>
 replace 1 line</div>
 <pre class="insert">
   <span class="t">ObjClosure</span>* <span class="i">closure</span>;
-</pre><pre class="insert-after">
-  uint8_t* ip;
+</pre><pre class="insert-after">  uint8_t* ip;
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>CallFrame</em>, replace 1 line</div>
 
 <p>That change triggers a few other cascading changes. Every place in the VM that
 accessed CallFrame&rsquo;s function needs to use a closure instead. First, the macro
 for reading a constant from the current function&rsquo;s constant table:</p>
-<div class="codehilite"><pre class="insert-before">
-    (uint16_t)((frame-&gt;ip[-2] &lt;&lt; 8) | frame-&gt;ip[-1]))
+<div class="codehilite"><pre class="insert-before">    (uint16_t)((frame-&gt;ip[-2] &lt;&lt; 8) | frame-&gt;ip[-1]))
 
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
@@ -535,43 +505,37 @@ replace 2 lines</div>
 <span class="a">#define READ_CONSTANT() \</span>
 <span class="a">    (frame-&gt;closure-&gt;function-&gt;chunk.constants.values[READ_BYTE()])</span>
 </pre><pre class="insert-after">
-
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
 <p>When <code>DEBUG_TRACE_EXECUTION</code> is enabled, it needs to get to the chunk from the
 closure.</p>
-<div class="codehilite"><pre class="insert-before">
-    printf(&quot;\n&quot;);
+<div class="codehilite"><pre class="insert-before">    printf(&quot;\n&quot;);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
     <span class="i">disassembleInstruction</span>(&amp;<span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>,
         (<span class="t">int</span>)(<span class="i">frame</span>-&gt;<span class="i">ip</span> - <span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span>));
-</pre><pre class="insert-after">
-#endif
+</pre><pre class="insert-after">#endif
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
 <p>Likewise when reporting a runtime error:</p>
-<div class="codehilite"><pre class="insert-before">
-    CallFrame* frame = &amp;vm.frames[i];
+<div class="codehilite"><pre class="insert-before">    CallFrame* frame = &amp;vm.frames[i];
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>runtimeError</em>()<br>
 replace 1 line</div>
 <pre class="insert">
     <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">function</span>;
-</pre><pre class="insert-after">
-    size_t instruction = frame-&gt;ip - function-&gt;chunk.code - 1;
+</pre><pre class="insert-after">    size_t instruction = frame-&gt;ip - function-&gt;chunk.code - 1;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 1 line</div>
 
 <p>Almost there. The last piece is the blob of code that sets up the very first
 CallFrame to begin executing the top-level code for a Lox script.</p>
-<div class="codehilite"><pre class="insert-before">
-  push(OBJ_VAL(function));
+<div class="codehilite"><pre class="insert-before">  push(OBJ_VAL(function));
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>interpret</em>()<br>
 replace 1 line</div>
@@ -581,7 +545,6 @@ replace 1 line</div>
   <span class="i">push</span>(<span class="a">OBJ_VAL</span>(<span class="i">closure</span>));
   <span class="i">call</span>(<span class="i">closure</span>, <span class="n">0</span>);
 </pre><pre class="insert-after">
-
   return run();
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 1 line</div>
@@ -673,8 +636,7 @@ variable in that function, we assume the variable must be a global. We don&rsquo
 consider the local scopes of enclosing functions<span class="em">&mdash;</span>they get skipped right over.
 The first change, then, is inserting a resolution step for those outer local
 scopes.</p>
-<div class="codehilite"><pre class="insert-before">
-  if (arg != -1) {
+<div class="codehilite"><pre class="insert-before">  if (arg != -1) {
     getOp = OP_GET_LOCAL;
     setOp = OP_SET_LOCAL;
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -683,8 +645,7 @@ in <em>namedVariable</em>()</div>
   } <span class="k">else</span> <span class="k">if</span> ((<span class="i">arg</span> = <span class="i">resolveUpvalue</span>(<span class="i">current</span>, &amp;<span class="i">name</span>)) != -<span class="n">1</span>) {
     <span class="i">getOp</span> = <span class="a">OP_GET_UPVALUE</span>;
     <span class="i">setOp</span> = <span class="a">OP_SET_UPVALUE</span>;
-</pre><pre class="insert-after">
-  } else {
+</pre><pre class="insert-after">  } else {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>()</div>
 
@@ -693,15 +654,13 @@ of the surrounding functions. If it finds one, it returns an &ldquo;upvalue inde
 that variable. (We&rsquo;ll get into what that means later.) Otherwise, it returns -1
 to indicate the variable wasn&rsquo;t found. If it was found, we use these two new
 instructions for reading or writing to the variable through its upvalue:</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_SET_GLOBAL,
+<div class="codehilite"><pre class="insert-before">  OP_SET_GLOBAL,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_GET_UPVALUE</span>,
   <span class="a">OP_SET_UPVALUE</span>,
-</pre><pre class="insert-after">
-  OP_EQUAL,
+</pre><pre class="insert-after">  OP_EQUAL,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
@@ -792,8 +751,7 @@ multiple times. In that case, we don&rsquo;t want to waste time and memory creat
 separate upvalue for each identifier expression. To fix that, before we add a
 new upvalue, we first check to see if the function already has an upvalue that
 closes over that variable.</p>
-<div class="codehilite"><pre class="insert-before">
-  int upvalueCount = compiler-&gt;function-&gt;upvalueCount;
+<div class="codehilite"><pre class="insert-before">  int upvalueCount = compiler-&gt;function-&gt;upvalueCount;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>addUpvalue</em>()</div>
 <pre class="insert">
@@ -805,8 +763,7 @@ in <em>addUpvalue</em>()</div>
     }
   }
 
-</pre><pre class="insert-after">
-  compiler-&gt;upvalues[upvalueCount].isLocal = isLocal;
+</pre><pre class="insert-after">  compiler-&gt;upvalues[upvalueCount].isLocal = isLocal;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addUpvalue</em>()</div>
 
@@ -815,39 +772,33 @@ adding, we just return that <em>upvalue</em> index and reuse it. Otherwise, we f
 through and add the new upvalue.</p>
 <p>These two functions access and modify a bunch of new state, so let&rsquo;s define
 that. First, we add the upvalue count to ObjFunction.</p>
-<div class="codehilite"><pre class="insert-before">
-  int arity;
+<div class="codehilite"><pre class="insert-before">  int arity;
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjFunction</em></div>
 <pre class="insert">
   <span class="t">int</span> <span class="i">upvalueCount</span>;
-</pre><pre class="insert-after">
-  Chunk chunk;
+</pre><pre class="insert-after">  Chunk chunk;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjFunction</em></div>
 
 <p>We&rsquo;re conscientious C programmers, so we zero-initialize that when an
 ObjFunction is first allocated.</p>
-<div class="codehilite"><pre class="insert-before">
-  function-&gt;arity = 0;
+<div class="codehilite"><pre class="insert-before">  function-&gt;arity = 0;
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newFunction</em>()</div>
 <pre class="insert">
   <span class="i">function</span>-&gt;<span class="i">upvalueCount</span> = <span class="n">0</span>;
-</pre><pre class="insert-after">
-  function-&gt;name = NULL;
+</pre><pre class="insert-after">  function-&gt;name = NULL;
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>newFunction</em>()</div>
 
 <p>In the compiler, we add a field for the upvalue array.</p>
-<div class="codehilite"><pre class="insert-before">
-  int localCount;
+<div class="codehilite"><pre class="insert-before">  int localCount;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Compiler</em></div>
 <pre class="insert">
   <span class="t">Upvalue</span> <span class="i">upvalues</span>[<span class="a">UINT8_COUNT</span>];
-</pre><pre class="insert-after">
-  int scopeDepth;
+</pre><pre class="insert-after">  int scopeDepth;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
 
@@ -856,8 +807,7 @@ in struct <em>Compiler</em></div>
 operand, so there&rsquo;s a restriction on how many upvalues a function can have<span class="em">&mdash;</span>how many unique variables it can close over. Given that, we can afford a static
 array that large. We also need to make sure the compiler doesn&rsquo;t overflow that
 limit.</p>
-<div class="codehilite"><pre class="insert-before">
-    if (upvalue-&gt;index == index &amp;&amp; upvalue-&gt;isLocal == isLocal) {
+<div class="codehilite"><pre class="insert-before">    if (upvalue-&gt;index == index &amp;&amp; upvalue-&gt;isLocal == isLocal) {
       return i;
     }
   }
@@ -870,8 +820,7 @@ in <em>addUpvalue</em>()</div>
     <span class="k">return</span> <span class="n">0</span>;
   }
 
-</pre><pre class="insert-after">
-  compiler-&gt;upvalues[upvalueCount].isLocal = isLocal;
+</pre><pre class="insert-after">  compiler-&gt;upvalues[upvalueCount].isLocal = isLocal;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addUpvalue</em>()</div>
 
@@ -972,8 +921,7 @@ local or upvalue<span class="em">&mdash;</span><em>only</em> from the immediatel
 guaranteed to still be around at the point that the inner function declaration
 executes.</p>
 <p>In order to implement this, <code>resolveUpvalue()</code> becomes recursive.</p>
-<div class="codehilite"><pre class="insert-before">
-  if (local != -1) {
+<div class="codehilite"><pre class="insert-before">  if (local != -1) {
     return addUpvalue(compiler, (uint8_t)local, true);
   }
 
@@ -985,8 +933,7 @@ in <em>resolveUpvalue</em>()</div>
     <span class="k">return</span> <span class="i">addUpvalue</span>(<span class="i">compiler</span>, (<span class="t">uint8_t</span>)<span class="i">upvalue</span>, <span class="k">false</span>);
   }
 
-</pre><pre class="insert-after">
-  return -1;
+</pre><pre class="insert-after">  return -1;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>resolveUpvalue</em>()</div>
 
@@ -1035,8 +982,7 @@ Each upvalue may in turn capture a local variable from the surrounding function,
 or an upvalue in the case of transitive closures. We finally have enough data to
 emit bytecode which creates a closure at runtime that captures all of the
 correct variables.</p>
-<div class="codehilite"><pre class="insert-before">
-  emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
+<div class="codehilite"><pre class="insert-before">  emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>function</em>()</div>
 <pre class="insert">
@@ -1045,8 +991,7 @@ in <em>function</em>()</div>
     <span class="i">emitByte</span>(<span class="i">compiler</span>.<span class="i">upvalues</span>[<span class="i">i</span>].<span class="i">isLocal</span> ? <span class="n">1</span> : <span class="n">0</span>);
     <span class="i">emitByte</span>(<span class="i">compiler</span>.<span class="i">upvalues</span>[<span class="i">i</span>].<span class="i">index</span>);
   }
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>function</em>()</div>
 
@@ -1058,8 +1003,7 @@ of the function&rsquo;s upvalues. The next byte is the local slot or upvalue ind
 capture.</p>
 <p>This odd encoding means we need some bespoke support in the disassembly code
 for <code>OP_CLOSURE</code>.</p>
-<div class="codehilite"><pre class="insert-before">
-      printf(&quot;\n&quot;);
+<div class="codehilite"><pre class="insert-before">      printf(&quot;\n&quot;);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
@@ -1073,8 +1017,7 @@ in <em>disassembleInstruction</em>()</div>
                <span class="i">offset</span> - <span class="n">2</span>, <span class="i">isLocal</span> ? <span class="s">&quot;local&quot;</span> : <span class="s">&quot;upvalue&quot;</span>, <span class="i">index</span>);
       }
 
-</pre><pre class="insert-after">
-      return offset;
+</pre><pre class="insert-after">      return offset;
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
@@ -1101,8 +1044,7 @@ prints this:</p>
 0012      |                     local 2
 </pre></div>
 <p>We have two other, simpler instructions to add disassembler support for.</p>
-<div class="codehilite"><pre class="insert-before">
-    case OP_SET_GLOBAL:
+<div class="codehilite"><pre class="insert-before">    case OP_SET_GLOBAL:
       return constantInstruction(&quot;OP_SET_GLOBAL&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
@@ -1111,20 +1053,17 @@ in <em>disassembleInstruction</em>()</div>
       <span class="k">return</span> <span class="i">byteInstruction</span>(<span class="s">&quot;OP_GET_UPVALUE&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
     <span class="k">case</span> <span class="a">OP_SET_UPVALUE</span>:
       <span class="k">return</span> <span class="i">byteInstruction</span>(<span class="s">&quot;OP_SET_UPVALUE&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    case OP_EQUAL:
+</pre><pre class="insert-after">    case OP_EQUAL:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>These both have a single-byte operand, so there&rsquo;s nothing exciting going on. We
 do need to add an include so the debug module can get to <code>AS_FUNCTION()</code>.</p>
-<div class="codehilite"><pre class="insert-before">
-#include &quot;debug.h&quot;
+<div class="codehilite"><pre class="insert-before">#include &quot;debug.h&quot;
 </pre><div class="source-file"><em>debug.c</em></div>
 <pre class="insert">
 <span class="a">#include &quot;object.h&quot;</span>
-</pre><pre class="insert-after">
-#include &quot;value.h&quot;
+</pre><pre class="insert-after">#include &quot;value.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em></div>
 
@@ -1172,14 +1111,12 @@ actual variable, not a copy. For example:</p>
 the surrounding function accesses it.</p>
 <p>Because upvalues are objects, we&rsquo;ve got all the usual object machinery, starting
 with a constructor-like function:</p>
-<div class="codehilite"><pre class="insert-before">
-ObjString* copyString(const char* chars, int length);
+<div class="codehilite"><pre class="insert-before">ObjString* copyString(const char* chars, int length);
 </pre><div class="source-file"><em>object.h</em><br>
 add after <em>copyString</em>()</div>
 <pre class="insert">
 <span class="t">ObjUpvalue</span>* <span class="i">newUpvalue</span>(<span class="t">Value</span>* <span class="i">slot</span>);
-</pre><pre class="insert-after">
-void printObject(Value value);
+</pre><pre class="insert-after">void printObject(Value value);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after <em>copyString</em>()</div>
 
@@ -1198,20 +1135,17 @@ add after <em>copyString</em>()</div>
 
 <p>We simply initialize the object and store the pointer. That requires a new
 object type.</p>
-<div class="codehilite"><pre class="insert-before">
-  OBJ_STRING,
+<div class="codehilite"><pre class="insert-before">  OBJ_STRING,
 </pre><div class="source-file"><em>object.h</em><br>
 in enum <em>ObjType</em></div>
 <pre class="insert">
   <span class="a">OBJ_UPVALUE</span>
-</pre><pre class="insert-after">
-} ObjType;
+</pre><pre class="insert-after">} ObjType;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>And on the back side, a destructor-like function:</p>
-<div class="codehilite"><pre class="insert-before">
-      FREE(ObjString, object);
+<div class="codehilite"><pre class="insert-before">      FREE(ObjString, object);
       break;
     }
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1220,8 +1154,7 @@ in <em>freeObject</em>()</div>
     <span class="k">case</span> <span class="a">OBJ_UPVALUE</span>:
       <span class="a">FREE</span>(<span class="t">ObjUpvalue</span>, <span class="i">object</span>);
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-  }
+</pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
@@ -1229,8 +1162,7 @@ in <em>freeObject</em>()</div>
 the variable it references. Thus, the only thing to free is the ObjUpvalue
 itself.</p>
 <p>And, finally, to print:</p>
-<div class="codehilite"><pre class="insert-before">
-    case OBJ_STRING:
+<div class="codehilite"><pre class="insert-before">    case OBJ_STRING:
       printf(&quot;%s&quot;, AS_CSTRING(value));
       break;
 </pre><div class="source-file"><em>object.c</em><br>
@@ -1239,8 +1171,7 @@ in <em>printObject</em>()</div>
     <span class="k">case</span> <span class="a">OBJ_UPVALUE</span>:
       <span class="i">printf</span>(<span class="s">&quot;upvalue&quot;</span>);
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-  }
+</pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
@@ -1252,15 +1183,13 @@ unhandled switch case, so here we are.</p>
 <h3><a href="#upvalues-in-closures" name="upvalues-in-closures"><small>25&#8202;.&#8202;3&#8202;.&#8202;1</small>Upvalues in closures</a></h3>
 <p>When I first introduced upvalues, I said each closure has an array of them.
 We&rsquo;ve finally worked our way back to implementing that.</p>
-<div class="codehilite"><pre class="insert-before">
-  ObjFunction* function;
+<div class="codehilite"><pre class="insert-before">  ObjFunction* function;
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjClosure</em></div>
 <pre class="insert">
   <span class="t">ObjUpvalue</span>** <span class="i">upvalues</span>;
   <span class="t">int</span> <span class="i">upvalueCount</span>;
-</pre><pre class="insert-after">
-} ObjClosure;
+</pre><pre class="insert-after">} ObjClosure;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjClosure</em></div>
 
@@ -1277,8 +1206,7 @@ array size after the closure&rsquo;s corresponding ObjFunction has already been 
 </aside>
 <p>When we create an ObjClosure, we allocate an upvalue array of the proper size,
 which we determined at compile time and stored in the ObjFunction.</p>
-<div class="codehilite"><pre class="insert-before">
-ObjClosure* newClosure(ObjFunction* function) {
+<div class="codehilite"><pre class="insert-before">ObjClosure* newClosure(ObjFunction* function) {
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newClosure</em>()</div>
 <pre class="insert">
@@ -1288,8 +1216,7 @@ in <em>newClosure</em>()</div>
     <span class="i">upvalues</span>[<span class="i">i</span>] = <span class="a">NULL</span>;
   }
 
-</pre><pre class="insert-after">
-  ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
+</pre><pre class="insert-after">  ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>newClosure</em>()</div>
 
@@ -1299,29 +1226,25 @@ dance to please the (forthcoming) garbage collection deities. It ensures the
 memory manager never sees uninitialized memory.</p>
 <p>Then we store the array in the new closure, as well as copy the count over from
 the ObjFunction.</p>
-<div class="codehilite"><pre class="insert-before">
-  closure-&gt;function = function;
+<div class="codehilite"><pre class="insert-before">  closure-&gt;function = function;
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newClosure</em>()</div>
 <pre class="insert">
   <span class="i">closure</span>-&gt;<span class="i">upvalues</span> = <span class="i">upvalues</span>;
   <span class="i">closure</span>-&gt;<span class="i">upvalueCount</span> = <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>;
-</pre><pre class="insert-after">
-  return closure;
+</pre><pre class="insert-after">  return closure;
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>newClosure</em>()</div>
 
 <p>When we free an ObjClosure, we also free the upvalue array.</p>
-<div class="codehilite"><pre class="insert-before">
-    case OBJ_CLOSURE: {
+<div class="codehilite"><pre class="insert-before">    case OBJ_CLOSURE: {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
       <span class="t">ObjClosure</span>* <span class="i">closure</span> = (<span class="t">ObjClosure</span>*)<span class="i">object</span>;
       <span class="a">FREE_ARRAY</span>(<span class="t">ObjUpvalue</span>*, <span class="i">closure</span>-&gt;<span class="i">upvalues</span>,
                  <span class="i">closure</span>-&gt;<span class="i">upvalueCount</span>);
-</pre><pre class="insert-after">
-      FREE(ObjClosure, object);
+</pre><pre class="insert-after">      FREE(ObjClosure, object);
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
@@ -1330,8 +1253,7 @@ array</em> containing pointers to those upvalues.</p>
 <p>We fill the upvalue array over in the interpreter when it creates a closure.
 This is where we walk through all of the operands after <code>OP_CLOSURE</code> to see what
 kind of upvalue each slot captures.</p>
-<div class="codehilite"><pre class="insert-before">
-        push(OBJ_VAL(closure));
+<div class="codehilite"><pre class="insert-before">        push(OBJ_VAL(closure));
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -1345,8 +1267,7 @@ in <em>run</em>()</div>
             <span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">i</span>] = <span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">index</span>];
           }
         }
-</pre><pre class="insert-after">
-        break;
+</pre><pre class="insert-after">        break;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -1387,8 +1308,7 @@ array and initialize each one. When that completes, we have a new closure with
 an array full of upvalues pointing to variables.</p>
 <p>With that in hand, we can implement the instructions that work with those
 upvalues.</p>
-<div class="codehilite"><pre class="insert-before">
-      }
+<div class="codehilite"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -1397,16 +1317,14 @@ in <em>run</em>()</div>
         <span class="i">push</span>(*<span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">slot</span>]-&gt;<span class="i">location</span>);
         <span class="k">break</span>;
       }
-</pre><pre class="insert-after">
-      case OP_EQUAL: {
+</pre><pre class="insert-after">      case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>The operand is the index into the current function&rsquo;s upvalue array. So we simply
 look up the corresponding upvalue and dereference its location pointer to read
 the value in that slot. Setting a variable is similar.</p>
-<div class="codehilite"><pre class="insert-before">
-      }
+<div class="codehilite"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -1415,8 +1333,7 @@ in <em>run</em>()</div>
         *<span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">slot</span>]-&gt;<span class="i">location</span> = <span class="i">peek</span>(<span class="n">0</span>);
         <span class="k">break</span>;
       }
-</pre><pre class="insert-after">
-      case OP_EQUAL: {
+</pre><pre class="insert-after">      case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -1571,27 +1488,23 @@ upvalue state.</p>
 capture, but not in the other direction. So we first need to add some extra
 tracking inside the existing Local struct so that we can tell if a given local
 is captured by a closure.</p>
-<div class="codehilite"><pre class="insert-before">
-  int depth;
+<div class="codehilite"><pre class="insert-before">  int depth;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Local</em></div>
 <pre class="insert">
   <span class="t">bool</span> <span class="i">isCaptured</span>;
-</pre><pre class="insert-after">
-} Local;
+</pre><pre class="insert-after">} Local;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Local</em></div>
 
 <p>This field is <code>true</code> if the local is captured by any later nested function
 declaration. Initially, all locals are not captured.</p>
-<div class="codehilite"><pre class="insert-before">
-  local-&gt;depth = -1;
+<div class="codehilite"><pre class="insert-before">  local-&gt;depth = -1;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>addLocal</em>()</div>
 <pre class="insert">
   <span class="i">local</span>-&gt;<span class="i">isCaptured</span> = <span class="k">false</span>;
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addLocal</em>()</div>
 
@@ -1601,35 +1514,30 @@ compiler implicitly declares is not captured.</p>
 <p>Later in the book, it <em>will</em> become possible for a user to capture this
 variable. Just building some anticipation here.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-  local-&gt;depth = 0;
+<div class="codehilite"><pre class="insert-before">  local-&gt;depth = 0;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()</div>
 <pre class="insert">
   <span class="i">local</span>-&gt;<span class="i">isCaptured</span> = <span class="k">false</span>;
-</pre><pre class="insert-after">
-  local-&gt;name.start = &quot;&quot;;
+</pre><pre class="insert-after">  local-&gt;name.start = &quot;&quot;;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
 
 <p>When resolving an identifier, if we end up creating an upvalue for a local
 variable, we mark it as captured.</p>
-<div class="codehilite"><pre class="insert-before">
-  if (local != -1) {
+<div class="codehilite"><pre class="insert-before">  if (local != -1) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>resolveUpvalue</em>()</div>
 <pre class="insert">
     <span class="i">compiler</span>-&gt;<span class="i">enclosing</span>-&gt;<span class="i">locals</span>[<span class="i">local</span>].<span class="i">isCaptured</span> = <span class="k">true</span>;
-</pre><pre class="insert-after">
-    return addUpvalue(compiler, (uint8_t)local, true);
+</pre><pre class="insert-after">    return addUpvalue(compiler, (uint8_t)local, true);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>resolveUpvalue</em>()</div>
 
 <p>Now, at the end of a block scope when the compiler emits code to free the stack
 slots for the locals, we can tell which ones need to get hoisted onto the heap.
 We&rsquo;ll use a new instruction for that.</p>
-<div class="codehilite"><pre class="insert-before">
-  while (current-&gt;localCount &gt; 0 &amp;&amp;
+<div class="codehilite"><pre class="insert-before">  while (current-&gt;localCount &gt; 0 &amp;&amp;
          current-&gt;locals[current-&gt;localCount - 1].depth &gt;
             current-&gt;scopeDepth) {
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -1641,8 +1549,7 @@ replace 1 line</div>
     } <span class="k">else</span> {
       <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
     }
-</pre><pre class="insert-after">
-    current-&gt;localCount--;
+</pre><pre class="insert-after">    current-&gt;localCount--;
   }
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endScope</em>(), replace 1 line</div>
@@ -1650,27 +1557,23 @@ replace 1 line</div>
 <p>The instruction requires no operand. We know that the variable will always be
 right on top of the stack at the point that this instruction executes. We
 declare the instruction.</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_CLOSURE,
+<div class="codehilite"><pre class="insert-before">  OP_CLOSURE,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_CLOSE_UPVALUE</span>,
-</pre><pre class="insert-after">
-  OP_RETURN,
+</pre><pre class="insert-after">  OP_RETURN,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And add trivial disassembler support for it:</p>
-<div class="codehilite"><pre class="insert-before">
-    }
+<div class="codehilite"><pre class="insert-before">    }
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="a">OP_CLOSE_UPVALUE</span>:
       <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_CLOSE_UPVALUE&quot;</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    case OP_RETURN:
+</pre><pre class="insert-after">    case OP_RETURN:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
@@ -1724,51 +1627,43 @@ we can exit the loop pretty early.</p>
 That suggests using a linked list instead of a dynamic array. Since we defined
 the ObjUpvalue struct ourselves, the easiest implementation is an intrusive list
 that puts the next pointer right inside the ObjUpvalue struct itself.</p>
-<div class="codehilite"><pre class="insert-before">
-  Value* location;
+<div class="codehilite"><pre class="insert-before">  Value* location;
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjUpvalue</em></div>
 <pre class="insert">
   <span class="k">struct</span> <span class="t">ObjUpvalue</span>* <span class="i">next</span>;
-</pre><pre class="insert-after">
-} ObjUpvalue;
+</pre><pre class="insert-after">} ObjUpvalue;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjUpvalue</em></div>
 
 <p>When we allocate an upvalue, it is not attached to any list yet so the link is
 <code>NULL</code>.</p>
-<div class="codehilite"><pre class="insert-before">
-  upvalue-&gt;location = slot;
+<div class="codehilite"><pre class="insert-before">  upvalue-&gt;location = slot;
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newUpvalue</em>()</div>
 <pre class="insert">
   <span class="i">upvalue</span>-&gt;<span class="i">next</span> = <span class="a">NULL</span>;
-</pre><pre class="insert-after">
-  return upvalue;
+</pre><pre class="insert-after">  return upvalue;
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>newUpvalue</em>()</div>
 
 <p>The VM owns the list, so the head pointer goes right inside the main VM struct.</p>
-<div class="codehilite"><pre class="insert-before">
-  Table strings;
+<div class="codehilite"><pre class="insert-before">  Table strings;
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
 <pre class="insert">
   <span class="t">ObjUpvalue</span>* <span class="i">openUpvalues</span>;
-</pre><pre class="insert-after">
-  Obj* objects;
+</pre><pre class="insert-after">  Obj* objects;
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
 <p>The list starts out empty.</p>
-<div class="codehilite"><pre class="insert-before">
-  vm.frameCount = 0;
+<div class="codehilite"><pre class="insert-before">  vm.frameCount = 0;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>resetStack</em>()</div>
 <pre class="insert">
   <span class="i">vm</span>.<span class="i">openUpvalues</span> = <span class="a">NULL</span>;
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>resetStack</em>()</div>
 
@@ -1794,8 +1689,7 @@ stack. This script, for example,</p>
 <p>should produce a series of linked upvalues like so:</p><img src="image/closures/linked-list.png" alt="Three upvalues in a linked list."/>
 <p>Whenever we close over a local variable, before creating a new upvalue, we look
 for an existing one in the list.</p>
-<div class="codehilite"><pre class="insert-before">
-static ObjUpvalue* captureUpvalue(Value* local) {
+<div class="codehilite"><pre class="insert-before">static ObjUpvalue* captureUpvalue(Value* local) {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>captureUpvalue</em>()</div>
 <pre class="insert">
@@ -1810,8 +1704,7 @@ in <em>captureUpvalue</em>()</div>
     <span class="k">return</span> <span class="i">upvalue</span>;
   }
 
-</pre><pre class="insert-after">
-  ObjUpvalue* createdUpvalue = newUpvalue(local);
+</pre><pre class="insert-after">  ObjUpvalue* createdUpvalue = newUpvalue(local);
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>captureUpvalue</em>()</div>
 
@@ -1845,8 +1738,7 @@ closing over, and thus there must not be an existing upvalue for it.</p>
 </ol>
 <p>In the first case, we&rsquo;re done and we&rsquo;ve returned. Otherwise, we create a new
 upvalue for our local slot and insert it into the list at the right location.</p>
-<div class="codehilite"><pre class="insert-before">
-  ObjUpvalue* createdUpvalue = newUpvalue(local);
+<div class="codehilite"><pre class="insert-before">  ObjUpvalue* createdUpvalue = newUpvalue(local);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>captureUpvalue</em>()</div>
 <pre class="insert">
@@ -1858,8 +1750,7 @@ in <em>captureUpvalue</em>()</div>
     <span class="i">prevUpvalue</span>-&gt;<span class="i">next</span> = <span class="i">createdUpvalue</span>;
   }
 
-</pre><pre class="insert-after">
-  return createdUpvalue;
+</pre><pre class="insert-after">  return createdUpvalue;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>captureUpvalue</em>()</div>
 
@@ -1890,8 +1781,7 @@ stack now.</p>
 <p>The compiler helpfully emits an <code>OP_CLOSE_UPVALUE</code> instruction to tell the VM
 exactly when a local variable should be hoisted onto the heap. Executing that
 instruction is the interpreter&rsquo;s responsibility.</p>
-<div class="codehilite"><pre class="insert-before">
-      }
+<div class="codehilite"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
@@ -1899,8 +1789,7 @@ in <em>run</em>()</div>
         <span class="i">closeUpvalues</span>(<span class="i">vm</span>.<span class="i">stackTop</span> - <span class="n">1</span>);
         <span class="i">pop</span>();
         <span class="k">break</span>;
-</pre><pre class="insert-after">
-      case OP_RETURN: {
+</pre><pre class="insert-after">      case OP_RETURN: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -1949,27 +1838,23 @@ variable moves from the stack to the <code>closed</code> field, we simply update
 <p>We don&rsquo;t need to change how <code>OP_GET_UPVALUE</code> and <code>OP_SET_UPVALUE</code> are
 interpreted at all. That keeps them simple, which in turn keeps them fast. We do
 need to add the new field to ObjUpvalue, though.</p>
-<div class="codehilite"><pre class="insert-before">
-  Value* location;
+<div class="codehilite"><pre class="insert-before">  Value* location;
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjUpvalue</em></div>
 <pre class="insert">
   <span class="t">Value</span> <span class="i">closed</span>;
-</pre><pre class="insert-after">
-  struct ObjUpvalue* next;
+</pre><pre class="insert-after">  struct ObjUpvalue* next;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjUpvalue</em></div>
 
 <p>And we should zero it out when we create an ObjUpvalue so there&rsquo;s no
 uninitialized memory floating around.</p>
-<div class="codehilite"><pre class="insert-before">
-  ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
+<div class="codehilite"><pre class="insert-before">  ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newUpvalue</em>()</div>
 <pre class="insert">
   <span class="i">upvalue</span>-&gt;<span class="i">closed</span> = <span class="a">NIL_VAL</span>;
-</pre><pre class="insert-after">
-  upvalue-&gt;location = slot;
+</pre><pre class="insert-after">  upvalue-&gt;location = slot;
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>newUpvalue</em>()</div>
 
@@ -1988,14 +1873,12 @@ function implicitly when it pops the call frame.</p>
 <p>This is the reason <code>closeUpvalues()</code> accepts a pointer to a stack slot. When a
 function returns, we call that same helper and pass in the first stack slot
 owned by the function.</p>
-<div class="codehilite"><pre class="insert-before">
-        Value result = pop();
+<div class="codehilite"><pre class="insert-before">        Value result = pop();
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
         <span class="i">closeUpvalues</span>(<span class="i">frame</span>-&gt;<span class="i">slots</span>);
-</pre><pre class="insert-after">
-        vm.frameCount--;
+</pre><pre class="insert-after">        vm.frameCount--;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 

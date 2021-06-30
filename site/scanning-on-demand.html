@@ -128,8 +128,7 @@ see what they are.</p>
 <p>Now that we&rsquo;re building the front end, we can get clox running like a real
 interpreter. No more hand-authored chunks of bytecode. It&rsquo;s time for a REPL and
 script loading. Tear out most of the code in <code>main()</code> and replace it with:</p>
-<div class="codehilite"><pre class="insert-before">
-int main(int argc, const char* argv[]) {
+<div class="codehilite"><pre class="insert-before">int main(int argc, const char* argv[]) {
   initVM();
 
 </pre><div class="source-file"><em>main.c</em><br>
@@ -146,8 +145,7 @@ replace 26 lines</div>
   }
 
   <span class="i">freeVM</span>();
-</pre><pre class="insert-after">
-  return 0;
+</pre><pre class="insert-after">  return 0;
 }
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>(), replace 26 lines</div>
@@ -167,14 +165,12 @@ add to top of file</div>
 <span class="a">#include &lt;stdlib.h&gt;</span>
 <span class="a">#include &lt;string.h&gt;</span>
 
-</pre><pre class="insert-after">
-#include &quot;common.h&quot;
+</pre><pre class="insert-after">#include &quot;common.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, add to top of file</div>
 
 <p>Next, we get the REPL up and REPL-ing.</p>
-<div class="codehilite"><pre class="insert-before">
-#include &quot;vm.h&quot;
+<div class="codehilite"><pre class="insert-before">#include &quot;vm.h&quot;
 </pre><div class="source-file"><em>main.c</em></div>
 <pre class="insert">
 
@@ -271,8 +267,7 @@ eating our vegetables or flossing.</p>
 occurs. If we can&rsquo;t correctly read the user&rsquo;s script, all we can really do is
 tell the user and exit the interpreter gracefully. First of all, we might fail
 to open the file.</p>
-<div class="codehilite"><pre class="insert-before">
-  FILE* file = fopen(path, &quot;rb&quot;);
+<div class="codehilite"><pre class="insert-before">  FILE* file = fopen(path, &quot;rb&quot;);
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>readFile</em>()</div>
 <pre class="insert">
@@ -281,7 +276,6 @@ in <em>readFile</em>()</div>
     <span class="i">exit</span>(<span class="n">74</span>);
   }
 </pre><pre class="insert-after">
-
   fseek(file, 0L, SEEK_END);
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>readFile</em>()</div>
@@ -289,8 +283,7 @@ in <em>readFile</em>()</div>
 <p>This can happen if the file doesn&rsquo;t exist or the user doesn&rsquo;t have access to it.
 It&rsquo;s pretty common<span class="em">&mdash;</span>people mistype paths all the time.</p>
 <p>This failure is much rarer:</p>
-<div class="codehilite"><pre class="insert-before">
-  char* buffer = (char*)malloc(fileSize + 1);
+<div class="codehilite"><pre class="insert-before">  char* buffer = (char*)malloc(fileSize + 1);
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>readFile</em>()</div>
 <pre class="insert">
@@ -299,8 +292,7 @@ in <em>readFile</em>()</div>
     <span class="i">exit</span>(<span class="n">74</span>);
   }
 
-</pre><pre class="insert-after">
-  size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
+</pre><pre class="insert-after">  size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>readFile</em>()</div>
 
@@ -308,8 +300,7 @@ in <em>readFile</em>()</div>
 probably got bigger problems to worry about, but we should do our best to at
 least let them know.</p>
 <p>Finally, the read itself may fail.</p>
-<div class="codehilite"><pre class="insert-before">
-  size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
+<div class="codehilite"><pre class="insert-before">  size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>readFile</em>()</div>
 <pre class="insert">
@@ -318,8 +309,7 @@ in <em>readFile</em>()</div>
     <span class="i">exit</span>(<span class="n">74</span>);
   }
 
-</pre><pre class="insert-after">
-  buffer[bytesRead] = '\0';
+</pre><pre class="insert-after">  buffer[bytesRead] = '\0';
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>readFile</em>()</div>
 
@@ -335,15 +325,13 @@ error?</p>
 pipeline to scan, compile, and execute it. It&rsquo;s driven by <code>interpret()</code>. Right
 now, that function runs our old hardcoded test chunk. Let&rsquo;s change it to
 something closer to its final incarnation.</p>
-<div class="codehilite"><pre class="insert-before">
-void freeVM();
+<div class="codehilite"><pre class="insert-before">void freeVM();
 </pre><div class="source-file"><em>vm.h</em><br>
 function <em>interpret</em>()<br>
 replace 1 line</div>
 <pre class="insert">
 <span class="t">InterpretResult</span> <span class="i">interpret</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>);
-</pre><pre class="insert-after">
-void push(Value value);
+</pre><pre class="insert-after">void push(Value value);
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, function <em>interpret</em>(), replace 1 line</div>
 
@@ -356,20 +344,17 @@ replace 4 lines</div>
 <span class="t">InterpretResult</span> <span class="i">interpret</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>) {
   <span class="i">compile</span>(<span class="i">source</span>);
   <span class="k">return</span> <span class="a">INTERPRET_OK</span>;
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, function <em>interpret</em>(), replace 4 lines</div>
 
 <p>We won&rsquo;t build the actual <em>compiler</em> yet in this chapter, but we can start
 laying out its structure. It lives in a new module.</p>
-<div class="codehilite"><pre class="insert-before">
-#include &quot;common.h&quot;
+<div class="codehilite"><pre class="insert-before">#include &quot;common.h&quot;
 </pre><div class="source-file"><em>vm.c</em></div>
 <pre class="insert">
 <span class="a">#include &quot;compiler.h&quot;</span>
-</pre><pre class="insert-after">
-#include &quot;debug.h&quot;
+</pre><pre class="insert-after">#include &quot;debug.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em></div>
 
@@ -484,8 +469,7 @@ returns the token by value. It doesn&rsquo;t need to dynamically allocate anythi
 <p>Unfortunately, we don&rsquo;t have a compiler yet that can ask the scanner for tokens,
 so the scanner will just sit there doing nothing. To kick it into action, we&rsquo;ll
 write some temporary code to drive it.</p>
-<div class="codehilite"><pre class="insert-before">
-  initScanner(source);
+<div class="codehilite"><pre class="insert-before">  initScanner(source);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
 <pre class="insert">
@@ -502,8 +486,7 @@ in <em>compile</em>()</div>
 
     <span class="k">if</span> (<span class="i">token</span>.<span class="i">type</span> == <span class="a">TOKEN_EOF</span>) <span class="k">break</span>;
   }
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
 
@@ -538,22 +521,19 @@ C gives us.</p>
 </aside>
 <p>The goal for the rest of the chapter is to make that blob of code work by
 implementing this key function:</p>
-<div class="codehilite"><pre class="insert-before">
-void initScanner(const char* source);
+<div class="codehilite"><pre class="insert-before">void initScanner(const char* source);
 </pre><div class="source-file"><em>scanner.h</em><br>
 add after <em>initScanner</em>()</div>
 <pre class="insert">
 <span class="t">Token</span> <span class="i">scanToken</span>();
 </pre><pre class="insert-after">
-
 #endif
 </pre></div>
 <div class="source-file-narrow"><em>scanner.h</em>, add after <em>initScanner</em>()</div>
 
 <p>Each call scans and returns the next token in the source code. A token looks
 like this:</p>
-<div class="codehilite"><pre class="insert-before">
-#define clox_scanner_h
+<div class="codehilite"><pre class="insert-before">#define clox_scanner_h
 </pre><div class="source-file"><em>scanner.h</em></div>
 <pre class="insert">
 
@@ -564,7 +544,6 @@ like this:</p>
   <span class="t">int</span> <span class="i">line</span>;
 } <span class="t">Token</span>;
 </pre><pre class="insert-after">
-
 void initScanner(const char* source);
 </pre></div>
 <div class="source-file-narrow"><em>scanner.h</em></div>
@@ -572,8 +551,7 @@ void initScanner(const char* source);
 <p>It&rsquo;s pretty similar to jlox&rsquo;s Token class. We have an enum identifying what type
 of token it is<span class="em">&mdash;</span>number, identifier, <code>+</code> operator, etc. The enum is virtually
 identical to the one in jlox, so let&rsquo;s just hammer out the whole thing.</p>
-<div class="codehilite"><pre class="insert-before">
-#ifndef clox_scanner_h
+<div class="codehilite"><pre class="insert-before">#ifndef clox_scanner_h
 #define clox_scanner_h
 </pre><div class="source-file"><em>scanner.h</em></div>
 <pre class="insert">
@@ -600,7 +578,6 @@ identical to the one in jlox, so let&rsquo;s just hammer out the whole thing.</p
   <span class="a">TOKEN_ERROR</span>, <span class="a">TOKEN_EOF</span>
 } <span class="t">TokenType</span>;
 </pre><pre class="insert-after">
-
 typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>scanner.h</em></div>
@@ -716,8 +693,7 @@ error. That&rsquo;s not exactly a fun language to program in, so let&rsquo;s fil
 rules.</p>
 <h2><a href="#a-lexical-grammar-for-lox" name="a-lexical-grammar-for-lox"><small>16&#8202;.&#8202;3</small>A Lexical Grammar for Lox</a></h2>
 <p>The simplest tokens are only a single character. We recognize those like so:</p>
-<div class="codehilite"><pre class="insert-before">
-  if (isAtEnd()) return makeToken(TOKEN_EOF);
+<div class="codehilite"><pre class="insert-before">  if (isAtEnd()) return makeToken(TOKEN_EOF);
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
@@ -738,7 +714,6 @@ in <em>scanToken</em>()</div>
     <span class="k">case</span> <span class="s">&#39;*&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_STAR</span>);
   }
 </pre><pre class="insert-after">
-
   return errorToken(&quot;Unexpected character.&quot;);
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
@@ -761,8 +736,7 @@ add after <em>isAtEnd</em>()</div>
 these also has a corresponding single-character token. That means that when we
 see a character like <code>!</code>, we don&rsquo;t know if we&rsquo;re in a <code>!</code> token or a <code>!=</code> until
 we look at the next character too. We handle those like so:</p>
-<div class="codehilite"><pre class="insert-before">
-    case '*': return makeToken(TOKEN_STAR);
+<div class="codehilite"><pre class="insert-before">    case '*': return makeToken(TOKEN_STAR);
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
@@ -778,8 +752,7 @@ in <em>scanToken</em>()</div>
     <span class="k">case</span> <span class="s">&#39;&gt;&#39;</span>:
       <span class="k">return</span> <span class="i">makeToken</span>(
           <span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="a">TOKEN_GREATER_EQUAL</span> : <span class="a">TOKEN_GREATER</span>);
-</pre><pre class="insert-after">
-  }
+</pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -813,14 +786,12 @@ that the function still correctly finds the next token <em>after</em> the whites
 when you call it. We&rsquo;d have to wrap the whole body of the function in a loop or
 something.</p>
 <p>Instead, before starting the token, we shunt off to a separate function.</p>
-<div class="codehilite"><pre class="insert-before">
-Token scanToken() {
+<div class="codehilite"><pre class="insert-before">Token scanToken() {
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
   <span class="i">skipWhitespace</span>();
-</pre><pre class="insert-after">
-  scanner.start = scanner.current;
+</pre><pre class="insert-after">  scanner.start = scanner.current;
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -861,8 +832,7 @@ add after <em>advance</em>()</div>
 
 <p>This simply returns the current character, but doesn&rsquo;t consume it. The previous
 code handles all the whitespace characters except for newlines.</p>
-<div class="codehilite"><pre class="insert-before">
-        break;
+<div class="codehilite"><pre class="insert-before">        break;
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
 <pre class="insert">
@@ -870,8 +840,7 @@ in <em>skipWhitespace</em>()</div>
         <span class="i">scanner</span>.<span class="i">line</span>++;
         <span class="i">advance</span>();
         <span class="k">break</span>;
-</pre><pre class="insert-after">
-      default:
+</pre><pre class="insert-after">      default:
         return;
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>skipWhitespace</em>()</div>
@@ -881,8 +850,7 @@ in <em>skipWhitespace</em>()</div>
 <p>Comments aren&rsquo;t technically &ldquo;whitespace&rdquo;, if you want to get all precise with
 your terminology, but as far as Lox is concerned, they may as well be, so we
 skip those too.</p>
-<div class="codehilite"><pre class="insert-before">
-        break;
+<div class="codehilite"><pre class="insert-before">        break;
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
 <pre class="insert">
@@ -894,8 +862,7 @@ in <em>skipWhitespace</em>()</div>
           <span class="k">return</span>;
         }
         <span class="k">break</span>;
-</pre><pre class="insert-after">
-      default:
+</pre><pre class="insert-after">      default:
         return;
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>skipWhitespace</em>()</div>
@@ -925,14 +892,12 @@ newline will be the current character on the next turn of the outer loop in
 <p>Number and string tokens are special because they have a runtime value
 associated with them. We&rsquo;ll start with strings because they are easy to
 recognize<span class="em">&mdash;</span>they always begin with a double quote.</p>
-<div class="codehilite"><pre class="insert-before">
-          match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+<div class="codehilite"><pre class="insert-before">          match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
     <span class="k">case</span> <span class="s">&#39;&quot;&#39;</span>: <span class="k">return</span> <span class="i">string</span>();
-</pre><pre class="insert-after">
-  }
+</pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -981,14 +946,12 @@ keeps our scanner simpler.</p>
 </aside>
 <p>Next up, numbers. Instead of adding a switch case for each of the ten digits
 that can start a number, we handle them here:</p>
-<div class="codehilite"><pre class="insert-before">
-  char c = advance();
+<div class="codehilite"><pre class="insert-before">  char c = advance();
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
   <span class="k">if</span> (<span class="i">isDigit</span>(<span class="i">c</span>)) <span class="k">return</span> <span class="i">number</span>();
 </pre><pre class="insert-after">
-
   switch (c) {
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
@@ -1032,14 +995,12 @@ different from how we did it in jlox, and touches on some important data
 structures.</p>
 <p>First, though, we have to scan the lexeme. Names start with a letter or
 underscore.</p>
-<div class="codehilite"><pre class="insert-before">
-  char c = advance();
+<div class="codehilite"><pre class="insert-before">  char c = advance();
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
   <span class="k">if</span> (<span class="i">isAlpha</span>(<span class="i">c</span>)) <span class="k">return</span> <span class="i">identifier</span>();
-</pre><pre class="insert-after">
-  if (isDigit(c)) return number();
+</pre><pre class="insert-after">  if (isDigit(c)) return number();
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -1185,8 +1146,7 @@ node and handle the easy keywords.</p>
 and that&rsquo;s currently one of the world&rsquo;s most sophisticated, fastest language
 implementations.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-static TokenType identifierType() {
+<div class="codehilite"><pre class="insert-before">static TokenType identifierType() {
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
 <pre class="insert">
@@ -1204,8 +1164,7 @@ in <em>identifierType</em>()</div>
     <span class="k">case</span> <span class="s">&#39;w&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">4</span>, <span class="s">&quot;hile&quot;</span>, <span class="a">TOKEN_WHILE</span>);
   }
 
-</pre><pre class="insert-after">
-  return TOKEN_IDENTIFIER;
+</pre><pre class="insert-after">  return TOKEN_IDENTIFIER;
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>identifierType</em>()</div>
 
@@ -1241,8 +1200,7 @@ normal identifier.</p>
 <p>We have a couple of keywords where the tree branches again after the first
 letter. If the lexeme starts with &ldquo;f&rdquo;, it could be <code>false</code>, <code>for</code>, or <code>fun</code>. So
 we add another switch for the branches coming off the &ldquo;f&rdquo; node.</p>
-<div class="codehilite"><pre class="insert-before">
-    case 'e': return checkKeyword(1, 3, &quot;lse&quot;, TOKEN_ELSE);
+<div class="codehilite"><pre class="insert-before">    case 'e': return checkKeyword(1, 3, &quot;lse&quot;, TOKEN_ELSE);
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
 <pre class="insert">
@@ -1255,16 +1213,14 @@ in <em>identifierType</em>()</div>
         }
       }
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case 'i': return checkKeyword(1, 1, &quot;f&quot;, TOKEN_IF);
+</pre><pre class="insert-after">    case 'i': return checkKeyword(1, 1, &quot;f&quot;, TOKEN_IF);
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>identifierType</em>()</div>
 
 <p>Before we switch, we need to check that there even <em>is</em> a second letter. &ldquo;f&rdquo; by
 itself is a valid identifier too, after all. The other letter that branches is
 &ldquo;t&rdquo;.</p>
-<div class="codehilite"><pre class="insert-before">
-    case 's': return checkKeyword(1, 4, &quot;uper&quot;, TOKEN_SUPER);
+<div class="codehilite"><pre class="insert-before">    case 's': return checkKeyword(1, 4, &quot;uper&quot;, TOKEN_SUPER);
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
 <pre class="insert">
@@ -1276,8 +1232,7 @@ in <em>identifierType</em>()</div>
         }
       }
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case 'v': return checkKeyword(1, 2, &quot;ar&quot;, TOKEN_VAR);
+</pre><pre class="insert-after">    case 'v': return checkKeyword(1, 2, &quot;ar&quot;, TOKEN_VAR);
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>identifierType</em>()</div>
 
