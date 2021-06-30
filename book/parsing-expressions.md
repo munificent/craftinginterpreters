@@ -407,7 +407,7 @@ Confusingly, we also use direction metaphorically when talking about "high" and
 reach the lowest-precedence expressions first because they may in turn contain
 subexpressions of higher precedence.
 
-<img src="image/parsing-expressions/direction.png" alt="Top-down grammar rules in order of increasing precedence.">
+<img src="image/parsing-expressions/direction.png" alt="Top-down grammar rules in order of increasing precedence." />
 
 CS people really need to get together and straighten out their metaphors. Don't
 even get me started on which direction a stack grows or why trees have their
@@ -708,7 +708,7 @@ issue. Simple, fast error recovery is fine.
 
 You know you want to push it.
 
-<img src="image/parsing-expressions/panic.png" alt="A big shiny 'PANIC' button.">
+<img src="image/parsing-expressions/panic.png" alt="A big shiny 'PANIC' button." />
 
 </aside>
 
@@ -884,7 +884,7 @@ out. We still don't have an interpreter, so for now, we'll parse to a syntax
 tree and then use the AstPrinter class from the [last chapter][ast-printer] to
 display it.
 
-[ast-printer]: representing-code.html#a-(not-very)-pretty-printer
+[ast-printer]: representing-code.html#a-not-very-pretty-printer
 
 Delete the old code to print the scanned tokens and replace it with this:
 

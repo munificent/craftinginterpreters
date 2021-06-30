@@ -1,6 +1,6 @@
-> I wanna, I wanna,<br>
-> I wanna, I wanna,<br>
-> I wanna be trash.<br>
+> I wanna, I wanna,<br />
+> I wanna, I wanna,<br />
+> I wanna be trash.<br />
 >
 > <cite>The Whip, &ldquo;Trash&rdquo;</cite>
 
@@ -515,18 +515,20 @@ publication.
 
 </aside>
 
-*   **<img src="image/garbage-collection/white.png" class="dot" /> White:** At
-    the beginning of a garbage collection, every object is white. This color
-    means we have not reached or processed the object at all.
+*   **<img src="image/garbage-collection/white.png" alt="A white circle."
+    class="dot" /> White:** At the beginning of a garbage collection, every
+    object is white. This color means we have not reached or processed the
+    object at all.
 
-*   **<img src="image/garbage-collection/gray.png" class="dot" /> Gray:** During
-    marking, when we first reach an object, we darken it gray. This color means
-    we know the object itself is reachable and should not be collected. But we
-    have not yet traced *through* it to see what *other* objects it references.
-    In graph algorithm terms, this is the *worklist* -- the set of objects we
-    know about but haven't processed yet.
+*   **<img src="image/garbage-collection/gray.png" alt="A gray circle."
+    class="dot" /> Gray:** During marking, when we first reach an object, we
+    darken it gray. This color means we know the object itself is reachable and
+    should not be collected. But we have not yet traced *through* it to see what
+    *other* objects it references. In graph algorithm terms, this is the
+    *worklist* -- the set of objects we know about but haven't processed yet.
 
-*   **<img src="image/garbage-collection/black.png" class="dot" /> Black:** When
+*   **<img src="image/garbage-collection/black.png" alt="A black circle."
+    class="dot" /> Black:** When
     we take a gray object and mark all of the objects it references, we then
     turn the gray object black. This color means the mark phase is done
     processing that object.

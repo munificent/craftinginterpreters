@@ -431,7 +431,7 @@ all the way out.
 
 I don't know, man, *can* you negate a muffin?
 
-<img src="image/evaluating-expressions/muffin.png" alt="A muffin, negated.">
+<img src="image/evaluating-expressions/muffin.png" alt="A muffin, negated." />
 
 </aside>
 

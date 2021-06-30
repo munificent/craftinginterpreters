@@ -66,7 +66,7 @@ instances contains the set of all BostonCream instances since every BostonCream
 is also a Doughnut. So BostonCream is a subclass, and a subtype, and its
 instances are a subset. It all lines up.
 
-<img src="image/inheritance/doughnuts.png" alt="Boston cream <: doughnut.">
+<img src="image/inheritance/doughnuts.png" alt="Boston cream &lt;: doughnut." />
 
 </aside>
 
@@ -614,7 +614,7 @@ implemented...
 
 <aside name="superhero">
 
-<img src="image/inheritance/superhero.png" alt="You, being your bad self.">
+<img src="image/inheritance/superhero.png" alt="You, being your bad self." />
 
 </aside>
 

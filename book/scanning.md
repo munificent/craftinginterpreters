@@ -44,7 +44,7 @@ For exit codes, I'm using the conventions defined in the UNIX
 ["sysexits.h"][sysexits] header. It's the closest thing to a standard I could
 find.
 
-[sysexits]: https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html
+[sysexits]: https://www.freebsd.org/cgi/man.cgi?query=sysexits&amp;apropos=0&amp;sektion=0&amp;manpath=FreeBSD+4.3-RELEASE&amp;format=html
 
 </aside>
 

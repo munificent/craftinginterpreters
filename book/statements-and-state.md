@@ -1146,7 +1146,7 @@ much prefer the evocative **cactus stack**.
 
 [parent pointer]: https://en.wikipedia.org/wiki/Parent_pointer_tree
 
-<img class="above" src="image/statements-and-state/cactus.png" alt="Each branch points to its parent. The root is global scope.">
+<img class="above" src="image/statements-and-state/cactus.png" alt="Each branch points to its parent. The root is global scope." />
 
 </aside>
 

@@ -82,7 +82,7 @@ together until we have all of the above pieces, so gather your stamina.
 
 <aside name="circle">
 
-<img src="image/classes/circle.png" alt="The relationships between classes, methods, instances, constructors, and fields.">
+<img src="image/classes/circle.png" alt="The relationships between classes, methods, instances, constructors, and fields." />
 
 It's like the circle of life, *sans* Sir Elton John.
 
