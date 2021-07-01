@@ -187,7 +187,7 @@ impressive, it fits naturally into the single-pass compilers clox and Lua both
 use. It is somewhat intricate, though. It might take a while before all the
 pieces click together in your mind. We&rsquo;ll build them one step at a time, and
 I&rsquo;ll try to introduce the concepts in stages.</p>
-<h2><a href="#closure-objects" name="closure-objects"><small>25&#8202;.&#8202;1</small>Closure Objects</a></h2>
+<h2><a href="#closure-objects" id="closure-objects"><small>25&#8202;.&#8202;1</small>Closure Objects</a></h2>
 <p>Our VM represents functions at runtime using ObjFunction. These objects are
 created by the front end during compilation. At runtime, all the VM does is load
 the function object from a constant table and bind it to a name. There is no
@@ -344,7 +344,7 @@ in <em>printObject</em>()</div>
 difference between ObjFunction and ObjClosure is purely a hidden implementation
 detail. With that out of the way, we have a working but empty representation for
 closures.</p>
-<h3><a href="#compiling-to-closure-objects" name="compiling-to-closure-objects"><small>25&#8202;.&#8202;1&#8202;.&#8202;1</small>Compiling to closure objects</a></h3>
+<h3><a href="#compiling-to-closure-objects" id="compiling-to-closure-objects"><small>25&#8202;.&#8202;1&#8202;.&#8202;1</small>Compiling to closure objects</a></h3>
 <p>We have closure objects, but our VM never creates them. The next step is getting
 the compiler to emit instructions to tell the runtime when to create a new
 ObjClosure to wrap a given ObjFunction. This happens right at the end of a
@@ -397,7 +397,7 @@ in <em>disassembleInstruction</em>()</div>
 of the chapter, you&rsquo;ll discover that <code>OP_CLOSURE</code> is quite an unusual
 instruction. It&rsquo;s straightforward right now<span class="em">&mdash;</span>just a single byte operand<span class="em">&mdash;</span>but
 we&rsquo;ll be adding to it. This code here anticipates that future.</p>
-<h3><a href="#interpreting-function-declarations" name="interpreting-function-declarations"><small>25&#8202;.&#8202;1&#8202;.&#8202;2</small>Interpreting function declarations</a></h3>
+<h3><a href="#interpreting-function-declarations" id="interpreting-function-declarations"><small>25&#8202;.&#8202;1&#8202;.&#8202;2</small>Interpreting function declarations</a></h3>
 <p>Most of the work we need to do is in the runtime. We have to handle the new
 instruction, naturally. But we also need to touch every piece of code in the VM
 that works with ObjFunction and change it to use ObjClosure instead<span class="em">&mdash;</span>function
@@ -565,7 +565,7 @@ function declaration. Every time the VM executes a function declaration, it
 wraps the ObjFunction in a new ObjClosure. The rest of the VM now handles those
 ObjClosures floating around. That&rsquo;s the boring stuff out of the way. Now we&rsquo;re
 ready to make these closures actually <em>do</em> something.</p>
-<h2><a href="#upvalues" name="upvalues"><small>25&#8202;.&#8202;2</small>Upvalues</a></h2>
+<h2><a href="#upvalues" id="upvalues"><small>25&#8202;.&#8202;2</small>Upvalues</a></h2>
 <p>Our existing instructions for reading and writing local variables are limited to
 a single function&rsquo;s stack window. Locals from a surrounding function are outside
 of the inner function&rsquo;s window. We&rsquo;re going to need some new instructions.</p>
@@ -622,7 +622,7 @@ memory like this:</p><img src="image/closures/open-upvalue.png" alt="The object 
 important part is that upvalues serve as the layer of indirection needed to
 continue to find a captured local variable even after it moves off the stack.
 But before we get to all that, let&rsquo;s focus on compiling captured variables.</p>
-<h3><a href="#compiling-upvalues" name="compiling-upvalues"><small>25&#8202;.&#8202;2&#8202;.&#8202;1</small>Compiling upvalues</a></h3>
+<h3><a href="#compiling-upvalues" id="compiling-upvalues"><small>25&#8202;.&#8202;2&#8202;.&#8202;1</small>Compiling upvalues</a></h3>
 <p>As usual, we want to do as much work as possible during compilation to keep
 execution simple and fast. Since local variables are lexically scoped in Lox, we
 have enough knowledge at compile time to resolve which surrounding local
@@ -837,7 +837,7 @@ add after struct <em>Local</em></div>
 
 <p>The <code>index</code> field stores which local slot the upvalue is capturing. The
 <code>isLocal</code> field deserves its own section, which we&rsquo;ll get to next.</p>
-<h3><a href="#flattening-upvalues" name="flattening-upvalues"><small>25&#8202;.&#8202;2&#8202;.&#8202;2</small>Flattening upvalues</a></h3>
+<h3><a href="#flattening-upvalues" id="flattening-upvalues"><small>25&#8202;.&#8202;2&#8202;.&#8202;2</small>Flattening upvalues</a></h3>
 <p>In the example I showed before, the closure is accessing a variable declared in
 the immediately enclosing function. Lox also supports accessing local variables
 declared in <em>any</em> enclosing scope, as in:</p>
@@ -1071,7 +1071,7 @@ do need to add an include so the debug module can get to <code>AS_FUNCTION()</co
 outputs an <code>OP_CLOSURE</code> instruction followed by a series of operand byte pairs
 for each upvalue it needs to capture at runtime. It&rsquo;s time to hop over to that
 side of the VM and get things running.</p>
-<h2><a href="#upvalue-objects" name="upvalue-objects"><small>25&#8202;.&#8202;3</small>Upvalue Objects</a></h2>
+<h2><a href="#upvalue-objects" id="upvalue-objects"><small>25&#8202;.&#8202;3</small>Upvalue Objects</a></h2>
 <p>Each <code>OP_CLOSURE</code> instruction is now followed by the series of bytes that
 specify the upvalues the ObjClosure should own. Before we process those
 operands, we need a runtime representation for upvalues.</p>
@@ -1180,7 +1180,7 @@ take advantage of the VM&rsquo;s memory management. They aren&rsquo;t first-clas
 that a Lox user can directly access in a program. So this code will never
 actually execute<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>but it keeps the compiler from yelling at us about an
 unhandled switch case, so here we are.</p>
-<h3><a href="#upvalues-in-closures" name="upvalues-in-closures"><small>25&#8202;.&#8202;3&#8202;.&#8202;1</small>Upvalues in closures</a></h3>
+<h3><a href="#upvalues-in-closures" id="upvalues-in-closures"><small>25&#8202;.&#8202;3&#8202;.&#8202;1</small>Upvalues in closures</a></h3>
 <p>When I first introduced upvalues, I said each closure has an array of them.
 We&rsquo;ve finally worked our way back to implementing that.</p>
 <div class="codehilite"><pre class="insert-before">  ObjFunction* function;
@@ -1362,7 +1362,7 @@ have working closures. Try this:</p>
 <span class="i">outer</span>();
 </pre></div>
 <p>Run this, and it correctly prints &ldquo;outside&rdquo;.</p>
-<h2><a href="#closed-upvalues" name="closed-upvalues"><small>25&#8202;.&#8202;4</small>Closed Upvalues</a></h2>
+<h2><a href="#closed-upvalues" id="closed-upvalues"><small>25&#8202;.&#8202;4</small>Closed Upvalues</a></h2>
 <p>Of course, a key feature of closures is that they hold on to the variable as
 long as needed, even after the function that declares the variable has returned.
 Here&rsquo;s another example that <em>should</em> work:</p>
@@ -1385,7 +1385,7 @@ Like I&rsquo;ve mentioned a few times, the crux of the issue is that variables i
 closures don&rsquo;t have stack semantics. That means we&rsquo;ve got to hoist them off the
 stack when the function where they were declared returns. This final section of
 the chapter does that.</p>
-<h3><a href="#values-and-variables" name="values-and-variables"><small>25&#8202;.&#8202;4&#8202;.&#8202;1</small>Values and variables</a></h3>
+<h3><a href="#values-and-variables" id="values-and-variables"><small>25&#8202;.&#8202;4&#8202;.&#8202;1</small>Values and variables</a></h3>
 <p>Before we get to writing code, I want to dig into an important semantic point.
 Does a closure close over a <em>value</em> or a <em>variable?</em> This isn&rsquo;t purely an <span
 name="academic">academic</span> question. I&rsquo;m not just splitting hairs.
@@ -1435,7 +1435,7 @@ closed-over variables that are no longer on the stack. When a variable moves to
 the heap, we need to ensure that all closures capturing that variable retain a
 reference to its <em>one</em> new location. That way, when the variable is mutated, all
 closures see the change.</p>
-<h3><a href="#closing-upvalues" name="closing-upvalues"><small>25&#8202;.&#8202;4&#8202;.&#8202;2</small>Closing upvalues</a></h3>
+<h3><a href="#closing-upvalues" id="closing-upvalues"><small>25&#8202;.&#8202;4&#8202;.&#8202;2</small>Closing upvalues</a></h3>
 <p>We know that local variables always start out on the stack. This is faster, and
 lets our single-pass compiler emit code before it discovers the variable has
 been captured. We also know that closed-over variables need to move to the heap
@@ -1583,7 +1583,7 @@ locals that <em>are</em> used by a closure and need this special treatment. This
 with our general performance goal that we want users to pay only for
 functionality that they use. Variables that aren&rsquo;t used by closures live and die
 entirely on the stack just as they did before.</p>
-<h3><a href="#tracking-open-upvalues" name="tracking-open-upvalues"><small>25&#8202;.&#8202;4&#8202;.&#8202;3</small>Tracking open upvalues</a></h3>
+<h3><a href="#tracking-open-upvalues" id="tracking-open-upvalues"><small>25&#8202;.&#8202;4&#8202;.&#8202;3</small>Tracking open upvalues</a></h3>
 <p>Let&rsquo;s move over to the runtime side. Before we can interpret <code>OP_CLOSE_UPVALUE</code>
 instructions, we have an issue to resolve. Earlier, when I talked about whether
 closures capture variables or values, I said it was important that if multiple
@@ -1777,7 +1777,7 @@ approach.</p>
 ObjUpvalue for any given local slot. If two closures capture the same variable,
 they will get the same upvalue. We&rsquo;re ready to move those upvalues off the
 stack now.</p>
-<h3><a href="#closing-upvalues-at-runtime" name="closing-upvalues-at-runtime"><small>25&#8202;.&#8202;4&#8202;.&#8202;4</small>Closing upvalues at runtime</a></h3>
+<h3><a href="#closing-upvalues-at-runtime" id="closing-upvalues-at-runtime"><small>25&#8202;.&#8202;4&#8202;.&#8202;4</small>Closing upvalues at runtime</a></h3>
 <p>The compiler helpfully emits an <code>OP_CLOSE_UPVALUE</code> instruction to tell the VM
 exactly when a local variable should be hoisted onto the heap. Executing that
 instruction is the interpreter&rsquo;s responsibility.</p>
@@ -1913,7 +1913,7 @@ have a <em>lot</em> of objects floating around in clox&rsquo;s heap, with a web 
 stringing them together. The <a href="garbage-collection.html">next step</a> is figuring out how to manage that
 memory so that we can free some of those objects when they&rsquo;re no longer needed.</p>
 <div class="challenges">
-<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+<h2><a href="#challenges" id="challenges">Challenges</a></h2>
 <ol>
 <li>
 <p>Wrapping every ObjFunction in an ObjClosure introduces a level of
@@ -1954,7 +1954,7 @@ returned from that constructor.</p>
 </ol>
 </div>
 <div class="design-note">
-<h2><a href="#design-note" name="design-note">Design Note: Closing Over the Loop Variable</a></h2>
+<h2><a href="#design-note" id="design-note">Design Note: Closing Over the Loop Variable</a></h2>
 <p>Closures capture variables. When two closures capture the same variable, they
 share a reference to the same underlying storage location. This fact is visible
 when new values are assigned to the variable. Obviously, if two closures capture

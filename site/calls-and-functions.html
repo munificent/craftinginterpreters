@@ -130,7 +130,7 @@ we&rsquo;re going to do it all. It&rsquo;s a lot, but we&rsquo;ll feel good when
 <p>Eating<span class="em">&mdash;</span>consumption<span class="em">&mdash;</span>is a weird metaphor for a creative act. But most of the
 biological processes that produce &ldquo;output&rdquo; are a little less, ahem, decorous.</p>
 </aside>
-<h2><a href="#function-objects" name="function-objects"><small>24&#8202;.&#8202;1</small>Function Objects</a></h2>
+<h2><a href="#function-objects" id="function-objects"><small>24&#8202;.&#8202;1</small>Function Objects</a></h2>
 <p>The most interesting structural change in the VM is around the stack. We already
 <em>have</em> a stack for local variables and temporaries, so we&rsquo;re partway there. But
 we have no notion of a <em>call</em> stack. Before we can make much progress, we&rsquo;ll
@@ -298,7 +298,7 @@ ObjFunction pointer using this:</p>
 
 <p>With that, our object model knows how to represent functions. I&rsquo;m feeling warmed
 up now. You ready for something a little harder?</p>
-<h2><a href="#compiling-to-function-objects" name="compiling-to-function-objects"><small>24&#8202;.&#8202;2</small>Compiling to Function Objects</a></h2>
+<h2><a href="#compiling-to-function-objects" id="compiling-to-function-objects"><small>24&#8202;.&#8202;2</small>Compiling to Function Objects</a></h2>
 <p>Right now, our compiler assumes it is always compiling to one single chunk. With
 each function&rsquo;s code living in separate chunks, that gets more complex. When the
 compiler reaches a function declaration, it needs to emit code into the
@@ -373,7 +373,7 @@ static void errorAt(Token* token, const char* message) {
 of compiling. Next, we need to actually create that function. Previously, the VM
 passed a Chunk to the compiler which filled it with code. Instead, the compiler
 will create and return a function that contains the compiled top-level code<span class="em">&mdash;</span>which is all we support right now<span class="em">&mdash;</span>of the user&rsquo;s program.</p>
-<h3><a href="#creating-functions-at-compile-time" name="creating-functions-at-compile-time"><small>24&#8202;.&#8202;2&#8202;.&#8202;1</small>Creating functions at compile time</a></h3>
+<h3><a href="#creating-functions-at-compile-time" id="creating-functions-at-compile-time"><small>24&#8202;.&#8202;2&#8202;.&#8202;1</small>Creating functions at compile time</a></h3>
 <p>We start threading this through in <code>compile()</code>, which is the main entry point
 into the compiler.</p>
 <div class="codehilite"><pre class="insert-before">  Compiler compiler;
@@ -567,11 +567,11 @@ we return it. Otherwise, we signal an error by returning <code>NULL</code>. This
 VM doesn&rsquo;t try to execute a function that may contain invalid bytecode.</p>
 <p>Eventually, we will update <code>interpret()</code> to handle the new declaration of
 <code>compile()</code>, but first we have some other changes to make.</p>
-<h2><a href="#call-frames" name="call-frames"><small>24&#8202;.&#8202;3</small>Call Frames</a></h2>
+<h2><a href="#call-frames" id="call-frames"><small>24&#8202;.&#8202;3</small>Call Frames</a></h2>
 <p>It&rsquo;s time for a big conceptual leap. Before we can implement function
 declarations and calls, we need to get the VM ready to handle them. There are
 two main problems we need to worry about:</p>
-<h3><a href="#allocating-local-variables" name="allocating-local-variables"><small>24&#8202;.&#8202;3&#8202;.&#8202;1</small>Allocating local variables</a></h3>
+<h3><a href="#allocating-local-variables" id="allocating-local-variables"><small>24&#8202;.&#8202;3&#8202;.&#8202;1</small>Allocating local variables</a></h3>
 <p>The compiler allocates stack slots for local variables. How should that work
 when the set of local variables in a program is distributed across multiple
 functions?</p>
@@ -676,7 +676,7 @@ frame. Sometimes you hear <strong>base pointer</strong>, because it points to th
 slot on top of which all of the function&rsquo;s variables live.</p>
 <p>That&rsquo;s the first piece of data we need to track. Every time we call a function,
 the VM determines the first stack slot where that function&rsquo;s variables begin.</p>
-<h3><a href="#return-addresses" name="return-addresses"><small>24&#8202;.&#8202;3&#8202;.&#8202;2</small>Return addresses</a></h3>
+<h3><a href="#return-addresses" id="return-addresses"><small>24&#8202;.&#8202;3&#8202;.&#8202;2</small>Return addresses</a></h3>
 <p>Right now, the VM works its way through the instruction stream by incrementing
 the <code>ip</code> field. The only interesting behavior is around control flow
 instructions which offset the <code>ip</code> by larger amounts. <em>Calling</em> a function is
@@ -698,7 +698,7 @@ called at runtime, the program would <em>modify its own code</em> to change a ju
 instruction at the end of the function to jump back to its caller. Sometimes the
 line between genius and madness is hair thin.</p>
 </aside>
-<h3><a href="#the-call-stack" name="the-call-stack"><small>24&#8202;.&#8202;3&#8202;.&#8202;3</small>The call stack</a></h3>
+<h3><a href="#the-call-stack" id="the-call-stack"><small>24&#8202;.&#8202;3&#8202;.&#8202;3</small>The call stack</a></h3>
 <p>So for each live function invocation<span class="em">&mdash;</span>each call that hasn&rsquo;t returned yet<span class="em">&mdash;</span>we
 need to track where on the stack that function&rsquo;s locals begin, and where the
 caller should resume. We&rsquo;ll put this, along with some other stuff, in a new
@@ -983,7 +983,7 @@ and behaving as it did before.</p>
 state. Fire it up and it does<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>exactly what it did before. We haven&rsquo;t added
 any new features yet, so this is kind of a let down. But all of the
 infrastructure is there and ready for us now. Let&rsquo;s take advantage of it.</p>
-<h2><a href="#function-declarations" name="function-declarations"><small>24&#8202;.&#8202;4</small>Function Declarations</a></h2>
+<h2><a href="#function-declarations" id="function-declarations"><small>24&#8202;.&#8202;4</small>Function Declarations</a></h2>
 <p>Before we can do call expressions, we need something to call, so we&rsquo;ll do
 function declarations first. The <span name="fun">fun</span> starts with a
 keyword.</p>
@@ -1082,7 +1082,7 @@ need to close the lingering outermost scope.</p>
 followed by the body. The body starts with a left curly brace, which we parse
 here. Then we call our existing <code>block()</code> function, which knows how to compile
 the rest of a block including the closing brace.</p>
-<h3><a href="#a-stack-of-compilers" name="a-stack-of-compilers"><small>24&#8202;.&#8202;4&#8202;.&#8202;1</small>A stack of compilers</a></h3>
+<h3><a href="#a-stack-of-compilers" id="a-stack-of-compilers"><small>24&#8202;.&#8202;4&#8202;.&#8202;1</small>A stack of compilers</a></h3>
 <p>The interesting parts are the compiler stuff at the top and bottom. The Compiler
 struct stores data like which slots are owned by which local variables, how many
 blocks of nesting we&rsquo;re currently in, etc. All of that is specific to a single
@@ -1158,7 +1158,7 @@ against pathological or even malicious code<span class="em">&mdash;</span>a real
 JavaScript VMs<span class="em">&mdash;</span>it would be good to have our compiler artificially limit the
 amount of function nesting it permits.</p>
 </aside>
-<h3><a href="#function-parameters" name="function-parameters"><small>24&#8202;.&#8202;4&#8202;.&#8202;2</small>Function parameters</a></h3>
+<h3><a href="#function-parameters" id="function-parameters"><small>24&#8202;.&#8202;4&#8202;.&#8202;2</small>Function parameters</a></h3>
 <p>Functions aren&rsquo;t very useful if you can&rsquo;t pass arguments to them, so let&rsquo;s do
 parameters next.</p>
 <div class="codehilite"><pre class="insert-before">  consume(TOKEN_LEFT_PAREN, &quot;Expect '(' after function name.&quot;);
@@ -1220,7 +1220,7 @@ heap-allocated name string that it can keep around.</p>
 <aside name="useful">
 <p>We can print them! I guess that&rsquo;s not very useful, though.</p>
 </aside>
-<h2><a href="#function-calls" name="function-calls"><small>24&#8202;.&#8202;5</small>Function Calls</a></h2>
+<h2><a href="#function-calls" id="function-calls"><small>24&#8202;.&#8202;5</small>Function Calls</a></h2>
 <p>By the end of this section, we&rsquo;ll start to see some interesting behavior. The
 next step is calling functions. We don&rsquo;t usually think of it this way, but a
 function call expression is kind of an infix <code>(</code> operator. You have a
@@ -1304,7 +1304,7 @@ in enum <em>OpCode</em></div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<h3><a href="#binding-arguments-to-parameters" name="binding-arguments-to-parameters"><small>24&#8202;.&#8202;5&#8202;.&#8202;1</small>Binding arguments to parameters</a></h3>
+<h3><a href="#binding-arguments-to-parameters" id="binding-arguments-to-parameters"><small>24&#8202;.&#8202;5&#8202;.&#8202;1</small>Binding arguments to parameters</a></h3>
 <p>Before we get to the implementation, we should think about what the stack looks
 like at the point of a call and what we need to do from there. When we reach the
 call instruction, we have already executed the expression for the function being
@@ -1466,7 +1466,7 @@ replace 4 lines</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 4 lines</div>
 
 <p>OK, now back to calls<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></p>
-<h3><a href="#runtime-error-checking" name="runtime-error-checking"><small>24&#8202;.&#8202;5&#8202;.&#8202;2</small>Runtime error checking</a></h3>
+<h3><a href="#runtime-error-checking" id="runtime-error-checking"><small>24&#8202;.&#8202;5&#8202;.&#8202;2</small>Runtime error checking</a></h3>
 <p>The overlapping stack windows work based on the assumption that a call passes
 exactly one argument for each of the function&rsquo;s parameters. But, again, because
 Lox ain&rsquo;t statically typed, a foolish user could pass too many or too few
@@ -1507,7 +1507,7 @@ in <em>call</em>()</div>
 
 <p>In practice, if a program gets anywhere close to this limit, there&rsquo;s most likely
 a bug in some runaway recursive code.</p>
-<h3><a href="#printing-stack-traces" name="printing-stack-traces"><small>24&#8202;.&#8202;5&#8202;.&#8202;3</small>Printing stack traces</a></h3>
+<h3><a href="#printing-stack-traces" id="printing-stack-traces"><small>24&#8202;.&#8202;5&#8202;.&#8202;3</small>Printing stack traces</a></h3>
 <p>While we&rsquo;re on the subject of runtime errors, let&rsquo;s spend a little time making
 them more useful. Stopping on a runtime error is important to prevent the VM
 from crashing and burning in some ill-defined way. But simply aborting doesn&rsquo;t
@@ -1583,7 +1583,7 @@ do that.</p>
 [line 7] in script
 </pre></div>
 <p>That doesn&rsquo;t look too bad, does it?</p>
-<h3><a href="#returning-from-functions" name="returning-from-functions"><small>24&#8202;.&#8202;5&#8202;.&#8202;4</small>Returning from functions</a></h3>
+<h3><a href="#returning-from-functions" id="returning-from-functions"><small>24&#8202;.&#8202;5&#8202;.&#8202;4</small>Returning from functions</a></h3>
 <p>We&rsquo;re getting close. We can call functions, and the VM will execute them. But we
 can&rsquo;t <em>return</em> from them yet. We&rsquo;ve had an <code>OP_RETURN</code> instruction for quite
 some time, but it&rsquo;s always had some kind of temporary code hanging out in it
@@ -1651,7 +1651,7 @@ in <em>emitReturn</em>()</div>
 end of a function body. Now, before that, it emits an instruction to push <code>nil</code>
 onto the stack. And with that, we have working function calls! They can even
 take parameters! It almost looks like we know what we&rsquo;re doing here.</p>
-<h2><a href="#return-statements" name="return-statements"><small>24&#8202;.&#8202;6</small>Return Statements</a></h2>
+<h2><a href="#return-statements" id="return-statements"><small>24&#8202;.&#8202;6</small>Return Statements</a></h2>
 <p>If you want a function that returns something other than the implicit <code>nil</code>, you
 need a <code>return</code> statement. Let&rsquo;s get that working.</p>
 <div class="codehilite"><pre class="insert-before">    ifStatement();
@@ -1723,7 +1723,7 @@ in <em>returnStatement</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>returnStatement</em>()</div>
 
 <p>This is one of the reasons we added that FunctionType enum to the compiler.</p>
-<h2><a href="#native-functions" name="native-functions"><small>24&#8202;.&#8202;7</small>Native Functions</a></h2>
+<h2><a href="#native-functions" id="native-functions"><small>24&#8202;.&#8202;7</small>Native Functions</a></h2>
 <p>Our VM is getting more powerful. We&rsquo;ve got functions, calls, parameters,
 returns. You can define lots of different functions that can call each other in
 interesting ways. But, ultimately, they can&rsquo;t really <em>do</em> anything. The only
@@ -1970,7 +1970,7 @@ about 3x faster than one run in Python 3.7.3. And we still have a lot of simple
 optimizations we can do in our VM.</p>
 </aside>
 <div class="challenges">
-<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+<h2><a href="#challenges" id="challenges">Challenges</a></h2>
 <ol>
 <li>
 <p>Reading and writing the <code>ip</code> field is one of the most frequent operations

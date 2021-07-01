@@ -40,7 +40,7 @@ class BookHeaderSyntax extends BlockSyntax {
       UnparsedContent(header.name)
     ]);
     link.attributes["href"] = "#${header.anchor}";
-    link.attributes["name"] = header.anchor;
+    link.attributes["id"] = header.anchor;
 
     return Element("h${header.level}", [link]);
   }
