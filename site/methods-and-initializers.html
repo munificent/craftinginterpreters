@@ -123,10 +123,10 @@ kind of method, initializers too.</p>
 in this second trip is an important optimization we&rsquo;ll implement to make method
 calls over seven times faster than our baseline performance. But before we get
 to that fun, we gotta get the basic stuff working.</p>
-<h2><a href="#method-declarations" name="method-declarations"><small>28&#8202;.&#8202;1</small>Method Declarations</a></h2>
+<h2><a href="#method-declarations" id="method-declarations"><small>28&#8202;.&#8202;1</small>Method Declarations</a></h2>
 <p>We can&rsquo;t optimize method calls before we have method calls, and we can&rsquo;t call
 methods without having methods to call, so we&rsquo;ll start with declarations.</p>
-<h3><a href="#representing-methods" name="representing-methods"><small>28&#8202;.&#8202;1&#8202;.&#8202;1</small>Representing methods</a></h3>
+<h3><a href="#representing-methods" id="representing-methods"><small>28&#8202;.&#8202;1&#8202;.&#8202;1</small>Representing methods</a></h3>
 <p>We usually start in the compiler, but let&rsquo;s knock the object model out first
 this time. The runtime representation for methods in clox is similar to that of
 jlox. Each class stores a hash table of methods. Keys are method names, and each
@@ -187,7 +187,7 @@ has to squeeze through the interface of a flat series of bytecode instructions.
 How do we take a class declaration, which can contain an arbitrarily large set
 of methods, and represent it as bytecode? Let&rsquo;s hop over to the compiler and
 find out.</p>
-<h3><a href="#compiling-method-declarations" name="compiling-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;2</small>Compiling method declarations</a></h3>
+<h3><a href="#compiling-method-declarations" id="compiling-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;2</small>Compiling method declarations</a></h3>
 <p>The last chapter left us with a compiler that parses classes but allows only an
 empty body. Now we insert a little code to compile a series of method
 declarations between the braces.</p>
@@ -345,7 +345,7 @@ the compiler:</p>
 affect the stack at runtime:</p><img src="image/methods-and-initializers/method-instructions.png" alt="The series of bytecode instructions for a class declaration with two methods." />
 <p>All that remains for us is to implement the runtime for that new <code>OP_METHOD</code>
 instruction.</p>
-<h3><a href="#executing-method-declarations" name="executing-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;3</small>Executing method declarations</a></h3>
+<h3><a href="#executing-method-declarations" id="executing-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;3</small>Executing method declarations</a></h3>
 <p>First we define the opcode.</p>
 <div class="codehilite"><pre class="insert-before">  OP_CLASS,
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -414,7 +414,7 @@ run is safe.</p>
 the class, we will have a class with a nicely populated method table, ready to
 start doing things. The next step is pulling those methods back out and using
 them.</p>
-<h2><a href="#method-references" name="method-references"><small>28&#8202;.&#8202;2</small>Method References</a></h2>
+<h2><a href="#method-references" id="method-references"><small>28&#8202;.&#8202;2</small>Method References</a></h2>
 <p>Most of the time, methods are accessed and immediately called, leading to this
 familiar syntax:</p>
 <div class="codehilite"><pre>
@@ -456,7 +456,7 @@ variables and temporaries</a> are on the stack, <a href="global-variables.html#v
 table, and variables in closures use <a href="closures.html#upvalues">upvalues</a>. That necessitates a somewhat
 more complex solution for tracking a method&rsquo;s receiver in clox, and a new
 runtime type.</p>
-<h3><a href="#bound-methods" name="bound-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;1</small>Bound methods</a></h3>
+<h3><a href="#bound-methods" id="bound-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;1</small>Bound methods</a></h3>
 <p>When the user executes a method access, we&rsquo;ll find the closure for that method
 and wrap it in a new <span name="bound">&ldquo;bound method&rdquo;</span> object that tracks
 the instance that the method was accessed from. This bound object can be called
@@ -605,7 +605,7 @@ don&rsquo;t expose that the VM implements bound methods using a different object
 milestone. ObjBoundMethod is the very last runtime type to add to clox. You&rsquo;ve
 written your last <code>IS_</code> and <code>AS_</code> macros. We&rsquo;re only a few chapters from the end
 of the book, and we&rsquo;re getting close to a complete VM.</p>
-<h3><a href="#accessing-methods" name="accessing-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;2</small>Accessing methods</a></h3>
+<h3><a href="#accessing-methods" id="accessing-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;2</small>Accessing methods</a></h3>
 <p>Let&rsquo;s get our new object type doing something. Methods are accessed using the
 same &ldquo;dot&rdquo; property syntax we implemented in the last chapter. The compiler
 already parses the right expressions and emits <code>OP_GET_PROPERTY</code> instructions
@@ -679,7 +679,7 @@ the stack with the bound method.</p>
 <code>brunch.eggs</code> expression:</p><img src="image/methods-and-initializers/bind-method.png" alt="The stack changes caused by bindMethod()." />
 <p>That&rsquo;s a lot of machinery under the hood, but from the user&rsquo;s perspective, they
 simply get a function that they can call.</p>
-<h3><a href="#calling-methods" name="calling-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;3</small>Calling methods</a></h3>
+<h3><a href="#calling-methods" id="calling-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;3</small>Calling methods</a></h3>
 <p>Users can declare methods on classes, access them on instances, and get bound
 methods onto the stack. They just can&rsquo;t <span name="do"><em>do</em></span> anything
 useful with those bound method objects. The operation we&rsquo;re missing is calling
@@ -719,7 +719,7 @@ program:</p>
 something is missing. We went to all that trouble to wrap the method closure in
 an object that binds the receiver, but when we invoke the method, we don&rsquo;t use
 that receiver at all.</p>
-<h2><a href="#this" name="this"><small>28&#8202;.&#8202;3</small>This</a></h2>
+<h2><a href="#this" id="this"><small>28&#8202;.&#8202;3</small>This</a></h2>
 <p>The reason bound methods need to keep hold of the receiver is so that it can be
 accessed inside the body of the method. Lox exposes a method&rsquo;s receiver through
 <code>this</code> expressions. It&rsquo;s time for some new syntax. The lexer already treats
@@ -860,7 +860,7 @@ that slot. For example, given a method call like this:</p>
 <p>We calculate the slot to store the receiver like so:</p><img src="image/methods-and-initializers/closure-slot.png" alt="Skipping over the argument stack slots to find the slot containing the closure." />
 <p>The <code>-argCount</code> skips past the arguments and the <code>- 1</code> adjusts for the fact that
 <code>stackTop</code> points just <em>past</em> the last used stack slot.</p>
-<h3><a href="#misusing-this" name="misusing-this"><small>28&#8202;.&#8202;3&#8202;.&#8202;1</small>Misusing this</a></h3>
+<h3><a href="#misusing-this" id="misusing-this"><small>28&#8202;.&#8202;3&#8202;.&#8202;1</small>Misusing this</a></h3>
 <p>Our VM now supports users <em>correctly</em> using <code>this</code>, but we also need to make
 sure it properly handles users <em>mis</em>using <code>this</code>. Lox says it is a compile
 error for a <code>this</code> expression to appear outside of the body of a method. These
@@ -964,7 +964,7 @@ in <em>this_</em>()</div>
 <p>With that, <code>this</code> outside of a class is correctly forbidden. Now our methods
 really feel like <em>methods</em> in the object-oriented sense. Accessing the receiver
 lets them affect the instance you called the method on. We&rsquo;re getting there!</p>
-<h2><a href="#instance-initializers" name="instance-initializers"><small>28&#8202;.&#8202;4</small>Instance Initializers</a></h2>
+<h2><a href="#instance-initializers" id="instance-initializers"><small>28&#8202;.&#8202;4</small>Instance Initializers</a></h2>
 <p>The reason object-oriented languages tie state and behavior together<span class="em">&mdash;</span>one of
 the core tenets of the paradigm<span class="em">&mdash;</span>is to ensure that objects are always in a
 valid, meaningful state. When the only way to touch an object&rsquo;s state is <span
@@ -1011,7 +1011,7 @@ since the value would never be seen anyway.</p>
 </aside>
 <p>Now that we support methods, to add initializers, we merely need to implement
 those three special rules. We&rsquo;ll go in order.</p>
-<h3><a href="#invoking-initializers" name="invoking-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;1</small>Invoking initializers</a></h3>
+<h3><a href="#invoking-initializers" id="invoking-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;1</small>Invoking initializers</a></h3>
 <p>First, automatically calling <code>init()</code> on new instances:</p>
 <div class="codehilite"><pre class="insert-before">        vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -1122,7 +1122,7 @@ in <em>freeVM</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
 
 <p>OK, that lets us call initializers.</p>
-<h3><a href="#initializer-return-values" name="initializer-return-values"><small>28&#8202;.&#8202;4&#8202;.&#8202;2</small>Initializer return values</a></h3>
+<h3><a href="#initializer-return-values" id="initializer-return-values"><small>28&#8202;.&#8202;4&#8202;.&#8202;2</small>Initializer return values</a></h3>
 <p>The next step is ensuring that constructing an instance of a class with an
 initializer always returns the new instance, and not <code>nil</code> or whatever the body
 of the initializer returns. Right now, if a class defines an initializer, then
@@ -1184,7 +1184,7 @@ we load slot zero, which contains the instance. This <code>emitReturn()</code> f
 also called when compiling a <code>return</code> statement without a value, so this also
 correctly handles cases where the user does an early return inside the
 initializer.</p>
-<h3><a href="#incorrect-returns-in-initializers" name="incorrect-returns-in-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;3</small>Incorrect returns in initializers</a></h3>
+<h3><a href="#incorrect-returns-in-initializers" id="incorrect-returns-in-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;3</small>Incorrect returns in initializers</a></h3>
 <p>The last step, the last item in our list of special features of initializers, is
 making it an error to try to return anything <em>else</em> from an initializer. Now
 that the compiler tracks the method type, this is straightforward.</p>
@@ -1231,7 +1231,7 @@ name="floppy">floppy</span> disk.</p>
 current generations of programmers. Maybe I should have said &ldquo;a few tweets&rdquo; or
 something.</p>
 </aside>
-<h2><a href="#optimized-invocations" name="optimized-invocations"><small>28&#8202;.&#8202;5</small>Optimized Invocations</a></h2>
+<h2><a href="#optimized-invocations" id="optimized-invocations"><small>28&#8202;.&#8202;5</small>Optimized Invocations</a></h2>
 <p>Our VM correctly implements the language&rsquo;s semantics for method calls and
 initializers. We could stop here. But the main reason we are building an entire
 second implementation of Lox from scratch is to execute faster than our old Java
@@ -1447,7 +1447,7 @@ improvement is relative to our own unoptimized method call implementation which
 was quite slow. Doing a heap allocation for every single method call isn&rsquo;t going
 to win any races.</p>
 </aside><img src="image/methods-and-initializers/benchmark.png" alt="Bar chart comparing the two benchmark results." />
-<h3><a href="#invoking-fields" name="invoking-fields"><small>28&#8202;.&#8202;5&#8202;.&#8202;1</small>Invoking fields</a></h3>
+<h3><a href="#invoking-fields" id="invoking-fields"><small>28&#8202;.&#8202;5&#8202;.&#8202;1</small>Invoking fields</a></h3>
 <p>The fundamental creed of optimization is: &ldquo;Thou shalt not break correctness.&rdquo;
 <span name="monte">Users</span> like it when a language implementation gives
 them an answer faster, but only if it&rsquo;s the <em>right</em> answer. Alas, our
@@ -1542,7 +1542,7 @@ Full-time VM engineers spend much of their careers in this loop.</p>
 <p>But we can stop here for now. With this, clox now supports most of the features
 of an object-oriented programming language, and with respectable performance.</p>
 <div class="challenges">
-<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+<h2><a href="#challenges" id="challenges">Challenges</a></h2>
 <ol>
 <li>
 <p>The hash table lookup to find a class&rsquo;s <code>init()</code> method is constant time,
@@ -1571,7 +1571,7 @@ would you do?</p>
 </ol>
 </div>
 <div class="design-note">
-<h2><a href="#design-note" name="design-note">Design Note: Novelty Budget</a></h2>
+<h2><a href="#design-note" id="design-note">Design Note: Novelty Budget</a></h2>
 <p>I still remember the first time I wrote a tiny BASIC program on a TRS-80 and
 made a computer do something it hadn&rsquo;t done before. It felt like a superpower.
 The first time I cobbled together just enough of a parser and interpreter to let

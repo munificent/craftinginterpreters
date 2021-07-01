@@ -249,7 +249,7 @@ table. So we&rsquo;re going to work our way into the core of the parser from the
 outside and cover all of the surrounding bits before we get to the juicy center.
 This will require a little more patience and mental scratch space than most
 chapters, but it&rsquo;s the best I could do.</p>
-<h2><a href="#single-pass-compilation" name="single-pass-compilation"><small>17&#8202;.&#8202;1</small>Single-Pass Compilation</a></h2>
+<h2><a href="#single-pass-compilation" id="single-pass-compilation"><small>17&#8202;.&#8202;1</small>Single-Pass Compilation</a></h2>
 <p>A compiler has roughly two jobs. It parses the user&rsquo;s source code to understand
 what it means. Then it takes that knowledge and outputs low-level instructions
 that produce the same semantics. Many languages split those two roles into two
@@ -285,7 +285,7 @@ chapters.)</p>
 <p>We&rsquo;ll build the parsing and code generation halves first. Then we&rsquo;ll stitch them
 together with the code in the middle that uses Pratt&rsquo;s technique to parse Lox&rsquo;s
 particular grammar and output the right bytecode.</p>
-<h2><a href="#parsing-tokens" name="parsing-tokens"><small>17&#8202;.&#8202;2</small>Parsing Tokens</a></h2>
+<h2><a href="#parsing-tokens" id="parsing-tokens"><small>17&#8202;.&#8202;2</small>Parsing Tokens</a></h2>
 <p>First up, the front half of the compiler. This function&rsquo;s name should sound
 familiar.</p>
 <div class="codehilite"><pre class="insert-before">#include &quot;scanner.h&quot;
@@ -333,7 +333,7 @@ static void advance() {
 <p>Like we did in other modules, we have a single global variable of this struct
 type so we don&rsquo;t need to pass the state around from function to function in the
 compiler.</p>
-<h3><a href="#handling-syntax-errors" name="handling-syntax-errors"><small>17&#8202;.&#8202;2&#8202;.&#8202;1</small>Handling syntax errors</a></h3>
+<h3><a href="#handling-syntax-errors" id="handling-syntax-errors"><small>17&#8202;.&#8202;2&#8202;.&#8202;1</small>Handling syntax errors</a></h3>
 <p>If the scanner hands us an error token, we need to actually tell the user. That
 happens using this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
@@ -495,7 +495,7 @@ add after <em>advance</em>()</div>
 validates that the token has an expected type. If not, it reports an error. This
 function is the foundation of most syntax errors in the compiler.</p>
 <p>OK, that&rsquo;s enough on the front end for now.</p>
-<h2><a href="#emitting-bytecode" name="emitting-bytecode"><small>17&#8202;.&#8202;3</small>Emitting Bytecode</a></h2>
+<h2><a href="#emitting-bytecode" id="emitting-bytecode"><small>17&#8202;.&#8202;3</small>Emitting Bytecode</a></h2>
 <p>After we parse and understand a piece of the user&rsquo;s program, the next step is to
 translate that to a series of bytecode instructions. It starts with the easiest
 possible step: appending a single byte to the chunk.</p>
@@ -590,7 +590,7 @@ add after <em>emitByte</em>()</div>
 
 <p>Over time, we&rsquo;ll have enough cases where we need to write an opcode followed by
 a one-byte operand that it&rsquo;s worth defining this convenience function.</p>
-<h2><a href="#parsing-prefix-expressions" name="parsing-prefix-expressions"><small>17&#8202;.&#8202;4</small>Parsing Prefix Expressions</a></h2>
+<h2><a href="#parsing-prefix-expressions" id="parsing-prefix-expressions"><small>17&#8202;.&#8202;4</small>Parsing Prefix Expressions</a></h2>
 <p>We&rsquo;ve assembled our parsing and code generation utility functions. The missing
 piece is the code in the middle that connects those together.</p><img src="image/compiling-expressions/mystery.png" alt="Parsing functions on the left, bytecode emitting functions on the right. What goes in the middle?" />
 <p>The only step in <code>compile()</code> that we have left to implement is this function:</p>
@@ -614,7 +614,7 @@ even have Booleans. For this chapter, we&rsquo;re only going to worry about four
 <p>As we work through the functions to compile each of those kinds of expressions,
 we&rsquo;ll also assemble the requirements for the table-driven parser that calls
 them.</p>
-<h3><a href="#parsers-for-tokens" name="parsers-for-tokens"><small>17&#8202;.&#8202;4&#8202;.&#8202;1</small>Parsers for tokens</a></h3>
+<h3><a href="#parsers-for-tokens" id="parsers-for-tokens"><small>17&#8202;.&#8202;4&#8202;.&#8202;1</small>Parsers for tokens</a></h3>
 <p>For now, let&rsquo;s focus on the Lox expressions that are each only a single token.
 In this chapter, that&rsquo;s just number literals, but there will be more later. Here&rsquo;s
 how we can compile them:</p>
@@ -683,7 +683,7 @@ clox, but you&rsquo;ll want your VMs to scale to larger programs.</p>
 <p>That&rsquo;s basically all it takes. Provided there is some suitable code that
 consumes a <code>TOKEN_NUMBER</code> token, looks up <code>number()</code> in the function pointer
 array, and then calls it, we can now compile number literals to bytecode.</p>
-<h3><a href="#parentheses-for-grouping" name="parentheses-for-grouping"><small>17&#8202;.&#8202;4&#8202;.&#8202;2</small>Parentheses for grouping</a></h3>
+<h3><a href="#parentheses-for-grouping" id="parentheses-for-grouping"><small>17&#8202;.&#8202;4&#8202;.&#8202;2</small>Parentheses for grouping</a></h3>
 <p>Our as-yet-imaginary array of parsing function pointers would be great if every
 expression was only a single token long. Alas, most are longer. However, many
 expressions <em>start</em> with a particular token. We call these <em>prefix</em> expressions.
@@ -715,7 +715,7 @@ lower-precedence expression where a higher precedence is expected. Thus, it has
 no runtime semantics on its own and therefore doesn&rsquo;t emit any bytecode. The
 inner call to <code>expression()</code> takes care of generating bytecode for the
 expression inside the parentheses.</p>
-<h3><a href="#unary-negation" name="unary-negation"><small>17&#8202;.&#8202;4&#8202;.&#8202;3</small>Unary negation</a></h3>
+<h3><a href="#unary-negation" id="unary-negation"><small>17&#8202;.&#8202;4&#8202;.&#8202;3</small>Unary negation</a></h3>
 <p>Unary minus is also a prefix expression, so it works with our model too.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>number</em>()</div>
@@ -875,7 +875,7 @@ binary operators. Speaking of which<span class="ellipse">&thinsp;.&thinsp;.&thin
 <p>Not that nesting unary expressions is particularly useful in Lox. But other
 languages let you do it, so we do too.</p>
 </aside>
-<h2><a href="#parsing-infix-expressions" name="parsing-infix-expressions"><small>17&#8202;.&#8202;5</small>Parsing Infix Expressions</a></h2>
+<h2><a href="#parsing-infix-expressions" id="parsing-infix-expressions"><small>17&#8202;.&#8202;5</small>Parsing Infix Expressions</a></h2>
 <p>Binary operators are different from the previous expressions because they are
 <em>infix</em>. With the other expressions, we know what we are parsing from the very
 first token. With infix expressions, we don&rsquo;t know we&rsquo;re in the middle of a
@@ -986,7 +986,7 @@ the current operator.</p>
 </aside>
 <p>This way, we can use a single <code>binary()</code> function for all binary operators even
 though they have different precedences.</p>
-<h2><a href="#a-pratt-parser" name="a-pratt-parser"><small>17&#8202;.&#8202;6</small>A Pratt Parser</a></h2>
+<h2><a href="#a-pratt-parser" id="a-pratt-parser"><small>17&#8202;.&#8202;6</small>A Pratt Parser</a></h2>
 <p>We now have all of the pieces and parts of the compiler laid out. We have a
 function for each grammar production: <code>number()</code>, <code>grouping()</code>, <code>unary()</code>, and
 <code>binary()</code>. We still need to implement <code>parsePrecedence()</code>, and <code>getRule()</code>. We
@@ -1156,7 +1156,7 @@ add after <em>endCompiler</em>()</div>
 <p>If you&rsquo;re following along and implementing clox yourself, pay close attention to
 the little annotations that tell you where to put these code snippets. Don&rsquo;t
 worry, though, if you get it wrong, the C compiler will be happy to tell you.</p>
-<h3><a href="#parsing-with-precedence" name="parsing-with-precedence"><small>17&#8202;.&#8202;6&#8202;.&#8202;1</small>Parsing with precedence</a></h3>
+<h3><a href="#parsing-with-precedence" id="parsing-with-precedence"><small>17&#8202;.&#8202;6&#8202;.&#8202;1</small>Parsing with precedence</a></h3>
 <p>Now we&rsquo;re getting to the fun stuff. The maestro that orchestrates all of the
 parsing functions we&rsquo;ve defined is <code>parsePrecedence()</code>. Let&rsquo;s start with parsing
 prefix expressions.</p>
@@ -1237,7 +1237,7 @@ functions.</p>
 otherwise, what we wrote covers all of our expression compiling needs for the
 rest of the book. We&rsquo;ll plug additional parsing functions into the table when we
 add new kinds of expressions, but <code>parsePrecedence()</code> is complete.</p>
-<h2><a href="#dumping-chunks" name="dumping-chunks"><small>17&#8202;.&#8202;7</small>Dumping Chunks</a></h2>
+<h2><a href="#dumping-chunks" id="dumping-chunks"><small>17&#8202;.&#8202;7</small>Dumping Chunks</a></h2>
 <p>While we&rsquo;re here in the core of our compiler, we should put in some
 instrumentation. To help debug the generated bytecode, we&rsquo;ll add support for
 dumping the chunk once the compiler finishes. We had some temporary logging
@@ -1293,7 +1293,7 @@ calculate and print the result. We now have a very over-engineered arithmetic
 calculator. We have a lot of language features to add in the coming chapters,
 but the foundation is in place.</p>
 <div class="challenges">
-<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+<h2><a href="#challenges" id="challenges">Challenges</a></h2>
 <ol>
 <li>
 <p>To really understand the parser, you need to see how execution threads
@@ -1323,7 +1323,7 @@ the operands.</p>
 </ol>
 </div>
 <div class="design-note">
-<h2><a href="#design-note" name="design-note">Design Note: It&rsquo;s Just Parsing</a></h2>
+<h2><a href="#design-note" id="design-note">Design Note: It&rsquo;s Just Parsing</a></h2>
 <p>I&rsquo;m going to make a claim here that will be unpopular with some compiler and
 language people. It&rsquo;s OK if you don&rsquo;t agree. Personally, I learn more from
 strongly stated opinions that I disagree with than I do from several pages of
