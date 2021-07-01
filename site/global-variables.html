@@ -145,8 +145,7 @@ resolved dynamically. This means you can compile a chunk of code that refers to
 a global variable before it&rsquo;s defined. As long as the code doesn&rsquo;t <em>execute</em>
 before the definition happens, everything is fine. In practice, that means you
 can refer to later variables inside the body of functions.</p>
-<div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">showVariable</span>() {
+<div class="codehilite"><pre><span class="k">fun</span> <span class="i">showVariable</span>() {
   <span class="k">print</span> <span class="i">global</span>;
 }
 
@@ -168,15 +167,13 @@ splits statements into two categories. &ldquo;Declarations&rdquo; are those stat
 bind a new name to a value. The other kinds of statements<span class="em">&mdash;</span>control flow,
 print, etc.<span class="em">&mdash;</span>are just called &ldquo;statements&rdquo;. We disallow declarations directly
 inside control flow statements, like this:</p>
-<div class="codehilite"><pre>
-<span class="k">if</span> (<span class="i">monday</span>) <span class="k">var</span> <span class="i">croissant</span> = <span class="s">&quot;yes&quot;</span>; <span class="c">// Error.</span>
+<div class="codehilite"><pre><span class="k">if</span> (<span class="i">monday</span>) <span class="k">var</span> <span class="i">croissant</span> = <span class="s">&quot;yes&quot;</span>; <span class="c">// Error.</span>
 </pre></div>
 <p>Allowing it would raise confusing questions around the scope of the variable.
 So, like other languages, we prohibit it syntactically by having a separate
 grammar rule for the subset of statements that <em>are</em> allowed inside a control
 flow body.</p>
-<div class="codehilite"><pre>
-<span class="i">statement</span>      → <span class="i">exprStmt</span>
+<div class="codehilite"><pre><span class="i">statement</span>      → <span class="i">exprStmt</span>
                | <span class="i">forStmt</span>
                | <span class="i">ifStmt</span>
                | <span class="i">printStmt</span>
@@ -185,8 +182,7 @@ flow body.</p>
                | <span class="i">block</span> ;
 </pre></div>
 <p>Then we use a separate rule for the top level of a script and inside a block.</p>
-<div class="codehilite"><pre>
-<span class="i">declaration</span>    → <span class="i">classDecl</span>
+<div class="codehilite"><pre><span class="i">declaration</span>    → <span class="i">classDecl</span>
                | <span class="i">funDecl</span>
                | <span class="i">varDecl</span>
                | <span class="i">statement</span> ;
@@ -203,8 +199,7 @@ the &ldquo;lower-precedence&rdquo; declaration statements in places where only a
 </aside>
 <p>In this chapter, we&rsquo;ll cover only a couple of statements and one
 declaration.</p>
-<div class="codehilite"><pre>
-<span class="i">statement</span>      → <span class="i">exprStmt</span>
+<div class="codehilite"><pre><span class="i">statement</span>      → <span class="i">exprStmt</span>
                | <span class="i">printStmt</span> ;
 
 <span class="i">declaration</span>    → <span class="i">varDecl</span>
@@ -231,8 +226,7 @@ replace 2 lines</div>
 compile a single declaration using this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expression</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">declaration</span>() {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">declaration</span>() {
   <span class="i">statement</span>();
 }
 </pre></div>
@@ -242,8 +236,7 @@ add after <em>expression</em>()</div>
 forward to <code>statement()</code>.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>declaration</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">statement</span>() {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">statement</span>() {
   <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_PRINT</span>)) {
     <span class="i">printStatement</span>();
   }
@@ -257,8 +250,7 @@ as well write out the forward declarations now.</p>
 <div class="codehilite"><pre class="insert-before">static void expression();
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>expression</em>()</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">void</span> <span class="i">statement</span>();
+<pre class="insert"><span class="k">static</span> <span class="t">void</span> <span class="i">statement</span>();
 <span class="k">static</span> <span class="t">void</span> <span class="i">declaration</span>();
 </pre><pre class="insert-after">static ParseRule* getRule(TokenType type);
 </pre></div>
@@ -270,8 +262,7 @@ statements, which begin, naturally enough, with a <code>print</code> token. We d
 using this helper function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>consume</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">match</span>(<span class="t">TokenType</span> <span class="i">type</span>) {
+<pre><span class="k">static</span> <span class="t">bool</span> <span class="i">match</span>(<span class="t">TokenType</span> <span class="i">type</span>) {
   <span class="k">if</span> (!<span class="i">check</span>(<span class="i">type</span>)) <span class="k">return</span> <span class="k">false</span>;
   <span class="i">advance</span>();
   <span class="k">return</span> <span class="k">true</span>;
@@ -288,8 +279,7 @@ in terms of this other helper:</p>
 </aside>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>consume</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">check</span>(<span class="t">TokenType</span> <span class="i">type</span>) {
+<pre><span class="k">static</span> <span class="t">bool</span> <span class="i">check</span>(<span class="t">TokenType</span> <span class="i">type</span>) {
   <span class="k">return</span> <span class="i">parser</span>.<span class="i">current</span>.<span class="i">type</span> == <span class="i">type</span>;
 }
 </pre></div>
@@ -309,8 +299,7 @@ keep.</p>
 here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expression</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">printStatement</span>() {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">printStatement</span>() {
   <span class="i">expression</span>();
   <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39; after value.&quot;</span>);
   <span class="i">emitByte</span>(<span class="a">OP_PRINT</span>);
@@ -324,8 +313,7 @@ so we consume it. Finally, we emit a new instruction to print the result.</p>
 <div class="codehilite"><pre class="insert-before">  OP_NEGATE,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert">
-  <span class="a">OP_PRINT</span>,
+<pre class="insert">  <span class="a">OP_PRINT</span>,
 </pre><pre class="insert-after">  OP_RETURN,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
@@ -334,8 +322,7 @@ in enum <em>OpCode</em></div>
 <div class="codehilite"><pre class="insert-before">        break;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert">
-      <span class="k">case</span> <span class="a">OP_PRINT</span>: {
+<pre class="insert">      <span class="k">case</span> <span class="a">OP_PRINT</span>: {
         <span class="i">printValue</span>(<span class="i">pop</span>());
         <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);
         <span class="k">break</span>;
@@ -370,8 +357,7 @@ eventually overflow or underflow.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 2 lines</div>
-<pre class="insert">
-        <span class="c">// Exit interpreter.</span>
+<pre class="insert">        <span class="c">// Exit interpreter.</span>
 </pre><pre class="insert-after">        return INTERPRET_OK;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
@@ -388,16 +374,14 @@ add functions. Right now, it exits the entire interpreter loop.</p>
 <div class="codehilite"><pre class="insert-before">      return simpleInstruction(&quot;OP_NEGATE&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OP_PRINT</span>:
+<pre class="insert">    <span class="k">case</span> <span class="a">OP_PRINT</span>:
       <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_PRINT&quot;</span>, <span class="i">offset</span>);
 </pre><pre class="insert-after">    case OP_RETURN:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>That&rsquo;s our <code>print</code> statement. If you want, give it a whirl:</p>
-<div class="codehilite"><pre>
-<span class="k">print</span> <span class="n">1</span> + <span class="n">2</span>;
+<div class="codehilite"><pre><span class="k">print</span> <span class="n">1</span> + <span class="n">2</span>;
 <span class="k">print</span> <span class="n">3</span> * <span class="n">4</span>;
 </pre></div>
 <p>Exciting! OK, maybe not thrilling, but we can build scripts that contain as many
@@ -408,8 +392,7 @@ we must be looking at an expression statement.</p>
 <div class="codehilite"><pre class="insert-before">    printStatement();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
-<pre class="insert">
-  } <span class="k">else</span> {
+<pre class="insert">  } <span class="k">else</span> {
     <span class="i">expressionStatement</span>();
 </pre><pre class="insert-after">  }
 </pre></div>
@@ -418,8 +401,7 @@ in <em>statement</em>()</div>
 <p>It&rsquo;s parsed like so:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expression</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">expressionStatement</span>() {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">expressionStatement</span>() {
   <span class="i">expression</span>();
   <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39; after expression.&quot;</span>);
   <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
@@ -431,8 +413,7 @@ add after <em>expression</em>()</div>
 They&rsquo;re how you write an expression in a context where a statement is expected.
 Usually, it&rsquo;s so that you can call a function or evaluate an assignment for its
 side effect, like this:</p>
-<div class="codehilite"><pre>
-<span class="i">brunch</span> = <span class="s">&quot;quiche&quot;</span>;
+<div class="codehilite"><pre><span class="i">brunch</span> = <span class="s">&quot;quiche&quot;</span>;
 <span class="i">eat</span>(<span class="i">brunch</span>);
 </pre></div>
 <p>Semantically, an expression statement evaluates the expression and discards the
@@ -441,8 +422,7 @@ and then emits an <code>OP_POP</code> instruction.</p>
 <div class="codehilite"><pre class="insert-before">  OP_FALSE,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert">
-  <span class="a">OP_POP</span>,
+<pre class="insert">  <span class="a">OP_POP</span>,
 </pre><pre class="insert-after">  OP_EQUAL,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
@@ -452,8 +432,7 @@ forgets it.</p>
 <div class="codehilite"><pre class="insert-before">      case OP_FALSE: push(BOOL_VAL(false)); break;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert">
-      <span class="k">case</span> <span class="a">OP_POP</span>: <span class="i">pop</span>(); <span class="k">break</span>;
+<pre class="insert">      <span class="k">case</span> <span class="a">OP_POP</span>: <span class="i">pop</span>(); <span class="k">break</span>;
 </pre><pre class="insert-after">      case OP_EQUAL: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -462,8 +441,7 @@ in <em>run</em>()</div>
 <div class="codehilite"><pre class="insert-before">      return simpleInstruction(&quot;OP_FALSE&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OP_POP</span>:
+<pre class="insert">    <span class="k">case</span> <span class="a">OP_POP</span>:
       <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_POP&quot;</span>, <span class="i">offset</span>);
 </pre><pre class="insert-after">    case OP_EQUAL:
 </pre></div>
@@ -498,8 +476,7 @@ in <em>declaration</em>()</div>
 mode. When that happens, after the statement we start synchronizing.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>printStatement</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">synchronize</span>() {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">synchronize</span>() {
   <span class="i">parser</span>.<span class="i">panicMode</span> = <span class="k">false</span>;
 
   <span class="k">while</span> (<span class="i">parser</span>.<span class="i">current</span>.<span class="i">type</span> != <span class="a">TOKEN_EOF</span>) {
@@ -550,13 +527,13 @@ with declarations.</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>declaration</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_VAR</span>)) {
+<pre class="insert">  <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_VAR</span>)) {
     <span class="i">varDeclaration</span>();
   } <span class="k">else</span> {
     <span class="i">statement</span>();
   }
 </pre><pre class="insert-after">
+
   if (parser.panicMode) synchronize();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>declaration</em>(), replace 1 line</div>
@@ -565,8 +542,7 @@ replace 1 line</div>
 rule has an actual production now. If we match a <code>var</code> token, we jump here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expression</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">varDeclaration</span>() {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">varDeclaration</span>() {
   <span class="t">uint8_t</span> <span class="i">global</span> = <span class="i">parseVariable</span>(<span class="s">&quot;Expect variable name.&quot;</span>);
 
   <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_EQUAL</span>)) {
@@ -590,12 +566,10 @@ name="nil"><code>nil</code></span> by emitting an <code>OP_NIL</code> instructio
 expect the statement to be terminated with a semicolon.</p>
 <aside name="nil" class="bottom">
 <p>Essentially, the compiler desugars a variable declaration like:</p>
-<div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">a</span>;
+<div class="codehilite"><pre><span class="k">var</span> <span class="i">a</span>;
 </pre></div>
 <p>into:</p>
-<div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">a</span> = <span class="k">nil</span>;
+<div class="codehilite"><pre><span class="k">var</span> <span class="i">a</span> = <span class="k">nil</span>;
 </pre></div>
 <p>The code it generates for the former is identical to what it produces for the
 latter.</p>
@@ -606,8 +580,7 @@ Here is the first:</p>
 
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>parsePrecedence</em>()</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">uint8_t</span> <span class="i">parseVariable</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">errorMessage</span>) {
+<pre class="insert"><span class="k">static</span> <span class="t">uint8_t</span> <span class="i">parseVariable</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">errorMessage</span>) {
   <span class="i">consume</span>(<span class="a">TOKEN_IDENTIFIER</span>, <span class="i">errorMessage</span>);
   <span class="k">return</span> <span class="i">identifierConstant</span>(&amp;<span class="i">parser</span>.<span class="i">previous</span>);
 }
@@ -620,8 +593,7 @@ here:</p>
 
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>parsePrecedence</em>()</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">uint8_t</span> <span class="i">identifierConstant</span>(<span class="t">Token</span>* <span class="i">name</span>) {
+<pre class="insert"><span class="k">static</span> <span class="t">uint8_t</span> <span class="i">identifierConstant</span>(<span class="t">Token</span>* <span class="i">name</span>) {
   <span class="k">return</span> <span class="i">makeConstant</span>(<span class="a">OBJ_VAL</span>(<span class="i">copyString</span>(<span class="i">name</span>-&gt;<span class="i">start</span>,
                                          <span class="i">name</span>-&gt;<span class="i">length</span>)));
 }
@@ -640,8 +612,7 @@ the table.</p>
 hands it over to here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>parseVariable</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">defineVariable</span>(<span class="t">uint8_t</span> <span class="i">global</span>) {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">defineVariable</span>(<span class="t">uint8_t</span> <span class="i">global</span>) {
   <span class="i">emitBytes</span>(<span class="a">OP_DEFINE_GLOBAL</span>, <span class="i">global</span>);
 }
 </pre></div>
@@ -663,8 +634,7 @@ and assignment expressions access them.</p>
 <div class="codehilite"><pre class="insert-before">  OP_POP,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert">
-  <span class="a">OP_DEFINE_GLOBAL</span>,
+<pre class="insert">  <span class="a">OP_DEFINE_GLOBAL</span>,
 </pre><pre class="insert-after">  OP_EQUAL,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
@@ -673,8 +643,7 @@ in enum <em>OpCode</em></div>
 <div class="codehilite"><pre class="insert-before">      case OP_POP: pop(); break;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert">
-      <span class="k">case</span> <span class="a">OP_DEFINE_GLOBAL</span>: {
+<pre class="insert">      <span class="k">case</span> <span class="a">OP_DEFINE_GLOBAL</span>: {
         <span class="t">ObjString</span>* <span class="i">name</span> = <span class="a">READ_STRING</span>();
         <span class="i">tableSet</span>(&amp;<span class="i">vm</span>.<span class="i">globals</span>, <span class="i">name</span>, <span class="i">peek</span>(<span class="n">0</span>));
         <span class="i">pop</span>();
@@ -701,8 +670,7 @@ value if the key happens to already be in the hash table.</p>
 <div class="codehilite"><pre class="insert-before">#define READ_CONSTANT() (vm.chunk-&gt;constants.values[READ_BYTE()])
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert">
-<span class="a">#define READ_STRING() AS_STRING(READ_CONSTANT())</span>
+<pre class="insert"><span class="a">#define READ_STRING() AS_STRING(READ_CONSTANT())</span>
 </pre><pre class="insert-after">#define BINARY_OP(valueType, op) \
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -717,8 +685,7 @@ the interpret function.</p>
 <div class="codehilite"><pre class="insert-before">#undef READ_CONSTANT
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert">
-<span class="a">#undef READ_STRING</span>
+<pre class="insert"><span class="a">#undef READ_STRING</span>
 </pre><pre class="insert-after">#undef BINARY_OP
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -729,8 +696,7 @@ running, we store them right in the VM.</p>
 <div class="codehilite"><pre class="insert-before">  Value* stackTop;
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
-<pre class="insert">
-  <span class="t">Table</span> <span class="i">globals</span>;
+<pre class="insert">  <span class="t">Table</span> <span class="i">globals</span>;
 </pre><pre class="insert-after">  Table strings;
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
@@ -755,8 +721,7 @@ the operating system to clean up our mess.</p>
 <div class="codehilite"><pre class="insert-before">void freeVM() {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
-<pre class="insert">
-  <span class="i">freeTable</span>(&amp;<span class="i">vm</span>.<span class="i">globals</span>);
+<pre class="insert">  <span class="i">freeTable</span>(&amp;<span class="i">vm</span>.<span class="i">globals</span>);
 </pre><pre class="insert-after">  freeTable(&amp;vm.strings);
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
@@ -765,8 +730,7 @@ in <em>freeVM</em>()</div>
 <div class="codehilite"><pre class="insert-before">      return simpleInstruction(&quot;OP_POP&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OP_DEFINE_GLOBAL</span>:
+<pre class="insert">    <span class="k">case</span> <span class="a">OP_DEFINE_GLOBAL</span>:
       <span class="k">return</span> <span class="i">constantInstruction</span>(<span class="s">&quot;OP_DEFINE_GLOBAL&quot;</span>, <span class="i">chunk</span>,
                                  <span class="i">offset</span>);
 </pre><pre class="insert-after">    case OP_EQUAL:
@@ -781,8 +745,7 @@ name. We hook up identifier tokens to the expression parser here:</p>
 <div class="codehilite"><pre class="insert-before">  [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
-<pre class="insert">
-  [<span class="a">TOKEN_IDENTIFIER</span>]    = {<span class="i">variable</span>, <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
+<pre class="insert">  [<span class="a">TOKEN_IDENTIFIER</span>]    = {<span class="i">variable</span>, <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
 </pre><pre class="insert-after">  [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
@@ -790,8 +753,7 @@ replace 1 line</div>
 <p>That calls this new parser function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>string</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">variable</span>() {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">variable</span>() {
   <span class="i">namedVariable</span>(<span class="i">parser</span>.<span class="i">previous</span>);
 }
 </pre></div>
@@ -801,8 +763,7 @@ add after <em>string</em>()</div>
 pointless now but will become more useful in later chapters. I promise.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>string</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">namedVariable</span>(<span class="t">Token</span> <span class="i">name</span>) {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">namedVariable</span>(<span class="t">Token</span> <span class="i">name</span>) {
   <span class="t">uint8_t</span> <span class="i">arg</span> = <span class="i">identifierConstant</span>(&amp;<span class="i">name</span>);
   <span class="i">emitBytes</span>(<span class="a">OP_GET_GLOBAL</span>, <span class="i">arg</span>);
 }
@@ -816,8 +777,7 @@ variable with that name. Here&rsquo;s the instruction:</p>
 <div class="codehilite"><pre class="insert-before">  OP_POP,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert">
-  <span class="a">OP_GET_GLOBAL</span>,
+<pre class="insert">  <span class="a">OP_GET_GLOBAL</span>,
 </pre><pre class="insert-after">  OP_DEFINE_GLOBAL,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
@@ -826,8 +786,7 @@ in enum <em>OpCode</em></div>
 <div class="codehilite"><pre class="insert-before">      case OP_POP: pop(); break;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert">
-      <span class="k">case</span> <span class="a">OP_GET_GLOBAL</span>: {
+<pre class="insert">      <span class="k">case</span> <span class="a">OP_GET_GLOBAL</span>: {
         <span class="t">ObjString</span>* <span class="i">name</span> = <span class="a">READ_STRING</span>();
         <span class="t">Value</span> <span class="i">value</span>;
         <span class="k">if</span> (!<span class="i">tableGet</span>(&amp;<span class="i">vm</span>.<span class="i">globals</span>, <span class="i">name</span>, &amp;<span class="i">value</span>)) {
@@ -851,8 +810,7 @@ onto the stack.</p>
 <div class="codehilite"><pre class="insert-before">      return simpleInstruction(&quot;OP_POP&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OP_GET_GLOBAL</span>:
+<pre class="insert">    <span class="k">case</span> <span class="a">OP_GET_GLOBAL</span>:
       <span class="k">return</span> <span class="i">constantInstruction</span>(<span class="s">&quot;OP_GET_GLOBAL&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
 </pre><pre class="insert-after">    case OP_DEFINE_GLOBAL:
 </pre></div>
@@ -860,8 +818,7 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>A little bit of disassembling, and we&rsquo;re done. Our interpreter is now able to
 run code like this:</p>
-<div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">beverage</span> = <span class="s">&quot;cafe au lait&quot;</span>;
+<div class="codehilite"><pre><span class="k">var</span> <span class="i">beverage</span> = <span class="s">&quot;cafe au lait&quot;</span>;
 <span class="k">var</span> <span class="i">breakfast</span> = <span class="s">&quot;beignets with &quot;</span> + <span class="i">beverage</span>;
 <span class="k">print</span> <span class="i">breakfast</span>;
 </pre></div>
@@ -877,8 +834,7 @@ name="jlox">bytecode</span> compiler make assignment annoying to implement.</p>
 <p>Our bytecode VM uses a single-pass compiler. It parses and generates bytecode
 on the fly without any intermediate AST. As soon as it recognizes a piece of
 syntax, it emits code for it. Assignment doesn&rsquo;t naturally fit that. Consider:</p>
-<div class="codehilite"><pre>
-<span class="i">menu</span>.<span class="i">brunch</span>(<span class="i">sunday</span>).<span class="i">beverage</span> = <span class="s">&quot;mimosa&quot;</span>;
+<div class="codehilite"><pre><span class="i">menu</span>.<span class="i">brunch</span>(<span class="i">sunday</span>).<span class="i">beverage</span> = <span class="s">&quot;mimosa&quot;</span>;
 </pre></div>
 <p>In this code, the parser doesn&rsquo;t realize <code>menu.brunch(sunday).beverage</code> is the
 target of an assignment and not a normal expression until it reaches <code>=</code>, many
@@ -924,8 +880,7 @@ access, we compile the assigned value and then emit an assignment instruction.</
 <div class="codehilite"><pre class="insert-before">  OP_DEFINE_GLOBAL,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert">
-  <span class="a">OP_SET_GLOBAL</span>,
+<pre class="insert">  <span class="a">OP_SET_GLOBAL</span>,
 </pre><pre class="insert-after">  OP_EQUAL,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
@@ -934,8 +889,7 @@ in enum <em>OpCode</em></div>
 <div class="codehilite"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert">
-      <span class="k">case</span> <span class="a">OP_SET_GLOBAL</span>: {
+<pre class="insert">      <span class="k">case</span> <span class="a">OP_SET_GLOBAL</span>: {
         <span class="t">ObjString</span>* <span class="i">name</span> = <span class="a">READ_STRING</span>();
         <span class="k">if</span> (<span class="i">tableSet</span>(&amp;<span class="i">vm</span>.<span class="i">globals</span>, <span class="i">name</span>, <span class="i">peek</span>(<span class="n">0</span>))) {
           <span class="i">tableDelete</span>(&amp;<span class="i">vm</span>.<span class="i">globals</span>, <span class="i">name</span>);<span name="delete"> </span>
@@ -966,16 +920,14 @@ there in case the assignment is nested inside some larger expression.</p>
                                  offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OP_SET_GLOBAL</span>:
+<pre class="insert">    <span class="k">case</span> <span class="a">OP_SET_GLOBAL</span>:
       <span class="k">return</span> <span class="i">constantInstruction</span>(<span class="s">&quot;OP_SET_GLOBAL&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
 </pre><pre class="insert-after">    case OP_EQUAL:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>So we&rsquo;re done, right? Well<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>not quite. We&rsquo;ve made a mistake! Take a gander at:</p>
-<div class="codehilite"><pre>
-<span class="i">a</span> * <span class="i">b</span> = <span class="i">c</span> + <span class="i">d</span>;
+<div class="codehilite"><pre><span class="i">a</span> * <span class="i">b</span> = <span class="i">c</span> + <span class="i">d</span>;
 </pre></div>
 <p>According to Lox&rsquo;s grammar, <code>=</code> has the lowest precedence, so this should be
 parsed roughly like:</p><img src="image/global-variables/ast-good.png" alt="The expected parse, like '(a * b) = (c + d)'." />
@@ -1014,10 +966,10 @@ enough to allow assignment, so we pass that fact in as a Boolean.</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>parsePrecedence</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="t">bool</span> <span class="i">canAssign</span> = <span class="i">precedence</span> &lt;= <span class="a">PREC_ASSIGNMENT</span>;
+<pre class="insert">  <span class="t">bool</span> <span class="i">canAssign</span> = <span class="i">precedence</span> &lt;= <span class="a">PREC_ASSIGNMENT</span>;
   <span class="i">prefixRule</span>(<span class="i">canAssign</span>);
 </pre><pre class="insert-after">
+
   while (precedence &lt;= getRule(parser.current.type)-&gt;precedence) {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>parsePrecedence</em>(), replace 1 line</div>
@@ -1028,8 +980,7 @@ in an expression statement. That flag makes its way to the parser function here:
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 function <em>variable</em>()<br>
 replace 3 lines</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">variable</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">variable</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
   <span class="i">namedVariable</span>(<span class="i">parser</span>.<span class="i">previous</span>, <span class="i">canAssign</span>);
 }
 </pre></div>
@@ -1039,8 +990,7 @@ replace 3 lines</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 function <em>namedVariable</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">void</span> <span class="i">namedVariable</span>(<span class="t">Token</span> <span class="i">name</span>, <span class="t">bool</span> <span class="i">canAssign</span>) {
+<pre class="insert"><span class="k">static</span> <span class="t">void</span> <span class="i">namedVariable</span>(<span class="t">Token</span> <span class="i">name</span>, <span class="t">bool</span> <span class="i">canAssign</span>) {
 </pre><pre class="insert-after">  uint8_t arg = identifierConstant(&amp;name);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>namedVariable</em>(), replace 1 line</div>
@@ -1051,8 +1001,7 @@ replace 1 line</div>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>namedVariable</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">canAssign</span> &amp;&amp; <span class="i">match</span>(<span class="a">TOKEN_EQUAL</span>)) {
+<pre class="insert">  <span class="k">if</span> (<span class="i">canAssign</span> &amp;&amp; <span class="i">match</span>(<span class="a">TOKEN_EQUAL</span>)) {
 </pre><pre class="insert-after">    expression();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 1 line</div>
@@ -1100,8 +1049,7 @@ ahead and pass the flag to the infix parse functions.</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>parsePrecedence</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-    <span class="i">infixRule</span>(<span class="i">canAssign</span>);
+<pre class="insert">    <span class="i">infixRule</span>(<span class="i">canAssign</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>parsePrecedence</em>(), replace 1 line</div>
@@ -1113,9 +1061,9 @@ function type.</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after enum <em>Precedence</em><br>
 replace 1 line</div>
-<pre class="insert">
-<span class="k">typedef</span> <span class="t">void</span> (*<span class="t">ParseFn</span>)(<span class="t">bool</span> <span class="i">canAssign</span>);
+<pre class="insert"><span class="k">typedef</span> <span class="t">void</span> (*<span class="t">ParseFn</span>)(<span class="t">bool</span> <span class="i">canAssign</span>);
 </pre><pre class="insert-after">
+
 typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after enum <em>Precedence</em>, replace 1 line</div>
@@ -1125,8 +1073,7 @@ parse functions. Here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 function <em>binary</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">void</span> <span class="i">binary</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
+<pre class="insert"><span class="k">static</span> <span class="t">void</span> <span class="i">binary</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
 </pre><pre class="insert-after">  TokenType operatorType = parser.previous.type;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>binary</em>(), replace 1 line</div>
@@ -1135,8 +1082,7 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 function <em>literal</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">void</span> <span class="i">literal</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
+<pre class="insert"><span class="k">static</span> <span class="t">void</span> <span class="i">literal</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
 </pre><pre class="insert-after">  switch (parser.previous.type) {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>literal</em>(), replace 1 line</div>
@@ -1145,8 +1091,7 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 function <em>grouping</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">void</span> <span class="i">grouping</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
+<pre class="insert"><span class="k">static</span> <span class="t">void</span> <span class="i">grouping</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
 </pre><pre class="insert-after">  expression();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>grouping</em>(), replace 1 line</div>
@@ -1155,8 +1100,7 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 function <em>number</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">void</span> <span class="i">number</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
+<pre class="insert"><span class="k">static</span> <span class="t">void</span> <span class="i">number</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
 </pre><pre class="insert-after">  double value = strtod(parser.previous.start, NULL);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>number</em>(), replace 1 line</div>
@@ -1165,8 +1109,7 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 function <em>string</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">void</span> <span class="i">string</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
+<pre class="insert"><span class="k">static</span> <span class="t">void</span> <span class="i">string</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
 </pre><pre class="insert-after">  emitConstant(OBJ_VAL(copyString(parser.previous.start + 1,
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>string</em>(), replace 1 line</div>
@@ -1175,16 +1118,14 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 function <em>unary</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">void</span> <span class="i">unary</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
+<pre class="insert"><span class="k">static</span> <span class="t">void</span> <span class="i">unary</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
 </pre><pre class="insert-after">  TokenType operatorType = parser.previous.type;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>unary</em>(), replace 1 line</div>
 
 <p>Phew! We&rsquo;re back to a C program we can compile. Fire it up and now you can run
 this:</p>
-<div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">breakfast</span> = <span class="s">&quot;beignets&quot;</span>;
+<div class="codehilite"><pre><span class="k">var</span> <span class="i">breakfast</span> = <span class="s">&quot;beignets&quot;</span>;
 <span class="k">var</span> <span class="i">beverage</span> = <span class="s">&quot;cafe au lait&quot;</span>;
 <span class="i">breakfast</span> = <span class="s">&quot;beignets with &quot;</span> + <span class="i">beverage</span>;
 
@@ -1218,8 +1159,7 @@ Lox should handle this gracefully by not reporting an &ldquo;unknown variable&rd
 compile error when the function is first defined.</p>
 <p>But when a user runs a Lox <em>script</em>, the compiler has access to the full
 text of the entire program before any code is run. Consider this program:</p>
-<div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">useVar</span>() {
+<div class="codehilite"><pre><span class="k">fun</span> <span class="i">useVar</span>() {
   <span class="k">print</span> <span class="i">oops</span>;
 }
 

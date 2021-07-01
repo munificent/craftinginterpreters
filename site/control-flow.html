@@ -219,8 +219,7 @@ only operator in C that takes three operands.</p>
 <p>For simplicity&rsquo;s sake, Lox doesn&rsquo;t have a conditional operator, so let&rsquo;s get our
 <code>if</code> statement on. Our statement grammar gets a new production.</p>
 <p><span name="semicolon"></span></p>
-<div class="codehilite"><pre>
-<span class="i">statement</span>      → <span class="i">exprStmt</span>
+<div class="codehilite"><pre><span class="i">statement</span>      → <span class="i">exprStmt</span>
                | <span class="i">ifStmt</span>
                | <span class="i">printStmt</span>
                | <span class="i">block</span> ;
@@ -241,8 +240,7 @@ tree node</span> has fields for each of those three pieces.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Expression : Expr expression&quot;,
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
-<pre class="insert">
-      <span class="s">&quot;If         : Expr condition, Stmt thenBranch,&quot;</span> +
+<pre class="insert">      <span class="s">&quot;If         : Expr condition, Stmt thenBranch,&quot;</span> +
                   <span class="s">&quot; Stmt elseBranch&quot;</span>,
 </pre><pre class="insert-after">      &quot;Print      : Expr expression&quot;,
 </pre></div>
@@ -256,8 +254,7 @@ in <em>main</em>()</div>
 <div class="codehilite"><pre class="insert-before">  private Stmt statement() {
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>statement</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">match</span>(<span class="i">IF</span>)) <span class="k">return</span> <span class="i">ifStatement</span>();
+<pre class="insert">    <span class="k">if</span> (<span class="i">match</span>(<span class="i">IF</span>)) <span class="k">return</span> <span class="i">ifStatement</span>();
 </pre><pre class="insert-after">    if (match(PRINT)) return printStatement();
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>statement</em>()</div>
@@ -265,8 +262,7 @@ in <em>statement</em>()</div>
 <p>When it finds one, it calls this new method to parse the rest:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>statement</em>()</div>
-<pre>
-  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">ifStatement</span>() {
+<pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">ifStatement</span>() {
     <span class="i">consume</span>(<span class="i">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;if&#39;.&quot;</span>);
     <span class="t">Expr</span> <span class="i">condition</span> = <span class="i">expression</span>();
     <span class="i">consume</span>(<span class="i">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after if condition.&quot;</span>);<span name="parens"> </span>
@@ -299,8 +295,7 @@ clause by looking for the preceding <code>else</code> keyword. If there isn&rsqu
 <code>elseBranch</code> field in the syntax tree is <code>null</code>.</p>
 <p>That seemingly innocuous optional else has, in fact, opened up an ambiguity in
 our grammar. Consider:</p>
-<div class="codehilite"><pre>
-<span class="k">if</span> (<span class="i">first</span>) <span class="k">if</span> (<span class="i">second</span>) <span class="i">whenTrue</span>(); <span class="k">else</span> <span class="i">whenFalse</span>();
+<div class="codehilite"><pre><span class="k">if</span> (<span class="i">first</span>) <span class="k">if</span> (<span class="i">second</span>) <span class="i">whenTrue</span>(); <span class="k">else</span> <span class="i">whenFalse</span>();
 </pre></div>
 <p>Here&rsquo;s the riddle: Which <code>if</code> statement does that else clause belong to? This
 isn&rsquo;t just a theoretical question about how we notate our grammar. It actually
@@ -337,8 +332,7 @@ the else clause for itself before returning to the outer <code>if</code> stateme
 <p>Syntax in hand, we are ready to interpret.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitExpressionStmt</em>()</div>
-<pre>
-  <span class="a">@Override</span>
+<pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitIfStmt</span>(<span class="t">Stmt</span>.<span class="t">If</span> <span class="i">stmt</span>) {
     <span class="k">if</span> (<span class="i">isTruthy</span>(<span class="i">evaluate</span>(<span class="i">stmt</span>.<span class="i">condition</span>))) {
       <span class="i">execute</span>(<span class="i">stmt</span>.<span class="i">thenBranch</span>);
@@ -366,8 +360,7 @@ operators that are technically control flow constructs<span class="em">&mdash;</
 <p>These aren&rsquo;t like other binary operators because they <strong>short-circuit</strong>. If,
 after evaluating the left operand, we know what the result of the logical
 expression must be, we don&rsquo;t evaluate the right operand. For example:</p>
-<div class="codehilite"><pre>
-<span class="k">false</span> <span class="k">and</span> <span class="i">sideEffect</span>();
+<div class="codehilite"><pre><span class="k">false</span> <span class="k">and</span> <span class="i">sideEffect</span>();
 </pre></div>
 <p>For an <code>and</code> expression to evaluate to something truthy, both operands must be
 truthy. We can see as soon as we evaluate the left <code>false</code> operand that that
@@ -382,8 +375,7 @@ right between <code>assignment</code> and <code>equality</code>.</p>
 <p>I&rsquo;ve always wondered why they don&rsquo;t have the same precedence, like the various
 comparison or equality operators do.</p>
 </aside>
-<div class="codehilite"><pre>
-<span class="i">expression</span>     → <span class="i">assignment</span> ;
+<div class="codehilite"><pre><span class="i">expression</span>     → <span class="i">assignment</span> ;
 <span class="i">assignment</span>     → <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
                | <span class="i">logic_or</span> ;
 <span class="i">logic_or</span>       → <span class="i">logic_and</span> ( <span class="s">&quot;or&quot;</span> <span class="i">logic_and</span> )* ;
@@ -406,8 +398,7 @@ own visit method.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Literal  : Object value&quot;,
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
-<pre class="insert">
-      <span class="s">&quot;Logical  : Expr left, Token operator, Expr right&quot;</span>,
+<pre class="insert">      <span class="s">&quot;Logical  : Expr left, Token operator, Expr right&quot;</span>,
 </pre><pre class="insert-after">      &quot;Unary    : Token operator, Expr right&quot;,
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
@@ -421,9 +412,9 @@ for assignment to call <code>or()</code>.</p>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>assignment</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-    <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">or</span>();
+<pre class="insert">    <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">or</span>();
 </pre><pre class="insert-after">
+
     if (match(EQUAL)) {
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>assignment</em>(), replace 1 line</div>
@@ -431,8 +422,7 @@ replace 1 line</div>
 <p>The code to parse a series of <code>or</code> expressions mirrors other binary operators.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>assignment</em>()</div>
-<pre>
-  <span class="k">private</span> <span class="t">Expr</span> <span class="i">or</span>() {
+<pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">or</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">and</span>();
 
     <span class="k">while</span> (<span class="i">match</span>(<span class="i">OR</span>)) {
@@ -449,8 +439,7 @@ add after <em>assignment</em>()</div>
 <p>Its operands are the next higher level of precedence, the new <code>and</code> expression.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>or</em>()</div>
-<pre>
-  <span class="k">private</span> <span class="t">Expr</span> <span class="i">and</span>() {
+<pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">and</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">equality</span>();
 
     <span class="k">while</span> (<span class="i">match</span>(<span class="i">AND</span>)) {
@@ -468,8 +457,7 @@ add after <em>or</em>()</div>
 is all tied back together again. We&rsquo;re ready to interpret.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitLiteralExpr</em>()</div>
-<pre>
-  <span class="a">@Override</span>
+<pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitLogicalExpr</span>(<span class="t">Expr</span>.<span class="t">Logical</span> <span class="i">expr</span>) {
     <span class="t">Object</span> <span class="i">left</span> = <span class="i">evaluate</span>(<span class="i">expr</span>.<span class="i">left</span>);
 
@@ -495,8 +483,7 @@ result. Instead of promising to literally return <code>true</code> or <code>fals
 operator merely guarantees it will return a value with appropriate truthiness.</p>
 <p>Fortunately, we have values with proper truthiness right at hand<span class="em">&mdash;</span>the results
 of the operands themselves. So we use those. For example:</p>
-<div class="codehilite"><pre>
-<span class="k">print</span> <span class="s">&quot;hi&quot;</span> <span class="k">or</span> <span class="n">2</span>; <span class="c">// &quot;hi&quot;.</span>
+<div class="codehilite"><pre><span class="k">print</span> <span class="s">&quot;hi&quot;</span> <span class="k">or</span> <span class="n">2</span>; <span class="c">// &quot;hi&quot;.</span>
 <span class="k">print</span> <span class="k">nil</span> <span class="k">or</span> <span class="s">&quot;yes&quot;</span>; <span class="c">// &quot;yes&quot;.</span>
 </pre></div>
 <p>On the first line, <code>"hi"</code> is truthy, so the <code>or</code> short-circuits and returns
@@ -508,8 +495,7 @@ reference to<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>oh, fo
 <h2><a href="#while-loops" id="while-loops"><small>9&#8202;.&#8202;4</small>While Loops</a></h2>
 <p>Lox features two looping control flow statements, <code>while</code> and <code>for</code>. The <code>while</code>
 loop is the simpler one, so we&rsquo;ll start there. Its grammar is the same as in C.</p>
-<div class="codehilite"><pre>
-<span class="i">statement</span>      → <span class="i">exprStmt</span>
+<div class="codehilite"><pre><span class="i">statement</span>      → <span class="i">exprStmt</span>
                | <span class="i">ifStmt</span>
                | <span class="i">printStmt</span>
                | <span class="i">whileStmt</span>
@@ -522,13 +508,11 @@ while. It takes a <code>while</code> keyword, followed by a parenthesized condit
 expression, then a statement for the body. That new grammar rule gets a <span
 name="while-ast">syntax tree node</span>.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Print      : Expr expression&quot;,
-</pre><pre class="insert-before">
-      <span class="s">&quot;Var        : Token name, Expr initializer&quot;</span><span class="insert-comma">,</span>
+</pre><pre class="insert-before">      <span class="s">&quot;Var        : Token name, Expr initializer&quot;</span><span class="insert-comma">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()<br>
 add <em>&ldquo;,&rdquo;</em> to previous line</div>
-<pre class="insert">
-      <span class="s">&quot;While      : Expr condition, Stmt body&quot;</span>
+<pre class="insert">      <span class="s">&quot;While      : Expr condition, Stmt body&quot;</span>
 </pre><pre class="insert-after">    ));
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>(), add <em>&ldquo;,&rdquo;</em> to previous line</div>
@@ -545,8 +529,7 @@ keyword.</p>
 <div class="codehilite"><pre class="insert-before">    if (match(PRINT)) return printStatement();
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>statement</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">match</span>(<span class="i">WHILE</span>)) <span class="k">return</span> <span class="i">whileStatement</span>();
+<pre class="insert">    <span class="k">if</span> (<span class="i">match</span>(<span class="i">WHILE</span>)) <span class="k">return</span> <span class="i">whileStatement</span>();
 </pre><pre class="insert-after">    if (match(LEFT_BRACE)) return new Stmt.Block(block());
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>statement</em>()</div>
@@ -554,8 +537,7 @@ in <em>statement</em>()</div>
 <p>That delegates the real work to this method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>varDeclaration</em>()</div>
-<pre>
-  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">whileStatement</span>() {
+<pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">whileStatement</span>() {
     <span class="i">consume</span>(<span class="i">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span>);
     <span class="t">Expr</span> <span class="i">condition</span> = <span class="i">expression</span>();
     <span class="i">consume</span>(<span class="i">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span>);
@@ -570,8 +552,7 @@ add after <em>varDeclaration</em>()</div>
 Speaking of translating straight to Java, here&rsquo;s how we execute the new syntax:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitVarStmt</em>()</div>
-<pre>
-  <span class="a">@Override</span>
+<pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitWhileStmt</span>(<span class="t">Stmt</span>.<span class="t">While</span> <span class="i">stmt</span>) {
     <span class="k">while</span> (<span class="i">isTruthy</span>(<span class="i">evaluate</span>(<span class="i">stmt</span>.<span class="i">condition</span>))) {
       <span class="i">execute</span>(<span class="i">stmt</span>.<span class="i">body</span>);
@@ -588,12 +569,10 @@ the source code.</p>
 <h2><a href="#for-loops" id="for-loops"><small>9&#8202;.&#8202;5</small>For Loops</a></h2>
 <p>We&rsquo;re down to the last control flow construct, <span name="for">Ye Olde</span>
 C-style <code>for</code> loop. I probably don&rsquo;t need to remind you, but it looks like this:</p>
-<div class="codehilite"><pre>
-<span class="k">for</span> (<span class="k">var</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="n">10</span>; <span class="i">i</span> = <span class="i">i</span> + <span class="n">1</span>) <span class="k">print</span> <span class="i">i</span>;
+<div class="codehilite"><pre><span class="k">for</span> (<span class="k">var</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="n">10</span>; <span class="i">i</span> = <span class="i">i</span> + <span class="n">1</span>) <span class="k">print</span> <span class="i">i</span>;
 </pre></div>
 <p>In grammarese, that&rsquo;s:</p>
-<div class="codehilite"><pre>
-<span class="i">statement</span>      → <span class="i">exprStmt</span>
+<div class="codehilite"><pre><span class="i">statement</span>      → <span class="i">exprStmt</span>
                | <span class="i">forStmt</span>
                | <span class="i">ifStmt</span>
                | <span class="i">printStmt</span>
@@ -654,8 +633,7 @@ could be rewritten like so:</p>
 how some of the nice expression forms supported by languages like ALGOL were a
 sweetener sprinkled over the more fundamental<span class="em">&mdash;</span>but presumably less palatable<span class="em">&mdash;</span>lambda calculus underneath.</p><img class="above" src="image/control-flow/sugar.png" alt="Slightly more than a spoonful of sugar." />
 </aside>
-<div class="codehilite"><pre>
-{
+<div class="codehilite"><pre>{
   <span class="k">var</span> <span class="i">i</span> = <span class="n">0</span>;
   <span class="k">while</span> (<span class="i">i</span> &lt; <span class="n">10</span>) {
     <span class="k">print</span> <span class="i">i</span>;
@@ -683,8 +661,7 @@ technique. So, unlike the previous statements, we <em>won&rsquo;t</em> add a new
 node. Instead, we go straight to parsing. First, add an import we&rsquo;ll need soon.</p>
 <div class="codehilite"><pre class="insert-before">import java.util.ArrayList;
 </pre><div class="source-file"><em>lox/Parser.java</em></div>
-<pre class="insert">
-<span class="k">import</span> <span class="i">java.util.Arrays</span>;
+<pre class="insert"><span class="k">import</span> <span class="i">java.util.Arrays</span>;
 </pre><pre class="insert-after">import java.util.List;
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em></div>
@@ -693,8 +670,7 @@ node. Instead, we go straight to parsing. First, add an import we&rsquo;ll need 
 <div class="codehilite"><pre class="insert-before">  private Stmt statement() {
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>statement</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">match</span>(<span class="i">FOR</span>)) <span class="k">return</span> <span class="i">forStatement</span>();
+<pre class="insert">    <span class="k">if</span> (<span class="i">match</span>(<span class="i">FOR</span>)) <span class="k">return</span> <span class="i">forStatement</span>();
 </pre><pre class="insert-after">    if (match(IF)) return ifStatement();
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>statement</em>()</div>
@@ -704,8 +680,7 @@ we&rsquo;ll build this method a piece at a time, starting with the opening paren
 before the clauses.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>statement</em>()</div>
-<pre>
-  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">forStatement</span>() {
+<pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">forStatement</span>() {
     <span class="i">consume</span>(<span class="i">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span>);
 
     <span class="c">// More here...</span>
@@ -719,8 +694,7 @@ add after <em>statement</em>()</div>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-    <span class="t">Stmt</span> <span class="i">initializer</span>;
+<pre class="insert">    <span class="t">Stmt</span> <span class="i">initializer</span>;
     <span class="k">if</span> (<span class="i">match</span>(<span class="i">SEMICOLON</span>)) {
       <span class="i">initializer</span> = <span class="k">null</span>;
     } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="i">VAR</span>)) {
@@ -783,8 +757,7 @@ closing parenthesis. All that remains is the <span name="body">body</span>.</p>
 <div class="codehilite"><pre class="insert-before">    consume(RIGHT_PAREN, &quot;Expect ')' after for clauses.&quot;);
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()</div>
-<pre class="insert">
-    <span class="t">Stmt</span> <span class="i">body</span> = <span class="i">statement</span>();
+<pre class="insert">    <span class="t">Stmt</span> <span class="i">body</span> = <span class="i">statement</span>();
 
     <span class="k">return</span> <span class="i">body</span>;
 </pre><pre class="insert-after">  }
@@ -802,8 +775,7 @@ clause.</p>
 
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">increment</span> != <span class="k">null</span>) {
+<pre class="insert">    <span class="k">if</span> (<span class="i">increment</span> != <span class="k">null</span>) {
       <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Block</span>(
           <span class="t">Arrays</span>.<span class="i">asList</span>(
               <span class="i">body</span>,
@@ -821,8 +793,7 @@ original body followed by an expression statement that evaluates the increment.<
 
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">condition</span> == <span class="k">null</span>) <span class="i">condition</span> = <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Literal</span>(<span class="k">true</span>);
+<pre class="insert">    <span class="k">if</span> (<span class="i">condition</span> == <span class="k">null</span>) <span class="i">condition</span> = <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Literal</span>(<span class="k">true</span>);
     <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">While</span>(<span class="i">condition</span>, <span class="i">body</span>);
 
 </pre><pre class="insert-after">    return body;
@@ -836,8 +807,7 @@ loop.</p>
 
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">initializer</span> != <span class="k">null</span>) {
+<pre class="insert">    <span class="k">if</span> (<span class="i">initializer</span> != <span class="k">null</span>) {
       <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Block</span>(<span class="t">Arrays</span>.<span class="i">asList</span>(<span class="i">initializer</span>, <span class="i">body</span>));
     }
 
@@ -854,8 +824,7 @@ interpreter already knows how to visit, there is no more work to do.</p>
 <p>Finally, Lox is powerful enough to entertain us, at least for a few minutes.
 Here&rsquo;s a tiny program to print the first 21 elements in the Fibonacci
 sequence:</p>
-<div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">a</span> = <span class="n">0</span>;
+<div class="codehilite"><pre><span class="k">var</span> <span class="i">a</span> = <span class="n">0</span>;
 <span class="k">var</span> <span class="i">temp</span>;
 
 <span class="k">for</span> (<span class="k">var</span> <span class="i">b</span> = <span class="n">1</span>; <span class="i">a</span> &lt; <span class="n">10000</span>; <span class="i">b</span> = <span class="i">temp</span> + <span class="i">b</span>) {
