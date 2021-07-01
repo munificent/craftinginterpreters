@@ -169,8 +169,7 @@ the <code>class</code> keyword.</p>
 <p>This late in the game, I&rsquo;d rather not add a new reserved word or token to the
 lexer. We don&rsquo;t have <code>extends</code> or even <code>:</code>, so we&rsquo;ll follow Ruby and use a
 less-than sign (<code>&lt;</code>).</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Doughnut</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Doughnut</span> {
   <span class="c">// General doughnut stuff...</span>
 }
 
@@ -180,8 +179,7 @@ less-than sign (<code>&lt;</code>).</p>
 </pre></div>
 <p>To work this into the grammar, we add a new optional clause in our existing
 <code>classDecl</code> rule.</p>
-<div class="codehilite"><pre>
-<span class="i">classDecl</span>      → <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> ( <span class="s">&quot;&lt;&quot;</span> <span class="t">IDENTIFIER</span> )?
+<div class="codehilite"><pre><span class="i">classDecl</span>      → <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> ( <span class="s">&quot;&lt;&quot;</span> <span class="t">IDENTIFIER</span> )?
                  <span class="s">&quot;{&quot;</span> <span class="i">function</span>* <span class="s">&quot;}&quot;</span> ;
 </pre></div>
 <p>After the class name, you can have a <code>&lt;</code> followed by the superclass&rsquo;s name. The
@@ -194,8 +192,7 @@ class has <em>no</em> superclass, not even an implicit one.</p>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-      <span class="s">&quot;Class      : Token name, Expr.Variable superclass,&quot;</span> +
+<pre class="insert">      <span class="s">&quot;Class      : Token name, Expr.Variable superclass,&quot;</span> +
                   <span class="s">&quot; List&lt;Stmt.Function&gt; methods&quot;</span>,
 </pre><pre class="insert-after">      &quot;Expression : Expr expression&quot;,
 </pre></div>
@@ -228,8 +225,7 @@ in <em>classDeclaration</em>()</div>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>classDeclaration</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Class</span>(<span class="i">name</span>, <span class="i">superclass</span>, <span class="i">methods</span>);
+<pre class="insert">    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Class</span>(<span class="i">name</span>, <span class="i">superclass</span>, <span class="i">methods</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>classDeclaration</em>(), replace 1 line</div>
@@ -246,6 +242,7 @@ in <em>visitClassStmt</em>()</div>
       <span class="i">resolve</span>(<span class="i">stmt</span>.<span class="i">superclass</span>);
     }
 </pre><pre class="insert-after">
+
     beginScope();
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
@@ -258,8 +255,7 @@ so it&rsquo;s possible the superclass name refers to a local variable. In that c
 we need to make sure it&rsquo;s resolved.</p>
 <p>Because even well-intentioned programmers sometimes write weird code, there&rsquo;s a
 silly edge case we need to worry about while we&rsquo;re in here. Take a look at this:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Oops</span> &lt; <span class="t">Oops</span> {}
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Oops</span> &lt; <span class="t">Oops</span> {}
 </pre></div>
 <p>There&rsquo;s no way this will do anything useful, and if we let the runtime try to
 run this, it will break the expectation the interpreter has about there not
@@ -269,8 +265,7 @@ statically and report it as an error.</p>
 
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">stmt</span>.<span class="i">superclass</span> != <span class="k">null</span> &amp;&amp;
+<pre class="insert">    <span class="k">if</span> (<span class="i">stmt</span>.<span class="i">superclass</span> != <span class="k">null</span> &amp;&amp;
         <span class="i">stmt</span>.<span class="i">name</span>.<span class="i">lexeme</span>.<span class="i">equals</span>(<span class="i">stmt</span>.<span class="i">superclass</span>.<span class="i">name</span>.<span class="i">lexeme</span>)) {
       <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">stmt</span>.<span class="i">superclass</span>.<span class="i">name</span>,
           <span class="s">&quot;A class can&#39;t inherit from itself.&quot;</span>);
@@ -284,8 +279,7 @@ in <em>visitClassStmt</em>()</div>
 <div class="codehilite"><pre class="insert-before">  public Void visitClassStmt(Stmt.Class stmt) {
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert">
-    <span class="t">Object</span> <span class="i">superclass</span> = <span class="k">null</span>;
+<pre class="insert">    <span class="t">Object</span> <span class="i">superclass</span> = <span class="k">null</span>;
     <span class="k">if</span> (<span class="i">stmt</span>.<span class="i">superclass</span> != <span class="k">null</span>) {
       <span class="i">superclass</span> = <span class="i">evaluate</span>(<span class="i">stmt</span>.<span class="i">superclass</span>);
       <span class="k">if</span> (!(<span class="i">superclass</span> <span class="k">instanceof</span> <span class="t">LoxClass</span>)) {
@@ -302,8 +296,7 @@ in <em>visitClassStmt</em>()</div>
 potentially evaluate to some other kind of object, we have to check at runtime
 that the thing we want to be the superclass is actually a class. Bad things
 would happen if we allowed code like:</p>
-<div class="codehilite"><pre>
-<span class="k">var</span> <span class="t">NotAClass</span> = <span class="s">&quot;I am totally not a class&quot;</span>;
+<div class="codehilite"><pre><span class="k">var</span> <span class="t">NotAClass</span> = <span class="s">&quot;I am totally not a class&quot;</span>;
 
 <span class="k">class</span> <span class="t">Subclass</span> &lt; <span class="t">NotAClass</span> {} <span class="c">// ?!</span>
 </pre></div>
@@ -317,8 +310,7 @@ that too. We pass the superclass to the constructor.</p>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-    <span class="t">LoxClass</span> <span class="i">klass</span> = <span class="k">new</span> <span class="t">LoxClass</span>(<span class="i">stmt</span>.<span class="i">name</span>.<span class="i">lexeme</span>,
+<pre class="insert">    <span class="t">LoxClass</span> <span class="i">klass</span> = <span class="k">new</span> <span class="t">LoxClass</span>(<span class="i">stmt</span>.<span class="i">name</span>.<span class="i">lexeme</span>,
         (<span class="t">LoxClass</span>)<span class="i">superclass</span>, <span class="i">methods</span>);
 
 </pre><pre class="insert-after">    environment.assign(stmt.name, klass);
@@ -329,8 +321,7 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>lox/LoxClass.java</em><br>
 constructor <em>LoxClass</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="t">LoxClass</span>(<span class="t">String</span> <span class="i">name</span>, <span class="t">LoxClass</span> <span class="i">superclass</span>,
+<pre class="insert">  <span class="t">LoxClass</span>(<span class="t">String</span> <span class="i">name</span>, <span class="t">LoxClass</span> <span class="i">superclass</span>,
            <span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">LoxFunction</span>&gt; <span class="i">methods</span>) {
     <span class="k">this</span>.<span class="i">superclass</span> = <span class="i">superclass</span>;
 </pre><pre class="insert-after">    this.name = name;
@@ -341,8 +332,7 @@ replace 1 line</div>
 <div class="codehilite"><pre class="insert-before">  final String name;
 </pre><div class="source-file"><em>lox/LoxClass.java</em><br>
 in class <em>LoxClass</em></div>
-<pre class="insert">
-  <span class="k">final</span> <span class="t">LoxClass</span> <span class="i">superclass</span>;
+<pre class="insert">  <span class="k">final</span> <span class="t">LoxClass</span> <span class="i">superclass</span>;
 </pre><pre class="insert-after">  private final Map&lt;String, LoxFunction&gt; methods;
 </pre></div>
 <div class="source-file-narrow"><em>lox/LoxClass.java</em>, in class <em>LoxClass</em></div>
@@ -373,8 +363,7 @@ astonishingly easy.</p>
 
 </pre><div class="source-file"><em>lox/LoxClass.java</em><br>
 in <em>findMethod</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">superclass</span> != <span class="k">null</span>) {
+<pre class="insert">    <span class="k">if</span> (<span class="i">superclass</span> != <span class="k">null</span>) {
       <span class="k">return</span> <span class="i">superclass</span>.<span class="i">findMethod</span>(<span class="i">name</span>);
     }
 
@@ -385,8 +374,7 @@ in <em>findMethod</em>()</div>
 <p>That&rsquo;s literally all there is to it. When we are looking up a method on an
 instance, if we don&rsquo;t find it on the instance&rsquo;s class, we recurse up through the
 superclass chain and look there. Give it a try:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Doughnut</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Doughnut</span> {
   <span class="i">cook</span>() {
     <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span>;
   }
@@ -412,8 +400,7 @@ to the original one. If the subclass method tries to call it by name, it will
 just recursively hit its own override. We need a way to say &ldquo;Call this method,
 but look for it directly on my superclass and ignore my override&rdquo;. Java uses
 <code>super</code> for this, and we&rsquo;ll use that same syntax in Lox. Here is an example:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Doughnut</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Doughnut</span> {
   <span class="i">cook</span>() {
     <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span>;
   }
@@ -440,13 +427,11 @@ starts at the superclass.</p>
 is that one lone token. But with <code>super</code>, the subsequent <code>.</code> and property name
 are inseparable parts of the <code>super</code> expression. You can&rsquo;t have a bare <code>super</code>
 token all by itself.</p>
-<div class="codehilite"><pre>
-<span class="k">print</span> <span class="k">super</span>; <span class="c">// Syntax error.</span>
+<div class="codehilite"><pre><span class="k">print</span> <span class="k">super</span>; <span class="c">// Syntax error.</span>
 </pre></div>
 <p>So the new clause we add to the <code>primary</code> rule in our grammar includes the
 property access as well.</p>
-<div class="codehilite"><pre>
-<span class="i">primary</span>        → <span class="s">&quot;true&quot;</span> | <span class="s">&quot;false&quot;</span> | <span class="s">&quot;nil&quot;</span> | <span class="s">&quot;this&quot;</span>
+<div class="codehilite"><pre><span class="i">primary</span>        → <span class="s">&quot;true&quot;</span> | <span class="s">&quot;false&quot;</span> | <span class="s">&quot;nil&quot;</span> | <span class="s">&quot;this&quot;</span>
                | <span class="t">NUMBER</span> | <span class="t">STRING</span> | <span class="t">IDENTIFIER</span> | <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span>
                | <span class="s">&quot;super&quot;</span> <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> ;
 </pre></div>
@@ -454,8 +439,7 @@ property access as well.</p>
 methods, the argument list is <em>not</em> part of the expression. Instead, a super
 <em>call</em> is a super <em>access</em> followed by a function call. Like other method calls,
 you can get a handle to a superclass method and invoke it separately.</p>
-<div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">method</span> = <span class="k">super</span>.<span class="i">cook</span>;
+<div class="codehilite"><pre><span class="k">var</span> <span class="i">method</span> = <span class="k">super</span>.<span class="i">cook</span>;
 <span class="i">method</span>();
 </pre></div>
 <p>So the <code>super</code> expression itself contains only the token for the <code>super</code> keyword
@@ -464,8 +448,7 @@ name="super-ast">syntax tree node</span> is thus:</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Set      : Expr object, Token name, Expr value&quot;,
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
-<pre class="insert">
-      <span class="s">&quot;Super    : Token keyword, Token method&quot;</span>,
+<pre class="insert">      <span class="s">&quot;Super    : Token keyword, Token method&quot;</span>,
 </pre><pre class="insert-after">      &quot;This     : Token keyword&quot;,
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
@@ -489,6 +472,7 @@ in <em>primary</em>()</div>
       <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Super</span>(<span class="i">keyword</span>, <span class="i">method</span>);
     }
 </pre><pre class="insert-after">
+
     if (match(THIS)) return new Expr.This(previous());
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>primary</em>()</div>
@@ -501,8 +485,7 @@ superclass&rdquo;, but <em>which</em> superclass? The naïve answer is the super
 <code>this</code>, the object the surrounding method was called on. That coincidentally
 produces the right behavior in a lot of cases, but that&rsquo;s not actually correct.
 Gaze upon:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">A</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">A</span> {
   <span class="i">method</span>() {
     <span class="k">print</span> <span class="s">&quot;A method&quot;</span>;
   }
@@ -590,6 +573,7 @@ in <em>visitClassStmt</em>()</div>
       <span class="i">scopes</span>.<span class="i">peek</span>().<span class="i">put</span>(<span class="s">&quot;super&quot;</span>, <span class="k">true</span>);
     }
 </pre><pre class="insert-after">
+
     beginScope();
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
@@ -601,8 +585,7 @@ we&rsquo;re done resolving the class&rsquo;s methods, we discard that scope.</p>
 
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">stmt</span>.<span class="i">superclass</span> != <span class="k">null</span>) <span class="i">endScope</span>();
+<pre class="insert">    <span class="k">if</span> (<span class="i">stmt</span>.<span class="i">superclass</span> != <span class="k">null</span>) <span class="i">endScope</span>();
 
 </pre><pre class="insert-after">    currentClass = enclosingClass;
 </pre></div>
@@ -615,8 +598,7 @@ a superclass since there&rsquo;d be no superclass to store in it anyway.</p>
 expression itself.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitSetExpr</em>()</div>
-<pre>
-  <span class="a">@Override</span>
+<pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitSuperExpr</span>(<span class="t">Expr</span>.<span class="t">Super</span> <span class="i">expr</span>) {
     <span class="i">resolveLocal</span>(<span class="i">expr</span>, <span class="i">expr</span>.<span class="i">keyword</span>);
     <span class="k">return</span> <span class="k">null</span>;
@@ -644,6 +626,7 @@ in <em>visitClassStmt</em>()</div>
       <span class="i">environment</span>.<span class="i">define</span>(<span class="s">&quot;super&quot;</span>, <span class="i">superclass</span>);
     }
 </pre><pre class="insert-after">
+
     Map&lt;String, LoxFunction&gt; methods = new HashMap&lt;&gt;();
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitClassStmt</em>()</div>
@@ -663,6 +646,7 @@ in <em>visitClassStmt</em>()</div>
       <span class="i">environment</span> = <span class="i">environment</span>.<span class="i">enclosing</span>;
     }
 </pre><pre class="insert-after">
+
     environment.assign(stmt.name, klass);
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitClassStmt</em>()</div>
@@ -671,8 +655,7 @@ in <em>visitClassStmt</em>()</div>
 parts, so we&rsquo;ll build this method up in pieces.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitSetExpr</em>()</div>
-<pre>
-  <span class="a">@Override</span>
+<pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitSuperExpr</span>(<span class="t">Expr</span>.<span class="t">Super</span> <span class="i">expr</span>) {
     <span class="t">int</span> <span class="i">distance</span> = <span class="i">locals</span>.<span class="i">get</span>(<span class="i">expr</span>);
     <span class="t">LoxClass</span> <span class="i">superclass</span> = (<span class="t">LoxClass</span>)<span class="i">environment</span>.<span class="i">getAt</span>(
@@ -731,6 +714,7 @@ the class of the current object.</p>
 <p>That&rsquo;s basically it. Except, of course, that we might <em>fail</em> to find the method.
 So we check for that too.</p>
 <div class="codehilite"><pre class="insert-before">
+
     LoxFunction method = superclass.findMethod(expr.method.lexeme);
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitSuperExpr</em>()</div>
@@ -753,8 +737,7 @@ with cream.</p>
 <p>As with previous language features, our implementation does the right thing when
 the user writes correct code, but we haven&rsquo;t bulletproofed the intepreter
 against bad code. In particular, consider:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Eclair</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Eclair</span> {
   <span class="i">cook</span>() {
     <span class="k">super</span>.<span class="i">cook</span>();
     <span class="k">print</span> <span class="s">&quot;Pipe full of crème pâtissière.&quot;</span>;
@@ -767,8 +750,7 @@ and will be found in the environment. That&rsquo;s going to fail here because th
 no surrounding environment for the superclass since there is no superclass. The
 JVM will throw an exception and bring our interpreter to its knees.</p>
 <p>Heck, there are even simpler broken uses of super:</p>
-<div class="codehilite"><pre>
-<span class="k">super</span>.<span class="i">notEvenInAClass</span>();
+<div class="codehilite"><pre><span class="k">super</span>.<span class="i">notEvenInAClass</span>();
 </pre></div>
 <p>We could handle errors like these at runtime by checking to see if the lookup
 of &ldquo;super&rdquo; succeeded. But we can tell statically<span class="em">&mdash;</span>just by looking at the
@@ -782,13 +764,11 @@ resolver.</p>
 <p>First, we add a new case to the enum we use to keep track of what kind of class
 is surrounding the current code being visited.</p>
 <div class="codehilite"><pre class="insert-before">    NONE,
-</pre><pre class="insert-before">
-    <span class="i">CLASS</span><span class="insert-comma">,</span>
+</pre><pre class="insert-before">    <span class="i">CLASS</span><span class="insert-comma">,</span>
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in enum <em>ClassType</em><br>
 add <em>&ldquo;,&rdquo;</em> to previous line</div>
-<pre class="insert">
-    <span class="i">SUBCLASS</span>
+<pre class="insert">    <span class="i">SUBCLASS</span>
 </pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in enum <em>ClassType</em>, add <em>&ldquo;,&rdquo;</em> to previous line</div>
@@ -799,8 +779,7 @@ class is a subclass.</p>
 <div class="codehilite"><pre class="insert-before">    if (stmt.superclass != null) {
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert">
-      <span class="i">currentClass</span> = <span class="t">ClassType</span>.<span class="i">SUBCLASS</span>;
+<pre class="insert">      <span class="i">currentClass</span> = <span class="t">ClassType</span>.<span class="i">SUBCLASS</span>;
 </pre><pre class="insert-after">      resolve(stmt.superclass);
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
@@ -810,8 +789,7 @@ currently inside a scope where that&rsquo;s allowed.</p>
 <div class="codehilite"><pre class="insert-before">  public Void visitSuperExpr(Expr.Super expr) {
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitSuperExpr</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">currentClass</span> == <span class="t">ClassType</span>.<span class="i">NONE</span>) {
+<pre class="insert">    <span class="k">if</span> (<span class="i">currentClass</span> == <span class="t">ClassType</span>.<span class="i">NONE</span>) {
       <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">expr</span>.<span class="i">keyword</span>,
           <span class="s">&quot;Can&#39;t use &#39;super&#39; outside of a class.&quot;</span>);
     } <span class="k">else</span> <span class="k">if</span> (<span class="i">currentClass</span> != <span class="t">ClassType</span>.<span class="i">SUBCLASS</span>) {
@@ -900,8 +878,7 @@ there is no matching method, the <code>inner</code> call does nothing.</p>
 </li>
 </ul>
 <p>For example:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Doughnut</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Doughnut</span> {
   <span class="i">cook</span>() {
     <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span>;
     <span class="i">inner</span>();

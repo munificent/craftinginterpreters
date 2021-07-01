@@ -51,7 +51,16 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
     if (language == "text") {
       // Don't syntax highlight text.
       var buffer = StringBuffer();
-      if (!_format.isPrint) buffer.write("<pre>");
+      if (!_format.isPrint) {
+        buffer.write("<pre>");
+
+        // The HTML spec mandates that a leading newline after '<pre>' is
+        // ignored.
+        // https://html.spec.whatwg.org/#element-restrictions
+        // Some snippets deliberately start with a newline which needs to be
+        // preserved, so output an extra (discarded) newline in that case.
+        if (_format.isWeb && childLines.first.isEmpty) buffer.writeln();
+      }
 
       for (var line in childLines) {
         // Strip off any leading indentation.
@@ -140,7 +149,7 @@ String _buildSnippet(Format format, CodeTag tag, Snippet snippet) {
   buffer.write('<div class="codehilite">');
 
   if (snippet.contextBefore.isNotEmpty) {
-    _writeContextHtml(buffer, snippet.contextBefore,
+    _writeContextHtml(format, buffer, snippet.contextBefore,
         cssClass: snippet.added.isNotEmpty ? "insert-before" : null);
   }
 
@@ -166,7 +175,7 @@ String _buildSnippet(Format format, CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.contextAfter.isNotEmpty) {
-    _writeContextHtml(buffer, snippet.contextAfter,
+    _writeContextHtml(format, buffer, snippet.contextAfter,
         cssClass: snippet.added.isNotEmpty ? "insert-after" : null);
   }
 
@@ -242,11 +251,17 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
   return buffer.toString();
 }
 
-void _writeContextHtml(StringBuffer buffer, List<String> lines,
+void _writeContextHtml(Format format, StringBuffer buffer, List<String> lines,
     {String cssClass}) {
   buffer.write("<pre");
   if (cssClass != null) buffer.write(' class="$cssClass"');
   buffer.write(">");
+
+  // The HTML spec mandates that a leading newline after '<pre>' is ignored.
+  // https://html.spec.whatwg.org/#element-restrictions
+  // Some snippets deliberately start with a newline which needs to be
+  // preserved, so output an extra (discarded) newline in that case.
+  if (format.isWeb && lines.first.isEmpty) buffer.writeln();
 
   for (var line in lines) {
     buffer.writeln(line.escapeHtml);

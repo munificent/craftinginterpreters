@@ -415,8 +415,7 @@ balanced search trees is that the actual data structure is so simple. Ours goes
 into a new module.</p>
 <div class="codehilite"><div class="source-file"><em>table.h</em><br>
 create new file</div>
-<pre>
-<span class="a">#ifndef clox_table_h</span>
+<pre><span class="a">#ifndef clox_table_h</span>
 <span class="a">#define clox_table_h</span>
 
 <span class="a">#include &quot;common.h&quot;</span>
@@ -446,6 +445,7 @@ is exactly the load factor of the hash table.</p>
   <span class="t">Value</span> <span class="i">value</span>;
 } <span class="t">Entry</span>;
 </pre><pre class="insert-after">
+
 typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em></div>
@@ -464,8 +464,7 @@ keys.</p>
 
 </pre><div class="source-file"><em>table.h</em><br>
 add after struct <em>Table</em></div>
-<pre class="insert">
-<span class="t">void</span> <span class="i">initTable</span>(<span class="t">Table</span>* <span class="i">table</span>);
+<pre class="insert"><span class="t">void</span> <span class="i">initTable</span>(<span class="t">Table</span>* <span class="i">table</span>);
 
 </pre><pre class="insert-after">#endif
 </pre></div>
@@ -475,8 +474,7 @@ add after struct <em>Table</em></div>
 all of the pesky includes out of the way.</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 create new file</div>
-<pre>
-<span class="a">#include &lt;stdlib.h&gt;</span>
+<pre><span class="a">#include &lt;stdlib.h&gt;</span>
 <span class="a">#include &lt;string.h&gt;</span>
 
 <span class="a">#include &quot;memory.h&quot;</span>
@@ -498,9 +496,9 @@ we do eventually allocate something, we need to be able to free it too.</p>
 <div class="codehilite"><pre class="insert-before">void initTable(Table* table);
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>initTable</em>()</div>
-<pre class="insert">
-<span class="t">void</span> <span class="i">freeTable</span>(<span class="t">Table</span>* <span class="i">table</span>);
+<pre class="insert"><span class="t">void</span> <span class="i">freeTable</span>(<span class="t">Table</span>* <span class="i">table</span>);
 </pre><pre class="insert-after">
+
 #endif
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em>, add after <em>initTable</em>()</div>
@@ -508,8 +506,7 @@ add after <em>initTable</em>()</div>
 <p>And its glorious implementation:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>initTable</em>()</div>
-<pre>
-<span class="t">void</span> <span class="i">freeTable</span>(<span class="t">Table</span>* <span class="i">table</span>) {
+<pre><span class="t">void</span> <span class="i">freeTable</span>(<span class="t">Table</span>* <span class="i">table</span>) {
   <span class="a">FREE_ARRAY</span>(<span class="t">Entry</span>, <span class="i">table</span>-&gt;<span class="i">entries</span>, <span class="i">table</span>-&gt;<span class="i">capacity</span>);
   <span class="i">initTable</span>(<span class="i">table</span>);
 }
@@ -534,8 +531,7 @@ obvious thing: cache it.</p>
 <div class="codehilite"><pre class="insert-before">  char* chars;
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjString</em></div>
-<pre class="insert">
-  <span class="t">uint32_t</span> <span class="i">hash</span>;
+<pre class="insert">  <span class="t">uint32_t</span> <span class="i">hash</span>;
 </pre><pre class="insert-after">};
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjString</em></div>
@@ -550,8 +546,7 @@ hash code.</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 function <em>allocateString</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-<span class="k">static</span> <span class="t">ObjString</span>* <span class="i">allocateString</span>(<span class="t">char</span>* <span class="i">chars</span>, <span class="t">int</span> <span class="i">length</span>,
+<pre class="insert"><span class="k">static</span> <span class="t">ObjString</span>* <span class="i">allocateString</span>(<span class="t">char</span>* <span class="i">chars</span>, <span class="t">int</span> <span class="i">length</span>,
                                  <span class="t">uint32_t</span> <span class="i">hash</span>) {
 </pre><pre class="insert-after">  ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
 </pre></div>
@@ -561,8 +556,7 @@ replace 1 line</div>
 <div class="codehilite"><pre class="insert-before">  string-&gt;chars = chars;
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateString</em>()</div>
-<pre class="insert">
-  <span class="i">string</span>-&gt;<span class="i">hash</span> = <span class="i">hash</span>;
+<pre class="insert">  <span class="i">string</span>-&gt;<span class="i">hash</span> = <span class="i">hash</span>;
 </pre><pre class="insert-after">  return string;
 }
 </pre></div>
@@ -574,8 +568,7 @@ existing dynamically allocated string. We&rsquo;ll start with the first.</p>
 <div class="codehilite"><pre class="insert-before">ObjString* copyString(const char* chars, int length) {
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>copyString</em>()</div>
-<pre class="insert">
-  <span class="t">uint32_t</span> <span class="i">hash</span> = <span class="i">hashString</span>(<span class="i">chars</span>, <span class="i">length</span>);
+<pre class="insert">  <span class="t">uint32_t</span> <span class="i">hash</span> = <span class="i">hashString</span>(<span class="i">chars</span>, <span class="i">length</span>);
 </pre><pre class="insert-after">  char* heapChars = ALLOCATE(char, length + 1);
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>copyString</em>()</div>
@@ -586,8 +579,7 @@ in <em>copyString</em>()</div>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>copyString</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="k">return</span> <span class="i">allocateString</span>(<span class="i">heapChars</span>, <span class="i">length</span>, <span class="i">hash</span>);
+<pre class="insert">  <span class="k">return</span> <span class="i">allocateString</span>(<span class="i">heapChars</span>, <span class="i">length</span>, <span class="i">hash</span>);
 </pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>copyString</em>(), replace 1 line</div>
@@ -597,8 +589,7 @@ replace 1 line</div>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>takeString</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="t">uint32_t</span> <span class="i">hash</span> = <span class="i">hashString</span>(<span class="i">chars</span>, <span class="i">length</span>);
+<pre class="insert">  <span class="t">uint32_t</span> <span class="i">hash</span> = <span class="i">hashString</span>(<span class="i">chars</span>, <span class="i">length</span>);
   <span class="k">return</span> <span class="i">allocateString</span>(<span class="i">chars</span>, <span class="i">length</span>, <span class="i">hash</span>);
 </pre><pre class="insert-after">}
 </pre></div>
@@ -607,8 +598,7 @@ replace 1 line</div>
 <p>The interesting code is over here:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 add after <em>allocateString</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">uint32_t</span> <span class="i">hashString</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">key</span>, <span class="t">int</span> <span class="i">length</span>) {
+<pre><span class="k">static</span> <span class="t">uint32_t</span> <span class="i">hashString</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">key</span>, <span class="t">int</span> <span class="i">length</span>) {
   <span class="t">uint32_t</span> <span class="i">hash</span> = <span class="n">2166136261u</span>;
   <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">length</span>; <span class="i">i</span>++) {
     <span class="i">hash</span> ^= (<span class="t">uint8_t</span>)<span class="i">key</span>[<span class="i">i</span>];
@@ -637,9 +627,9 @@ hash tables.</p>
 <div class="codehilite"><pre class="insert-before">void freeTable(Table* table);
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>freeTable</em>()</div>
-<pre class="insert">
-<span class="t">bool</span> <span class="i">tableSet</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>, <span class="t">Value</span> <span class="i">value</span>);
+<pre class="insert"><span class="t">bool</span> <span class="i">tableSet</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>, <span class="t">Value</span> <span class="i">value</span>);
 </pre><pre class="insert-after">
+
 #endif
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em>, add after <em>freeTable</em>()</div>
@@ -649,8 +639,7 @@ for that key is already present, the new value overwrites the old value. The
 function returns <code>true</code> if a new entry was added. Here&rsquo;s the implementation:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>freeTable</em>()</div>
-<pre>
-<span class="t">bool</span> <span class="i">tableSet</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>, <span class="t">Value</span> <span class="i">value</span>) {
+<pre><span class="t">bool</span> <span class="i">tableSet</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>, <span class="t">Value</span> <span class="i">value</span>) {
   <span class="t">Entry</span>* <span class="i">entry</span> = <span class="i">findEntry</span>(<span class="i">table</span>-&gt;<span class="i">entries</span>, <span class="i">table</span>-&gt;<span class="i">capacity</span>, <span class="i">key</span>);
   <span class="t">bool</span> <span class="i">isNewKey</span> = <span class="i">entry</span>-&gt;<span class="i">key</span> == <span class="a">NULL</span>;
   <span class="k">if</span> (<span class="i">isNewKey</span>) <span class="i">table</span>-&gt;<span class="i">count</span>++;
@@ -676,8 +665,7 @@ have an array, and that it&rsquo;s big enough.</p>
 <div class="codehilite"><pre class="insert-before">bool tableSet(Table* table, ObjString* key, Value value) {
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableSet</em>()</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">table</span>-&gt;<span class="i">count</span> + <span class="n">1</span> &gt; <span class="i">table</span>-&gt;<span class="i">capacity</span> * <span class="a">TABLE_MAX_LOAD</span>) {
+<pre class="insert">  <span class="k">if</span> (<span class="i">table</span>-&gt;<span class="i">count</span> + <span class="n">1</span> &gt; <span class="i">table</span>-&gt;<span class="i">capacity</span> * <span class="a">TABLE_MAX_LOAD</span>) {
     <span class="t">int</span> <span class="i">capacity</span> = <span class="a">GROW_CAPACITY</span>(<span class="i">table</span>-&gt;<span class="i">capacity</span>);
     <span class="i">adjustCapacity</span>(<span class="i">table</span>, <span class="i">capacity</span>);
   }
@@ -695,8 +683,7 @@ of inserts.</p>
 <div class="codehilite"><pre class="insert-before">#include &quot;value.h&quot;
 
 </pre><div class="source-file"><em>table.c</em></div>
-<pre class="insert">
-<span class="a">#define TABLE_MAX_LOAD 0.75</span>
+<pre class="insert"><span class="a">#define TABLE_MAX_LOAD 0.75</span>
 
 </pre><pre class="insert-after">void initTable(Table* table) {
 </pre></div>
@@ -716,8 +703,7 @@ this.</p>
 at that <code>findEntry()</code> function you&rsquo;ve been wondering about.</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>freeTable</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">Entry</span>* <span class="i">findEntry</span>(<span class="t">Entry</span>* <span class="i">entries</span>, <span class="t">int</span> <span class="i">capacity</span>,
+<pre><span class="k">static</span> <span class="t">Entry</span>* <span class="i">findEntry</span>(<span class="t">Entry</span>* <span class="i">entries</span>, <span class="t">int</span> <span class="i">capacity</span>,
                         <span class="t">ObjString</span>* <span class="i">key</span>) {
   <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> % <span class="i">capacity</span>;
   <span class="k">for</span> (;;) {
@@ -786,8 +772,7 @@ store them. We need to allocate an array of buckets. That happens in this
 function:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>findEntry</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">adjustCapacity</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">int</span> <span class="i">capacity</span>) {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">adjustCapacity</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">int</span> <span class="i">capacity</span>) {
   <span class="t">Entry</span>* <span class="i">entries</span> = <span class="a">ALLOCATE</span>(<span class="t">Entry</span>, <span class="i">capacity</span>);
   <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">capacity</span>; <span class="i">i</span>++) {
     <span class="i">entries</span>[<span class="i">i</span>].<span class="i">key</span> = <span class="a">NULL</span>;
@@ -828,6 +813,7 @@ in <em>adjustCapacity</em>()</div>
     <span class="i">dest</span>-&gt;<span class="i">value</span> = <span class="i">entry</span>-&gt;<span class="i">value</span>;
   }
 </pre><pre class="insert-after">
+
   table-&gt;entries = entries;
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>()</div>
@@ -844,8 +830,7 @@ stored those in the struct.)</p>
 
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()</div>
-<pre class="insert">
-  <span class="a">FREE_ARRAY</span>(<span class="t">Entry</span>, <span class="i">table</span>-&gt;<span class="i">entries</span>, <span class="i">table</span>-&gt;<span class="i">capacity</span>);
+<pre class="insert">  <span class="a">FREE_ARRAY</span>(<span class="t">Entry</span>, <span class="i">table</span>-&gt;<span class="i">entries</span>, <span class="i">table</span>-&gt;<span class="i">capacity</span>);
 </pre><pre class="insert-after">  table-&gt;entries = entries;
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>()</div>
@@ -858,9 +843,9 @@ entries of one hash table into another.</p>
 <div class="codehilite"><pre class="insert-before">bool tableSet(Table* table, ObjString* key, Value value);
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>tableSet</em>()</div>
-<pre class="insert">
-<span class="t">void</span> <span class="i">tableAddAll</span>(<span class="t">Table</span>* <span class="i">from</span>, <span class="t">Table</span>* <span class="i">to</span>);
+<pre class="insert"><span class="t">void</span> <span class="i">tableAddAll</span>(<span class="t">Table</span>* <span class="i">from</span>, <span class="t">Table</span>* <span class="i">to</span>);
 </pre><pre class="insert-after">
+
 #endif
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em>, add after <em>tableSet</em>()</div>
@@ -870,8 +855,7 @@ may as well implement it now while we&rsquo;ve got all the hash table stuff fres
 our minds.</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>tableSet</em>()</div>
-<pre>
-<span class="t">void</span> <span class="i">tableAddAll</span>(<span class="t">Table</span>* <span class="i">from</span>, <span class="t">Table</span>* <span class="i">to</span>) {
+<pre><span class="t">void</span> <span class="i">tableAddAll</span>(<span class="t">Table</span>* <span class="i">from</span>, <span class="t">Table</span>* <span class="i">to</span>) {
   <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">from</span>-&gt;<span class="i">capacity</span>; <span class="i">i</span>++) {
     <span class="t">Entry</span>* <span class="i">entry</span> = &amp;<span class="i">from</span>-&gt;<span class="i">entries</span>[<span class="i">i</span>];
     <span class="k">if</span> (<span class="i">entry</span>-&gt;<span class="i">key</span> != <span class="a">NULL</span>) {
@@ -892,8 +876,7 @@ this function:</p>
 <div class="codehilite"><pre class="insert-before">void freeTable(Table* table);
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>freeTable</em>()</div>
-<pre class="insert">
-<span class="t">bool</span> <span class="i">tableGet</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>, <span class="t">Value</span>* <span class="i">value</span>);
+<pre class="insert"><span class="t">bool</span> <span class="i">tableGet</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>, <span class="t">Value</span>* <span class="i">value</span>);
 </pre><pre class="insert-after">bool tableSet(Table* table, ObjString* key, Value value);
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em>, add after <em>freeTable</em>()</div>
@@ -904,8 +887,7 @@ parameter points to the resulting value.</p>
 <p>Since <code>findEntry()</code> already does the hard work, the implementation isn&rsquo;t bad.</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>findEntry</em>()</div>
-<pre>
-<span class="t">bool</span> <span class="i">tableGet</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>, <span class="t">Value</span>* <span class="i">value</span>) {
+<pre><span class="t">bool</span> <span class="i">tableGet</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>, <span class="t">Value</span>* <span class="i">value</span>) {
   <span class="k">if</span> (<span class="i">table</span>-&gt;<span class="i">count</span> == <span class="n">0</span>) <span class="k">return</span> <span class="k">false</span>;
 
   <span class="t">Entry</span>* <span class="i">entry</span> = <span class="i">findEntry</span>(<span class="i">table</span>-&gt;<span class="i">entries</span>, <span class="i">table</span>-&gt;<span class="i">capacity</span>, <span class="i">key</span>);
@@ -943,8 +925,7 @@ list.</p>
 <div class="codehilite"><pre class="insert-before">bool tableSet(Table* table, ObjString* key, Value value);
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>tableSet</em>()</div>
-<pre class="insert">
-<span class="t">bool</span> <span class="i">tableDelete</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>);
+<pre class="insert"><span class="t">bool</span> <span class="i">tableDelete</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>);
 </pre><pre class="insert-after">void tableAddAll(Table* from, Table* to);
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em>, add after <em>tableSet</em>()</div>
@@ -975,8 +956,7 @@ still find entries after it.</p><img src="image/hash-tables/delete-3.png" alt="I
 <p>The code looks like this:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>tableSet</em>()</div>
-<pre>
-<span class="t">bool</span> <span class="i">tableDelete</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>) {
+<pre><span class="t">bool</span> <span class="i">tableDelete</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="t">ObjString</span>* <span class="i">key</span>) {
   <span class="k">if</span> (<span class="i">table</span>-&gt;<span class="i">count</span> == <span class="n">0</span>) <span class="k">return</span> <span class="k">false</span>;
 
   <span class="c">// Find the entry.</span>
@@ -1009,8 +989,7 @@ we note it and keep going.</p>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>findEntry</em>()<br>
 replace 3 lines</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">entry</span>-&gt;<span class="i">key</span> == <span class="a">NULL</span>) {
+<pre class="insert">    <span class="k">if</span> (<span class="i">entry</span>-&gt;<span class="i">key</span> == <span class="a">NULL</span>) {
       <span class="k">if</span> (<span class="a">IS_NIL</span>(<span class="i">entry</span>-&gt;<span class="i">value</span>)) {
         <span class="c">// Empty entry.</span>
         <span class="k">return</span> <span class="i">tombstone</span> != <span class="a">NULL</span> ? <span class="i">tombstone</span> : <span class="i">entry</span>;
@@ -1023,6 +1002,7 @@ replace 3 lines</div>
       <span class="k">return</span> <span class="i">entry</span>;
     }
 </pre><pre class="insert-after">
+
     index = (index + 1) % capacity;
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 3 lines</div>
@@ -1031,8 +1011,7 @@ replace 3 lines</div>
 <div class="codehilite"><pre class="insert-before">  uint32_t index = key-&gt;hash % capacity;
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>findEntry</em>()</div>
-<pre class="insert">
-  <span class="t">Entry</span>* <span class="i">tombstone</span> = <span class="a">NULL</span>;
+<pre class="insert">  <span class="t">Entry</span>* <span class="i">tombstone</span> = <span class="a">NULL</span>;
 
 </pre><pre class="insert-after">  for (;;) {
 </pre></div>
@@ -1071,9 +1050,9 @@ during insertion only if the new entry goes into an entirely empty bucket.</p>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableSet</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">isNewKey</span> &amp;&amp; <span class="a">IS_NIL</span>(<span class="i">entry</span>-&gt;<span class="i">value</span>)) <span class="i">table</span>-&gt;<span class="i">count</span>++;
+<pre class="insert">  <span class="k">if</span> (<span class="i">isNewKey</span> &amp;&amp; <span class="a">IS_NIL</span>(<span class="i">entry</span>-&gt;<span class="i">value</span>)) <span class="i">table</span>-&gt;<span class="i">count</span>++;
 </pre><pre class="insert-after">
+
   entry-&gt;key = key;
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableSet</em>(), replace 1 line</div>
@@ -1089,8 +1068,7 @@ count since it may change during a resize. So we clear it out:</p>
 
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()</div>
-<pre class="insert">
-  <span class="i">table</span>-&gt;<span class="i">count</span> = <span class="n">0</span>;
+<pre class="insert">  <span class="i">table</span>-&gt;<span class="i">count</span> = <span class="n">0</span>;
 </pre><pre class="insert-after">  for (int i = 0; i &lt; table-&gt;capacity; i++) {
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>()</div>
@@ -1099,8 +1077,7 @@ in <em>adjustCapacity</em>()</div>
 <div class="codehilite"><pre class="insert-before">    dest-&gt;value = entry-&gt;value;
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()</div>
-<pre class="insert">
-    <span class="i">table</span>-&gt;<span class="i">count</span>++;
+<pre class="insert">    <span class="i">table</span>-&gt;<span class="i">count</span>++;
 </pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>()</div>
@@ -1184,8 +1161,7 @@ giving it a hash table to store them all.</p>
 <div class="codehilite"><pre class="insert-before">  Value* stackTop;
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
-<pre class="insert">
-  <span class="t">Table</span> <span class="i">strings</span>;
+<pre class="insert">  <span class="t">Table</span> <span class="i">strings</span>;
 </pre><pre class="insert-after">  Obj* objects;
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
@@ -1193,8 +1169,7 @@ in struct <em>VM</em></div>
 <p>As usual, we need an include.</p>
 <div class="codehilite"><pre class="insert-before">#include &quot;chunk.h&quot;
 </pre><div class="source-file"><em>vm.h</em></div>
-<pre class="insert">
-<span class="a">#include &quot;table.h&quot;</span>
+<pre class="insert"><span class="a">#include &quot;table.h&quot;</span>
 </pre><pre class="insert-after">#include &quot;value.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em></div>
@@ -1203,8 +1178,7 @@ in struct <em>VM</em></div>
 <div class="codehilite"><pre class="insert-before">  vm.objects = NULL;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
-<pre class="insert">
-  <span class="i">initTable</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>);
+<pre class="insert">  <span class="i">initTable</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>);
 </pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
@@ -1213,8 +1187,7 @@ in <em>initVM</em>()</div>
 <div class="codehilite"><pre class="insert-before">void freeVM() {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
-<pre class="insert">
-  <span class="i">freeTable</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>);
+<pre class="insert">  <span class="i">freeTable</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>);
 </pre><pre class="insert-after">  freeObjects();
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
@@ -1225,8 +1198,7 @@ unique string, we add it to the table.</p>
 <div class="codehilite"><pre class="insert-before">  string-&gt;hash = hash;
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateString</em>()</div>
-<pre class="insert">
-  <span class="i">tableSet</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>, <span class="i">string</span>, <span class="a">NIL_VAL</span>);
+<pre class="insert">  <span class="i">tableSet</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>, <span class="i">string</span>, <span class="a">NIL_VAL</span>);
 </pre><pre class="insert-after">  return string;
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
@@ -1240,8 +1212,7 @@ higher-level functions that call <code>allocateString()</code>. Here&rsquo;s one
 <div class="codehilite"><pre class="insert-before">  uint32_t hash = hashString(chars, length);
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>copyString</em>()</div>
-<pre class="insert">
-  <span class="t">ObjString</span>* <span class="i">interned</span> = <span class="i">tableFindString</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>, <span class="i">chars</span>, <span class="i">length</span>,
+<pre class="insert">  <span class="t">ObjString</span>* <span class="i">interned</span> = <span class="i">tableFindString</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>, <span class="i">chars</span>, <span class="i">length</span>,
                                         <span class="i">hash</span>);
   <span class="k">if</span> (<span class="i">interned</span> != <span class="a">NULL</span>) <span class="k">return</span> <span class="i">interned</span>;
 
@@ -1257,8 +1228,7 @@ string table.</p>
 <div class="codehilite"><pre class="insert-before">  uint32_t hash = hashString(chars, length);
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>takeString</em>()</div>
-<pre class="insert">
-  <span class="t">ObjString</span>* <span class="i">interned</span> = <span class="i">tableFindString</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>, <span class="i">chars</span>, <span class="i">length</span>,
+<pre class="insert">  <span class="t">ObjString</span>* <span class="i">interned</span> = <span class="i">tableFindString</span>(&amp;<span class="i">vm</span>.<span class="i">strings</span>, <span class="i">chars</span>, <span class="i">length</span>,
                                         <span class="i">hash</span>);
   <span class="k">if</span> (<span class="i">interned</span> != <span class="a">NULL</span>) {
     <span class="a">FREE_ARRAY</span>(<span class="t">char</span>, <span class="i">chars</span>, <span class="i">length</span> + <span class="n">1</span>);
@@ -1276,8 +1246,7 @@ it&rsquo;s up to us to free it.</p>
 <p>Before we get to the new function we need to write, there&rsquo;s one more include.</p>
 <div class="codehilite"><pre class="insert-before">#include &quot;object.h&quot;
 </pre><div class="source-file"><em>object.c</em></div>
-<pre class="insert">
-<span class="a">#include &quot;table.h&quot;</span>
+<pre class="insert"><span class="a">#include &quot;table.h&quot;</span>
 </pre><pre class="insert-after">#include &quot;value.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em></div>
@@ -1288,10 +1257,10 @@ strings that we&rsquo;re trying to fix right now. Instead, we use this new funct
 <div class="codehilite"><pre class="insert-before">void tableAddAll(Table* from, Table* to);
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>tableAddAll</em>()</div>
-<pre class="insert">
-<span class="t">ObjString</span>* <span class="i">tableFindString</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="k">const</span> <span class="t">char</span>* <span class="i">chars</span>,
+<pre class="insert"><span class="t">ObjString</span>* <span class="i">tableFindString</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="k">const</span> <span class="t">char</span>* <span class="i">chars</span>,
                            <span class="t">int</span> <span class="i">length</span>, <span class="t">uint32_t</span> <span class="i">hash</span>);
 </pre><pre class="insert-after">
+
 #endif
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em>, add after <em>tableAddAll</em>()</div>
@@ -1299,8 +1268,7 @@ add after <em>tableAddAll</em>()</div>
 <p>The implementation looks like so:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>tableAddAll</em>()</div>
-<pre>
-<span class="t">ObjString</span>* <span class="i">tableFindString</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="k">const</span> <span class="t">char</span>* <span class="i">chars</span>,
+<pre><span class="t">ObjString</span>* <span class="i">tableFindString</span>(<span class="t">Table</span>* <span class="i">table</span>, <span class="k">const</span> <span class="t">char</span>* <span class="i">chars</span>,
                            <span class="t">int</span> <span class="i">length</span>, <span class="t">uint32_t</span> <span class="i">hash</span>) {
   <span class="k">if</span> (<span class="i">table</span>-&gt;<span class="i">count</span> == <span class="n">0</span>) <span class="k">return</span> <span class="a">NULL</span>;
 
@@ -1342,8 +1310,7 @@ strings, we don&rsquo;t need to test the characters any more.</p>
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()<br>
 replace 7 lines</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">VAL_OBJ</span>:    <span class="k">return</span> <span class="a">AS_OBJ</span>(<span class="i">a</span>) == <span class="a">AS_OBJ</span>(<span class="i">b</span>);
+<pre class="insert">    <span class="k">case</span> <span class="a">VAL_OBJ</span>:    <span class="k">return</span> <span class="a">AS_OBJ</span>(<span class="i">a</span>) == <span class="a">AS_OBJ</span>(<span class="i">b</span>);
 </pre><pre class="insert-after">    default:         return false; // Unreachable.
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>valuesEqual</em>(), replace 7 lines</div>

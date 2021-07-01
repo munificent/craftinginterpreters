@@ -44,17 +44,24 @@ class Highlighter {
             (throw "Unknown language '$language'.");
 
   String _highlight(List<String> lines, String preClass, int indent) {
-    if (_format.isWeb) {
+    if (!_format.isPrint) {
       _buffer.write("<pre");
       if (preClass != null) _buffer.write(' class="$preClass"');
-      _buffer.writeln(">");
+      _buffer.write(">");
+
+      // The HTML spec mandates that a leading newline after '<pre>' is ignored.
+      // https://html.spec.whatwg.org/#element-restrictions
+      // Some snippets deliberately start with a newline which needs to be
+      // preserved, so output an extra (discarded) newline in that case.
+      if (_format.isWeb && lines.first.isEmpty) _buffer.writeln();
     }
 
     for (var line in lines) {
       _scanLine(line, indent);
     }
 
-    if (_format.isWeb) _buffer.write("</pre>");
+    if (!_format.isPrint) _buffer.write("</pre>");
+
     return _buffer.toString();
   }
 
