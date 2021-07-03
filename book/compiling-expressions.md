@@ -488,11 +488,11 @@ Consider:
 Here, the operand to `-` should be just the `a.b` expression, not the entire
 `a.b + c`. But if `unary()` calls `expression()`, the latter will happily chew
 through all of the remaining code including the `+`. It will erroneously treat
-the `-` as lower precendence than the `+`.
+the `-` as lower precedence than the `+`.
 
 When parsing the operand to unary `-`, we need to compile only expressions at a
 certain precedence level or higher. In jlox's recursive descent parser we
-accomplished that by calling into the parsing method for the lowest-precendence
+accomplished that by calling into the parsing method for the lowest-precedence
 expression we wanted to allow (in this case, `call()`). Each method for parsing
 a specific expression also parsed any expressions of higher precedence too, so
 that included the rest of the precedence table.
