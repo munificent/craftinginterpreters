@@ -79,7 +79,7 @@ human friendly but is closer to the machine.
 </aside>
 
 We need to get more precise about what that grammar is then. Like lexical
-grammars in the last chapter, there is a long ton of theory around syntactic
+grammars in the last chapter, there is a ton of theory around syntactic
 grammars. We're going into that theory a little more than we did when scanning
 because it turns out to be a useful tool throughout much of the interpreter.
 We start by moving one level up the [Chomsky hierarchy][]...
