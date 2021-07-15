@@ -25,10 +25,10 @@ other named entities.
 <aside name="expr">
 
 You could make a language that treats variable declarations as expressions that
-both create a binding and produce a value, but I'm not aware of any widely used
-languages that do that. Scheme seems like a contender, but note that after a
-`let` expression is evaluated, the variable it bound is forgotten. The `define`
-syntax is not an expression.
+both create a binding and produce a value. The only language I know that does
+that is Tcl. Scheme seems like a contender, but note that after a `let`
+expression is evaluated, the variable it bound is forgotten. The `define` syntax
+is not an expression.
 
 </aside>
 
