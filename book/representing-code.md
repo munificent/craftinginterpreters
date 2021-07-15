@@ -310,10 +310,10 @@ pack an infinite number of strings into a finite grammar.
 ### Enhancing our notation
 
 Stuffing an infinite set of strings in a handful of rules is pretty fantastic,
-but let's take it further. Our notation works, but it's a little tedious. So,
-like any good language designer, we'll sprinkle some syntactic sugar on top. In
-addition to terminals and nonterminals, we'll allow a few other kinds of
-expressions in the body of a rule:
+but let's take it further. Our notation works, but it's tedious. So, like any
+good language designer, we'll sprinkle a little syntactic sugar on top -- some
+extra convenience notation. In addition to terminals and nonterminals, we'll
+allow a few other kinds of expressions in the body of a rule:
 
 *   Instead of repeating the rule name each time we want to add another
     production for it, we'll allow a series of productions separated by a pipe
@@ -740,9 +740,9 @@ operation for each type all in one place.
 <aside name="ml">
 
 ML, short for "metalanguage" was created by Robin Milner and friends and forms
-one of the main branches in the great programming language family. Its children
-include SML, Caml, OCaml, Haskell, and F#. Even Scala, Rust, and Swift bear a
-strong resemblance.
+one of the main branches in the great programming language family tree. Its
+children include SML, Caml, OCaml, Haskell, and F#. Even Scala, Rust, and Swift
+bear a strong resemblance.
 
 Much like Lisp, it is one of those languages that is so full of good ideas that
 language designers today are still rediscovering them over forty years later.

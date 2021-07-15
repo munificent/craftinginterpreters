@@ -740,14 +740,15 @@ we'll get the machinery in place for later.
 ### Entering panic mode
 
 Back before we went on this side trip around error recovery, we were writing the
-code to parse a parenthesized expression. After parsing the expression, it
-looks for the closing `)` by calling `consume()`. Here, finally, is that method:
+code to parse a parenthesized expression. After parsing the expression, the
+parser looks for the closing `)` by calling `consume()`. Here, finally, is that
+method:
 
 ^code consume
 
 It's similar to `match()` in that it checks to see if the next token is of the
-expected type. If so, it consumes it and everything is groovy. If some other
-token is there, then we've hit an error. We report it by calling this:
+expected type. If so, it consumes the token and everything is groovy. If some
+other token is there, then we've hit an error. We report it by calling this:
 
 ^code error
 

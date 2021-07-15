@@ -531,9 +531,9 @@ You can do the same thing that the HotSpot Java Virtual Machine (JVM),
 Microsoft's Common Language Runtime (CLR), and most JavaScript interpreters do.
 On the end user's machine, when the program is loaded -- either from source in
 the case of JS, or platform-independent bytecode for the JVM and CLR -- you
-compile it to native for the architecture their computer supports. Naturally
-enough, this is called **just-in-time compilation**. Most hackers just say
-"JIT", pronounced like it rhymes with "fit".
+compile it to native code for the architecture their computer supports.
+Naturally enough, this is called **just-in-time compilation**. Most hackers just
+say "JIT", pronounced like it rhymes with "fit".
 
 The most sophisticated JITs insert profiling hooks into the generated code to
 see which regions are most performance critical and what kind of data is flowing
