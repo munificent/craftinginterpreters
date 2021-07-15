@@ -14,7 +14,7 @@ Future<void> main(List<String> arguments) async {
 
   // The `-r` argument is DPI.
   var result = await Process.run(
-      'pdftoppm', ['-png', '-r', '40', 'ci.pdf', p.join(tempDir.path, 'page')]);
+      'pdftoppm', ['-png', '-r', '40', arguments[0], p.join(tempDir.path, 'page')]);
   if (result.exitCode != 0) {
     print('Could not export pages:\n${result.stdout}\n${result.stderr}');
   }
