@@ -275,10 +275,10 @@ phases of the interpreter.
 ## Regular Languages and Expressions
 
 Now that we know what we're trying to produce, let's, well, produce it. The core
-of the scanner is a loop. Starting at the first character of the source code, it
-figures out what lexeme it belongs to, and consumes it and any following
-characters that are part of that lexeme. When it reaches the end of that lexeme,
-it emits a token.
+of the scanner is a loop. Starting at the first character of the source code,
+the scanner figures out what lexeme the character belongs to, and consumes it
+and any following characters that are part of that lexeme. When it reaches the
+end of that lexeme, it emits a token.
 
 Then it loops back and does it again, starting from the very next character in
 the source code. It keeps doing that, eating characters and occasionally, uh,
@@ -839,7 +839,7 @@ separators. Here are a couple:
 
 *   [Go][] handles newlines in the scanner. If a newline appears following one
     of a handful of token types that are known to potentially end a statement,
-    the newline is treated like a semicolon, otherwise it is ignored. The Go
+    the newline is treated like a semicolon. Otherwise it is ignored. The Go
     team provides a canonical code formatter, [gofmt][], and the ecosystem is
     fervent about its use, which ensures that idiomatic styled code works well
     with this simple rule.

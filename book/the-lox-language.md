@@ -552,7 +552,7 @@ makeBreakfast();
 ```
 
 Unlike in, say, Ruby, the parentheses are mandatory in this case. If you leave them
-off, it doesn't *call* the function, it just refers to it.
+off, the name doesn't *call* the function, it just refers to it.
 
 A language isn't very fun if you can't define your own functions. In Lox, you do
 that with <span name="fun">`fun`</span>.
