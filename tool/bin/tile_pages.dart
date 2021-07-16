@@ -53,8 +53,8 @@ Future<void> main(List<String> arguments) async {
         dstY: y * (pageHeight + border) + border);
   }
 
-  print('Writing out.png...');
-  await File('out.png').writeAsBytes(encodePng(tiled));
+  print('Writing pages.png...');
+  await File('pages.png').writeAsBytes(encodePng(tiled));
 
   await tempDir.delete(recursive: true);
 }
