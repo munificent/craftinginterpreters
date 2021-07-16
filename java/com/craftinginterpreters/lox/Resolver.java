@@ -131,7 +131,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //< restore-current-class
     return null;
   }
-
 //< Classes resolver-visit-class
 //> visit-expression-stmt
   @Override
@@ -276,7 +275,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     resolve(expr.object);
     return null;
   }
-
 //< Classes resolver-visit-set
 //> Inheritance resolve-super-expr
   @Override

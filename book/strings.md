@@ -109,15 +109,8 @@ Like a tagged union, each Obj starts with a tag field that identifies what kind
 of object it is -- string, instance, etc. Following that are the payload fields.
 Instead of a union with cases for each type, each type is its own separate
 struct. The tricky part is how to treat these structs uniformly since C has no
-concept of inheritance or polymorphism. I'll explain that <span
-name="foreshadowing">soon</span>, but first lets get the preliminary stuff out
-of the way.
-
-<aside name="foreshadowing">
-
-Ooh, foreshadowing!
-
-</aside>
+concept of inheritance or polymorphism. I'll explain that soon, but first lets
+get the preliminary stuff out of the way.
 
 The name "Obj" itself refers to a struct that contains the state shared across
 all object types. It's sort of like the "base class" for objects. Because of
@@ -356,7 +349,7 @@ first step is to make the existing print code not barf on the new value type.
 If the value is a heap-allocated object, it defers to a helper function over in
 the "object" module.
 
-^code print-object-h
+^code print-object-h (1 before, 2 after)
 
 The implementation looks like this:
 
@@ -450,7 +443,7 @@ In order to call `memcpy()`, the VM needs an include.
 Finally, we produce an ObjString to contain those characters. This time we use a
 new function, `takeString()`.
 
-^code take-string-h (2 before, 3 after)
+^code take-string-h (2 before, 1 after)
 
 The implementation looks like this:
 
