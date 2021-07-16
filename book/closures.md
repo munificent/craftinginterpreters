@@ -135,7 +135,7 @@ bagel();
 
 The `makeClosure()` function defines and returns a function. We call it twice
 and get two closures back. They are created by the same nested function
-declaration `closure`, but close over different values. When we call the two
+declaration, `closure`, but close over different values. When we call the two
 closures, each prints a different string. That implies we need some runtime
 representation for a closure that captures the local variables surrounding the
 function as they exist when the function declaration is *executed*, not just

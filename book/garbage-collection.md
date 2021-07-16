@@ -82,7 +82,7 @@ Say we run the GC after the assignment has completed on the second line. The
 string "first value" is still sitting in memory, but there is no way for the
 user's program to ever get to it. Once `a` got reassigned, the program lost any
 reference to that string. We can safely free it. A value is **reachable** if
-there is some way for a user program to reference it, otherwise, like the string
+there is some way for a user program to reference it. Otherwise, like the string
 "first value" here, it is **unreachable**.
 
 Many values can be directly accessed by the VM. Take a look at:

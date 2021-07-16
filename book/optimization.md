@@ -27,7 +27,12 @@ understand a program's performance just by thinking real hard. Those days are
 long gone, separated from the present by microcode, cache lines, branch
 prediction, deep compiler pipelines, and mammoth instruction sets. We like to
 pretend C is a "low-level" language, but the stack of technology between
-`printf("Hello, world!");` and a greeting appearing on screen is now miles tall.
+
+```c
+printf("Hello, world!");
+```
+
+and a greeting appearing on screen is now perilously tall.
 
 Optimization today is an empirical science. Our program is a border collie
 sprinting through the hardware's obstacle course. If we want her to reach the
