@@ -629,7 +629,7 @@ large enough source of pain that JS added a separate "strict equality" operator,
 
 PHP considers the strings "1" and "01" to be equivalent because both can be
 converted to equivalent numbers, though the ultimate reason is because PHP was
-designed by a Lovecraftian Eldritch god to destroy the mind.
+designed by a Lovecraftian eldritch god to destroy the mind.
 
 Most dynamically typed languages that have separate integer and floating-point
 number types consider values of different number types equal if the numeric
