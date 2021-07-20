@@ -13,8 +13,8 @@ Future<void> main(List<String> arguments) async {
   var tempDir = await Directory('.').createTemp('pages');
 
   // The `-r` argument is DPI.
-  var result = await Process.run(
-      'pdftoppm', ['-png', '-r', '40', arguments[0], p.join(tempDir.path, 'page')]);
+  var result = await Process.run('pdftoppm',
+      ['-png', '-r', '40', arguments[0], p.join(tempDir.path, 'page')]);
   if (result.exitCode != 0) {
     print('Could not export pages:\n${result.stdout}\n${result.stderr}');
   }
