@@ -431,7 +431,7 @@ build a garbage collector to reclaim them.
 <aside name="clox">
 
 I pronounce the name like "sea-locks", but you can say it "clocks" or even
-"clochs", where you pronounce the "x" like the Greeks do if it makes you happy.
+"cloch", where you pronounce the "x" like the Greeks do if it makes you happy.
 
 </aside>
 
