@@ -734,7 +734,7 @@ When the VM executes the call to `Brunch()`, it goes like this:
 
 Any arguments passed to the class when we called it are still sitting on the
 stack above the instance. The new CallFrame for the `init()` method shares that
-stack window, so those arguments implictly get forwarded to the initializer.
+stack window, so those arguments implicitly get forwarded to the initializer.
 
 Lox doesn't require a class to define an initializer. If omitted, the runtime
 simply returns the new uninitialized instance. However, if there is no `init()`
