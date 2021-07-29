@@ -111,7 +111,7 @@ The curly-braced block statement that defines a local scope is introduced in
 
 ### Class statement
 
-Class declaration is introduced in, unsurprisingly,
+Class declarations are introduced in, unsurprisingly,
 "[Classes](classes.html#class-declarations)".
 
 ^code stmt-class

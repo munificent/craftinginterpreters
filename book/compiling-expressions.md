@@ -7,7 +7,7 @@ This chapter is exciting for not one, not two, but *three* reasons. First, it
 provides the final segment of our VM's execution pipeline. Once in place, we can
 plumb the user's source code from scanning all the way through to executing it.
 
-<img src="image/compiling-expressions/pipeline.png" alt="Lowering the 'compiler' section of pipe between 'scanner' and 'VM'."/>
+<img src="image/compiling-expressions/pipeline.png" alt="Lowering the 'compiler' section of pipe between 'scanner' and 'VM'." />
 
 Second, we get to write an actual, honest-to-God *compiler*. It parses source
 code and outputs a low-level series of binary instructions. Sure, it's <span
@@ -143,7 +143,7 @@ dynamically typed Lox is <span name="lox">well-suited</span> to that.
 Not that this should come as much of a surprise. I did design the language
 specifically for this book after all.
 
-<img src="image/compiling-expressions/keyhole.png" alt="Peering through a keyhole at 'var x;'"/>
+<img src="image/compiling-expressions/keyhole.png" alt="Peering through a keyhole at 'var x;'" />
 
 </aside>
 
@@ -323,7 +323,7 @@ a one-byte operand that it's worth defining this convenience function.
 We've assembled our parsing and code generation utility functions. The missing
 piece is the code in the middle that connects those together.
 
-<img src="image/compiling-expressions/mystery.png" alt="Parsing functions on the left, bytecode emitting functions on the right. What goes in the middle?"/>
+<img src="image/compiling-expressions/mystery.png" alt="Parsing functions on the left, bytecode emitting functions on the right. What goes in the middle?" />
 
 The only step in `compile()` that we have left to implement is this function:
 
@@ -488,11 +488,11 @@ Consider:
 Here, the operand to `-` should be just the `a.b` expression, not the entire
 `a.b + c`. But if `unary()` calls `expression()`, the latter will happily chew
 through all of the remaining code including the `+`. It will erroneously treat
-the `-` as lower precendence than the `+`.
+the `-` as lower precedence than the `+`.
 
 When parsing the operand to unary `-`, we need to compile only expressions at a
 certain precedence level or higher. In jlox's recursive descent parser we
-accomplished that by calling into the parsing method for the lowest-precendence
+accomplished that by calling into the parsing method for the lowest-precedence
 expression we wanted to allow (in this case, `call()`). Each method for parsing
 a specific expression also parsed any expressions of higher precedence too, so
 that included the rest of the precedence table.
@@ -821,14 +821,16 @@ handful of functions, but they are marvelously intertwined:
 
 <span name="connections"></span>
 
-<img src="image/compiling-expressions/connections.png" alt="The various parsing functions and how they call each other."/>
+<img src="image/compiling-expressions/connections.png" alt="The various parsing
+functions and how they call each other." />
 
 <aside name="connections">
 
-The <img src="image/compiling-expressions/calls.png" class="arrow" /> arrow
-connects a function to another function it directly calls. The <img
-src="image/compiling-expressions/points-to.png" class="arrow" /> arrow shows the
-table's pointers to the parsing functions.
+The <img src="image/compiling-expressions/calls.png" alt="A solid arrow."
+class="arrow" /> arrow connects a function to another function it directly
+calls. The <img src="image/compiling-expressions/points-to.png" alt="An open
+arrow." class="arrow" /> arrow shows the table's pointers to the parsing
+functions.
 
 </aside>
 

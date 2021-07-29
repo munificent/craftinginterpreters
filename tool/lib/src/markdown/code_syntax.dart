@@ -2,6 +2,7 @@ import 'package:markdown/markdown.dart';
 
 import '../book.dart';
 import '../code_tag.dart';
+import '../format.dart';
 import '../page.dart';
 import '../snippet.dart';
 import '../syntax/highlighter.dart';
@@ -11,11 +12,11 @@ import '../text.dart';
 class HighlightedCodeBlockSyntax extends BlockSyntax {
   static final _codeFencePattern = RegExp(r'^(\s*)```(.*)$');
 
-  final bool _isXml;
+  final Format _format;
 
   RegExp get pattern => _codeFencePattern;
 
-  HighlightedCodeBlockSyntax({bool xml = false}) : _isXml = xml;
+  HighlightedCodeBlockSyntax(this._format);
 
   bool canParse(BlockParser parser) =>
       pattern.firstMatch(parser.current) != null;
@@ -50,7 +51,16 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
     if (language == "text") {
       // Don't syntax highlight text.
       var buffer = StringBuffer();
-      if (!_isXml) buffer.write("<pre>");
+      if (!_format.isPrint) {
+        buffer.write("<pre>");
+
+        // The HTML spec mandates that a leading newline after '<pre>' is
+        // ignored.
+        // https://html.spec.whatwg.org/#element-restrictions
+        // Some snippets deliberately start with a newline which needs to be
+        // preserved, so output an extra (discarded) newline in that case.
+        if (_format.isWeb && childLines.first.isEmpty) buffer.writeln();
+      }
 
       for (var line in childLines) {
         // Strip off any leading indentation.
@@ -58,7 +68,7 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
         checkLineLength(line);
 
         buffer.write(line.escapeHtml);
-        if (_isXml) {
+        if (_format.isPrint) {
           // Soft break, so that the code stays one paragraph.
           buffer.write("&#x2028;");
         } else {
@@ -66,14 +76,14 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
         }
       }
 
-      if (!_isXml) buffer.write("</pre>");
+      if (!_format.isPrint) buffer.write("</pre>");
 
       code = buffer.toString();
     } else {
-      code = formatCode(language, childLines, indent: indent, xml: _isXml);
+      code = formatCode(language, childLines, _format, indent: indent);
     }
 
-    if (_isXml) {
+    if (_format.isPrint) {
       // Remove the trailing newline since we'll write a newline after the
       // "</pre>" and we don't want InDesign to insert a blank paragraph.
       code = code.trimTrailingNewline();
@@ -98,9 +108,9 @@ class CodeTagBlockSyntax extends BlockSyntax {
 
   final Book _book;
   final Page _page;
-  final bool _isXml;
+  final Format _format;
 
-  CodeTagBlockSyntax(this._book, this._page, {bool xml = false}) : _isXml = xml;
+  CodeTagBlockSyntax(this._book, this._page, this._format);
 
   RegExp get pattern => _startPattern;
 
@@ -114,16 +124,16 @@ class CodeTagBlockSyntax extends BlockSyntax {
 
     var codeTag = _page.findCodeTag(name);
     String snippet;
-    if (_isXml) {
+    if (_format.isPrint) {
       snippet = _buildSnippetXml(codeTag, _book.findSnippet(codeTag));
     } else {
-      snippet = _buildSnippet(codeTag, _book.findSnippet(codeTag));
+      snippet = _buildSnippet(_format, codeTag, _book.findSnippet(codeTag));
     }
     return Text(snippet);
   }
 }
 
-String _buildSnippet(CodeTag tag, Snippet snippet) {
+String _buildSnippet(Format format, CodeTag tag, Snippet snippet) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
 
@@ -139,12 +149,13 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   buffer.write('<div class="codehilite">');
 
   if (snippet.contextBefore.isNotEmpty) {
-    _writeContextHtml(buffer, snippet.contextBefore,
+    _writeContextHtml(format, buffer, snippet.contextBefore,
         cssClass: snippet.added.isNotEmpty ? "insert-before" : null);
   }
 
   if (snippet.addedComma != null) {
-    var commaLine = formatCode(snippet.file.language, [snippet.addedComma],
+    var commaLine = formatCode(
+        snippet.file.language, [snippet.addedComma], format,
         preClass: "insert-before");
     var comma = commaLine.lastIndexOf(",");
     buffer.write(commaLine.substring(0, comma));
@@ -158,13 +169,13 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.added != null) {
-    var added = formatCode(snippet.file.language, snippet.added,
+    var added = formatCode(snippet.file.language, snippet.added, format,
         preClass: tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
     buffer.write(added);
   }
 
   if (snippet.contextAfter.isNotEmpty) {
-    _writeContextHtml(buffer, snippet.contextAfter,
+    _writeContextHtml(format, buffer, snippet.contextAfter,
         cssClass: snippet.added.isNotEmpty ? "insert-after" : null);
   }
 
@@ -219,7 +230,7 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
     if (snippet.contextBefore.isNotEmpty) buffer.writeln();
     buffer.write("<$insertTag>");
 
-    var code = formatCode(snippet.file.language, snippet.added, xml: true);
+    var code = formatCode(snippet.file.language, snippet.added, Format.print);
     // Discard the trailing newline so we don't end up with a blank paragraph
     // in InDesign.
     code = code.trimTrailingNewline();
@@ -240,11 +251,17 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
   return buffer.toString();
 }
 
-void _writeContextHtml(StringBuffer buffer, List<String> lines,
+void _writeContextHtml(Format format, StringBuffer buffer, List<String> lines,
     {String cssClass}) {
   buffer.write("<pre");
   if (cssClass != null) buffer.write(' class="$cssClass"');
-  buffer.writeln(">");
+  buffer.write(">");
+
+  // The HTML spec mandates that a leading newline after '<pre>' is ignored.
+  // https://html.spec.whatwg.org/#element-restrictions
+  // Some snippets deliberately start with a newline which needs to be
+  // preserved, so output an extra (discarded) newline in that case.
+  if (format.isWeb && lines.first.isEmpty) buffer.writeln();
 
   for (var line in lines) {
     buffer.writeln(line.escapeHtml);

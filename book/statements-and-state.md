@@ -25,10 +25,10 @@ other named entities.
 <aside name="expr">
 
 You could make a language that treats variable declarations as expressions that
-both create a binding and produce a value, but I'm not aware of any widely used
-languages that do that. Scheme seems like a contender, but note that after a
-`let` expression is evaluated, the variable it bound is forgotten. The `define`
-syntax is not an expression.
+both create a binding and produce a value. The only language I know that does
+that is Tcl. Scheme seems like a contender, but note that after a `let`
+expression is evaluated, the variable it bound is forgotten. The `define` syntax
+is not an expression.
 
 </aside>
 
@@ -353,7 +353,7 @@ the "higher" precedence statements that don't declare names.
 
 <aside name="brace">
 
-In this analogy, blocks statement work sort of like parentheses do for
+In this analogy, block statements work sort of like parentheses do for
 expressions. A block is itself in the "higher" precedence level and can be used
 anywhere, like in the clauses of an `if` statement. But the statements it
 *contains* can be lower precedence. You're allowed to declare variables and
@@ -405,7 +405,7 @@ That `IDENTIFIER` clause matches a single identifier token, which is understood
 to be the name of the variable being accessed.
 
 These new grammar rules get their corresponding syntax trees. Over in the AST
-generator, we add a <span name="var-stmt-ast">new statement</span> tree for a
+generator, we add a <span name="var-stmt-ast">new statement</span> node for a
 variable declaration.
 
 ^code var-stmt-ast (1 before, 1 after)
@@ -1146,7 +1146,7 @@ much prefer the evocative **cactus stack**.
 
 [parent pointer]: https://en.wikipedia.org/wiki/Parent_pointer_tree
 
-<img class="above" src="image/statements-and-state/cactus.png" alt="Each branch points to its parent. The root is global scope.">
+<img class="above" src="image/statements-and-state/cactus.png" alt="Each branch points to its parent. The root is global scope." />
 
 </aside>
 

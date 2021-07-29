@@ -13,8 +13,8 @@ Future<void> main(List<String> arguments) async {
   var tempDir = await Directory('.').createTemp('pages');
 
   // The `-r` argument is DPI.
-  var result = await Process.run(
-      'pdftoppm', ['-png', '-r', '40', 'ci.pdf', p.join(tempDir.path, 'page')]);
+  var result = await Process.run('pdftoppm',
+      ['-png', '-r', '40', arguments[0], p.join(tempDir.path, 'page')]);
   if (result.exitCode != 0) {
     print('Could not export pages:\n${result.stdout}\n${result.stderr}');
   }
@@ -53,8 +53,8 @@ Future<void> main(List<String> arguments) async {
         dstY: y * (pageHeight + border) + border);
   }
 
-  print('Writing out.png...');
-  await File('out.png').writeAsBytes(encodePng(tiled));
+  print('Writing pages.png...');
+  await File('pages.png').writeAsBytes(encodePng(tiled));
 
   await tempDir.delete(recursive: true);
 }

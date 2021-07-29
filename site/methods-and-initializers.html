@@ -34,7 +34,6 @@
 <nav class="wide">
   <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
   <div class="contents">
-<!-- If there is a part, it must be a chapter within a part. -->
 <h3><a href="#top">Methods and Initializers<small>28</small></a></h3>
 
 <ul>
@@ -67,7 +66,6 @@
 <nav class="floating">
   <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
   <div class="expandable">
-<!-- If there is a part, it must be a chapter within a part. -->
 <h3><a href="#top">Methods and Initializers<small>28</small></a></h3>
 
 <ul>
@@ -125,64 +123,52 @@ kind of method, initializers too.</p>
 in this second trip is an important optimization we&rsquo;ll implement to make method
 calls over seven times faster than our baseline performance. But before we get
 to that fun, we gotta get the basic stuff working.</p>
-<h2><a href="#method-declarations" name="method-declarations"><small>28&#8202;.&#8202;1</small>Method Declarations</a></h2>
+<h2><a href="#method-declarations" id="method-declarations"><small>28&#8202;.&#8202;1</small>Method Declarations</a></h2>
 <p>We can&rsquo;t optimize method calls before we have method calls, and we can&rsquo;t call
 methods without having methods to call, so we&rsquo;ll start with declarations.</p>
-<h3><a href="#representing-methods" name="representing-methods"><small>28&#8202;.&#8202;1&#8202;.&#8202;1</small>Representing methods</a></h3>
+<h3><a href="#representing-methods" id="representing-methods"><small>28&#8202;.&#8202;1&#8202;.&#8202;1</small>Representing methods</a></h3>
 <p>We usually start in the compiler, but let&rsquo;s knock the object model out first
 this time. The runtime representation for methods in clox is similar to that of
 jlox. Each class stores a hash table of methods. Keys are method names, and each
 value is an ObjClosure for the body of the method.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef struct {
+<div class="codehilite"><pre class="insert-before">typedef struct {
   Obj obj;
   ObjString* name;
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjClass</em></div>
-<pre class="insert">
-  <span class="t">Table</span> <span class="i">methods</span>;
-</pre><pre class="insert-after">
-} ObjClass;
+<pre class="insert">  <span class="t">Table</span> <span class="i">methods</span>;
+</pre><pre class="insert-after">} ObjClass;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjClass</em></div>
 
 <p>A brand new class begins with an empty method table.</p>
-<div class="codehilite"><pre class="insert-before">
-  klass-&gt;name = name;<span name="klass"> </span>
+<div class="codehilite"><pre class="insert-before">  klass-&gt;name = name;<span name="klass"> </span>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newClass</em>()</div>
-<pre class="insert">
-  <span class="i">initTable</span>(&amp;<span class="i">klass</span>-&gt;<span class="i">methods</span>);
-</pre><pre class="insert-after">
-  return klass;
+<pre class="insert">  <span class="i">initTable</span>(&amp;<span class="i">klass</span>-&gt;<span class="i">methods</span>);
+</pre><pre class="insert-after">  return klass;
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>newClass</em>()</div>
 
 <p>The ObjClass struct owns the memory for this table, so when the memory manager
 deallocates a class, the table should be freed too.</p>
-<div class="codehilite"><pre class="insert-before">
-    case OBJ_CLASS: {
+<div class="codehilite"><pre class="insert-before">    case OBJ_CLASS: {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
-<pre class="insert">
-      <span class="t">ObjClass</span>* <span class="i">klass</span> = (<span class="t">ObjClass</span>*)<span class="i">object</span>;
+<pre class="insert">      <span class="t">ObjClass</span>* <span class="i">klass</span> = (<span class="t">ObjClass</span>*)<span class="i">object</span>;
       <span class="i">freeTable</span>(&amp;<span class="i">klass</span>-&gt;<span class="i">methods</span>);
-</pre><pre class="insert-after">
-      FREE(ObjClass, object);
+</pre><pre class="insert-after">      FREE(ObjClass, object);
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>Speaking of memory managers, the GC needs to trace through classes into the
 method table. If a class is still reachable (likely through some instance),
 then all of its methods certainly need to stick around too.</p>
-<div class="codehilite"><pre class="insert-before">
-      markObject((Obj*)klass-&gt;name);
+<div class="codehilite"><pre class="insert-before">      markObject((Obj*)klass-&gt;name);
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
-<pre class="insert">
-      <span class="i">markTable</span>(&amp;<span class="i">klass</span>-&gt;<span class="i">methods</span>);
-</pre><pre class="insert-after">
-      break;
+<pre class="insert">      <span class="i">markTable</span>(&amp;<span class="i">klass</span>-&gt;<span class="i">methods</span>);
+</pre><pre class="insert-after">      break;
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
@@ -197,20 +183,17 @@ has to squeeze through the interface of a flat series of bytecode instructions.
 How do we take a class declaration, which can contain an arbitrarily large set
 of methods, and represent it as bytecode? Let&rsquo;s hop over to the compiler and
 find out.</p>
-<h3><a href="#compiling-method-declarations" name="compiling-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;2</small>Compiling method declarations</a></h3>
+<h3><a href="#compiling-method-declarations" id="compiling-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;2</small>Compiling method declarations</a></h3>
 <p>The last chapter left us with a compiler that parses classes but allows only an
 empty body. Now we insert a little code to compile a series of method
 declarations between the braces.</p>
-<div class="codehilite"><pre class="insert-before">
-  consume(TOKEN_LEFT_BRACE, &quot;Expect '{' before class body.&quot;);
+<div class="codehilite"><pre class="insert-before">  consume(TOKEN_LEFT_BRACE, &quot;Expect '{' before class body.&quot;);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
-<pre class="insert">
-  <span class="k">while</span> (!<span class="i">check</span>(<span class="a">TOKEN_RIGHT_BRACE</span>) &amp;&amp; !<span class="i">check</span>(<span class="a">TOKEN_EOF</span>)) {
+<pre class="insert">  <span class="k">while</span> (!<span class="i">check</span>(<span class="a">TOKEN_RIGHT_BRACE</span>) &amp;&amp; !<span class="i">check</span>(<span class="a">TOKEN_EOF</span>)) {
     <span class="i">method</span>();
   }
-</pre><pre class="insert-after">
-  consume(TOKEN_RIGHT_BRACE, &quot;Expect '}' after class body.&quot;);
+</pre><pre class="insert-after">  consume(TOKEN_RIGHT_BRACE, &quot;Expect '}' after class body.&quot;);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
@@ -258,8 +241,7 @@ mutations.</p>
 the runtime, starting here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>function</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">method</span>() {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">method</span>() {
   <span class="i">consume</span>(<span class="a">TOKEN_IDENTIFIER</span>, <span class="s">&quot;Expect method name.&quot;</span>);
   <span class="t">uint8_t</span> <span class="i">constant</span> = <span class="i">identifierConstant</span>(&amp;<span class="i">parser</span>.<span class="i">previous</span>);
   <span class="i">emitBytes</span>(<span class="a">OP_METHOD</span>, <span class="i">constant</span>);
@@ -271,16 +253,14 @@ add after <em>function</em>()</div>
 compiler adds the method name token&rsquo;s lexeme to the constant table, getting back
 a table index. Then we emit an <code>OP_METHOD</code> instruction with that index as the
 operand. That&rsquo;s the name. Next is the method body:</p>
-<div class="codehilite"><pre class="insert-before">
-  uint8_t constant = identifierConstant(&amp;parser.previous);
+<div class="codehilite"><pre class="insert-before">  uint8_t constant = identifierConstant(&amp;parser.previous);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>method</em>()</div>
 <pre class="insert">
 
   <span class="t">FunctionType</span> <span class="i">type</span> = <span class="a">TYPE_FUNCTION</span>;
   <span class="i">function</span>(<span class="i">type</span>);
-</pre><pre class="insert-after">
-  emitBytes(OP_METHOD, constant);
+</pre><pre class="insert-after">  emitBytes(OP_METHOD, constant);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>method</em>()</div>
 
@@ -301,29 +281,23 @@ case too.</p>
 </aside>
 <p>Fear not. The compiler does know the <em>name</em> of the class. We can capture it
 right after we consume its token.</p>
-<div class="codehilite"><pre class="insert-before">
-  consume(TOKEN_IDENTIFIER, &quot;Expect class name.&quot;);
+<div class="codehilite"><pre class="insert-before">  consume(TOKEN_IDENTIFIER, &quot;Expect class name.&quot;);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
-<pre class="insert">
-  <span class="t">Token</span> <span class="i">className</span> = <span class="i">parser</span>.<span class="i">previous</span>;
-</pre><pre class="insert-after">
-  uint8_t nameConstant = identifierConstant(&amp;parser.previous);
+<pre class="insert">  <span class="t">Token</span> <span class="i">className</span> = <span class="i">parser</span>.<span class="i">previous</span>;
+</pre><pre class="insert-after">  uint8_t nameConstant = identifierConstant(&amp;parser.previous);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
 <p>And we know that no other declaration with that name could possibly shadow the
 class. So we do the easy fix. Before we start binding methods, we emit whatever
 code is necessary to load the class back on top of the stack.</p>
-<div class="codehilite"><pre class="insert-before">
-  defineVariable(nameConstant);
+<div class="codehilite"><pre class="insert-before">  defineVariable(nameConstant);
 
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
-<pre class="insert">
-  <span class="i">namedVariable</span>(<span class="i">className</span>, <span class="k">false</span>);
-</pre><pre class="insert-after">
-  consume(TOKEN_LEFT_BRACE, &quot;Expect '{' before class body.&quot;);
+<pre class="insert">  <span class="i">namedVariable</span>(<span class="i">className</span>, <span class="k">false</span>);
+</pre><pre class="insert-after">  consume(TOKEN_LEFT_BRACE, &quot;Expect '{' before class body.&quot;);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
@@ -342,21 +316,17 @@ on the stack.</p>
 method&rsquo;s closure on top with the class right under it. Once we&rsquo;ve reached the
 end of the methods, we no longer need the class and tell the VM to pop it off
 the stack.</p>
-<div class="codehilite"><pre class="insert-before">
-  consume(TOKEN_RIGHT_BRACE, &quot;Expect '}' after class body.&quot;);
+<div class="codehilite"><pre class="insert-before">  consume(TOKEN_RIGHT_BRACE, &quot;Expect '}' after class body.&quot;);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
-<pre class="insert">
-  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
-</pre><pre class="insert-after">
-}
+<pre class="insert">  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
 <p>Putting all of that together, here is an example class declaration to throw at
 the compiler:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Brunch</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Brunch</span> {
   <span class="i">bacon</span>() {}
   <span class="i">eggs</span>() {}
 }
@@ -365,52 +335,42 @@ the compiler:</p>
 affect the stack at runtime:</p><img src="image/methods-and-initializers/method-instructions.png" alt="The series of bytecode instructions for a class declaration with two methods." />
 <p>All that remains for us is to implement the runtime for that new <code>OP_METHOD</code>
 instruction.</p>
-<h3><a href="#executing-method-declarations" name="executing-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;3</small>Executing method declarations</a></h3>
+<h3><a href="#executing-method-declarations" id="executing-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;3</small>Executing method declarations</a></h3>
 <p>First we define the opcode.</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_CLASS,
+<div class="codehilite"><pre class="insert-before">  OP_CLASS,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert">
-  <span class="a">OP_METHOD</span>
-</pre><pre class="insert-after">
-} OpCode;
+<pre class="insert">  <span class="a">OP_METHOD</span>
+</pre><pre class="insert-after">} OpCode;
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>We disassemble it like other instructions that have string constant operands.</p>
-<div class="codehilite"><pre class="insert-before">
-    case OP_CLASS:
+<div class="codehilite"><pre class="insert-before">    case OP_CLASS:
       return constantInstruction(&quot;OP_CLASS&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OP_METHOD</span>:
+<pre class="insert">    <span class="k">case</span> <span class="a">OP_METHOD</span>:
       <span class="k">return</span> <span class="i">constantInstruction</span>(<span class="s">&quot;OP_METHOD&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    default:
+</pre><pre class="insert-after">    default:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>And over in the interpreter, we add a new case too.</p>
-<div class="codehilite"><pre class="insert-before">
-        break;
+<div class="codehilite"><pre class="insert-before">        break;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert">
-      <span class="k">case</span> <span class="a">OP_METHOD</span>:
+<pre class="insert">      <span class="k">case</span> <span class="a">OP_METHOD</span>:
         <span class="i">defineMethod</span>(<span class="a">READ_STRING</span>());
         <span class="k">break</span>;
-</pre><pre class="insert-after">
-    }
+</pre><pre class="insert-after">    }
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>There, we read the method name from the constant table and pass it here:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>closeUpvalues</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">defineMethod</span>(<span class="t">ObjString</span>* <span class="i">name</span>) {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">defineMethod</span>(<span class="t">ObjString</span>* <span class="i">name</span>) {
   <span class="t">Value</span> <span class="i">method</span> = <span class="i">peek</span>(<span class="n">0</span>);
   <span class="t">ObjClass</span>* <span class="i">klass</span> = <span class="a">AS_CLASS</span>(<span class="i">peek</span>(<span class="n">1</span>));
   <span class="i">tableSet</span>(&amp;<span class="i">klass</span>-&gt;<span class="i">methods</span>, <span class="i">name</span>, <span class="i">method</span>);
@@ -440,16 +400,14 @@ run is safe.</p>
 the class, we will have a class with a nicely populated method table, ready to
 start doing things. The next step is pulling those methods back out and using
 them.</p>
-<h2><a href="#method-references" name="method-references"><small>28&#8202;.&#8202;2</small>Method References</a></h2>
+<h2><a href="#method-references" id="method-references"><small>28&#8202;.&#8202;2</small>Method References</a></h2>
 <p>Most of the time, methods are accessed and immediately called, leading to this
 familiar syntax:</p>
-<div class="codehilite"><pre>
-<span class="i">instance</span>.<span class="i">method</span>(<span class="i">argument</span>);
+<div class="codehilite"><pre><span class="i">instance</span>.<span class="i">method</span>(<span class="i">argument</span>);
 </pre></div>
 <p>But remember, in Lox and some other languages, those two steps are distinct and
 can be separated.</p>
-<div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">closure</span> = <span class="i">instance</span>.<span class="i">method</span>;
+<div class="codehilite"><pre><span class="k">var</span> <span class="i">closure</span> = <span class="i">instance</span>.<span class="i">method</span>;
 <span class="i">closure</span>(<span class="i">argument</span>);
 </pre></div>
 <p>Since users <em>can</em> separate the operations, we have to implement them separately.
@@ -460,8 +418,7 @@ user can then call like a function.</p>
 return the ObjClosure associated with that name. But we also need to remember
 that when you access a method, <code>this</code> gets bound to the instance the method was
 accessed from. Here&rsquo;s the example from <a href="classes.html#methods-on-classes">when we added methods to jlox</a>:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Person</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Person</span> {
   <span class="i">sayName</span>() {
     <span class="k">print</span> <span class="k">this</span>.<span class="i">name</span>;
   }
@@ -482,7 +439,7 @@ variables and temporaries</a> are on the stack, <a href="global-variables.html#v
 table, and variables in closures use <a href="closures.html#upvalues">upvalues</a>. That necessitates a somewhat
 more complex solution for tracking a method&rsquo;s receiver in clox, and a new
 runtime type.</p>
-<h3><a href="#bound-methods" name="bound-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;1</small>Bound methods</a></h3>
+<h3><a href="#bound-methods" id="bound-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;1</small>Bound methods</a></h3>
 <p>When the user executes a method access, we&rsquo;ll find the closure for that method
 and wrap it in a new <span name="bound">&ldquo;bound method&rdquo;</span> object that tracks
 the instance that the method was accessed from. This bound object can be called
@@ -493,20 +450,17 @@ later like a function. When invoked, the VM will do some shenanigans to wire up
 and I used its implementation for inspiration.</p>
 </aside>
 <p>Here&rsquo;s the new object type:</p>
-<div class="codehilite"><pre class="insert-before">
-} ObjInstance;
+<div class="codehilite"><pre class="insert-before">} ObjInstance;
 
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjInstance</em></div>
-<pre class="insert">
-<span class="k">typedef</span> <span class="k">struct</span> {
+<pre class="insert"><span class="k">typedef</span> <span class="k">struct</span> {
   <span class="t">Obj</span> <span class="i">obj</span>;
   <span class="t">Value</span> <span class="i">receiver</span>;
   <span class="t">ObjClosure</span>* <span class="i">method</span>;
 } <span class="t">ObjBoundMethod</span>;
 
-</pre><pre class="insert-after">
-ObjClass* newClass(ObjString* name);
+</pre><pre class="insert-after">ObjClass* newClass(ObjString* name);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjInstance</em></div>
 
@@ -517,60 +471,47 @@ have to keep converting the pointer back to a Value when it gets passed to more
 general functions.</p>
 <p>The new struct implies the usual boilerplate you&rsquo;re used to by now. A new case
 in the object type enum:</p>
-<div class="codehilite"><pre class="insert-before">
-typedef enum {
+<div class="codehilite"><pre class="insert-before">typedef enum {
 </pre><div class="source-file"><em>object.h</em><br>
 in enum <em>ObjType</em></div>
-<pre class="insert">
-  <span class="a">OBJ_BOUND_METHOD</span>,
-</pre><pre class="insert-after">
-  OBJ_CLASS,
+<pre class="insert">  <span class="a">OBJ_BOUND_METHOD</span>,
+</pre><pre class="insert-after">  OBJ_CLASS,
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>A macro to check a value&rsquo;s type:</p>
-<div class="codehilite"><pre class="insert-before">
-#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
+<div class="codehilite"><pre class="insert-before">#define OBJ_TYPE(value)        (AS_OBJ(value)-&gt;type)
 
 </pre><div class="source-file"><em>object.h</em></div>
-<pre class="insert">
-<span class="a">#define IS_BOUND_METHOD(value) isObjType(value, OBJ_BOUND_METHOD)</span>
-</pre><pre class="insert-after">
-#define IS_CLASS(value)        isObjType(value, OBJ_CLASS)
+<pre class="insert"><span class="a">#define IS_BOUND_METHOD(value) isObjType(value, OBJ_BOUND_METHOD)</span>
+</pre><pre class="insert-after">#define IS_CLASS(value)        isObjType(value, OBJ_CLASS)
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Another macro to cast the value to an ObjBoundMethod pointer:</p>
-<div class="codehilite"><pre class="insert-before">
-#define IS_STRING(value)       isObjType(value, OBJ_STRING)
+<div class="codehilite"><pre class="insert-before">#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 
 </pre><div class="source-file"><em>object.h</em></div>
-<pre class="insert">
-<span class="a">#define AS_BOUND_METHOD(value) ((ObjBoundMethod*)AS_OBJ(value))</span>
-</pre><pre class="insert-after">
-#define AS_CLASS(value)        ((ObjClass*)AS_OBJ(value))
+<pre class="insert"><span class="a">#define AS_BOUND_METHOD(value) ((ObjBoundMethod*)AS_OBJ(value))</span>
+</pre><pre class="insert-after">#define AS_CLASS(value)        ((ObjClass*)AS_OBJ(value))
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>A function to create a new ObjBoundMethod:</p>
-<div class="codehilite"><pre class="insert-before">
-} ObjBoundMethod;
+<div class="codehilite"><pre class="insert-before">} ObjBoundMethod;
 
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjBoundMethod</em></div>
-<pre class="insert">
-<span class="t">ObjBoundMethod</span>* <span class="i">newBoundMethod</span>(<span class="t">Value</span> <span class="i">receiver</span>,
+<pre class="insert"><span class="t">ObjBoundMethod</span>* <span class="i">newBoundMethod</span>(<span class="t">Value</span> <span class="i">receiver</span>,
                                <span class="t">ObjClosure</span>* <span class="i">method</span>);
-</pre><pre class="insert-after">
-ObjClass* newClass(ObjString* name);
+</pre><pre class="insert-after">ObjClass* newClass(ObjString* name);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjBoundMethod</em></div>
 
 <p>And an implementation of that function here:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 add after <em>allocateObject</em>()</div>
-<pre>
-<span class="t">ObjBoundMethod</span>* <span class="i">newBoundMethod</span>(<span class="t">Value</span> <span class="i">receiver</span>,
+<pre><span class="t">ObjBoundMethod</span>* <span class="i">newBoundMethod</span>(<span class="t">Value</span> <span class="i">receiver</span>,
                                <span class="t">ObjClosure</span>* <span class="i">method</span>) {
   <span class="t">ObjBoundMethod</span>* <span class="i">bound</span> = <span class="a">ALLOCATE_OBJ</span>(<span class="t">ObjBoundMethod</span>,
                                        <span class="a">OBJ_BOUND_METHOD</span>);
@@ -583,35 +524,29 @@ add after <em>allocateObject</em>()</div>
 
 <p>The constructor-like function simply stores the given closure and receiver. When
 the bound method is no longer needed, we free it.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (object-&gt;type) {
+<div class="codehilite"><pre class="insert-before">  switch (object-&gt;type) {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OBJ_BOUND_METHOD</span>:
+<pre class="insert">    <span class="k">case</span> <span class="a">OBJ_BOUND_METHOD</span>:
       <span class="a">FREE</span>(<span class="t">ObjBoundMethod</span>, <span class="i">object</span>);
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case OBJ_CLASS: {
+</pre><pre class="insert-after">    case OBJ_CLASS: {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>The bound method has a couple of references, but it doesn&rsquo;t <em>own</em> them, so it
 frees nothing but itself. However, those references do get traced by the garbage
 collector.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (object-&gt;type) {
+<div class="codehilite"><pre class="insert-before">  switch (object-&gt;type) {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OBJ_BOUND_METHOD</span>: {
+<pre class="insert">    <span class="k">case</span> <span class="a">OBJ_BOUND_METHOD</span>: {
       <span class="t">ObjBoundMethod</span>* <span class="i">bound</span> = (<span class="t">ObjBoundMethod</span>*)<span class="i">object</span>;
       <span class="i">markValue</span>(<span class="i">bound</span>-&gt;<span class="i">receiver</span>);
       <span class="i">markObject</span>((<span class="t">Obj</span>*)<span class="i">bound</span>-&gt;<span class="i">method</span>);
       <span class="k">break</span>;
     }
-</pre><pre class="insert-after">
-    case OBJ_CLASS: {
+</pre><pre class="insert-after">    case OBJ_CLASS: {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
@@ -625,16 +560,13 @@ the methods. But it feels dubious to me in some vague way to have ObjBoundMethod
 rely on that.</p>
 </aside>
 <p>The last operation all objects support is printing.</p>
-<div class="codehilite"><pre class="insert-before">
-  switch (OBJ_TYPE(value)) {
+<div class="codehilite"><pre class="insert-before">  switch (OBJ_TYPE(value)) {
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OBJ_BOUND_METHOD</span>:
+<pre class="insert">    <span class="k">case</span> <span class="a">OBJ_BOUND_METHOD</span>:
       <span class="i">printFunction</span>(<span class="a">AS_BOUND_METHOD</span>(<span class="i">value</span>)-&gt;<span class="i">method</span>-&gt;<span class="i">function</span>);
       <span class="k">break</span>;
-</pre><pre class="insert-after">
-    case OBJ_CLASS:
+</pre><pre class="insert-after">    case OBJ_CLASS:
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
@@ -647,7 +579,7 @@ don&rsquo;t expose that the VM implements bound methods using a different object
 milestone. ObjBoundMethod is the very last runtime type to add to clox. You&rsquo;ve
 written your last <code>IS_</code> and <code>AS_</code> macros. We&rsquo;re only a few chapters from the end
 of the book, and we&rsquo;re getting close to a complete VM.</p>
-<h3><a href="#accessing-methods" name="accessing-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;2</small>Accessing methods</a></h3>
+<h3><a href="#accessing-methods" id="accessing-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;2</small>Accessing methods</a></h3>
 <p>Let&rsquo;s get our new object type doing something. Methods are accessed using the
 same &ldquo;dot&rdquo; property syntax we implemented in the last chapter. The compiler
 already parses the right expressions and emits <code>OP_GET_PROPERTY</code> instructions
@@ -657,8 +589,7 @@ stack. The instruction&rsquo;s job is to find a field or method with the given n
 and replace the top of the stack with the accessed property.</p>
 <p>The interpreter already handles fields, so we simply extend the
 <code>OP_GET_PROPERTY</code> case with another section.</p>
-<div class="codehilite"><pre class="insert-before">
-          pop(); // Instance.
+<div class="codehilite"><pre class="insert-before">          pop(); // Instance.
           push(value);
           break;
         }
@@ -666,13 +597,11 @@ and replace the top of the stack with the accessed property.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 2 lines</div>
-<pre class="insert">
-        <span class="k">if</span> (!<span class="i">bindMethod</span>(<span class="i">instance</span>-&gt;<span class="i">klass</span>, <span class="i">name</span>)) {
+<pre class="insert">        <span class="k">if</span> (!<span class="i">bindMethod</span>(<span class="i">instance</span>-&gt;<span class="i">klass</span>, <span class="i">name</span>)) {
           <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span>;
         }
         <span class="k">break</span>;
-</pre><pre class="insert-after">
-      }
+</pre><pre class="insert-after">      }
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
@@ -688,8 +617,7 @@ which aborts the interpreter.</p>
 <p>Here is the good stuff:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>callValue</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">bindMethod</span>(<span class="t">ObjClass</span>* <span class="i">klass</span>, <span class="t">ObjString</span>* <span class="i">name</span>) {
+<pre><span class="k">static</span> <span class="t">bool</span> <span class="i">bindMethod</span>(<span class="t">ObjClass</span>* <span class="i">klass</span>, <span class="t">ObjString</span>* <span class="i">name</span>) {
   <span class="t">Value</span> <span class="i">method</span>;
   <span class="k">if</span> (!<span class="i">tableGet</span>(&amp;<span class="i">klass</span>-&gt;<span class="i">methods</span>, <span class="i">name</span>, &amp;<span class="i">method</span>)) {
     <span class="i">runtimeError</span>(<span class="s">&quot;Undefined property &#39;%s&#39;.&quot;</span>, <span class="i">name</span>-&gt;<span class="i">chars</span>);
@@ -711,8 +639,7 @@ the method and wrap it in a new ObjBoundMethod. We grab the receiver from its
 home on top of the stack. Finally, we pop the instance and replace the top of
 the stack with the bound method.</p>
 <p>For example:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Brunch</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Brunch</span> {
   <span class="i">eggs</span>() {}
 }
 
@@ -723,7 +650,7 @@ the stack with the bound method.</p>
 <code>brunch.eggs</code> expression:</p><img src="image/methods-and-initializers/bind-method.png" alt="The stack changes caused by bindMethod()." />
 <p>That&rsquo;s a lot of machinery under the hood, but from the user&rsquo;s perspective, they
 simply get a function that they can call.</p>
-<h3><a href="#calling-methods" name="calling-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;3</small>Calling methods</a></h3>
+<h3><a href="#calling-methods" id="calling-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;3</small>Calling methods</a></h3>
 <p>Users can declare methods on classes, access them on instances, and get bound
 methods onto the stack. They just can&rsquo;t <span name="do"><em>do</em></span> anything
 useful with those bound method objects. The operation we&rsquo;re missing is calling
@@ -733,17 +660,14 @@ object type.</p>
 <p>A bound method <em>is</em> a first-class value, so they can store it in variables, pass
 it to functions, and otherwise do &ldquo;value&rdquo;-y stuff with it.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-    switch (OBJ_TYPE(callee)) {
+<div class="codehilite"><pre class="insert-before">    switch (OBJ_TYPE(callee)) {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>callValue</em>()</div>
-<pre class="insert">
-      <span class="k">case</span> <span class="a">OBJ_BOUND_METHOD</span>: {
+<pre class="insert">      <span class="k">case</span> <span class="a">OBJ_BOUND_METHOD</span>: {
         <span class="t">ObjBoundMethod</span>* <span class="i">bound</span> = <span class="a">AS_BOUND_METHOD</span>(<span class="i">callee</span>);
         <span class="k">return</span> <span class="i">call</span>(<span class="i">bound</span>-&gt;<span class="i">method</span>, <span class="i">argCount</span>);
       }
-</pre><pre class="insert-after">
-      case OBJ_CLASS: {
+</pre><pre class="insert-after">      case OBJ_CLASS: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
@@ -751,8 +675,7 @@ in <em>callValue</em>()</div>
 <code>call()</code> helper to begin an invocation of that closure by pushing a CallFrame
 for it onto the call stack. That&rsquo;s all it takes to be able to run this Lox
 program:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Scone</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Scone</span> {
   <span class="i">topping</span>(<span class="i">first</span>, <span class="i">second</span>) {
     <span class="k">print</span> <span class="s">&quot;scone with &quot;</span> + <span class="i">first</span> + <span class="s">&quot; and &quot;</span> + <span class="i">second</span>;
   }
@@ -765,20 +688,17 @@ program:</p>
 something is missing. We went to all that trouble to wrap the method closure in
 an object that binds the receiver, but when we invoke the method, we don&rsquo;t use
 that receiver at all.</p>
-<h2><a href="#this" name="this"><small>28&#8202;.&#8202;3</small>This</a></h2>
+<h2><a href="#this" id="this"><small>28&#8202;.&#8202;3</small>This</a></h2>
 <p>The reason bound methods need to keep hold of the receiver is so that it can be
 accessed inside the body of the method. Lox exposes a method&rsquo;s receiver through
 <code>this</code> expressions. It&rsquo;s time for some new syntax. The lexer already treats
 <code>this</code> as a special token type, so the first step is wiring that token up in the
 parse table.</p>
-<div class="codehilite"><pre class="insert-before">
-  [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE},
+<div class="codehilite"><pre class="insert-before">  [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE},
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
-<pre class="insert">
-  [<span class="a">TOKEN_THIS</span>]          = {<span class="i">this_</span>,    <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
-</pre><pre class="insert-after">
-  [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
+<pre class="insert">  [<span class="a">TOKEN_THIS</span>]          = {<span class="i">this_</span>,    <span class="a">NULL</span>,   <span class="a">PREC_NONE</span>},
+</pre><pre class="insert-after">  [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
@@ -790,8 +710,7 @@ is a reserved word in C++ and we support compiling clox as C++.</p>
 parser function.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>variable</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">this_</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
+<pre><span class="k">static</span> <span class="t">void</span> <span class="i">this_</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
   <span class="i">variable</span>(<span class="k">false</span>);
 }<span name="this"> </span>
 </pre></div>
@@ -824,21 +743,18 @@ this is going. For <em>method</em> calls, we can repurpose that slot to store th
 receiver. Slot zero will store the instance that <code>this</code> is bound to. In order to
 compile <code>this</code> expressions, the compiler simply needs to give the correct name
 to that local variable.</p>
-<div class="codehilite"><pre class="insert-before">
-  local-&gt;isCaptured = false;
+<div class="codehilite"><pre class="insert-before">  local-&gt;isCaptured = false;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()<br>
 replace 2 lines</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">type</span> != <span class="a">TYPE_FUNCTION</span>) {
+<pre class="insert">  <span class="k">if</span> (<span class="i">type</span> != <span class="a">TYPE_FUNCTION</span>) {
     <span class="i">local</span>-&gt;<span class="i">name</span>.<span class="i">start</span> = <span class="s">&quot;this&quot;</span>;
     <span class="i">local</span>-&gt;<span class="i">name</span>.<span class="i">length</span> = <span class="n">4</span>;
   } <span class="k">else</span> {
     <span class="i">local</span>-&gt;<span class="i">name</span>.<span class="i">start</span> = <span class="s">&quot;&quot;</span>;
     <span class="i">local</span>-&gt;<span class="i">name</span>.<span class="i">length</span> = <span class="n">0</span>;
   }
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>(), replace 2 lines</div>
 
@@ -846,8 +762,7 @@ replace 2 lines</div>
 And, in fact, they <em>must not</em> declare a variable named &ldquo;this&rdquo;, so that if you
 write a <code>this</code> expression inside a function declaration which is itself inside a
 method, the <code>this</code> correctly resolves to the outer method&rsquo;s receiver.</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Nested</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Nested</span> {
   <span class="i">method</span>() {
     <span class="k">fun</span> <span class="i">function</span>() {
       <span class="k">print</span> <span class="k">this</span>;
@@ -863,28 +778,22 @@ method, the <code>this</code> correctly resolves to the outer method&rsquo;s rec
 local slot zero, the compiler needs to know whether it&rsquo;s compiling a function or
 method declaration, so we add a new case to our FunctionType enum to distinguish
 methods.</p>
-<div class="codehilite"><pre class="insert-before">
-  TYPE_FUNCTION,
+<div class="codehilite"><pre class="insert-before">  TYPE_FUNCTION,
 </pre><div class="source-file"><em>compiler.c</em><br>
 in enum <em>FunctionType</em></div>
-<pre class="insert">
-  <span class="a">TYPE_METHOD</span>,
-</pre><pre class="insert-after">
-  TYPE_SCRIPT
+<pre class="insert">  <span class="a">TYPE_METHOD</span>,
+</pre><pre class="insert-after">  TYPE_SCRIPT
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in enum <em>FunctionType</em></div>
 
 <p>When we compile a method, we use that type.</p>
-<div class="codehilite"><pre class="insert-before">
-  uint8_t constant = identifierConstant(&amp;parser.previous);
+<div class="codehilite"><pre class="insert-before">  uint8_t constant = identifierConstant(&amp;parser.previous);
 
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>method</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="t">FunctionType</span> <span class="i">type</span> = <span class="a">TYPE_METHOD</span>;
-</pre><pre class="insert-after">
-  function(type);
+<pre class="insert">  <span class="t">FunctionType</span> <span class="i">type</span> = <span class="a">TYPE_METHOD</span>;
+</pre><pre class="insert-after">  function(type);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>method</em>(), replace 1 line</div>
 
@@ -893,15 +802,12 @@ compiler will emit the right <code>OP_GET_LOCAL</code> instructions to access it
 can even capture <code>this</code> and store the receiver in upvalues. Pretty cool.</p>
 <p>Except that at runtime, the receiver isn&rsquo;t actually <em>in</em> slot zero. The
 interpreter isn&rsquo;t holding up its end of the bargain yet. Here is the fix:</p>
-<div class="codehilite"><pre class="insert-before">
-      case OBJ_BOUND_METHOD: {
+<div class="codehilite"><pre class="insert-before">      case OBJ_BOUND_METHOD: {
         ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>callValue</em>()</div>
-<pre class="insert">
-        <span class="i">vm</span>.<span class="i">stackTop</span>[-<span class="i">argCount</span> - <span class="n">1</span>] = <span class="i">bound</span>-&gt;<span class="i">receiver</span>;
-</pre><pre class="insert-after">
-        return call(bound-&gt;method, argCount);
+<pre class="insert">        <span class="i">vm</span>.<span class="i">stackTop</span>[-<span class="i">argCount</span> - <span class="n">1</span>] = <span class="i">bound</span>-&gt;<span class="i">receiver</span>;
+</pre><pre class="insert-after">        return call(bound-&gt;method, argCount);
       }
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
@@ -910,19 +816,17 @@ in <em>callValue</em>()</div>
 then just under those is the closure of the called method. That&rsquo;s where slot
 zero in the new CallFrame will be. This line of code inserts the receiver into
 that slot. For example, given a method call like this:</p>
-<div class="codehilite"><pre>
-<span class="i">scone</span>.<span class="i">topping</span>(<span class="s">&quot;berries&quot;</span>, <span class="s">&quot;cream&quot;</span>);
+<div class="codehilite"><pre><span class="i">scone</span>.<span class="i">topping</span>(<span class="s">&quot;berries&quot;</span>, <span class="s">&quot;cream&quot;</span>);
 </pre></div>
 <p>We calculate the slot to store the receiver like so:</p><img src="image/methods-and-initializers/closure-slot.png" alt="Skipping over the argument stack slots to find the slot containing the closure." />
 <p>The <code>-argCount</code> skips past the arguments and the <code>- 1</code> adjusts for the fact that
 <code>stackTop</code> points just <em>past</em> the last used stack slot.</p>
-<h3><a href="#misusing-this" name="misusing-this"><small>28&#8202;.&#8202;3&#8202;.&#8202;1</small>Misusing this</a></h3>
+<h3><a href="#misusing-this" id="misusing-this"><small>28&#8202;.&#8202;3&#8202;.&#8202;1</small>Misusing this</a></h3>
 <p>Our VM now supports users <em>correctly</em> using <code>this</code>, but we also need to make
 sure it properly handles users <em>mis</em>using <code>this</code>. Lox says it is a compile
 error for a <code>this</code> expression to appear outside of the body of a method. These
 two wrong uses should be caught by the compiler:</p>
-<div class="codehilite"><pre>
-<span class="k">print</span> <span class="k">this</span>; <span class="c">// At top level.</span>
+<div class="codehilite"><pre><span class="k">print</span> <span class="k">this</span>; <span class="c">// At top level.</span>
 
 <span class="k">fun</span> <span class="i">notMethod</span>() {
   <span class="k">print</span> <span class="k">this</span>; <span class="c">// In a function.</span>
@@ -941,12 +845,10 @@ variable implicitly considers it a global access if no declaration is found.</p>
 If we had that, we could use it here to determine if we are inside a method. So
 we may as well make our future selves&rsquo; lives a little easier and put that
 machinery in place now.</p>
-<div class="codehilite"><pre class="insert-before">
-Compiler* current = NULL;
+<div class="codehilite"><pre class="insert-before">Compiler* current = NULL;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>current</em></div>
-<pre class="insert">
-<span class="t">ClassCompiler</span>* <span class="i">currentClass</span> = <span class="a">NULL</span>;
+<pre class="insert"><span class="t">ClassCompiler</span>* <span class="i">currentClass</span> = <span class="a">NULL</span>;
 </pre><pre class="insert-after">
 
 static Chunk* currentChunk() {
@@ -955,8 +857,7 @@ static Chunk* currentChunk() {
 
 <p>This module variable points to a struct representing the current, innermost
 class being compiled. The new type looks like this:</p>
-<div class="codehilite"><pre class="insert-before">
-} Compiler;
+<div class="codehilite"><pre class="insert-before">} Compiler;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after struct <em>Compiler</em></div>
 <pre class="insert">
@@ -977,19 +878,16 @@ means ClassCompiler forms a linked list from the current innermost class being
 compiled out through all of the enclosing classes.</p>
 <p>If we aren&rsquo;t inside any class declaration at all, the module variable
 <code>currentClass</code> is <code>NULL</code>. When the compiler begins compiling a class, it pushes
-a new ClassCompiler onto that implict linked stack.</p>
-<div class="codehilite"><pre class="insert-before">
-  defineVariable(nameConstant);
+a new ClassCompiler onto that implicit linked stack.</p>
+<div class="codehilite"><pre class="insert-before">  defineVariable(nameConstant);
 
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
-<pre class="insert">
-  <span class="t">ClassCompiler</span> <span class="i">classCompiler</span>;
+<pre class="insert">  <span class="t">ClassCompiler</span> <span class="i">classCompiler</span>;
   <span class="i">classCompiler</span>.<span class="i">enclosing</span> = <span class="i">currentClass</span>;
   <span class="i">currentClass</span> = &amp;<span class="i">classCompiler</span>;
 
-</pre><pre class="insert-after">
-  namedVariable(className, false);
+</pre><pre class="insert-after">  namedVariable(className, false);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
@@ -997,40 +895,35 @@ in <em>classDeclaration</em>()</div>
 capability we get by writing our compiler using recursive descent. At the end of
 the class body, we pop that compiler off the stack and restore the enclosing
 one.</p>
-<div class="codehilite"><pre class="insert-before">
-  emitByte(OP_POP);
+<div class="codehilite"><pre class="insert-before">  emitByte(OP_POP);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
 <pre class="insert">
 
   <span class="i">currentClass</span> = <span class="i">currentClass</span>-&gt;<span class="i">enclosing</span>;
-</pre><pre class="insert-after">
-}
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
 <p>When an outermost class body ends, <code>enclosing</code> will be <code>NULL</code>, so this resets
 <code>currentClass</code> to <code>NULL</code>. Thus, to see if we are inside a class<span class="em">&mdash;</span>and therefore
 inside a method<span class="em">&mdash;</span>we simply check that module variable.</p>
-<div class="codehilite"><pre class="insert-before">
-static void this_(bool canAssign) {
+<div class="codehilite"><pre class="insert-before">static void this_(bool canAssign) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>this_</em>()</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">currentClass</span> == <span class="a">NULL</span>) {
+<pre class="insert">  <span class="k">if</span> (<span class="i">currentClass</span> == <span class="a">NULL</span>) {
     <span class="i">error</span>(<span class="s">&quot;Can&#39;t use &#39;this&#39; outside of a class.&quot;</span>);
     <span class="k">return</span>;
   }
 
-</pre><pre class="insert-after">
-  variable(false);
+</pre><pre class="insert-after">  variable(false);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>this_</em>()</div>
 
 <p>With that, <code>this</code> outside of a class is correctly forbidden. Now our methods
 really feel like <em>methods</em> in the object-oriented sense. Accessing the receiver
 lets them affect the instance you called the method on. We&rsquo;re getting there!</p>
-<h2><a href="#instance-initializers" name="instance-initializers"><small>28&#8202;.&#8202;4</small>Instance Initializers</a></h2>
+<h2><a href="#instance-initializers" id="instance-initializers"><small>28&#8202;.&#8202;4</small>Instance Initializers</a></h2>
 <p>The reason object-oriented languages tie state and behavior together<span class="em">&mdash;</span>one of
 the core tenets of the paradigm<span class="em">&mdash;</span>is to ensure that objects are always in a
 valid, meaningful state. When the only way to touch an object&rsquo;s state is <span
@@ -1066,8 +959,7 @@ since the value would never be seen anyway.</p>
 </ol>
 <aside name="return">
 <p>It&rsquo;s as if the initializer is implicitly wrapped in a bundle of code like this:</p>
-<div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">create</span>(<span class="i">klass</span>) {
+<div class="codehilite"><pre><span class="k">fun</span> <span class="i">create</span>(<span class="i">klass</span>) {
   <span class="k">var</span> <span class="i">obj</span> = <span class="i">newInstance</span>(<span class="i">klass</span>);
   <span class="i">obj</span>.<span class="i">init</span>();
   <span class="k">return</span> <span class="i">obj</span>;
@@ -1077,28 +969,24 @@ since the value would never be seen anyway.</p>
 </aside>
 <p>Now that we support methods, to add initializers, we merely need to implement
 those three special rules. We&rsquo;ll go in order.</p>
-<h3><a href="#invoking-initializers" name="invoking-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;1</small>Invoking initializers</a></h3>
+<h3><a href="#invoking-initializers" id="invoking-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;1</small>Invoking initializers</a></h3>
 <p>First, automatically calling <code>init()</code> on new instances:</p>
-<div class="codehilite"><pre class="insert-before">
-        vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
+<div class="codehilite"><pre class="insert-before">        vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>callValue</em>()</div>
-<pre class="insert">
-        <span class="t">Value</span> <span class="i">initializer</span>;
+<pre class="insert">        <span class="t">Value</span> <span class="i">initializer</span>;
         <span class="k">if</span> (<span class="i">tableGet</span>(&amp;<span class="i">klass</span>-&gt;<span class="i">methods</span>, <span class="i">vm</span>.<span class="i">initString</span>,
                      &amp;<span class="i">initializer</span>)) {
           <span class="k">return</span> <span class="i">call</span>(<span class="a">AS_CLOSURE</span>(<span class="i">initializer</span>), <span class="i">argCount</span>);
         }
-</pre><pre class="insert-after">
-        return true;
+</pre><pre class="insert-after">        return true;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
 <p>After the runtime allocates the new instance, we look for an <code>init()</code> method on
 the class. If we find one, we initiate a call to it. This pushes a new CallFrame
 for the initializer&rsquo;s closure. Say we run this program:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Brunch</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Brunch</span> {
   <span class="i">init</span>(<span class="i">food</span>, <span class="i">drink</span>) {}
 }
 
@@ -1112,17 +1000,14 @@ stack window, so those arguments implictly get forwarded to the initializer.</p>
 simply returns the new uninitialized instance. However, if there is no <code>init()</code>
 method, then it doesn&rsquo;t make any sense to pass arguments to the class when
 creating the instance. We make that an error.</p>
-<div class="codehilite"><pre class="insert-before">
-          return call(AS_CLOSURE(initializer), argCount);
+<div class="codehilite"><pre class="insert-before">          return call(AS_CLOSURE(initializer), argCount);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>callValue</em>()</div>
-<pre class="insert">
-        } <span class="k">else</span> <span class="k">if</span> (<span class="i">argCount</span> != <span class="n">0</span>) {
+<pre class="insert">        } <span class="k">else</span> <span class="k">if</span> (<span class="i">argCount</span> != <span class="n">0</span>) {
           <span class="i">runtimeError</span>(<span class="s">&quot;Expected 0 arguments but got %d.&quot;</span>,
                        <span class="i">argCount</span>);
           <span class="k">return</span> <span class="k">false</span>;
-</pre><pre class="insert-after">
-        }
+</pre><pre class="insert-after">        }
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
@@ -1134,20 +1019,16 @@ want that to be fast since it happens every time an instance is constructed.
 That means it would be good to take advantage of the string interning we&rsquo;ve
 already implemented. To do that, the VM creates an ObjString for &ldquo;init&rdquo; and
 reuses it. The string lives right in the VM struct.</p>
-<div class="codehilite"><pre class="insert-before">
-  Table strings;
+<div class="codehilite"><pre class="insert-before">  Table strings;
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
-<pre class="insert">
-  <span class="t">ObjString</span>* <span class="i">initString</span>;
-</pre><pre class="insert-after">
-  ObjUpvalue* openUpvalues;
+<pre class="insert">  <span class="t">ObjString</span>* <span class="i">initString</span>;
+</pre><pre class="insert-after">  ObjUpvalue* openUpvalues;
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
 <p>We create and intern the string when the VM boots up.</p>
-<div class="codehilite"><pre class="insert-before">
-  initTable(&amp;vm.strings);
+<div class="codehilite"><pre class="insert-before">  initTable(&amp;vm.strings);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
 <pre class="insert">
@@ -1160,14 +1041,11 @@ in <em>initVM</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
 <p>We want it to stick around, so the GC considers it a root.</p>
-<div class="codehilite"><pre class="insert-before">
-  markCompilerRoots();
+<div class="codehilite"><pre class="insert-before">  markCompilerRoots();
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markRoots</em>()</div>
-<pre class="insert">
-  <span class="i">markObject</span>((<span class="t">Obj</span>*)<span class="i">vm</span>.<span class="i">initString</span>);
-</pre><pre class="insert-after">
-}
+<pre class="insert">  <span class="i">markObject</span>((<span class="t">Obj</span>*)<span class="i">vm</span>.<span class="i">initString</span>);
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markRoots</em>()</div>
 
@@ -1176,33 +1054,27 @@ garbage collector now reads <code>vm.initString</code>. That field is initialize
 result of calling <code>copyString()</code>. But copying a string allocates memory, which
 can trigger a GC. If the collector ran at just the wrong time, it would read
 <code>vm.initString</code> before it had been initialized. So, first we zero the field out.</p>
-<div class="codehilite"><pre class="insert-before">
-  initTable(&amp;vm.strings);
+<div class="codehilite"><pre class="insert-before">  initTable(&amp;vm.strings);
 
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
-<pre class="insert">
-  <span class="i">vm</span>.<span class="i">initString</span> = <span class="a">NULL</span>;
-</pre><pre class="insert-after">
-  vm.initString = copyString(&quot;init&quot;, 4);
+<pre class="insert">  <span class="i">vm</span>.<span class="i">initString</span> = <span class="a">NULL</span>;
+</pre><pre class="insert-after">  vm.initString = copyString(&quot;init&quot;, 4);
 
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
 <p>We clear the pointer when the VM shuts down since the next line will free it.</p>
-<div class="codehilite"><pre class="insert-before">
-  freeTable(&amp;vm.strings);
+<div class="codehilite"><pre class="insert-before">  freeTable(&amp;vm.strings);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
-<pre class="insert">
-  <span class="i">vm</span>.<span class="i">initString</span> = <span class="a">NULL</span>;
-</pre><pre class="insert-after">
-  freeObjects();
+<pre class="insert">  <span class="i">vm</span>.<span class="i">initString</span> = <span class="a">NULL</span>;
+</pre><pre class="insert-after">  freeObjects();
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
 
 <p>OK, that lets us call initializers.</p>
-<h3><a href="#initializer-return-values" name="initializer-return-values"><small>28&#8202;.&#8202;4&#8202;.&#8202;2</small>Initializer return values</a></h3>
+<h3><a href="#initializer-return-values" id="initializer-return-values"><small>28&#8202;.&#8202;4&#8202;.&#8202;2</small>Initializer return values</a></h3>
 <p>The next step is ensuring that constructing an instance of a class with an
 initializer always returns the new instance, and not <code>nil</code> or whatever the body
 of the initializer returns. Right now, if a class defines an initializer, then
@@ -1219,49 +1091,40 @@ instead of the usual implicit <code>nil</code> most functions return. In order t
 <em>that</em>, the compiler needs to actually know when it is compiling an initializer.
 We detect that by checking to see if the name of the method we&rsquo;re compiling is
 &ldquo;init&rdquo;.</p>
-<div class="codehilite"><pre class="insert-before">
-  FunctionType type = TYPE_METHOD;
+<div class="codehilite"><pre class="insert-before">  FunctionType type = TYPE_METHOD;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>method</em>()</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">length</span> == <span class="n">4</span> &amp;&amp;
+<pre class="insert">  <span class="k">if</span> (<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">length</span> == <span class="n">4</span> &amp;&amp;
       <span class="i">memcmp</span>(<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">start</span>, <span class="s">&quot;init&quot;</span>, <span class="n">4</span>) == <span class="n">0</span>) {
     <span class="i">type</span> = <span class="a">TYPE_INITIALIZER</span>;
   }
 
-</pre><pre class="insert-after">
-  function(type);
+</pre><pre class="insert-after">  function(type);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>method</em>()</div>
 
 <p>We define a new function type to distinguish initializers from other methods.</p>
-<div class="codehilite"><pre class="insert-before">
-  TYPE_FUNCTION,
+<div class="codehilite"><pre class="insert-before">  TYPE_FUNCTION,
 </pre><div class="source-file"><em>compiler.c</em><br>
 in enum <em>FunctionType</em></div>
-<pre class="insert">
-  <span class="a">TYPE_INITIALIZER</span>,
-</pre><pre class="insert-after">
-  TYPE_METHOD,
+<pre class="insert">  <span class="a">TYPE_INITIALIZER</span>,
+</pre><pre class="insert-after">  TYPE_METHOD,
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in enum <em>FunctionType</em></div>
 
 <p>Whenever the compiler emits the implicit return at the end of a body, we check
 the type to decide whether to insert the initializer-specific behavior.</p>
-<div class="codehilite"><pre class="insert-before">
-static void emitReturn() {
+<div class="codehilite"><pre class="insert-before">static void emitReturn() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>emitReturn</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">type</span> == <span class="a">TYPE_INITIALIZER</span>) {
+<pre class="insert">  <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">type</span> == <span class="a">TYPE_INITIALIZER</span>) {
     <span class="i">emitBytes</span>(<span class="a">OP_GET_LOCAL</span>, <span class="n">0</span>);
   } <span class="k">else</span> {
     <span class="i">emitByte</span>(<span class="a">OP_NIL</span>);
   }
 
-</pre><pre class="insert-after">
-  emitByte(OP_RETURN);
+</pre><pre class="insert-after">  emitByte(OP_RETURN);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>emitReturn</em>(), replace 1 line</div>
 
@@ -1270,23 +1133,20 @@ we load slot zero, which contains the instance. This <code>emitReturn()</code> f
 also called when compiling a <code>return</code> statement without a value, so this also
 correctly handles cases where the user does an early return inside the
 initializer.</p>
-<h3><a href="#incorrect-returns-in-initializers" name="incorrect-returns-in-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;3</small>Incorrect returns in initializers</a></h3>
+<h3><a href="#incorrect-returns-in-initializers" id="incorrect-returns-in-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;3</small>Incorrect returns in initializers</a></h3>
 <p>The last step, the last item in our list of special features of initializers, is
 making it an error to try to return anything <em>else</em> from an initializer. Now
 that the compiler tracks the method type, this is straightforward.</p>
-<div class="codehilite"><pre class="insert-before">
-  if (match(TOKEN_SEMICOLON)) {
+<div class="codehilite"><pre class="insert-before">  if (match(TOKEN_SEMICOLON)) {
     emitReturn();
   } else {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>returnStatement</em>()</div>
-<pre class="insert">
-    <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">type</span> == <span class="a">TYPE_INITIALIZER</span>) {
+<pre class="insert">    <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">type</span> == <span class="a">TYPE_INITIALIZER</span>) {
       <span class="i">error</span>(<span class="s">&quot;Can&#39;t return a value from an initializer.&quot;</span>);
     }
 
-</pre><pre class="insert-after">
-    expression();
+</pre><pre class="insert-after">    expression();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>returnStatement</em>()</div>
 
@@ -1295,8 +1155,7 @@ still go ahead and compile the value afterwards so that the compiler doesn&rsquo
 confused by the trailing expression and report a bunch of cascaded errors.</p>
 <p>Aside from inheritance, which we&rsquo;ll get to <a href="superclasses.html">soon</a>, we now have a
 fairly full-featured class system working in clox.</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">CoffeeMaker</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">CoffeeMaker</span> {
   <span class="i">init</span>(<span class="i">coffee</span>) {
     <span class="k">this</span>.<span class="i">coffee</span> = <span class="i">coffee</span>;
   }
@@ -1319,7 +1178,7 @@ name="floppy">floppy</span> disk.</p>
 current generations of programmers. Maybe I should have said &ldquo;a few tweets&rdquo; or
 something.</p>
 </aside>
-<h2><a href="#optimized-invocations" name="optimized-invocations"><small>28&#8202;.&#8202;5</small>Optimized Invocations</a></h2>
+<h2><a href="#optimized-invocations" id="optimized-invocations"><small>28&#8202;.&#8202;5</small>Optimized Invocations</a></h2>
 <p>Our VM correctly implements the language&rsquo;s semantics for method calls and
 initializers. We could stop here. But the main reason we are building an entire
 second implementation of Lox from scratch is to execute faster than our old Java
@@ -1358,19 +1217,16 @@ its own use and there are only so many of those to go around. Add too many, and
 you&rsquo;ll need a larger encoding for opcodes, which then increases code size and
 makes decoding <em>all</em> instructions slower.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-  if (canAssign &amp;&amp; match(TOKEN_EQUAL)) {
+<div class="codehilite"><pre class="insert-before">  if (canAssign &amp;&amp; match(TOKEN_EQUAL)) {
     expression();
     emitBytes(OP_SET_PROPERTY, name);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>dot</em>()</div>
-<pre class="insert">
-  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_LEFT_PAREN</span>)) {
+<pre class="insert">  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_LEFT_PAREN</span>)) {
     <span class="t">uint8_t</span> <span class="i">argCount</span> = <span class="i">argumentList</span>();
     <span class="i">emitBytes</span>(<span class="a">OP_INVOKE</span>, <span class="i">name</span>);
     <span class="i">emitByte</span>(<span class="i">argCount</span>);
-</pre><pre class="insert-after">
-  } else {
+</pre><pre class="insert-after">  } else {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>dot</em>()</div>
 
@@ -1389,28 +1245,22 @@ new <code>OP_INVOKE</code> instruction. It takes two operands:</p>
 <p>In other words, this single instruction combines the operands of the
 <code>OP_GET_PROPERTY</code> and <code>OP_CALL</code> instructions it replaces, in that order. It
 really is a fusion of those two instructions. Let&rsquo;s define it.</p>
-<div class="codehilite"><pre class="insert-before">
-  OP_CALL,
+<div class="codehilite"><pre class="insert-before">  OP_CALL,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert">
-  <span class="a">OP_INVOKE</span>,
-</pre><pre class="insert-after">
-  OP_CLOSURE,
+<pre class="insert">  <span class="a">OP_INVOKE</span>,
+</pre><pre class="insert-after">  OP_CLOSURE,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And add it to the disassembler:</p>
-<div class="codehilite"><pre class="insert-before">
-    case OP_CALL:
+<div class="codehilite"><pre class="insert-before">    case OP_CALL:
       return byteInstruction(&quot;OP_CALL&quot;, chunk, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert">
-    <span class="k">case</span> <span class="a">OP_INVOKE</span>:
+<pre class="insert">    <span class="k">case</span> <span class="a">OP_INVOKE</span>:
       <span class="k">return</span> <span class="i">invokeInstruction</span>(<span class="s">&quot;OP_INVOKE&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
-</pre><pre class="insert-after">
-    case OP_CLOSURE: {
+</pre><pre class="insert-after">    case OP_CLOSURE: {
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
@@ -1418,8 +1268,7 @@ in <em>disassembleInstruction</em>()</div>
 disassembly logic.</p>
 <div class="codehilite"><div class="source-file"><em>debug.c</em><br>
 add after <em>constantInstruction</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">int</span> <span class="i">invokeInstruction</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">name</span>, <span class="t">Chunk</span>* <span class="i">chunk</span>,
+<pre><span class="k">static</span> <span class="t">int</span> <span class="i">invokeInstruction</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">name</span>, <span class="t">Chunk</span>* <span class="i">chunk</span>,
                                 <span class="t">int</span> <span class="i">offset</span>) {
   <span class="t">uint8_t</span> <span class="i">constant</span> = <span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">1</span>];
   <span class="t">uint8_t</span> <span class="i">argCount</span> = <span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">2</span>];
@@ -1434,12 +1283,10 @@ add after <em>constantInstruction</em>()</div>
 <p>We read the two operands and then print out both the method name and the
 argument count. Over in the interpreter&rsquo;s bytecode dispatch loop is where the
 real action begins.</p>
-<div class="codehilite"><pre class="insert-before">
-      }
+<div class="codehilite"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert">
-      <span class="k">case</span> <span class="a">OP_INVOKE</span>: {
+<pre class="insert">      <span class="k">case</span> <span class="a">OP_INVOKE</span>: {
         <span class="t">ObjString</span>* <span class="i">method</span> = <span class="a">READ_STRING</span>();
         <span class="t">int</span> <span class="i">argCount</span> = <span class="a">READ_BYTE</span>();
         <span class="k">if</span> (!<span class="i">invoke</span>(<span class="i">method</span>, <span class="i">argCount</span>)) {
@@ -1448,8 +1295,7 @@ in <em>run</em>()</div>
         <span class="i">frame</span> = &amp;<span class="i">vm</span>.<span class="i">frames</span>[<span class="i">vm</span>.<span class="i">frameCount</span> - <span class="n">1</span>];
         <span class="k">break</span>;
       }
-</pre><pre class="insert-after">
-      case OP_CLOSURE: {
+</pre><pre class="insert-after">      case OP_CLOSURE: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -1464,8 +1310,7 @@ stack, so we refresh our cached copy of the current frame in <code>frame</code>.
 <p>The interesting work happens here:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>callValue</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">invoke</span>(<span class="t">ObjString</span>* <span class="i">name</span>, <span class="t">int</span> <span class="i">argCount</span>) {
+<pre><span class="k">static</span> <span class="t">bool</span> <span class="i">invoke</span>(<span class="t">ObjString</span>* <span class="i">name</span>, <span class="t">int</span> <span class="i">argCount</span>) {
   <span class="t">Value</span> <span class="i">receiver</span> = <span class="i">peek</span>(<span class="i">argCount</span>);
   <span class="t">ObjInstance</span>* <span class="i">instance</span> = <span class="a">AS_INSTANCE</span>(<span class="i">receiver</span>);
   <span class="k">return</span> <span class="i">invokeFromClass</span>(<span class="i">instance</span>-&gt;<span class="i">klass</span>, <span class="i">name</span>, <span class="i">argCount</span>);
@@ -1479,8 +1324,7 @@ matter to cast the object to an instance and invoke the method on it.</p>
 <p>That does assume the object <em>is</em> an instance. As with <code>OP_GET_PROPERTY</code>
 instructions, we also need to handle the case where a user incorrectly tries to
 call a method on a value of the wrong type.</p>
-<div class="codehilite"><pre class="insert-before">
-  Value receiver = peek(argCount);
+<div class="codehilite"><pre class="insert-before">  Value receiver = peek(argCount);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>invoke</em>()</div>
 <pre class="insert">
@@ -1490,8 +1334,7 @@ in <em>invoke</em>()</div>
     <span class="k">return</span> <span class="k">false</span>;
   }
 
-</pre><pre class="insert-after">
-  ObjInstance* instance = AS_INSTANCE(receiver);
+</pre><pre class="insert-after">  ObjInstance* instance = AS_INSTANCE(receiver);
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>invoke</em>()</div>
 
@@ -1504,8 +1347,7 @@ we&rsquo;re going to reuse it later<span class="em">&mdash;</span>in this case f
 </aside>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>callValue</em>()</div>
-<pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">invokeFromClass</span>(<span class="t">ObjClass</span>* <span class="i">klass</span>, <span class="t">ObjString</span>* <span class="i">name</span>,
+<pre><span class="k">static</span> <span class="t">bool</span> <span class="i">invokeFromClass</span>(<span class="t">ObjClass</span>* <span class="i">klass</span>, <span class="t">ObjString</span>* <span class="i">name</span>,
                             <span class="t">int</span> <span class="i">argCount</span>) {
   <span class="t">Value</span> <span class="i">method</span>;
   <span class="k">if</span> (!<span class="i">tableGet</span>(&amp;<span class="i">klass</span>-&gt;<span class="i">methods</span>, <span class="i">name</span>, &amp;<span class="i">method</span>)) {
@@ -1545,13 +1387,12 @@ improvement is relative to our own unoptimized method call implementation which
 was quite slow. Doing a heap allocation for every single method call isn&rsquo;t going
 to win any races.</p>
 </aside><img src="image/methods-and-initializers/benchmark.png" alt="Bar chart comparing the two benchmark results." />
-<h3><a href="#invoking-fields" name="invoking-fields"><small>28&#8202;.&#8202;5&#8202;.&#8202;1</small>Invoking fields</a></h3>
+<h3><a href="#invoking-fields" id="invoking-fields"><small>28&#8202;.&#8202;5&#8202;.&#8202;1</small>Invoking fields</a></h3>
 <p>The fundamental creed of optimization is: &ldquo;Thou shalt not break correctness.&rdquo;
 <span name="monte">Users</span> like it when a language implementation gives
 them an answer faster, but only if it&rsquo;s the <em>right</em> answer. Alas, our
 implementation of faster method invocations fails to uphold that principle:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Oops</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Oops</span> {
   <span class="i">init</span>() {
     <span class="k">fun</span> <span class="i">f</span>() {
       <span class="k">print</span> <span class="s">&quot;not a method&quot;</span>;
@@ -1580,8 +1421,7 @@ their program&rsquo;s correctness.</p>
 </aside>
 <p>Earlier, when we implemented <code>OP_GET_PROPERTY</code>, we handled both field and method
 accesses. To squash this new bug, we need to do the same thing for <code>OP_INVOKE</code>.</p>
-<div class="codehilite"><pre class="insert-before">
-  ObjInstance* instance = AS_INSTANCE(receiver);
+<div class="codehilite"><pre class="insert-before">  ObjInstance* instance = AS_INSTANCE(receiver);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>invoke</em>()</div>
 <pre class="insert">
@@ -1592,8 +1432,7 @@ in <em>invoke</em>()</div>
     <span class="k">return</span> <span class="i">callValue</span>(<span class="i">value</span>, <span class="i">argCount</span>);
   }
 
-</pre><pre class="insert-after">
-  return invokeFromClass(instance-&gt;klass, name, argCount);
+</pre><pre class="insert-after">  return invokeFromClass(instance-&gt;klass, name, argCount);
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>invoke</em>()</div>
 
@@ -1642,7 +1481,7 @@ Full-time VM engineers spend much of their careers in this loop.</p>
 <p>But we can stop here for now. With this, clox now supports most of the features
 of an object-oriented programming language, and with respectable performance.</p>
 <div class="challenges">
-<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+<h2><a href="#challenges" id="challenges">Challenges</a></h2>
 <ol>
 <li>
 <p>The hash table lookup to find a class&rsquo;s <code>init()</code> method is constant time,
@@ -1671,7 +1510,7 @@ would you do?</p>
 </ol>
 </div>
 <div class="design-note">
-<h2><a href="#design-note" name="design-note">Design Note: Novelty Budget</a></h2>
+<h2><a href="#design-note" id="design-note">Design Note: Novelty Budget</a></h2>
 <p>I still remember the first time I wrote a tiny BASIC program on a TRS-80 and
 made a computer do something it hadn&rsquo;t done before. It felt like a superpower.
 The first time I cobbled together just enough of a parser and interpreter to let
@@ -1777,7 +1616,7 @@ proportionally smaller (but likely more devoted) audience size, go for it.</p>
 <a href="superclasses.html" class="next">
   Next Chapter: &ldquo;Superclasses&rdquo; &rarr;
 </a>
-Handcrafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2020</a>
+Handcrafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2021</a>
 </footer>
 </article>
 

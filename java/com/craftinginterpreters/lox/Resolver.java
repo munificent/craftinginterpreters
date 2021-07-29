@@ -131,7 +131,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //< restore-current-class
     return null;
   }
-
 //< Classes resolver-visit-class
 //> visit-expression-stmt
   @Override
@@ -276,7 +275,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     resolve(expr.object);
     return null;
   }
-
 //< Classes resolver-visit-set
 //> Inheritance resolve-super-expr
   @Override
@@ -382,7 +380,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //> duplicate-variable
     if (scope.containsKey(name.lexeme)) {
       Lox.error(name,
-          "Already variable with this name in this scope.");
+          "Already a variable with this name in this scope.");
     }
 
 //< duplicate-variable

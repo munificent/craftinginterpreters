@@ -203,7 +203,7 @@ Yacc wasn't the first of its ilk, which is why it's named "Yacc" -- *Yet
 Another* Compiler-Compiler. A later similar tool is [Bison][], named as a pun on
 the pronunciation of Yacc like "yak".
 
-<img src="image/introduction/yak.png" alt="A yak.">
+<img src="image/introduction/yak.png" alt="A yak." />
 
 [bison]: https://en.wikipedia.org/wiki/GNU_bison
 
@@ -391,7 +391,7 @@ compiler to compile future versions of itself, and you can discard the original
 one compiled from the other compiler. This is called **bootstrapping**, from
 the image of pulling yourself up by your own bootstraps.
 
-<img src="image/introduction/bootstrap.png" alt="Fact: This is the primary mode of transportation of the American cowboy.">
+<img src="image/introduction/bootstrap.png" alt="Fact: This is the primary mode of transportation of the American cowboy." />
 
 </aside>
 
@@ -431,7 +431,7 @@ build a garbage collector to reclaim them.
 <aside name="clox">
 
 I pronounce the name like "sea-locks", but you can say it "clocks" or even
-"clochs", where you pronounce the "x" like the Greeks do if it makes you happy.
+"cloch", where you pronounce the "x" like the Greeks do if it makes you happy.
 
 </aside>
 

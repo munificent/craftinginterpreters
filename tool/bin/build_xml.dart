@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import 'package:tool/src/book.dart';
+import 'package:tool/src/format.dart';
 import 'package:tool/src/markdown/markdown.dart';
 import 'package:tool/src/markdown/xml_renderer.dart';
 import 'package:tool/src/mustache.dart';
@@ -32,7 +33,7 @@ Future<void> main(List<String> arguments) async {
 }
 
 void _buildPage(Book book, Mustache mustache, Page page) {
-  var xml = renderMarkdown(book, page, page.lines, xml: true);
+  var xml = renderMarkdown(book, page, page.lines, Format.print);
 
   // Write the output.
   var xmlPath = p.join("build", "xml", "${page.fileName}.xml");

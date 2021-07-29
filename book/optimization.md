@@ -27,7 +27,12 @@ understand a program's performance just by thinking real hard. Those days are
 long gone, separated from the present by microcode, cache lines, branch
 prediction, deep compiler pipelines, and mammoth instruction sets. We like to
 pretend C is a "low-level" language, but the stack of technology between
-`printf("Hello, world!");` and a greeting appearing on screen is now miles tall.
+
+```c
+printf("Hello, world!");
+```
+
+and a greeting appearing on screen is now perilously tall.
 
 Optimization today is an empirical science. Our program is a border collie
 sprinting through the hardware's obstacle course. If we want her to reach the
@@ -324,7 +329,7 @@ remainder of a number modulo a power of two: **bit masking**. Let's say we want
 to calculate 229 modulo 64. The answer is 37, which is not particularly apparent
 in decimal, but is clearer when you view those numbers in binary:
 
-<img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 & 63 = 37." />
+<img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 &amp; 63 = 37." />
 
 On the left side of the illustration, notice how the result (37) is simply the
 dividend (229) with the highest two bits shaved off? Those two highest bits are

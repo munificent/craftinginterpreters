@@ -34,7 +34,6 @@
 <nav class="wide">
   <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
   <div class="contents">
-<!-- If there is a part, it must be a chapter within a part. -->
 <h3><a href="#top">Optimization<small>30</small></a></h3>
 
 <ul>
@@ -65,7 +64,6 @@
 <nav class="floating">
   <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
   <div class="expandable">
-<!-- If there is a part, it must be a chapter within a part. -->
 <h3><a href="#top">Optimization<small>30</small></a></h3>
 
 <ul>
@@ -121,7 +119,7 @@ complete virtual machine already, but I want you to have some more fun hacking
 on clox. This time, we&rsquo;re going for pure performance. We&rsquo;ll apply two very
 different optimizations to our virtual machine.  In the process, you&rsquo;ll get a
 feel for measuring and improving the performance of a language implementation<span class="em">&mdash;</span>or any program, really.</p>
-<h2><a href="#measuring-performance" name="measuring-performance"><small>30&#8202;.&#8202;1</small>Measuring Performance</a></h2>
+<h2><a href="#measuring-performance" id="measuring-performance"><small>30&#8202;.&#8202;1</small>Measuring Performance</a></h2>
 <p><strong>Optimization</strong> means taking a working application and improving its
 performance. An optimized program does the same thing, it just takes less
 resources to do so. The resource we usually think of when optimizing is runtime
@@ -134,8 +132,10 @@ hold the entire hardware architecture and compiler pipeline in their head and
 understand a program&rsquo;s performance just by thinking real hard. Those days are
 long gone, separated from the present by microcode, cache lines, branch
 prediction, deep compiler pipelines, and mammoth instruction sets. We like to
-pretend C is a &ldquo;low-level&rdquo; language, but the stack of technology between
-<code>printf("Hello, world!");</code> and a greeting appearing on screen is now miles tall.</p>
+pretend C is a &ldquo;low-level&rdquo; language, but the stack of technology between</p>
+<div class="codehilite"><pre><span class="i">printf</span>(<span class="s">&quot;Hello, world!&quot;</span>);
+</pre></div>
+<p>and a greeting appearing on screen is now perilously tall.</p>
 <p>Optimization today is an empirical science. Our program is a border collie
 sprinting through the hardware&rsquo;s obstacle course. If we want her to reach the
 end faster, we can&rsquo;t just sit and ruminate on canine physiology until
@@ -145,7 +145,7 @@ she stumbles, and then find faster paths for her to take.</p>
 can&rsquo;t assume that our virtual machine optimizations will make <em>all</em> Lox programs
 run faster on <em>all</em> hardware. Different Lox programs stress different areas of
 the VM, and different architectures have their own strengths and weaknesses.</p>
-<h3><a href="#benchmarks" name="benchmarks"><small>30&#8202;.&#8202;1&#8202;.&#8202;1</small>Benchmarks</a></h3>
+<h3><a href="#benchmarks" id="benchmarks"><small>30&#8202;.&#8202;1&#8202;.&#8202;1</small>Benchmarks</a></h3>
 <p>When we add new functionality, we validate correctness by writing tests<span class="em">&mdash;</span>Lox
 programs that use a feature and validate the VM&rsquo;s behavior. Tests pin down
 semantics and ensure we don&rsquo;t break existing features when we add new ones. We
@@ -208,7 +208,7 @@ code paths that you care about. When you measure performance, you need to
 compensate for variance caused by CPU throttling, caching, and other weird
 hardware and operating system quirks. I won&rsquo;t give you a whole sermon here,
 but treat benchmarking as its own skill that improves with practice.</p>
-<h3><a href="#profiling" name="profiling"><small>30&#8202;.&#8202;1&#8202;.&#8202;2</small>Profiling</a></h3>
+<h3><a href="#profiling" id="profiling"><small>30&#8202;.&#8202;1&#8202;.&#8202;2</small>Profiling</a></h3>
 <p>OK, so you&rsquo;ve got a few benchmarks now. You want to make them go faster. Now
 what? First of all, let&rsquo;s assume you&rsquo;ve done all the obvious, easy work. You are
 using the right algorithms and data structures<span class="em">&mdash;</span>or, at least, you aren&rsquo;t using
@@ -236,7 +236,7 @@ On whatever platform you program, it&rsquo;s worth getting familiar with a decen
 profiler. You don&rsquo;t need to be a master. I have learned things within minutes of
 throwing a program at a profiler that would have taken me <em>days</em> to discover on
 my own through trial and error. Profilers are wonderful, magical tools.</p>
-<h2><a href="#faster-hash-table-probing" name="faster-hash-table-probing"><small>30&#8202;.&#8202;2</small>Faster Hash Table Probing</a></h2>
+<h2><a href="#faster-hash-table-probing" id="faster-hash-table-probing"><small>30&#8202;.&#8202;2</small>Faster Hash Table Probing</a></h2>
 <p>Enough pontificating, let&rsquo;s get some performance charts going up and to the
 right. The first optimization we&rsquo;ll do, it turns out, is about the <em>tiniest</em>
 possible change we could make to our VM.</p>
@@ -246,8 +246,7 @@ couple of benchmarks, fired up a profiler, and ran those scripts through my
 interpreter. In a dynamically typed language like Lox, a large fraction of user
 code is field accesses and method calls, so one of my benchmarks looked
 something like this:</p>
-<div class="codehilite"><pre>
-<span class="k">class</span> <span class="t">Zoo</span> {
+<div class="codehilite"><pre><span class="k">class</span> <span class="t">Zoo</span> {
   <span class="i">init</span>() {
     <span class="k">this</span>.<span class="i">aardvark</span> = <span class="n">1</span>;
     <span class="k">this</span>.<span class="i">baboon</span>   = <span class="n">1</span>;
@@ -324,12 +323,11 @@ function: <code>tableGet()</code>. That function claims a whole 72% of the execu
 (again, inclusive). Now, in a dynamically typed language, we expect to spend a
 fair bit of time looking stuff up in hash tables<span class="em">&mdash;</span>it&rsquo;s sort of the price of
 dynamism. But, still, <em>wow.</em></p>
-<h3><a href="#slow-key-wrapping" name="slow-key-wrapping"><small>30&#8202;.&#8202;2&#8202;.&#8202;1</small>Slow key wrapping</a></h3>
+<h3><a href="#slow-key-wrapping" id="slow-key-wrapping"><small>30&#8202;.&#8202;2&#8202;.&#8202;1</small>Slow key wrapping</a></h3>
 <p>If you take a look at <code>tableGet()</code>, you&rsquo;ll see it&rsquo;s mostly a wrapper around a
 call to <code>findEntry()</code> where the actual hash table lookup happens. To refresh
 your memory, here it is in full:</p>
-<div class="codehilite"><pre>
-<span class="k">static</span> <span class="t">Entry</span>* <span class="i">findEntry</span>(<span class="t">Entry</span>* <span class="i">entries</span>, <span class="t">int</span> <span class="i">capacity</span>,
+<div class="codehilite"><pre><span class="k">static</span> <span class="t">Entry</span>* <span class="i">findEntry</span>(<span class="t">Entry</span>* <span class="i">entries</span>, <span class="t">int</span> <span class="i">capacity</span>,
                         <span class="t">ObjString</span>* <span class="i">key</span>) {
   <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> % <span class="i">capacity</span>;
   <span class="t">Entry</span>* <span class="i">tombstone</span> = <span class="a">NULL</span>;
@@ -356,8 +354,7 @@ your memory, here it is in full:</p>
 <p>When running that previous benchmark<span class="em">&mdash;</span>on my machine, at least<span class="em">&mdash;</span>the VM spends
 70% of the total execution time on <em>one line</em> in this function. Any guesses as
 to which one? No? It&rsquo;s this:</p>
-<div class="codehilite"><pre>
-  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> % <span class="i">capacity</span>;
+<div class="codehilite"><pre>  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> % <span class="i">capacity</span>;
 </pre></div>
 <p>That pointer dereference isn&rsquo;t the problem. It&rsquo;s the little <code>%</code>. It turns out
 the modulo operator is <em>really</em> slow. Much slower than other <span
@@ -380,7 +377,7 @@ CPU and C compiler do not<span class="em">&mdash;</span>that our table&rsquo;s s
 <p>Because we&rsquo;re clever bit twiddlers, we know a faster way to calculate the
 remainder of a number modulo a power of two: <strong>bit masking</strong>. Let&rsquo;s say we want
 to calculate 229 modulo 64. The answer is 37, which is not particularly apparent
-in decimal, but is clearer when you view those numbers in binary:</p><img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 & 63 = 37." />
+in decimal, but is clearer when you view those numbers in binary:</p><img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 &amp; 63 = 37." />
 <p>On the left side of the illustration, notice how the result (37) is simply the
 dividend (229) with the highest two bits shaved off? Those two highest bits are
 the bits at or to the left of the divisor&rsquo;s single 1 bit.</p>
@@ -395,16 +392,13 @@ not enough of a mathematician to <em>prove</em> to you that this works, but if y
 think it through, it should make sense. We can replace that slow modulo operator
 with a very fast decrement and bitwise <span class="small-caps">AND</span>. We
 simply change the offending line of code to this:</p>
-<div class="codehilite"><pre class="insert-before">
-static Entry* findEntry(Entry* entries, int capacity,
+<div class="codehilite"><pre class="insert-before">static Entry* findEntry(Entry* entries, int capacity,
                         ObjString* key) {
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>findEntry</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> &amp; (<span class="i">capacity</span> - <span class="n">1</span>);
-</pre><pre class="insert-after">
-  Entry* tombstone = NULL;
+<pre class="insert">  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">key</span>-&gt;<span class="i">hash</span> &amp; (<span class="i">capacity</span> - <span class="n">1</span>);
+</pre><pre class="insert-after">  Entry* tombstone = NULL;
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 1 line</div>
 
@@ -417,18 +411,15 @@ CPU is bottlenecked elsewhere.</p>
 </aside>
 <p>Our linear probing search may need to wrap around the end of the array, so there
 is another modulo in <code>findEntry()</code> to update.</p>
-<div class="codehilite"><pre class="insert-before">
-      // We found the key.
+<div class="codehilite"><pre class="insert-before">      // We found the key.
       return entry;
     }
 
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>findEntry</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-    <span class="i">index</span> = (<span class="i">index</span> + <span class="n">1</span>) &amp; (<span class="i">capacity</span> - <span class="n">1</span>);
-</pre><pre class="insert-after">
-  }
+<pre class="insert">    <span class="i">index</span> = (<span class="i">index</span> + <span class="n">1</span>) &amp; (<span class="i">capacity</span> - <span class="n">1</span>);
+</pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 1 line</div>
 
@@ -438,32 +429,26 @@ a hash table lookup for interning strings. We may as well apply the same
 optimizations there too. This function is called only when interning strings,
 which wasn&rsquo;t heavily stressed by our benchmark. But a Lox program that created
 lots of strings might noticeably benefit from this change.</p>
-<div class="codehilite"><pre class="insert-before">
-  if (table-&gt;count == 0) return NULL;
+<div class="codehilite"><pre class="insert-before">  if (table-&gt;count == 0) return NULL;
 
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableFindString</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">hash</span> &amp; (<span class="i">table</span>-&gt;<span class="i">capacity</span> - <span class="n">1</span>);
-</pre><pre class="insert-after">
-  for (;;) {
+<pre class="insert">  <span class="t">uint32_t</span> <span class="i">index</span> = <span class="i">hash</span> &amp; (<span class="i">table</span>-&gt;<span class="i">capacity</span> - <span class="n">1</span>);
+</pre><pre class="insert-after">  for (;;) {
     Entry* entry = &amp;table-&gt;entries[index];
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableFindString</em>(), replace 1 line</div>
 
 <p>And also when the linear probing wraps around.</p>
-<div class="codehilite"><pre class="insert-before">
-      return entry-&gt;key;
+<div class="codehilite"><pre class="insert-before">      return entry-&gt;key;
     }
 
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableFindString</em>()<br>
 replace 1 line</div>
-<pre class="insert">
-    <span class="i">index</span> = (<span class="i">index</span> + <span class="n">1</span>) &amp; (<span class="i">table</span>-&gt;<span class="i">capacity</span> - <span class="n">1</span>);
-</pre><pre class="insert-after">
-  }
+<pre class="insert">    <span class="i">index</span> = (<span class="i">index</span> + <span class="n">1</span>) &amp; (<span class="i">table</span>-&gt;<span class="i">capacity</span> - <span class="n">1</span>);
+</pre><pre class="insert-after">  }
 </pre></div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableFindString</em>(), replace 1 line</div>
 
@@ -504,7 +489,7 @@ time down to 35%. That&rsquo;s much more in line with what we&rsquo;d like to se
 that our optimization didn&rsquo;t just make the program faster, but made it faster
 <em>in the way we expected</em>. Profilers are as useful for verifying solutions as
 they are for discovering problems.</p>
-<h2><a href="#nan-boxing" name="nan-boxing"><small>30&#8202;.&#8202;3</small>NaN Boxing</a></h2>
+<h2><a href="#nan-boxing" id="nan-boxing"><small>30&#8202;.&#8202;3</small>NaN Boxing</a></h2>
 <p>This next optimization has a very different feel. Thankfully, despite the odd
 name, it does not involve punching your grandmother. It&rsquo;s different, but not,
 like, <em>that</em> different. With our previous optimization, the profiler told us
@@ -553,7 +538,7 @@ with a number of very clever ways to pack type information and a payload into a
 small number of bits. NaN boxing is one of those. It&rsquo;s a particularly good fit
 for languages like JavaScript and Lua, where all numbers are double-precision
 floating point. Lox is in that same boat.</p>
-<h3><a href="#what-is-(and-is-not)-a-number" name="what-is-(and-is-not)-a-number"><small>30&#8202;.&#8202;3&#8202;.&#8202;1</small>What is (and is not) a number?</a></h3>
+<h3><a href="#what-is-and-is-not-a-number" id="what-is-and-is-not-a-number"><small>30&#8202;.&#8202;3&#8202;.&#8202;1</small>What is (and is not) a number?</a></h3>
 <p>Before we start optimizing, we need to really understand how our friend the CPU
 represents floating-point numbers. Almost all machines today use the same
 scheme, encoded in the venerable scroll <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a>, known to mortals as the
@@ -641,7 +626,7 @@ pointer indirection to go from &ldquo;value&rdquo; to &ldquo;number&rdquo;.</p>
 fortunately, our VM hides all of the mechanism to go from values to raw types
 behind a handful of macros. Rewrite those to implement NaN boxing, and the rest
 of the VM should just work.</p>
-<h3><a href="#conditional-support" name="conditional-support"><small>30&#8202;.&#8202;3&#8202;.&#8202;2</small>Conditional support</a></h3>
+<h3><a href="#conditional-support" id="conditional-support"><small>30&#8202;.&#8202;3&#8202;.&#8202;2</small>Conditional support</a></h3>
 <p>I know the details of this new representation aren&rsquo;t clear in your head yet.
 Don&rsquo;t worry, they will crystallize as we work through the implementation. Before
 we get to that, we&rsquo;re going to put some compile-time scaffolding in place.</p>
@@ -654,14 +639,11 @@ totally sure.</p>
 of its value representation. To avoid that, we&rsquo;ll maintain support for <em>both</em>
 the old tagged union implementation of Value and the new NaN-boxed form. We
 select which representation we want at compile time using this flag:</p>
-<div class="codehilite"><pre class="insert-before">
-#include &lt;stdint.h&gt;
+<div class="codehilite"><pre class="insert-before">#include &lt;stdint.h&gt;
 
 </pre><div class="source-file"><em>common.h</em></div>
-<pre class="insert">
-<span class="a">#define NAN_BOXING</span>
-</pre><pre class="insert-after">
-#define DEBUG_PRINT_CODE
+<pre class="insert"><span class="a">#define NAN_BOXING</span>
+</pre><pre class="insert-after">#define DEBUG_PRINT_CODE
 </pre></div>
 <div class="source-file-narrow"><em>common.h</em></div>
 
@@ -672,19 +654,16 @@ Values<span class="em">&mdash;</span>vary based on whether this flag is set. The
 continue along its merry way.</p>
 <p>Most of the work happens in the &ldquo;value&rdquo; module where we add a section for the
 new type.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef struct ObjString ObjString;
+<div class="codehilite"><pre class="insert-before">typedef struct ObjString ObjString;
 
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#ifdef NAN_BOXING</span>
+<pre class="insert"><span class="a">#ifdef NAN_BOXING</span>
 
 <span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span>;
 
 <span class="a">#else</span>
 
-</pre><pre class="insert-after">
-typedef enum {
+</pre><pre class="insert-after">typedef enum {
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
@@ -695,8 +674,7 @@ do bitwise operations and uint64_t is a much friendlier type for that. Outside
 of this module, the rest of the VM doesn&rsquo;t really care one way or the other.</p>
 <p>Before we start re-implementing those macros, we close the <code>#else</code> branch of the
 <code>#ifdef</code> at the end of the definitions for the old representation.</p>
-<div class="codehilite"><pre class="insert-before">
-#define OBJ_VAL(object)   ((Value){VAL_OBJ, {.obj = (Obj*)object}})
+<div class="codehilite"><pre class="insert-before">#define OBJ_VAL(object)   ((Value){VAL_OBJ, {.obj = (Obj*)object}})
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -710,7 +688,7 @@ typedef struct {
 <p>Our remaining task is simply to fill in that first <code>#ifdef</code> section with new
 implementations of all the stuff already in the <code>#else</code> side. We&rsquo;ll work through
 it one value type at a time, from easiest to hardest.</p>
-<h3><a href="#numbers" name="numbers"><small>30&#8202;.&#8202;3&#8202;.&#8202;3</small>Numbers</a></h3>
+<h3><a href="#numbers" id="numbers"><small>30&#8202;.&#8202;3&#8202;.&#8202;3</small>Numbers</a></h3>
 <p>We&rsquo;ll start with numbers since they have the most direct representation under
 NaN boxing. To &ldquo;convert&rdquo; a C double to a NaN-boxed clox Value, we don&rsquo;t need to
 touch a single bit<span class="em">&mdash;</span>the representation is exactly the same. But we do need to
@@ -740,8 +718,7 @@ breaks that assumption.</p>
 supported by both the C and C++ specs. Unfortunately, it doesn&rsquo;t fit in a single
 expression, so the conversion macros have to call out to helper functions.
 Here&rsquo;s the first macro:</p>
-<div class="codehilite"><pre class="insert-before">
-typedef uint64_t Value;
+<div class="codehilite"><pre class="insert-before">typedef uint64_t Value;
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -753,8 +730,7 @@ typedef uint64_t Value;
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>That macro passes the double here:</p>
-<div class="codehilite"><pre class="insert-before">
-#define NUMBER_VAL(num) numToValue(num)
+<div class="codehilite"><pre class="insert-before">#define NUMBER_VAL(num) numToValue(num)
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -777,8 +753,7 @@ bytes as the input. Thankfully, because this <em>is</em> the supported idiom for
 punning, most compilers recognize the pattern and optimize away the <code>memcpy()</code>
 entirely.</p>
 <p>&ldquo;Unwrapping&rdquo; a Lox number is the mirror image.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef uint64_t Value;
+<div class="codehilite"><pre class="insert-before">typedef uint64_t Value;
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -790,8 +765,7 @@ typedef uint64_t Value;
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>That macro calls this function:</p>
-<div class="codehilite"><pre class="insert-before">
-#define NUMBER_VAL(num) numToValue(num)
+<div class="codehilite"><pre class="insert-before">#define NUMBER_VAL(num) numToValue(num)
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -813,8 +787,7 @@ we&rsquo;re calling so we also need an <span name="union">include</span>.</p>
 <aside name="union" class="bottom">
 <p>If you find yourself with a compiler that does not optimize the <code>memcpy()</code> away,
 try this instead:</p>
-<div class="codehilite"><pre>
-<span class="t">double</span> <span class="i">valueToNum</span>(<span class="t">Value</span> <span class="i">value</span>) {
+<div class="codehilite"><pre><span class="t">double</span> <span class="i">valueToNum</span>(<span class="t">Value</span> <span class="i">value</span>) {
   <span class="k">union</span> {
     <span class="t">uint64_t</span> <span class="i">bits</span>;
     <span class="t">double</span> <span class="i">num</span>;
@@ -824,8 +797,7 @@ try this instead:</p>
 }
 </pre></div>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-#define clox_value_h
+<div class="codehilite"><pre class="insert-before">#define clox_value_h
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -840,8 +812,7 @@ try this instead:</p>
 Doing a runtime type <em>test</em> on a Lox number is a little more interesting. If all
 we have are exactly the bits for a double, how do we tell that it <em>is</em> a double?
 It&rsquo;s time to get bit twiddling.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef uint64_t Value;
+<div class="codehilite"><pre class="insert-before">typedef uint64_t Value;
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -869,8 +840,7 @@ whose bit representation collides with ones we have claimed. But in my tests
 across a number of architectures, I haven&rsquo;t seen it happen.</p>
 </aside>
 <p>The set of quiet NaN bits are declared like this:</p>
-<div class="codehilite"><pre class="insert-before">
-#ifdef NAN_BOXING
+<div class="codehilite"><pre class="insert-before">#ifdef NAN_BOXING
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -885,7 +855,7 @@ typedef uint64_t Value;
 you&rsquo;ll see that value is the same as this:</p><img src="image/optimization/qnan.png" alt="The quiet NaN bits." />
 <p>This is exactly all of the exponent bits, plus the quiet NaN bit, plus one extra
 to dodge that Intel value.</p>
-<h3><a href="#nil-true-and-false" name="nil-true-and-false"><small>30&#8202;.&#8202;3&#8202;.&#8202;4</small>Nil, true, and false</a></h3>
+<h3><a href="#nil-true-and-false" id="nil-true-and-false"><small>30&#8202;.&#8202;3&#8202;.&#8202;4</small>Nil, true, and false</a></h3>
 <p>The next type to handle is <code>nil</code>. That&rsquo;s pretty simple since there&rsquo;s only one
 <code>nil</code> value and thus we need only a single bit pattern to represent it. There
 are two other singleton values, the two Booleans, <code>true</code> and <code>false</code>. This calls
@@ -894,8 +864,7 @@ for three total unique bit patterns.</p>
 lowest bits of our unused mantissa space as a &ldquo;type tag&rdquo; to determine which of
 these three singleton values we&rsquo;re looking at. The three type tags are defined
 like so:</p>
-<div class="codehilite"><pre class="insert-before">
-#define QNAN     ((uint64_t)0x7ffc000000000000)
+<div class="codehilite"><pre class="insert-before">#define QNAN     ((uint64_t)0x7ffc000000000000)
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
@@ -911,14 +880,11 @@ typedef uint64_t Value;
 <p>Our representation of <code>nil</code> is thus all of the bits required to define our
 quiet NaN representation along with the <code>nil</code> type tag bits:</p><img src="image/optimization/nil.png" alt="The bit representation of the nil value." />
 <p>In code, we check the bits like so:</p>
-<div class="codehilite"><pre class="insert-before">
-#define AS_NUMBER(value)    valueToNum(value)
+<div class="codehilite"><pre class="insert-before">#define AS_NUMBER(value)    valueToNum(value)
 
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define NIL_VAL         ((Value)(uint64_t)(QNAN | TAG_NIL))</span>
-</pre><pre class="insert-after">
-#define NUMBER_VAL(num) numToValue(num)
+<pre class="insert"><span class="a">#define NIL_VAL         ((Value)(uint64_t)(QNAN | TAG_NIL))</span>
+</pre><pre class="insert-after">#define NUMBER_VAL(num) numToValue(num)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
@@ -928,55 +894,43 @@ those bits to mean.</p>
 <p>Since <code>nil</code> has only a single bit representation, we can use equality on
 uint64_t to see if a Value is <code>nil</code>.</p>
 <p><span name="equal"></span></p>
-<div class="codehilite"><pre class="insert-before">
-typedef uint64_t Value;
+<div class="codehilite"><pre class="insert-before">typedef uint64_t Value;
 
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define IS_NIL(value)       ((value) == NIL_VAL)</span>
-</pre><pre class="insert-after">
-#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)
+<pre class="insert"><span class="a">#define IS_NIL(value)       ((value) == NIL_VAL)</span>
+</pre><pre class="insert-after">#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>You can guess how we define the <code>true</code> and <code>false</code> values.</p>
-<div class="codehilite"><pre class="insert-before">
-#define AS_NUMBER(value)    valueToNum(value)
+<div class="codehilite"><pre class="insert-before">#define AS_NUMBER(value)    valueToNum(value)
 
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define FALSE_VAL       ((Value)(uint64_t)(QNAN | TAG_FALSE))</span>
+<pre class="insert"><span class="a">#define FALSE_VAL       ((Value)(uint64_t)(QNAN | TAG_FALSE))</span>
 <span class="a">#define TRUE_VAL        ((Value)(uint64_t)(QNAN | TAG_TRUE))</span>
-</pre><pre class="insert-after">
-#define NIL_VAL         ((Value)(uint64_t)(QNAN | TAG_NIL))
+</pre><pre class="insert-after">#define NIL_VAL         ((Value)(uint64_t)(QNAN | TAG_NIL))
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>The bits look like this:</p><img src="image/optimization/bools.png" alt="The bit representation of the true and false values." />
 <p>To convert a C bool into a Lox Boolean, we rely on these two singleton values
 and the good old conditional operator.</p>
-<div class="codehilite"><pre class="insert-before">
-#define AS_NUMBER(value)    valueToNum(value)
+<div class="codehilite"><pre class="insert-before">#define AS_NUMBER(value)    valueToNum(value)
 
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define BOOL_VAL(b)     ((b) ? TRUE_VAL : FALSE_VAL)</span>
-</pre><pre class="insert-after">
-#define FALSE_VAL       ((Value)(uint64_t)(QNAN | TAG_FALSE))
+<pre class="insert"><span class="a">#define BOOL_VAL(b)     ((b) ? TRUE_VAL : FALSE_VAL)</span>
+</pre><pre class="insert-after">#define FALSE_VAL       ((Value)(uint64_t)(QNAN | TAG_FALSE))
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>There&rsquo;s probably a cleverer bitwise way to do this, but my hunch is that the
 compiler can figure one out faster than I can. Going the other direction is
 simpler.</p>
-<div class="codehilite"><pre class="insert-before">
-#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)
+<div class="codehilite"><pre class="insert-before">#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)
 
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define AS_BOOL(value)      ((value) == TRUE_VAL)</span>
-</pre><pre class="insert-after">
-#define AS_NUMBER(value)    valueToNum(value)
+<pre class="insert"><span class="a">#define AS_BOOL(value)      ((value) == TRUE_VAL)</span>
+</pre><pre class="insert-after">#define AS_NUMBER(value)    valueToNum(value)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
@@ -984,20 +938,16 @@ simpler.</p>
 in C where any non-zero value can be considered &ldquo;true&rdquo;<span class="em">&mdash;</span>if it ain&rsquo;t <code>true</code>, it
 must be <code>false</code>. This macro does assume you call it only on a Value that you
 know <em>is</em> a Lox Boolean. To check that, there&rsquo;s one more macro.</p>
-<div class="codehilite"><pre class="insert-before">
-typedef uint64_t Value;
+<div class="codehilite"><pre class="insert-before">typedef uint64_t Value;
 
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define IS_BOOL(value)      (((value) | 1) == TRUE_VAL)</span>
-</pre><pre class="insert-after">
-#define IS_NIL(value)       ((value) == NIL_VAL)
+<pre class="insert"><span class="a">#define IS_BOOL(value)      (((value) | 1) == TRUE_VAL)</span>
+</pre><pre class="insert-after">#define IS_NIL(value)       ((value) == NIL_VAL)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>That looks a little strange. A more obvious macro would look like this:</p>
-<div class="codehilite"><pre>
-<span class="a">#define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)</span>
+<div class="codehilite"><pre><span class="a">#define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)</span>
 </pre></div>
 <p>Unfortunately, that&rsquo;s not safe. The expansion mentions <code>v</code> twice, which means if
 that expression has any side effects, they will be executed twice. We could have
@@ -1018,7 +968,7 @@ states the value can be in:</p>
 </ol>
 <p>At that point, we can simply compare the result to <code>TRUE_VAL</code> to see if we&rsquo;re
 in the first two states or the third.</p>
-<h3><a href="#objects" name="objects"><small>30&#8202;.&#8202;3&#8202;.&#8202;5</small>Objects</a></h3>
+<h3><a href="#objects" id="objects"><small>30&#8202;.&#8202;3&#8202;.&#8202;5</small>Objects</a></h3>
 <p>The last value type is the hardest. Unlike the singleton values, there are
 billions of different pointer values we need to box inside a NaN. This means we
 need both some kind of tag to indicate that these particular NaNs <em>are</em> Obj
@@ -1044,11 +994,9 @@ pointer.</p>
 Obj:</p><img src="image/optimization/obj.png" alt="Bit representation of an Obj* stored in a Value." />
 <p>To convert a raw Obj pointer to a Value, we take the pointer and set all of the
 quiet NaN bits and the sign bit.</p>
-<div class="codehilite"><pre class="insert-before">
-#define NUMBER_VAL(num) numToValue(num)
+<div class="codehilite"><pre class="insert-before">#define NUMBER_VAL(num) numToValue(num)
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define OBJ_VAL(obj) \</span>
+<pre class="insert"><span class="a">#define OBJ_VAL(obj) \</span>
 <span class="a">    (Value)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(obj))</span>
 </pre><pre class="insert-after">
 
@@ -1071,24 +1019,19 @@ compiler and chip let you get away with.</p>
 lawless territory too. It&rsquo;s up to you to decide if the gains are worth it.</p>
 </aside>
 <p>We define the sign bit like so:</p>
-<div class="codehilite"><pre class="insert-before">
-#ifdef NAN_BOXING
+<div class="codehilite"><pre class="insert-before">#ifdef NAN_BOXING
 
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define SIGN_BIT ((uint64_t)0x8000000000000000)</span>
-</pre><pre class="insert-after">
-#define QNAN     ((uint64_t)0x7ffc000000000000)
+<pre class="insert"><span class="a">#define SIGN_BIT ((uint64_t)0x8000000000000000)</span>
+</pre><pre class="insert-after">#define QNAN     ((uint64_t)0x7ffc000000000000)
 
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>To get the Obj pointer back out, we simply mask off all of those extra bits.</p>
-<div class="codehilite"><pre class="insert-before">
-#define AS_NUMBER(value)    valueToNum(value)
+<div class="codehilite"><pre class="insert-before">#define AS_NUMBER(value)    valueToNum(value)
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define AS_OBJ(value) \</span>
+<pre class="insert"><span class="a">#define AS_OBJ(value) \</span>
 <span class="a">    ((Obj*)(uintptr_t)((value) &amp; ~(SIGN_BIT | QNAN)))</span>
 </pre><pre class="insert-after">
 
@@ -1101,11 +1044,9 @@ before, is bitwise <span class="small-caps">NOT</span>. It toggles all ones and
 zeroes in its operand. By masking the value with the bitwise negation of the
 quiet NaN and sign bits, we <em>clear</em> those bits and let the pointer bits remain.</p>
 <p>One last macro:</p>
-<div class="codehilite"><pre class="insert-before">
-#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)
+<div class="codehilite"><pre class="insert-before">#define IS_NUMBER(value)    (((value) &amp; QNAN) != QNAN)
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-<span class="a">#define IS_OBJ(value) \</span>
+<pre class="insert"><span class="a">#define IS_OBJ(value) \</span>
 <span class="a">    (((value) &amp; (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))</span>
 </pre><pre class="insert-after">
 
@@ -1118,7 +1059,7 @@ number. To tell if a Value is an Obj pointer, we need to check that both the
 sign bit and all of the quiet NaN bits are set. This is similar to how we detect
 the type of the singleton values, except this time we use the sign bit as the
 tag.</p>
-<h3><a href="#value-functions" name="value-functions"><small>30&#8202;.&#8202;3&#8202;.&#8202;6</small>Value functions</a></h3>
+<h3><a href="#value-functions" id="value-functions"><small>30&#8202;.&#8202;3&#8202;.&#8202;6</small>Value functions</a></h3>
 <p>The rest of the VM usually goes through the macros when working with Values, so
 we are almost done. However, there are a couple of functions in the &ldquo;value&rdquo;
 module that peek inside the otherwise black box of Value and work with its
@@ -1126,12 +1067,10 @@ encoding directly. We need to fix those too.</p>
 <p>The first is <code>printValue()</code>. It has separate code for each value type. We no
 longer have an explicit type enum we can switch on, so instead we use a series
 of type tests to handle each kind of value.</p>
-<div class="codehilite"><pre class="insert-before">
-void printValue(Value value) {
+<div class="codehilite"><pre class="insert-before">void printValue(Value value) {
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
-<pre class="insert">
-<span class="a">#ifdef NAN_BOXING</span>
+<pre class="insert"><span class="a">#ifdef NAN_BOXING</span>
   <span class="k">if</span> (<span class="a">IS_BOOL</span>(<span class="i">value</span>)) {
     <span class="i">printf</span>(<span class="a">AS_BOOL</span>(<span class="i">value</span>) ? <span class="s">&quot;true&quot;</span> : <span class="s">&quot;false&quot;</span>);
   } <span class="k">else</span> <span class="k">if</span> (<span class="a">IS_NIL</span>(<span class="i">value</span>)) {
@@ -1142,8 +1081,7 @@ in <em>printValue</em>()</div>
     <span class="i">printObject</span>(<span class="i">value</span>);
   }
 <span class="a">#else</span>
-</pre><pre class="insert-after">
-  switch (value.type) {
+</pre><pre class="insert-after">  switch (value.type) {
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>()</div>
 
@@ -1151,28 +1089,22 @@ in <em>printValue</em>()</div>
 overhead of actually writing to a stream, it&rsquo;s negligible.</p>
 <p>We still support the original tagged union representation, so we keep the old
 code and enclose it in the <code>#else</code> conditional section.</p>
-<div class="codehilite"><pre class="insert-before">
-  }
+<div class="codehilite"><pre class="insert-before">  }
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
-<pre class="insert">
-<span class="a">#endif</span>
-</pre><pre class="insert-after">
-}
+<pre class="insert"><span class="a">#endif</span>
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>()</div>
 
 <p>The other operation is testing two values for equality.</p>
-<div class="codehilite"><pre class="insert-before">
-bool valuesEqual(Value a, Value b) {
+<div class="codehilite"><pre class="insert-before">bool valuesEqual(Value a, Value b) {
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
-<pre class="insert">
-<span class="a">#ifdef NAN_BOXING</span>
+<pre class="insert"><span class="a">#ifdef NAN_BOXING</span>
   <span class="k">return</span> <span class="i">a</span> == <span class="i">b</span>;
 <span class="a">#else</span>
-</pre><pre class="insert-after">
-  if (a.type != b.type) return false;
+</pre><pre class="insert-after">  if (a.type != b.type) return false;
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>valuesEqual</em>()</div>
 
@@ -1190,8 +1122,7 @@ problem for the special quiet NaNs that we are using for our own purposes. But
 it&rsquo;s possible to produce a &ldquo;real&rdquo; arithmetic NaN in Lox, and if we want to
 correctly implement IEEE 754 numbers, then the resulting value is not supposed
 to be equal to itself. More concretely:</p>
-<div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">nan</span> = <span class="n">0</span>/<span class="n">0</span>;
+<div class="codehilite"><pre><span class="k">var</span> <span class="i">nan</span> = <span class="n">0</span>/<span class="n">0</span>;
 <span class="k">print</span> <span class="i">nan</span> == <span class="i">nan</span>;
 </pre></div>
 <p>IEEE 754 says this program is supposed to print &ldquo;false&rdquo;. It does the right thing
@@ -1200,16 +1131,13 @@ with our old tagged union representation because the <code>VAL_NUMBER</code> cas
 generates the right CPU instruction to perform an IEEE floating-point equality.</p>
 <p>Our new representation breaks that by defining Value to be a uint64_t. If we
 want to be <em>fully</em> compliant with IEEE 754, we need to handle this case.</p>
-<div class="codehilite"><pre class="insert-before">
-#ifdef NAN_BOXING
+<div class="codehilite"><pre class="insert-before">#ifdef NAN_BOXING
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="a">IS_NUMBER</span>(<span class="i">a</span>) &amp;&amp; <span class="a">IS_NUMBER</span>(<span class="i">b</span>)) {
+<pre class="insert">  <span class="k">if</span> (<span class="a">IS_NUMBER</span>(<span class="i">a</span>) &amp;&amp; <span class="a">IS_NUMBER</span>(<span class="i">b</span>)) {
     <span class="k">return</span> <span class="a">AS_NUMBER</span>(<span class="i">a</span>) == <span class="a">AS_NUMBER</span>(<span class="i">b</span>);
   }
-</pre><pre class="insert-after">
-  return a == b;
+</pre><pre class="insert-after">  return a == b;
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>valuesEqual</em>()</div>
 
@@ -1225,20 +1153,17 @@ Object and compare them using <code>equals()</code>, which is how jlox implement
 </aside>
 <p>Finally, we close the conditional compilation section around the old
 implementation.</p>
-<div class="codehilite"><pre class="insert-before">
-  }
+<div class="codehilite"><pre class="insert-before">  }
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
-<pre class="insert">
-<span class="a">#endif</span>
-</pre><pre class="insert-after">
-}
+<pre class="insert"><span class="a">#endif</span>
+</pre><pre class="insert-after">}
 </pre></div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>valuesEqual</em>()</div>
 
 <p>And that&rsquo;s it. This optimization is complete, as is our clox virtual machine.
 That was the last line of new code in the book.</p>
-<h3><a href="#evaluating-performance" name="evaluating-performance"><small>30&#8202;.&#8202;3&#8202;.&#8202;7</small>Evaluating performance</a></h3>
+<h3><a href="#evaluating-performance" id="evaluating-performance"><small>30&#8202;.&#8202;3&#8202;.&#8202;7</small>Evaluating performance</a></h3>
 <p>The code is done, but we still need to figure out if we actually made anything
 better with these changes. Evaluating an optimization like this is very
 different from the previous one. There, we had a clear hotspot visible in the
@@ -1286,7 +1211,7 @@ faster. There is probably other, lower-hanging fruit.</p>
 been taken, then at some point you may want to think about tuning your value
 representation. I hope this chapter has shined a light on some of the options
 you have in that area.</p>
-<h2><a href="#where-to-next" name="where-to-next"><small>30&#8202;.&#8202;4</small>Where to Next</a></h2>
+<h2><a href="#where-to-next" id="where-to-next"><small>30&#8202;.&#8202;4</small>Where to Next</a></h2>
 <p>We&rsquo;ll stop here with the Lox language and our two interpreters. We could tinker
 on it forever, adding new language features and clever speed improvements. But,
 for this book, I think we&rsquo;ve reached a natural place to call our work complete.
@@ -1376,7 +1301,7 @@ these chapters, you&rsquo;ve seen that even really challenging material can be t
 by us mortals if we get our hands dirty and take it a step at a time. If you can
 handle compilers and interpreters, you can do anything you put your mind to.</p>
 <div class="challenges">
-<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+<h2><a href="#challenges" id="challenges">Challenges</a></h2>
 <p>Assigning homework on the last day of school seems cruel but if you really want
 something to do during your summer vacation:</p>
 <ol>
@@ -1412,7 +1337,7 @@ material that teaches you the way you learn best.</p>
 <a href="backmatter.html" class="next">
   Next Part: &ldquo;Backmatter&rdquo; &rarr;
 </a>
-Handcrafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2020</a>
+Handcrafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2021</a>
 </footer>
 </article>
 
