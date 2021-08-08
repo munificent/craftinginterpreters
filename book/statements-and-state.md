@@ -326,7 +326,7 @@ from other statements, and we're going to split the statement grammar in two to
 handle them. That's because the grammar restricts where some kinds of statements
 are allowed.
 
-The clauses in control flow statements -- think the then and else branches of
+The clauses in control flow statements -- think the `then` and `else` branches of
 an `if` statement or the body of a `while` -- are each a single statement. But
 that statement is not allowed to be one that declares a name. This is OK:
 
