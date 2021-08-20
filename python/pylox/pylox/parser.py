@@ -15,15 +15,21 @@ varDecl        → "var" IDENTIFIER ( "=" expression)? ";"
 statement      → exprStmt
                | ifStmt
                | printStmt
+               | forStmt
                | block ;
 ifStmt         → "if" "(" expression ")" statement
                  ( "else" statement )? ;
 block          → "{" declaration* "}" ;
 exprStmt       → expression ";"
 printStmt      → "print" expression ";"
+forStmt        → "for" "(" (varDecl | exprStmt | ";")
+                 expression? ";"
+                 expression? ")" statement;
 expression     → assignment ;
 assignment     → IDENTIFIER "=" assignment
-               | equality ;
+               | logic_or;
+logic_or       → logic_and ( "or" logic_and )* ;
+logic_and      → equality ("and" equality )*;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
@@ -121,7 +127,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self) -> Expr:
-        expr = self.equality()
+        expr = self.logic_or()
         if self.match(TokenType.EQUAL):
             equals = self.previous()
             value = self.assignment()
@@ -129,6 +135,22 @@ class Parser:
                 name = expr.name
                 return Assign(name, value)
             self.error(equals, "Invalid assignment target.")
+        return expr
+
+    def logic_or(self) -> Expr:
+        expr = self.logic_and()
+        while self.match(TokenType.OR):
+            operator = self.previous()
+            right = self.logic_and()
+            expr = Logical(expr, operator, right)
+        return expr
+
+    def logic_and(self) -> Expr:
+        expr = self.equality()
+        while self.match(TokenType.AND):
+            operator = self.previous()
+            right = self.equality()
+            expr = Logical(expr, operator, right)
         return expr
 
     def equality(self) -> Expr:

@@ -12,6 +12,7 @@ def main():
     define_ast(output_dir, "Expr", [
         "Assign : Token name, Expr value",
         "Binary : Expr left, Token operator, Expr right",
+        "Logical : Expr left, Token operator, Expr right",
         "Grouping : Expr expression",
         "Literal : object value",
         "Unary : Token operator, Expr right",

@@ -31,6 +31,16 @@ class Binary(Expr):
 
 
 @dataclass
+class Logical(Expr):
+    left: Expr
+    operator: Token
+    right: Expr
+
+    def accept(self, visitor: 'Visitor'):
+        return visitor.visit_logical(self)
+
+
+@dataclass
 class Grouping(Expr):
     expression: Expr
 
@@ -71,6 +81,10 @@ class Visitor(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def visit_binary(self, expr: Binary):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def visit_logical(self, expr: Logical):
         raise NotImplementedError
 
     @abc.abstractmethod

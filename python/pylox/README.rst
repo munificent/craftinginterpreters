@@ -12,3 +12,9 @@ Quick start
     source .venv/bin/activate
     pip install -e '.[test]'
     py.test
+
+
+Run examples
+--------------
+
+    pylox examples/if.lox

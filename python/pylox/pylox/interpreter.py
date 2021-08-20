@@ -154,6 +154,16 @@ class Interpreter(Expr.Visitor, Stmt.Visitor):
         func = BINARY_OPS[expr.operator.type]
         return func(expr.operator, left, right)
 
+    def visit_logical(self, expr: Expr.Logical) -> object:
+        left = self.evaluate(expr.left)
+        if expr.operator.type == TokenType.OR:
+            if self.is_truthy(left):
+                return left
+        elif expr.operator.type == TokenType.AND:
+            if not self.is_truthy(left):
+                return left
+        return self.evaluate(expr.right)
+
     def is_truthy(self, value: object) -> bool:
         if value is None:
             return False
