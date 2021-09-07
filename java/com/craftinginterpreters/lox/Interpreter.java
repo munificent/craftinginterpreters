@@ -91,6 +91,7 @@ class Interpreter implements Expr.Visitor<Object>,
 //> Statements and State execute-block
   void executeBlock(List<Stmt> statements,
                     Environment environment) {
+    ReplStatus.getInstance().confirmFunBody(true);
     Environment previous = this.environment;
     try {
       this.environment = environment;
@@ -101,10 +102,12 @@ class Interpreter implements Expr.Visitor<Object>,
     } finally {
       this.environment = previous;
     }
+    ReplStatus.getInstance().confirmFunBody(false);
   }
 //< Statements and State execute-block
 //> Statements and State visit-block
   @Override
+  // Debug
   public Void visitBlockStmt(Stmt.Block stmt) {
     executeBlock(stmt.statements, new Environment(environment));
     return null;
@@ -215,7 +218,13 @@ class Interpreter implements Expr.Visitor<Object>,
   @Override
   public Void visitReturnStmt(Stmt.Return stmt) {
     Object value = null;
-    if (stmt.value != null) value = evaluate(stmt.value);
+    if (stmt.value != null) {
+      value = evaluate(stmt.value);
+      ReplStatus repl = ReplStatus.getInstance();
+      repl.confirmFunBody(false);
+      repl.push(value);
+
+    }
 
     throw new Return(value);
   }
@@ -224,6 +233,7 @@ class Interpreter implements Expr.Visitor<Object>,
   @Override
   public Void visitVarStmt(Stmt.Var stmt) {
     Object value = null;
+    // enter varStatment; set a value for printing;
     if (stmt.initializer != null) {
       value = evaluate(stmt.initializer);
     }
@@ -266,7 +276,7 @@ class Interpreter implements Expr.Visitor<Object>,
   public Object visitBinaryExpr(Expr.Binary expr) {
     Object left = evaluate(expr.left);
     Object right = evaluate(expr.right); // [left]
-
+    Object result = null;
     switch (expr.operator.type) {
 //> binary-equality
       case BANG_EQUAL: return !isEqual(left, right);
@@ -277,36 +287,44 @@ class Interpreter implements Expr.Visitor<Object>,
 //> check-greater-operand
         checkNumberOperands(expr.operator, left, right);
 //< check-greater-operand
-        return (double)left > (double)right;
+        result = (double)left > (double)right;
+        break;
       case GREATER_EQUAL:
 //> check-greater-equal-operand
         checkNumberOperands(expr.operator, left, right);
 //< check-greater-equal-operand
-        return (double)left >= (double)right;
+        result = (double)left >= (double)right;
+        break;
+
       case LESS:
 //> check-less-operand
         checkNumberOperands(expr.operator, left, right);
 //< check-less-operand
-        return (double)left < (double)right;
+        result = (double)left < (double)right;
+        break;
       case LESS_EQUAL:
 //> check-less-equal-operand
         checkNumberOperands(expr.operator, left, right);
 //< check-less-equal-operand
-        return (double)left <= (double)right;
+        result = (double)left <= (double)right;
+        break;
 //< binary-comparison
       case MINUS:
 //> check-minus-operand
         checkNumberOperands(expr.operator, left, right);
 //< check-minus-operand
-        return (double)left - (double)right;
+        result = (double)left - (double)right;
 //> binary-plus
       case PLUS:
         if (left instanceof Double && right instanceof Double) {
-          return (double)left + (double)right;
+          result = (double)left + (double)right;
+          break;
+
         } // [plus]
 
         if (left instanceof String && right instanceof String) {
-          return (String)left + (String)right;
+          result =  (String)left + (String)right;
+          break;
         }
 
 /* Evaluating Expressions binary-plus < Evaluating Expressions string-wrong-type
@@ -321,16 +339,18 @@ class Interpreter implements Expr.Visitor<Object>,
 //> check-slash-operand
         checkNumberOperands(expr.operator, left, right);
 //< check-slash-operand
-        return (double)left / (double)right;
+        result = (double)left / (double)right;
+        break;
       case STAR:
 //> check-star-operand
         checkNumberOperands(expr.operator, left, right);
 //< check-star-operand
-        return (double)left * (double)right;
+        result = (double)left * (double)right;
+        break;
     }
 
-    // Unreachable.
-    return null;
+    ReplStatus.getInstance().push(result);
+    return result;
   }
 //< visit-binary
 //> Functions visit-call
