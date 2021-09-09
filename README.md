@@ -186,6 +186,9 @@ names of all of the chapters.
 If your interpreter needs other command line arguments passed to use, pass them
 to the test runner using `--arguments` and it will forward to your interpreter.
 
+
+If you encounter an error similar to `Couldn't resolve the package 'package'...`, run `dart pub get` inside the `tools` directory.
+
 ## Repository Layout
 
 *   `asset/` – Sass files and jinja2 templates used to generate the site.
