@@ -10,7 +10,7 @@
     factor     → unary ( ( "/" | "*" ) unary )* ;
     unary      → ( "!" | "-" | "--" | "++" ) unary
                | postfix ;
-    postfix    → primary ( "--" | ++" )* ;
+    postfix    → primary ( "--" | "++" )* ;
     primary    → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
     ```
@@ -123,7 +123,7 @@
     factor     → unary ( ( "/" | "*" ) unary )* ;
     unary      → ( "!" | "-" | "--" | "++" ) unary
                | postfix ;
-    postfix    → primary ( "--" | ++" )* ;
+    postfix    → primary ( "--" | "++" )* ;
     primary    → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")"
                // Error productions...
