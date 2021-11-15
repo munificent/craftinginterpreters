@@ -66,6 +66,9 @@ clox:
 	@ $(MAKE) -f util/c.make NAME=clox MODE=release SOURCE_DIR=c
 	@ cp build/clox clox # For convenience, copy the interpreter to the top level.
 
+myclox:
+	@ $(MAKE) -f util/c.make NAME=myclox MODE=release SOURCE_DIR=myc
+
 # Compile the C interpreter as ANSI standard C++.
 cpplox:
 	@ $(MAKE) -f util/c.make NAME=cpplox MODE=debug CPP=true SOURCE_DIR=c
