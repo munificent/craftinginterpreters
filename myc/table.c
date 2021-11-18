@@ -30,14 +30,14 @@ static Entry* findEntry(Entry* entries, int capacity, ObjString* key) {
                 return tombstone != NULL ? tombstone : entry;
             } else {
                 // We found a tombstone
-                tombstone = entry;
+                if (tombstone == NULL) tombstone = entry;
             }
-        } else {
+        } else if (entry->key == key) {
             // We found the key
             return entry;
         }
+        index = (index + 1) % capacity;
     }
-    index = (index + 1) % capacity;
 }
 
 static void adjustCapacity(Table* table, int capacity) {
@@ -120,7 +120,7 @@ ObjString* tableFindString(Table* table, const char* chars,
             if (IS_NIL(entry->value)) return NULL;
         } else if (entry->key->length == length
                 && entry->key->hash == hash
-                && memcmp(entry->key, chars, length) == 0) {
+                && memcmp(entry->key->chars, chars, length) == 0) {
             // We found it
             return entry->key;
         }
