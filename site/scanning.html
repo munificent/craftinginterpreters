@@ -127,7 +127,7 @@ in the next chapter.</p>
 <p>Since this is our first real chapter, before we get to actually scanning some
 code we need to sketch out the basic shape of our interpreter, jlox. Everything
 starts with a class in Java.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Lox.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -164,7 +164,7 @@ I&rsquo;ll be right here when you&rsquo;re ready. Good? OK!</p>
 <p>Lox is a scripting language, which means it executes directly from source. Our
 interpreter supports two ways of running code. If you start jlox from the
 command line and give it a path to a file, it reads the file and executes it.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Lox.java</em><br>
 add after <em>main</em>()</div>
 <pre>  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">runFile</span>(<span class="t">String</span> <span class="i">path</span>) <span class="k">throws</span> <span class="t">IOException</span> {
     <span class="t">byte</span>[] <span class="i">bytes</span> = <span class="t">Files</span>.<span class="i">readAllBytes</span>(<span class="t">Paths</span>.<span class="i">get</span>(<span class="i">path</span>));
@@ -180,12 +180,12 @@ prompt where you can enter and execute code one line at a time.</p>
 <p>An interactive prompt is also called a &ldquo;REPL&rdquo; (pronounced like &ldquo;rebel&rdquo; but with
 a &ldquo;p&rdquo;). The name comes from Lisp where implementing one is as simple as
 wrapping a loop around a few built-in functions:</p>
-<div class="codehilite"><pre>(<span class="i">print</span> (<span class="i">eval</span> (<span class="i">read</span>)))
+<div class="codehilite" translate="no"><pre>(<span class="i">print</span> (<span class="i">eval</span> (<span class="i">read</span>)))
 </pre></div>
 <p>Working outwards from the most nested call, you <strong>R</strong>ead a line of input,
 <strong>E</strong>valuate it, <strong>P</strong>rint the result, then <strong>L</strong>oop and do it all over again.</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Lox.java</em><br>
 add after <em>runFile</em>()</div>
 <pre>  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">runPrompt</span>() <span class="k">throws</span> <span class="t">IOException</span> {
     <span class="t">InputStreamReader</span> <span class="i">input</span> = <span class="k">new</span> <span class="t">InputStreamReader</span>(<span class="t">System</span>.<span class="i">in</span>);
@@ -207,7 +207,7 @@ interactive command-line app, you usually type Control-D. Doing so signals an
 &ldquo;end-of-file&rdquo; condition to the program. When that happens <code>readLine()</code> returns
 <code>null</code>, so we check for that to exit the loop.</p>
 <p>Both the prompt and the file runner are thin wrappers around this core function:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Lox.java</em><br>
 add after <em>runPrompt</em>()</div>
 <pre>  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">run</span>(<span class="t">String</span> <span class="i">source</span>) {
     <span class="t">Scanner</span> <span class="i">scanner</span> = <span class="k">new</span> <span class="t">Scanner</span>(<span class="i">source</span>);
@@ -242,7 +242,7 @@ handling all through the implementation of our interpreter, starting now.</p>
 bones. I&rsquo;d love to talk about interactive debuggers, static analyzers, and other
 fun stuff, but there&rsquo;s only so much ink in the pen.</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Lox.java</em><br>
 add after <em>run</em>()</div>
 <pre>  <span class="k">static</span> <span class="t">void</span> <span class="i">error</span>(<span class="t">int</span> <span class="i">line</span>, <span class="t">String</span> <span class="i">message</span>) {
     <span class="i">report</span>(<span class="i">line</span>, <span class="s">&quot;&quot;</span>, <span class="i">message</span>);
@@ -261,12 +261,12 @@ add after <em>run</em>()</div>
 error occurred on a given line. That is really the bare minimum to be able to
 claim you even <em>have</em> error reporting. Imagine if you accidentally left a
 dangling comma in some function call and the interpreter printed out:</p>
-<div class="codehilite"><pre>Error: Unexpected &quot;,&quot; somewhere in your code. Good luck finding it!
+<div class="codehilite" translate="no"><pre>Error: Unexpected &quot;,&quot; somewhere in your code. Good luck finding it!
 </pre></div>
 <p>That&rsquo;s not very helpful. We need to at least point them to the right line. Even
 better would be the beginning and end column so they know <em>where</em> in the line.
 Even better than <em>that</em> is to <em>show</em> the user the offending line, like:</p>
-<div class="codehilite"><pre>Error: Unexpected &quot;,&quot; in argument list.
+<div class="codehilite" translate="no"><pre>Error: Unexpected &quot;,&quot; in argument list.
 
     15 | function(first, second,);
                                ^-- Here.
@@ -278,7 +278,7 @@ stick with just a line number. In your own interpreters, please do as I say and
 not as I do.</p>
 <p>The primary reason we&rsquo;re sticking this error reporting function in the main Lox
 class is because of that <code>hadError</code> field. It&rsquo;s defined here:</p>
-<div class="codehilite"><pre class="insert-before">public class Lox {
+<div class="codehilite" translate="no"><pre class="insert-before">public class Lox {
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in class <em>Lox</em></div>
 <pre class="insert">  <span class="k">static</span> <span class="t">boolean</span> <span class="i">hadError</span> = <span class="k">false</span>;
@@ -288,7 +288,7 @@ in class <em>Lox</em></div>
 <p>We&rsquo;ll use this to ensure we don&rsquo;t try to execute code that has a known error.
 Also, it lets us exit with a non-zero exit code like a good command line citizen
 should.</p>
-<div class="codehilite"><pre class="insert-before">    run(new String(bytes, Charset.defaultCharset()));
+<div class="codehilite" translate="no"><pre class="insert-before">    run(new String(bytes, Charset.defaultCharset()));
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in <em>runFile</em>()</div>
 <pre class="insert">
@@ -301,7 +301,7 @@ in <em>runFile</em>()</div>
 
 <p>We need to reset this flag in the interactive loop. If the user makes a mistake,
 it shouldn&rsquo;t kill their entire session.</p>
-<div class="codehilite"><pre class="insert-before">      run(line);
+<div class="codehilite" translate="no"><pre class="insert-before">      run(line);
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in <em>runPrompt</em>()</div>
 <pre class="insert">      <span class="i">hadError</span> = <span class="k">false</span>;
@@ -332,7 +332,7 @@ Once we have a Scanner class with a <code>scanTokens()</code> method, we can sta
 it. Before we get to that, let&rsquo;s get more precise about what tokens are.</p>
 <h2><a href="#lexemes-and-tokens" id="lexemes-and-tokens"><small>4&#8202;.&#8202;2</small>Lexemes and Tokens</a></h2>
 <p>Here&rsquo;s a line of Lox code:</p>
-<div class="codehilite"><pre><span class="k">var</span> <span class="i">language</span> = <span class="s">&quot;lox&quot;</span>;
+<div class="codehilite" translate="no"><pre><span class="k">var</span> <span class="i">language</span> = <span class="s">&quot;lox&quot;</span>;
 </pre></div>
 <p>Here, <code>var</code> is the keyword for declaring a variable. That three-character
 sequence &ldquo;v-a-r&rdquo; means something. But if we yank three letters out of the
@@ -359,7 +359,7 @@ punctuation, and literal type.</p>
 <p>After all, string comparison ends up looking at individual characters, and isn&rsquo;t
 that the scanner&rsquo;s job?</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>lox/TokenType.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/TokenType.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -409,7 +409,7 @@ those, the less time you spend calculating position information ahead of time,
 the better.</p>
 </aside>
 <p>We take all of this data and wrap it in a class.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Token.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Token.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -453,7 +453,7 @@ which kind of lexeme it &ldquo;matches&rdquo; may sound familiar. If you know re
 expressions, you might consider defining a regex for each kind of lexeme and
 using those to match characters. For example, Lox has the same rules as C for
 identifiers (variable names and the like). This regex matches one:</p>
-<div class="codehilite"><pre>[a-zA-Z_][a-zA-Z_0-9]*
+<div class="codehilite" translate="no"><pre>[a-zA-Z_][a-zA-Z_0-9]*
 </pre></div>
 <p>If you did think of regular expressions, your intuition is a deep one. The rules
 that determine how a particular language groups characters into lexemes are
@@ -483,7 +483,7 @@ mega billionaire among us.</p>
 delegating that task. We&rsquo;re about handcrafted goods.</p>
 <h2><a href="#the-scanner-class" id="the-scanner-class"><small>4&#8202;.&#8202;4</small>The Scanner Class</a></h2>
 <p>Without further ado, let&rsquo;s make ourselves a scanner.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -513,7 +513,7 @@ every character counts in a book.</p>
 <p>We store the raw source code as a simple string, and we have a list ready to
 fill with tokens we&rsquo;re going to generate. The aforementioned loop that does that
 looks like this:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>Scanner</em>()</div>
 <pre>  <span class="t">List</span>&lt;<span class="t">Token</span>&gt; <span class="i">scanTokens</span>() {
     <span class="k">while</span> (!<span class="i">isAtEnd</span>()) {
@@ -533,7 +533,7 @@ out of characters. Then it appends one final &ldquo;end of file&rdquo; token. Th
 strictly needed, but it makes our parser a little cleaner.</p>
 <p>This loop depends on a couple of fields to keep track of where the scanner is in
 the source code.</p>
-<div class="codehilite"><pre class="insert-before">  private final List&lt;Token&gt; tokens = new ArrayList&lt;&gt;();
+<div class="codehilite" translate="no"><pre class="insert-before">  private final List&lt;Token&gt; tokens = new ArrayList&lt;&gt;();
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in class <em>Scanner</em></div>
 <pre class="insert">  <span class="k">private</span> <span class="t">int</span> <span class="i">start</span> = <span class="n">0</span>;
@@ -552,7 +552,7 @@ tracks what source line <code>current</code> is on so we can produce tokens that
 location.</p>
 <p>Then we have one little helper function that tells us if we&rsquo;ve consumed all the
 characters.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>scanTokens</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">isAtEnd</span>() {
     <span class="k">return</span> <span class="i">current</span> &gt;= <span class="i">source</span>.<span class="i">length</span>();
@@ -566,7 +566,7 @@ scanner. We&rsquo;ll start simple. Imagine if every lexeme were only a single ch
 long. All you would need to do is consume the next character and pick a token type for
 it. Several lexemes <em>are</em> only a single character in Lox, so let&rsquo;s start with
 those.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>scanTokens</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">scanToken</span>() {
     <span class="t">char</span> <span class="i">c</span> = <span class="i">advance</span>();
@@ -590,7 +590,7 @@ add after <em>scanTokens</em>()</div>
 <p>Wondering why <code>/</code> isn&rsquo;t in here? Don&rsquo;t worry, we&rsquo;ll get to it.</p>
 </aside>
 <p>Again, we need a couple of helper methods.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>isAtEnd</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">char</span> <span class="i">advance</span>() {
     <span class="k">return</span> <span class="i">source</span>.<span class="i">charAt</span>(<span class="i">current</span>++);
@@ -618,7 +618,7 @@ characters Lox doesn&rsquo;t use, like <code>@#^</code>, at our interpreter? Rig
 characters get silently discarded. They aren&rsquo;t used by the Lox language, but
 that doesn&rsquo;t mean the interpreter can pretend they aren&rsquo;t there. Instead, we
 report an error.</p>
-<div class="codehilite"><pre class="insert-before">      case '*': addToken(STAR); break;<span name="slash"> </span>
+<div class="codehilite" translate="no"><pre class="insert-before">      case '*': addToken(STAR); break;<span name="slash"> </span>
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
@@ -655,7 +655,7 @@ That&rsquo;s why we need to scan <code>!=</code> as a single lexeme. Likewise, <
 can all be followed by <code>=</code> to create the other equality and comparison
 operators.</p>
 <p>For all of these, we need to look at the second character.</p>
-<div class="codehilite"><pre class="insert-before">      case '*': addToken(STAR); break;<span name="slash"> </span>
+<div class="codehilite" translate="no"><pre class="insert-before">      case '*': addToken(STAR); break;<span name="slash"> </span>
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">      <span class="k">case</span> <span class="s">&#39;!&#39;</span>:
@@ -677,7 +677,7 @@ in <em>scanToken</em>()</div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
 
 <p>Those cases use this new method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>scanToken</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">match</span>(<span class="t">char</span> <span class="i">expected</span>) {
     <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="k">false</span>;
@@ -698,7 +698,7 @@ merely a <code>!</code>.</p>
 <h2><a href="#longer-lexemes" id="longer-lexemes"><small>4&#8202;.&#8202;6</small>Longer Lexemes</a></h2>
 <p>We&rsquo;re still missing one operator: <code>/</code> for division. That character needs a
 little special handling because comments begin with a slash too.</p>
-<div class="codehilite"><pre class="insert-before">        break;
+<div class="codehilite" translate="no"><pre class="insert-before">        break;
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">      <span class="k">case</span> <span class="s">&#39;/&#39;</span>:
@@ -722,7 +722,7 @@ until we reach the end of the line.</p>
 beginning of one, we shunt over to some lexeme-specific code that keeps eating
 characters until it sees the end.</p>
 <p>We&rsquo;ve got another helper:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>match</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">char</span> <span class="i">peek</span>() {
     <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="s">&#39;\0&#39;</span>;
@@ -747,7 +747,7 @@ to deal with them. So when we reach the end of the comment, we <em>don&rsquo;t</
 reset and the comment&rsquo;s lexeme disappears in a puff of smoke.</p>
 <p>While we&rsquo;re at it, now&rsquo;s a good time to skip over those other meaningless
 characters: newlines and whitespace.</p>
-<div class="codehilite"><pre class="insert-before">        break;
+<div class="codehilite" translate="no"><pre class="insert-before">        break;
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
@@ -774,14 +774,14 @@ we do the same thing, but we also increment the line counter. (This is why we
 used <code>peek()</code> to find the newline ending a comment instead of <code>match()</code>. We want
 that newline to get us here so we can update <code>line</code>.)</p>
 <p>Our scanner is getting smarter. It can handle fairly free-form code like:</p>
-<div class="codehilite"><pre><span class="c">// this is a comment</span>
+<div class="codehilite" translate="no"><pre><span class="c">// this is a comment</span>
 (( )){} <span class="c">// grouping stuff</span>
 !*+-/=&lt;&gt; &lt;= == <span class="c">// operators</span>
 </pre></div>
 <h3><a href="#string-literals" id="string-literals"><small>4&#8202;.&#8202;6&#8202;.&#8202;1</small>String literals</a></h3>
 <p>Now that we&rsquo;re comfortable with longer lexemes, we&rsquo;re ready to tackle literals.
 We&rsquo;ll do strings first, since they always begin with a specific character, <code>"</code>.</p>
-<div class="codehilite"><pre class="insert-before">        break;
+<div class="codehilite" translate="no"><pre class="insert-before">        break;
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
@@ -794,7 +794,7 @@ in <em>scanToken</em>()</div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
 
 <p>That calls:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>scanToken</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">string</span>() {
     <span class="k">while</span> (<span class="i">peek</span>() != <span class="s">&#39;&quot;&#39;</span> &amp;&amp; !<span class="i">isAtEnd</span>()) {
@@ -838,21 +838,21 @@ digits.</p>
 number <em>literal</em>. Instead, <code>-123</code>, is an <em>expression</em> that applies <code>-</code> to the
 number literal <code>123</code>. In practice, the result is the same, though it has one
 interesting edge case if we were to add method calls on numbers. Consider:</p>
-<div class="codehilite"><pre><span class="k">print</span> -<span class="n">123</span>.<span class="i">abs</span>();
+<div class="codehilite" translate="no"><pre><span class="k">print</span> -<span class="n">123</span>.<span class="i">abs</span>();
 </pre></div>
 <p>This prints <code>-123</code> because negation has lower precedence than method calls. We
 could fix that by making <code>-</code> part of the number literal. But then consider:</p>
-<div class="codehilite"><pre><span class="k">var</span> <span class="i">n</span> = <span class="n">123</span>;
+<div class="codehilite" translate="no"><pre><span class="k">var</span> <span class="i">n</span> = <span class="n">123</span>;
 <span class="k">print</span> -<span class="i">n</span>.<span class="i">abs</span>();
 </pre></div>
 <p>This still produces <code>-123</code>, so now the language seems inconsistent. No matter
 what you do, some case ends up weird.</p>
 </aside>
-<div class="codehilite"><pre><span class="n">1234</span>
+<div class="codehilite" translate="no"><pre><span class="n">1234</span>
 <span class="n">12.34</span>
 </pre></div>
 <p>We don&rsquo;t allow a leading or trailing decimal point, so these are both invalid:</p>
-<div class="codehilite"><pre>.<span class="n">1234</span>
+<div class="codehilite" translate="no"><pre>.<span class="n">1234</span>
 <span class="n">1234</span>.
 </pre></div>
 <p>We could easily support the former, but I left it out to keep things simple. The
@@ -860,7 +860,7 @@ latter gets weird if we ever want to allow methods on numbers like <code>123.sqr
 <p>To recognize the beginning of a number lexeme, we look for any digit. It&rsquo;s kind
 of tedious to add cases for every decimal digit, so we&rsquo;ll stuff it in the
 default case instead.</p>
-<div class="codehilite"><pre class="insert-before">      default:
+<div class="codehilite" translate="no"><pre class="insert-before">      default:
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()<br>
 replace 1 line</div>
@@ -874,7 +874,7 @@ replace 1 line</div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>(), replace 1 line</div>
 
 <p>This relies on this little utility:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>peek</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">isDigit</span>(<span class="t">char</span> <span class="i">c</span>) {
     <span class="k">return</span> <span class="i">c</span> &gt;= <span class="s">&#39;0&#39;</span> &amp;&amp; <span class="i">c</span> &lt;= <span class="s">&#39;9&#39;</span>;
@@ -889,7 +889,7 @@ full-width numbers, and other funny stuff we don&rsquo;t want.</p>
 </aside>
 <p>Once we know we are in a number, we branch to a separate method to consume the
 rest of the literal, like we do with strings.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>scanToken</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">number</span>() {
     <span class="k">while</span> (<span class="i">isDigit</span>(<span class="i">peek</span>())) <span class="i">advance</span>();
@@ -915,7 +915,7 @@ digits as we can find.</p>
 <p>Looking past the decimal point requires a second character of lookahead since we
 don&rsquo;t want to consume the <code>.</code> until we&rsquo;re sure there is a digit <em>after</em> it. So
 we add:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>peek</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">char</span> <span class="i">peekNext</span>() {
     <span class="k">if</span> (<span class="i">current</span> + <span class="n">1</span> &gt;= <span class="i">source</span>.<span class="i">length</span>()) <span class="k">return</span> <span class="s">&#39;\0&#39;</span>;
@@ -942,7 +942,7 @@ which gets us to<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></
 implement are identifiers and their close cousins, the reserved words. You might
 think we could match keywords like <code>or</code> in the same way we handle
 multiple-character operators like <code>&lt;=</code>.</p>
-<div class="codehilite"><pre><span class="k">case</span> <span class="s">&#39;o&#39;</span>:
+<div class="codehilite" translate="no"><pre><span class="k">case</span> <span class="s">&#39;o&#39;</span>:
   <span class="k">if</span> (<span class="i">match</span>(<span class="s">&#39;r&#39;</span>)) {
     <span class="i">addToken</span>(<span class="i">OR</span>);
   }
@@ -959,16 +959,16 @@ keyword, then the former wins. This is also why we tacitly assumed, previously,
 that <code>&lt;=</code> should be scanned as a single <code>&lt;=</code> token and not <code>&lt;</code> followed by <code>=</code>.</p>
 <aside name="maximal">
 <p>Consider this nasty bit of C code:</p>
-<div class="codehilite"><pre>---<span class="i">a</span>;
+<div class="codehilite" translate="no"><pre>---<span class="i">a</span>;
 </pre></div>
 <p>Is it valid? That depends on how the scanner splits the lexemes. What if the scanner
 sees it like this:</p>
-<div class="codehilite"><pre>- --<span class="i">a</span>;
+<div class="codehilite" translate="no"><pre>- --<span class="i">a</span>;
 </pre></div>
 <p>Then it could be parsed. But that would require the scanner to know about the
 grammatical structure of the surrounding code, which entangles things more than
 we want. Instead, the maximal munch rule says that it is <em>always</em> scanned like:</p>
-<div class="codehilite"><pre>-- -<span class="i">a</span>;
+<div class="codehilite" translate="no"><pre>-- -<span class="i">a</span>;
 </pre></div>
 <p>It scans it that way even though doing so leads to a syntax error later in the
 parser.</p>
@@ -979,7 +979,7 @@ an identifier, it&rsquo;s just one that has been claimed by the language for its
 use. That&rsquo;s where the term <strong>reserved word</strong> comes from.</p>
 <p>So we begin by assuming any lexeme starting with a letter or underscore is an
 identifier.</p>
-<div class="codehilite"><pre class="insert-before">      default:
+<div class="codehilite" translate="no"><pre class="insert-before">      default:
         if (isDigit(c)) {
           number();
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
@@ -993,7 +993,7 @@ in <em>scanToken</em>()</div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
 
 <p>The rest of the code lives over here:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>scanToken</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">identifier</span>() {
     <span class="k">while</span> (<span class="i">isAlphaNumeric</span>(<span class="i">peek</span>())) <span class="i">advance</span>();
@@ -1004,7 +1004,7 @@ add after <em>scanToken</em>()</div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>scanToken</em>()</div>
 
 <p>We define that in terms of these helpers:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 add after <em>peekNext</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">isAlpha</span>(<span class="t">char</span> <span class="i">c</span>) {
     <span class="k">return</span> (<span class="i">c</span> &gt;= <span class="s">&#39;a&#39;</span> &amp;&amp; <span class="i">c</span> &lt;= <span class="s">&#39;z&#39;</span>) ||
@@ -1021,7 +1021,7 @@ add after <em>peekNext</em>()</div>
 <p>That gets identifiers working. To handle keywords, we see if the identifier&rsquo;s
 lexeme is one of the reserved words. If so, we use a token type specific to that
 keyword. We define the set of reserved words in a map.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>lox/Scanner.java</em><br>
 in class <em>Scanner</em></div>
 <pre>  <span class="k">private</span> <span class="k">static</span> <span class="k">final</span> <span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">TokenType</span>&gt; <span class="i">keywords</span>;
 
@@ -1049,7 +1049,7 @@ in class <em>Scanner</em></div>
 
 <p>Then, after we scan an identifier, we check to see if it matches anything in the
 map.</p>
-<div class="codehilite"><pre class="insert-before">    while (isAlphaNumeric(peek())) advance();
+<div class="codehilite" translate="no"><pre class="insert-before">    while (isAlphaNumeric(peek())) advance();
 
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>identifier</em>()<br>
@@ -1109,7 +1109,7 @@ detect, but there are a handful of nasty ones:</p>
 <ul>
 <li>
 <p>A return value on the next line:</p>
-<div class="codehilite"><pre><span class="k">if</span> (<span class="i">condition</span>) <span class="k">return</span>
+<div class="codehilite" translate="no"><pre><span class="k">if</span> (<span class="i">condition</span>) <span class="k">return</span>
 <span class="s">&quot;value&quot;</span>
 </pre></div>
 <p>Is &ldquo;value&rdquo; the value being returned, or do we have a <code>return</code> statement with
@@ -1117,7 +1117,7 @@ detect, but there are a handful of nasty ones:</p>
 </li>
 <li>
 <p>A parenthesized expression on the next line:</p>
-<div class="codehilite"><pre><span class="i">func</span>
+<div class="codehilite" translate="no"><pre><span class="i">func</span>
 (<span class="i">parenthesized</span>)
 </pre></div>
 <p>Is this a call to <code>func(parenthesized)</code>, or two expression statements, one
@@ -1125,7 +1125,7 @@ detect, but there are a handful of nasty ones:</p>
 </li>
 <li>
 <p>A <code>-</code> on the next line:</p>
-<div class="codehilite"><pre><span class="i">first</span>
+<div class="codehilite" translate="no"><pre><span class="i">first</span>
 -<span class="i">second</span>
 </pre></div>
 <p>Is this <code>first - second</code><span class="em">&mdash;</span>an infix subtraction<span class="em">&mdash;</span>or two expression
@@ -1141,7 +1141,7 @@ separators. Here are a couple:</p>
 <p><a href="https://www.lua.org/pil/1.1.html">Lua</a> completely ignores newlines, but carefully controls its grammar such
 that no separator between statements is needed at all in most cases. This is
 perfectly legit:</p>
-<div class="codehilite"><pre><span class="i">a</span> = <span class="n">1</span> <span class="i">b</span> = <span class="n">2</span>
+<div class="codehilite" translate="no"><pre><span class="i">a</span> = <span class="n">1</span> <span class="i">b</span> = <span class="n">2</span>
 </pre></div>
 <p>Lua avoids the <code>return</code> problem by requiring a <code>return</code> statement to be the
 very last statement in a block. If there is a value after <code>return</code> before
@@ -1168,7 +1168,7 @@ language. In particular, Python&rsquo;s grammar ensures a statement never appear
 inside an expression. C does the same, but many other languages which have a
 &ldquo;lambda&rdquo; or function literal syntax do not.</p>
 <p>An example in JavaScript:</p>
-<div class="codehilite"><pre><span class="i">console</span>.<span class="i">log</span>(<span class="k">function</span>() {
+<div class="codehilite" translate="no"><pre><span class="i">console</span>.<span class="i">log</span>(<span class="k">function</span>() {
   <span class="i">statement</span>();
 });
 </pre></div>

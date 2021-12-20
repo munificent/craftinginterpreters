@@ -182,7 +182,7 @@ HashMaps to track which local variables were currently in scope. That&rsquo;s so
 the classic, schoolbook way of representing lexical scope. For clox, as usual,
 we&rsquo;re going a little closer to the metal. All of the state lives in a new
 struct.</p>
-<div class="codehilite"><pre class="insert-before">} ParseRule;
+<div class="codehilite" translate="no"><pre class="insert-before">} ParseRule;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after struct <em>ParseRule</em></div>
 <pre class="insert">
@@ -208,7 +208,7 @@ the locals array a fixed size.</p>
 <p>We&rsquo;re writing a single-pass compiler, so it&rsquo;s not like we have <em>too</em> many other
 options for how to order them in the array.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">#define DEBUG_TRACE_EXECUTION
+<div class="codehilite" translate="no"><pre class="insert-before">#define DEBUG_TRACE_EXECUTION
 </pre><div class="source-file"><em>common.h</em></div>
 <pre class="insert">
 
@@ -230,7 +230,7 @@ top-level block, two is inside that, you get the idea. We use this to track
 which block each local belongs to so that we know which locals to discard when a
 block ends.</p>
 <p>Each local in the array is one of these:</p>
-<div class="codehilite"><pre class="insert-before">} ParseRule;
+<div class="codehilite" translate="no"><pre class="insert-before">} ParseRule;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after struct <em>ParseRule</em></div>
 <pre class="insert">
@@ -263,7 +263,7 @@ the code we already wrote, so here&rsquo;s a global variable instead:</p>
 application, possibly with multiple compilers running in parallel, then using a
 global variable is a <em>bad</em> idea.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">Parser parser;
+<div class="codehilite" translate="no"><pre class="insert-before">Parser parser;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>parser</em></div>
 <pre class="insert"><span class="t">Compiler</span>* <span class="i">current</span> = <span class="a">NULL</span>;
@@ -272,7 +272,7 @@ add after variable <em>parser</em></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>parser</em></div>
 
 <p>Here&rsquo;s a little function to initialize the compiler:</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitConstant</em>()</div>
 <pre><span class="k">static</span> <span class="t">void</span> <span class="i">initCompiler</span>(<span class="t">Compiler</span>* <span class="i">compiler</span>) {
   <span class="i">compiler</span>-&gt;<span class="i">localCount</span> = <span class="n">0</span>;
@@ -283,7 +283,7 @@ add after <em>emitConstant</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitConstant</em>()</div>
 
 <p>When we first start up the VM, we call it to get everything into a clean state.</p>
-<div class="codehilite"><pre class="insert-before">  initScanner(source);
+<div class="codehilite" translate="no"><pre class="insert-before">  initScanner(source);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
 <pre class="insert">  <span class="t">Compiler</span> <span class="i">compiler</span>;
@@ -301,7 +301,7 @@ from two things: function bodies and <span name="block">blocks</span>. Functions
 are a big chunk of work that we&rsquo;ll tackle in <a href="calls-and-functions.html">a later chapter</a>, so
 for now we&rsquo;re only going to do blocks. As usual, we start with the syntax. The
 new grammar we&rsquo;ll introduce is:</p>
-<div class="codehilite"><pre><span class="i">statement</span>      → <span class="i">exprStmt</span>
+<div class="codehilite" translate="no"><pre><span class="i">statement</span>      → <span class="i">exprStmt</span>
                | <span class="i">printStmt</span>
                | <span class="i">block</span> ;
 
@@ -316,7 +316,7 @@ statements. It could be worse, I suppose. Algol 58 called <code>begin</code> and
 </aside>
 <p>Blocks are a kind of statement, so the rule for them goes in the <code>statement</code>
 production. The corresponding code to compile one looks like this:</p>
-<div class="codehilite"><pre class="insert-before">  if (match(TOKEN_PRINT)) {
+<div class="codehilite" translate="no"><pre class="insert-before">  if (match(TOKEN_PRINT)) {
     printStatement();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
@@ -333,7 +333,7 @@ helper function to compile the rest of the block:</p>
 <aside name="helper">
 <p>This function will come in handy later for compiling function bodies.</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expression</em>()</div>
 <pre><span class="k">static</span> <span class="t">void</span> <span class="i">block</span>() {
   <span class="k">while</span> (!<span class="i">check</span>(<span class="a">TOKEN_RIGHT_BRACE</span>) &amp;&amp; !<span class="i">check</span>(<span class="a">TOKEN_EOF</span>)) {
@@ -353,7 +353,7 @@ the compiler doesn&rsquo;t get stuck in a loop.</p>
 the other, so there isn&rsquo;t much to compiling them. The semantically interesting
 thing blocks do is create scopes. Before we compile the body of a block, we call
 this function to enter a new local scope:</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>compiler.c</em><br>
 add after <em>endCompiler</em>()</div>
 <pre><span class="k">static</span> <span class="t">void</span> <span class="i">beginScope</span>() {
   <span class="i">current</span>-&gt;<span class="i">scopeDepth</span>++;
@@ -364,7 +364,7 @@ add after <em>endCompiler</em>()</div>
 <p>In order to &ldquo;create&rdquo; a scope, all we do is increment the current depth. This is
 certainly much faster than jlox, which allocated an entire new HashMap for
 each one. Given <code>beginScope()</code>, you can probably guess what <code>endScope()</code> does.</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>compiler.c</em><br>
 add after <em>beginScope</em>()</div>
 <pre><span class="k">static</span> <span class="t">void</span> <span class="i">endScope</span>() {
   <span class="i">current</span>-&gt;<span class="i">scopeDepth</span>--;
@@ -388,7 +388,7 @@ and then returns the constant table index where it was added. Then, after
 the bytecode for storing the variable&rsquo;s value in the global variable hash table.</p>
 <p>Both of those helpers need a few changes to support local variables. In
 <code>parseVariable()</code>, we add:</p>
-<div class="codehilite"><pre class="insert-before">  consume(TOKEN_IDENTIFIER, errorMessage);
+<div class="codehilite" translate="no"><pre class="insert-before">  consume(TOKEN_IDENTIFIER, errorMessage);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>parseVariable</em>()</div>
 <pre class="insert">
@@ -407,7 +407,7 @@ constant table, so if the declaration is inside a local scope, we return a dummy
 table index instead.</p>
 <p>Over in <code>defineVariable()</code>, we need to emit the code to store a local variable
 if we&rsquo;re in a local scope. It looks like this:</p>
-<div class="codehilite"><pre class="insert-before">static void defineVariable(uint8_t global) {
+<div class="codehilite" translate="no"><pre class="insert-before">static void defineVariable(uint8_t global) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>defineVariable</em>()</div>
 <pre class="insert">  <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">scopeDepth</span> &gt; <span class="n">0</span>) {
@@ -431,7 +431,7 @@ efficient than that.</p>
 <p>The code on the left compiles to the sequence of instructions on the right.</p>
 </aside>
 <p>OK, so what&rsquo;s &ldquo;declaring&rdquo; about? Here&rsquo;s what that does:</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifierConstant</em>()</div>
 <pre><span class="k">static</span> <span class="t">void</span> <span class="i">declareVariable</span>() {
   <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">scopeDepth</span> == <span class="n">0</span>) <span class="k">return</span>;
@@ -449,7 +449,7 @@ which declarations for them it has seen.</p>
 <p>But for local variables, the compiler does need to remember that the variable
 exists. That&rsquo;s what declaring it does<span class="em">&mdash;</span>it adds it to the compiler&rsquo;s list of
 variables in the current scope. We implement that using another new function.</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifierConstant</em>()</div>
 <pre><span class="k">static</span> <span class="t">void</span> <span class="i">addLocal</span>(<span class="t">Token</span> <span class="i">name</span>) {
   <span class="t">Local</span>* <span class="i">local</span> = &amp;<span class="i">current</span>-&gt;<span class="i">locals</span>[<span class="i">current</span>-&gt;<span class="i">localCount</span>++];
@@ -479,7 +479,7 @@ operand, which means the VM only supports up to 256 local variables in scope at
 one time.</p>
 <p>If we try to go over that, not only could we not refer to them at runtime, but
 the compiler would overwrite its own locals array, too. Let&rsquo;s prevent that.</p>
-<div class="codehilite"><pre class="insert-before">static void addLocal(Token name) {
+<div class="codehilite" translate="no"><pre class="insert-before">static void addLocal(Token name) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>addLocal</em>()</div>
 <pre class="insert">  <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">localCount</span> == <span class="a">UINT8_COUNT</span>) {
@@ -492,7 +492,7 @@ in <em>addLocal</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addLocal</em>()</div>
 
 <p>The next case is trickier. Consider:</p>
-<div class="codehilite"><pre>{
+<div class="codehilite" translate="no"><pre>{
   <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;first&quot;</span>;
   <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;second&quot;</span>;
 }
@@ -507,7 +507,7 @@ assumption by making this an error.</p>
 code relies on it.</p>
 </aside>
 <p>Note that the above program is different from this one:</p>
-<div class="codehilite"><pre>{
+<div class="codehilite" translate="no"><pre>{
   <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;outer&quot;</span>;
   {
     <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;inner&quot;</span>;
@@ -519,7 +519,7 @@ when the scopes overlap such that both are visible at the same time. That&rsquo;
 shadowing, and Lox does allow that. It&rsquo;s only an error to have two variables
 with the same name in the <em>same</em> local scope.</p>
 <p>We detect that error like so:</p>
-<div class="codehilite"><pre class="insert-before">  Token* name = &amp;parser.previous;
+<div class="codehilite" translate="no"><pre class="insert-before">  Token* name = &amp;parser.previous;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>declareVariable</em>()</div>
 <pre class="insert">  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="i">current</span>-&gt;<span class="i">localCount</span> - <span class="n">1</span>; <span class="i">i</span> &gt;= <span class="n">0</span>; <span class="i">i</span>--) {
@@ -549,7 +549,7 @@ same name. If we find one in the current scope, we report the error. Otherwise,
 if we reach the beginning of the array or a variable owned by another scope,
 then we know we&rsquo;ve checked all of the existing variables in the scope.</p>
 <p>To see if two identifiers are the same, we use this:</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifierConstant</em>()</div>
 <pre><span class="k">static</span> <span class="t">bool</span> <span class="i">identifiersEqual</span>(<span class="t">Token</span>* <span class="i">a</span>, <span class="t">Token</span>* <span class="i">b</span>) {
   <span class="k">if</span> (<span class="i">a</span>-&gt;<span class="i">length</span> != <span class="i">b</span>-&gt;<span class="i">length</span>) <span class="k">return</span> <span class="k">false</span>;
@@ -566,7 +566,7 @@ need an include.</p>
 <p>It would be a nice little optimization if we could check their hashes, but
 tokens aren&rsquo;t full LoxStrings, so we haven&rsquo;t calculated their hashes yet.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">#include &lt;stdlib.h&gt;
+<div class="codehilite" translate="no"><pre class="insert-before">#include &lt;stdlib.h&gt;
 </pre><div class="source-file"><em>compiler.c</em></div>
 <pre class="insert"><span class="a">#include &lt;string.h&gt;</span>
 </pre><pre class="insert-after">
@@ -578,7 +578,7 @@ tokens aren&rsquo;t full LoxStrings, so we haven&rsquo;t calculated their hashes
 <p>With this, we&rsquo;re able to bring variables into being. But, like ghosts, they
 linger on beyond the scope where they are declared. When a block ends, we need
 to put them to rest.</p>
-<div class="codehilite"><pre class="insert-before">  current-&gt;scopeDepth--;
+<div class="codehilite" translate="no"><pre class="insert-before">  current-&gt;scopeDepth--;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>endScope</em>()</div>
 <pre class="insert">
@@ -614,7 +614,7 @@ the same functions in the compiler.</p>
 <p>We already have code for getting and setting global variables, and<span class="em">&mdash;</span>like good
 little software engineers<span class="em">&mdash;</span>we want to reuse as much of that existing code as
 we can. Something like this:</p>
-<div class="codehilite"><pre class="insert-before">static void namedVariable(Token name, bool canAssign) {
+<div class="codehilite" translate="no"><pre class="insert-before">static void namedVariable(Token name, bool canAssign) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>namedVariable</em>()<br>
 replace 1 line</div>
@@ -641,7 +641,7 @@ working with locals. Otherwise, we assume it&rsquo;s a global variable and use t
 existing bytecode instructions for globals.</p>
 <p>A little further down, we use those variables to emit the right instructions.
 For assignment:</p>
-<div class="codehilite"><pre class="insert-before">  if (canAssign &amp;&amp; match(TOKEN_EQUAL)) {
+<div class="codehilite" translate="no"><pre class="insert-before">  if (canAssign &amp;&amp; match(TOKEN_EQUAL)) {
     expression();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>namedVariable</em>()<br>
@@ -652,7 +652,7 @@ replace 1 line</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 1 line</div>
 
 <p>And for access:</p>
-<div class="codehilite"><pre class="insert-before">    emitBytes(setOp, (uint8_t)arg);
+<div class="codehilite" translate="no"><pre class="insert-before">    emitBytes(setOp, (uint8_t)arg);
   } else {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>namedVariable</em>()<br>
@@ -664,7 +664,7 @@ replace 1 line</div>
 
 <p>The real heart of this chapter, the part where we resolve a local variable, is
 here:</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifiersEqual</em>()</div>
 <pre><span class="k">static</span> <span class="t">int</span> <span class="i">resolveLocal</span>(<span class="t">Compiler</span>* <span class="i">compiler</span>, <span class="t">Token</span>* <span class="i">name</span>) {
   <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="i">compiler</span>-&gt;<span class="i">localCount</span> - <span class="n">1</span>; <span class="i">i</span> &gt;= <span class="n">0</span>; <span class="i">i</span>--) {
@@ -698,7 +698,7 @@ wasn&rsquo;t found and should be assumed to be a global variable instead.</p>
 <h3><a href="#interpreting-local-variables" id="interpreting-local-variables"><small>22&#8202;.&#8202;4&#8202;.&#8202;1</small>Interpreting local variables</a></h3>
 <p>Our compiler is emitting two new instructions, so let&rsquo;s get them working. First
 is loading a local variable:</p>
-<div class="codehilite"><pre class="insert-before">  OP_POP,
+<div class="codehilite" translate="no"><pre class="insert-before">  OP_POP,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">  <span class="a">OP_GET_LOCAL</span>,
@@ -707,7 +707,7 @@ in enum <em>OpCode</em></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And its implementation:</p>
-<div class="codehilite"><pre class="insert-before">      case OP_POP: pop(); break;
+<div class="codehilite" translate="no"><pre class="insert-before">      case OP_POP: pop(); break;
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">      <span class="k">case</span> <span class="a">OP_GET_LOCAL</span>: {
@@ -731,7 +731,7 @@ aspect that makes our bytecode instruction set <em>stack</em>-based.
 cost of having larger instructions with more operands.</p>
 </aside>
 <p>Next is assignment:</p>
-<div class="codehilite"><pre class="insert-before">  OP_GET_LOCAL,
+<div class="codehilite" translate="no"><pre class="insert-before">  OP_GET_LOCAL,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">  <span class="a">OP_SET_LOCAL</span>,
@@ -740,7 +740,7 @@ in enum <em>OpCode</em></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>You can probably predict the implementation.</p>
-<div class="codehilite"><pre class="insert-before">      }
+<div class="codehilite" translate="no"><pre class="insert-before">      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">      <span class="k">case</span> <span class="a">OP_SET_LOCAL</span>: {
@@ -758,7 +758,7 @@ from the stack. Remember, assignment is an expression, and every expression
 produces a value. The value of an assignment expression is the assigned value
 itself, so the VM just leaves the value on the stack.</p>
 <p>Our disassembler is incomplete without support for these two new instructions.</p>
-<div class="codehilite"><pre class="insert-before">      return simpleInstruction(&quot;OP_POP&quot;, offset);
+<div class="codehilite" translate="no"><pre class="insert-before">      return simpleInstruction(&quot;OP_POP&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">    <span class="k">case</span> <span class="a">OP_GET_LOCAL</span>:
@@ -781,7 +781,7 @@ see the values of local variables organized by their names. To support that,
 we&rsquo;d need to output some additional information that tracks the name of each
 local variable at each stack slot.</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>debug.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>debug.c</em><br>
 add after <em>simpleInstruction</em>()</div>
 <pre><span class="k">static</span> <span class="t">int</span> <span class="i">byteInstruction</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">name</span>, <span class="t">Chunk</span>* <span class="i">chunk</span>,
                            <span class="t">int</span> <span class="i">offset</span>) {
@@ -803,7 +803,7 @@ name="elegant">elegant</span>.</p>
 <p>No, not even Scheme.</p>
 </aside>
 <p>We&rsquo;ve got one more edge case to deal with before we end this chapter. Recall this strange beastie we first met in <a href="resolving-and-binding.html#resolving-variable-declarations">jlox&rsquo;s implementation of variable resolution</a>:</p>
-<div class="codehilite"><pre>{
+<div class="codehilite" translate="no"><pre>{
   <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;outer&quot;</span>;
   {
     <span class="k">var</span> <span class="i">a</span> = <span class="i">a</span>;
@@ -823,7 +823,7 @@ for use.</p>
 &ldquo;uninitialized&rdquo; state somehow. We could add a new field to Local, but let&rsquo;s be a
 little more parsimonious with memory. Instead, we&rsquo;ll set the variable&rsquo;s scope
 depth to a special sentinel value, <code>-1</code>.</p>
-<div class="codehilite"><pre class="insert-before">  local-&gt;name = name;
+<div class="codehilite" translate="no"><pre class="insert-before">  local-&gt;name = name;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>addLocal</em>()<br>
 replace 1 line</div>
@@ -834,7 +834,7 @@ replace 1 line</div>
 
 <p>Later, once the variable&rsquo;s initializer has been compiled, we mark it
 initialized.</p>
-<div class="codehilite"><pre class="insert-before">  if (current-&gt;scopeDepth &gt; 0) {
+<div class="codehilite" translate="no"><pre class="insert-before">  if (current-&gt;scopeDepth &gt; 0) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>defineVariable</em>()</div>
 <pre class="insert">    <span class="i">markInitialized</span>();
@@ -844,7 +844,7 @@ in <em>defineVariable</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>defineVariable</em>()</div>
 
 <p>That is implemented like so:</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite" translate="no"><div class="source-file"><em>compiler.c</em><br>
 add after <em>parseVariable</em>()</div>
 <pre><span class="k">static</span> <span class="t">void</span> <span class="i">markInitialized</span>() {
   <span class="i">current</span>-&gt;<span class="i">locals</span>[<span class="i">current</span>-&gt;<span class="i">localCount</span> - <span class="n">1</span>].<span class="i">depth</span> =
@@ -858,7 +858,7 @@ compiler. &ldquo;Declaring&rdquo; is when the variable is added to the scope, an
 is when it becomes available for use.</p>
 <p>When we resolve a reference to a local variable, we check the scope depth to see
 if it&rsquo;s fully defined.</p>
-<div class="codehilite"><pre class="insert-before">    if (identifiersEqual(name, &amp;local-&gt;name)) {
+<div class="codehilite" translate="no"><pre class="insert-before">    if (identifiersEqual(name, &amp;local-&gt;name)) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>resolveLocal</em>()</div>
 <pre class="insert">      <span class="k">if</span> (<span class="i">local</span>-&gt;<span class="i">depth</span> == -<span class="n">1</span>) {
@@ -902,7 +902,7 @@ complexity is worth it?</p>
 </li>
 <li>
 <p>How do other languages handle code like this:</p>
-<div class="codehilite"><pre><span class="k">var</span> <span class="i">a</span> = <span class="i">a</span>;
+<div class="codehilite" translate="no"><pre><span class="k">var</span> <span class="i">a</span> = <span class="i">a</span>;
 </pre></div>
 <p>What would you do if it was your language? Why?</p>
 </li>

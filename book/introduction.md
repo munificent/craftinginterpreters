@@ -247,7 +247,7 @@ add temporary code that gets replaced in later snippets.
 
 A snippet with all the bells and whistles looks like this:
 
-<div class="codehilite"><pre class="insert-before">
+<div class="codehilite" translate="no"><pre class="insert-before">
       default:
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()<br>
