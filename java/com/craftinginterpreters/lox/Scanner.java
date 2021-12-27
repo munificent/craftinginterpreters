@@ -68,7 +68,6 @@ class Scanner {
       case '-': addToken(MINUS); break;
       case '+': addToken(PLUS); break;
       case ';': addToken(SEMICOLON); break;
-      case '*': addToken(STAR); break; // [slash]
 //> two-char-tokens
       case '!':
         addToken(match('=') ? BANG_EQUAL : BANG);
@@ -88,11 +87,23 @@ class Scanner {
         if (match('/')) {
           // A comment goes until the end of the line.
           while (peek() != '\n' && !isAtEnd()) advance();
+        } else if (match('*')) {
+          while (peek() != '*' && !isAtEnd()) advance();
         } else {
           addToken(SLASH);
         }
         break;
 //< slash
+//< asterisk denotes multiplication, but also ends block comments
+      case '*':
+        if (match('/')) {
+          // finish advancing past comment
+          while (peek() != '\n' && !isAtEnd()) advance();
+        } else {
+          addToken(STAR);
+        }
+        break;
+//> asterisk situation
 //> whitespace
 
       case ' ':
