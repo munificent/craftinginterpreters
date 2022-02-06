@@ -328,7 +328,18 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     resolveLocal(expr, expr.name);
     return null;
   }
-//< visit-variable-expr
+
+  @Override
+  public Void visitErrorProductionExpr(Expr.ErrorProduction expr) {
+    return null;
+  }
+
+  @Override
+  public Void visitNothingExpr(Expr.Nothing expr) {
+    return null;
+  }
+
+  //< visit-variable-expr
 //> resolve-stmt
   private void resolve(Stmt stmt) {
     stmt.accept(this);

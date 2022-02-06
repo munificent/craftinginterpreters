@@ -478,7 +478,19 @@ class Interpreter implements Expr.Visitor<Object>,
     return lookUpVariable(expr.name, expr);
 //< Resolving and Binding call-look-up-variable
   }
-//> Resolving and Binding look-up-variable
+
+  @Override
+  public Object visitErrorProductionExpr(Expr.ErrorProduction expr) {
+    System.out.println(expr.message);
+    return null;
+  }
+
+  @Override
+  public Object visitNothingExpr(Expr.Nothing expr) {
+    return null;
+  }
+
+  //> Resolving and Binding look-up-variable
   private Object lookUpVariable(Token name, Expr expr) {
     Integer distance = locals.get(expr);
     if (distance != null) {

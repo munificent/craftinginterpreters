@@ -18,6 +18,7 @@ class Parser {
 //< parse-error
   private final List<Token> tokens;
   private int current = 0;
+  private List<Expr.ErrorProduction> errorProductions = new ArrayList();
 
   Parser(List<Token> tokens) {
     this.tokens = tokens;
@@ -43,6 +44,10 @@ class Parser {
 //< parse-declaration
     }
 
+    for (Expr.ErrorProduction errPdxn: this.errorProductions) {
+      Lox.error(errPdxn.errorPoint, errPdxn.message);
+    }
+
     return statements; // [parse-error-handling]
   }
 //< Statements and State parse
@@ -51,6 +56,11 @@ class Parser {
 /* Parsing Expressions expression < Statements and State expression
     return equality();
 */
+    if (match(FUN)) {
+      String noFunHereMessage = "You can't declare a function in a block.";
+      Expr expr = new Expr.ErrorProduction(peek(), noFunHereMessage);
+      this.errorProductions.add((Expr.ErrorProduction) expr);
+    }
 //> Statements and State expression
     return assignment();
 //< Statements and State expression
@@ -372,6 +382,11 @@ class Parser {
   private Expr term() {
     Expr expr = factor();
 
+    if (expr instanceof Expr.Nothing) {
+          String leftOperandMissingMessage = "Binary operators must have a left and right operand.";
+          expr = new Expr.ErrorProduction(peek(), leftOperandMissingMessage);
+          this.errorProductions.add((Expr.ErrorProduction) expr);
+    }
     while (match(MINUS, PLUS)) {
       Token operator = previous();
       Expr right = factor();
@@ -487,8 +502,7 @@ class Parser {
       return new Expr.Grouping(expr);
     }
 //> primary-error
-
-    throw error(peek(), "Expect expression.");
+    return new Expr.Nothing("Nothing, there's nothing here, nothing");
 //< primary-error
   }
 //< primary

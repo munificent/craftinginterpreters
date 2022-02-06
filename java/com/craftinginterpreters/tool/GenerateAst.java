@@ -44,8 +44,10 @@ public class GenerateAst {
 */
 //> Statements and State var-expr
       "Unary    : Token operator, Expr right",
-      "Variable : Token name"
+      "Variable : Token name",
 //< Statements and State var-expr
+      "ErrorProduction    : Token errorPoint, String message",
+      "Nothing            : String nothing"
     ));
 //> Statements and State stmt-ast
 
