@@ -18,7 +18,7 @@ readable because of you all.
 [repo]: https://github.com/munificent/craftinginterpreters
 
 I'm grateful to my copy editor Kari Somerton who braved a heap of computer
-science jargon and an unfamilar workflow in order to fix my many grammar errors
+science jargon and an unfamiliar workflow in order to fix my many grammar errors
 and stylistic inconsistencies.
 
 When the pandemic turned everyone's life upside down, a number of people reached
