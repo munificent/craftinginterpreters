@@ -1062,7 +1062,8 @@ new LoxInstance object.
 We'll do the remaining part -- user-defined initialization -- now. Languages
 have a variety of notations for the chunk of code that sets up a new object for
 a class. C++, Java, and C# use a method whose name matches the class name. Ruby
-and Python call it `init()`. The latter is nice and short, so we'll do that.
+calls it `initialize()` and Python calls it `init()`. The latter is nice and 
+short, so we'll do that.
 
 In LoxClass's implementation of LoxCallable, we add a few more lines.
 
