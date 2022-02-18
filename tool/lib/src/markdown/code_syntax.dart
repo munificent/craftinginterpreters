@@ -98,6 +98,7 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
 
     var element = Element.text("div", code);
     element.attributes["class"] = "codehilite";
+    element.attributes["translate"] = "no";
     return element;
   }
 }
@@ -146,7 +147,7 @@ String _buildSnippet(Format format, CodeTag tag, Snippet snippet) {
   if (tag.showLocation) location = snippet.locationHtmlLines;
 
   var buffer = StringBuffer();
-  buffer.write('<div class="codehilite">');
+  buffer.write('<div class="codehilite" translate="no">');
 
   if (snippet.contextBefore.isNotEmpty) {
     _writeContextHtml(format, buffer, snippet.contextBefore,
