@@ -600,7 +600,7 @@ into that inner function scope.
 
 ^code visit-function-stmt
 
-Similar to `visitVariableStmt()`, we declare and define the name of the function
+Similar to `visitVarStmt()`, we declare and define the name of the function
 in the current scope. Unlike variables, though, we define the name eagerly,
 before resolving the function's body. This lets a function recursively refer to
 itself inside its own body.
