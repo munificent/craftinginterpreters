@@ -262,6 +262,8 @@ to
     * Download from https://git-scm.com/downloads
     * Ensure you install / and start git bash - you'll get a POSIX command prompt
     * Change directory to your `craftingInterpreters` folder
-    * run `make`
+    * run `make get` as per the original instructions 
+    * run `make` as per the original instructions 
+
 
 You should now have a `jlox` and a `clox` built. Just run them from a DOS command line. 
