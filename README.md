@@ -38,7 +38,7 @@ could.
 
 I develop on an OS X machine, but any POSIX system should work too. With a
 little extra effort, you should be able to get this working on Windows as well,
-though I can't help you out much.
+though I can't help you out much (2022: See Notes at base of this document with changes to make to work on Windows 10).
 
 Most of the work is orchestrated by make. The build scripts, test runner, and
 other utilities are all written in [Dart][]. Instructions to install Dart are
@@ -205,3 +205,65 @@ to the test runner using `--arguments` and it will forward to your interpreter.
     generated content.
 *   `test/` – Test cases for the Lox implementations.
 *   `tool/` – Dart package containing the build, test, and other scripts.
+
+## Windows 10 - Some adjustments to get Build to work (2022 Feb)
+
+The above guide is for a POSIX based system; on Windows you may have a couple of challenges. The following has been successfully used and may assist:
+
+* Installing Dart (from elevated Command Prompt)
+``` 
+choco install dart-sdk
+```
+
+* In the `MakeFile `
+    * Change line 10 from:
+
+```
+	@ cd ./tool; dart pub get
+
+    to 
+
+	@ dart pub get --directory=tool
+```
+
+* in `/util/c.make` change:
+```
+    Any reference of:  $(CC) to gcc 
+    
+    So the edited section looks like:
+
+    # Link the interpreter.
+    build/$(NAME): $(OBJECTS)
+	@ printf "%8s %-40s %s\n" gcc $@ "$(CFLAGS)"
+	@ mkdir -p build
+	@ gcc $(CFLAGS) $^ -o $@
+
+    # Compile object files.
+    $(BUILD_DIR)/$(NAME)/%.o: $(SOURCE_DIR)/%.c $(HEADERS)
+	@ printf "%8s %-40s %s\n" gcc $< "$(CFLAGS)"
+	@ mkdir -p $(BUILD_DIR)/$(NAME)
+	@ gcc -c $(C_LANG) $(CFLAGS) -o $@ $<
+
+.PHONY: default
+```
+
+* Change `c/vm.c` on line 381 
+```
+From
+
+    char* chars = ALLOCATE(char, length + 1);   
+
+to 
+
+    char* volatile chars = ALLOCATE(char, length + 1);
+```
+
+* Then ensure you have `git bash`
+    * Download from https://git-scm.com/downloads
+    * Ensure you install / and start git bash - you'll get a POSIX command prompt
+    * Change directory to your `craftingInterpreters` folder
+    * run `make get` as per the original instructions 
+    * run `make` as per the original instructions 
+
+
+You should now have a `jlox` and a `clox` built. Just run them from a DOS command line. 
