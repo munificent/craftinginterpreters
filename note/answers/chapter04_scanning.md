@@ -14,7 +14,7 @@
     a hardcoded limit to the maximum amount of indentation, but that starts to
     split semantic hairs around the Chomsky hierarchy.
 
-2.  In CoffeeScript, parentheses are option in function calls. You can call a
+2.  In CoffeeScript, parentheses are optional in function calls. You can call a
     function like:
 
     ```coffeescript
