@@ -9,7 +9,7 @@ chapter, our interpreter will take breath, open its eyes, and execute some code.
 
 <span name="spooky"></span>
 
-<img src="image/evaluating-expressions/lightning.png" alt="A bolt of lightning strikes a Victorian mansion. Spooky!" />
+<img src="image/evaluating-expressions/lightning.png" class="negate" alt="A bolt of lightning strikes a Victorian mansion. Spooky!" />
 
 <aside name="spooky">
 
@@ -431,7 +431,7 @@ all the way out.
 
 I don't know, man, *can* you negate a muffin?
 
-<img src="image/evaluating-expressions/muffin.png" alt="A muffin, negated." />
+<img src="image/evaluating-expressions/muffin.png" class="negate" alt="A muffin, negated.">
 
 </aside>
 
@@ -643,7 +643,7 @@ and the Visitor pattern we've set up today form the skeleton that later chapters
 will stuff full of interesting guts -- variables, functions, etc. Right now, the
 interpreter doesn't do very much, but it's alive!
 
-<img src="image/evaluating-expressions/skeleton.png" alt="A skeleton waving hello." />
+<img src="image/evaluating-expressions/skeleton.png" class="negate" alt="A skeleton waving hello." />
 
 <div class="challenges">
 
