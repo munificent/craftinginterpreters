@@ -1,17 +1,4 @@
 $(function() {
-  $(".dismiss").click(function() {
-    $(".sign-up").hide();
-    refreshAsides();
-
-    // Don't show it again for a while.
-    // From: http://www.quirksmode.org/js/cookies.html.
-    var date = new Date();
-    var days = 10;
-    date.setTime(date.getTime() + (10 * 24 * 60 * 60 * 1000));
-    document.cookie =
-        "hidesignup=true; expires=" + date.toGMTString() + "; path=/";
-  });
-
   $("#expand-nav").click(function() {
     $(".expandable").toggleClass("shown");
   });
@@ -26,11 +13,6 @@ $(function() {
   });
 
   $(window).resize(refreshAsides);
-
-  // Hide the sign-up box if the user has already dismissed it.
-  if (document.cookie.indexOf("hidesignup") != -1) {
-    $(".sign-up.closable").hide();
-  }
 
   // Since we may not have the height correct for the images, adjust the asides
   // too when an image is loaded.
