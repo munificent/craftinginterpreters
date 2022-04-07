@@ -1079,7 +1079,7 @@ This way we can see how much the garbage collector accomplished while it ran.
 ## Garbage Collection Bugs
 
 In theory, we are all done now. We have a GC. It kicks in periodically, collects
-what it can, and leaves the rest. If this were a typical textbook, we would wipe
+what it can, and leaves the rest. If this was a typical textbook, we would wipe
 the dust from our hands and bask in the soft glow of the flawless marble edifice
 we have created.
 
