@@ -1199,7 +1199,23 @@ returning the value (which will always be `nil`), we again return `this`.
 
 Phew! That was a whole list of tasks but our reward is that our little
 interpreter has grown an entire programming paradigm. Classes, methods, fields,
-`this`, and constructors. Our baby language is looking awfully grown-up.
+`this`, and constructors. Our baby language is looking awfully grown-up. If you
+want to give it a try, here's a script to run:
+
+```lox
+class Cake {
+  init(adjective) {
+    this.adjective = adjective;
+  }
+  taste() {
+    print "The " + this.flavor + " cake is " + this.adjective + "!";
+  }
+}
+
+var cake = Cake("scrumptious");
+cake.flavor = "German chocolate";
+cake.taste(); // Prints "The German chocolate cake is scrumptious!".
+```
 
 <div class="challenges">
 
