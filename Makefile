@@ -3,7 +3,7 @@ TOOL_SOURCES := tool/pubspec.lock $(shell find tool -name '*.dart')
 BUILD_SNAPSHOT := $(BUILD_DIR)/build.dart.snapshot
 TEST_SNAPSHOT := $(BUILD_DIR)/test.dart.snapshot
 
-default: book clox jlox
+default: book jlox
 
 # Run dart pub get on tool directory.
 get:
@@ -27,48 +27,26 @@ $(BUILD_SNAPSHOT): $(TOOL_SOURCES)
 	@ echo "Compiling Dart snapshot..."
 	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/build.dart >/dev/null
 
-# Run the tests for the final versions of clox and jlox.
-test: debug jlox $(TEST_SNAPSHOT)
-	@- dart $(TEST_SNAPSHOT) clox
+# Run the tests for the final versions of jlox.
+test: jlox $(TEST_SNAPSHOT)
 	@ dart $(TEST_SNAPSHOT) jlox
-
-# Run the tests for the final version of clox.
-test_clox: debug $(TEST_SNAPSHOT)
-	@ dart $(TEST_SNAPSHOT) clox
 
 # Run the tests for the final version of jlox.
 test_jlox: jlox $(TEST_SNAPSHOT)
 	@ dart $(TEST_SNAPSHOT) jlox
 
-# Run the tests for every chapter's version of clox.
-test_c: debug c_chapters $(TEST_SNAPSHOT)
-	@ dart $(TEST_SNAPSHOT) c
-
 # Run the tests for every chapter's version of jlox.
 test_java: jlox java_chapters $(TEST_SNAPSHOT)
 	@ dart $(TEST_SNAPSHOT) java
 
-# Run the tests for every chapter's version of clox and jlox.
-test_all: debug jlox c_chapters java_chapters compile_snippets $(TEST_SNAPSHOT)
+# Run the tests for every chapter's version of and jlox.
+test_all: jlox java_chapters compile_snippets $(TEST_SNAPSHOT)
 	@ dart $(TEST_SNAPSHOT) all
 
 $(TEST_SNAPSHOT): $(TOOL_SOURCES)
 	@ mkdir -p build
 	@ echo "Compiling Dart snapshot..."
-	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/test.dart clox >/dev/null
-
-# Compile a debug build of clox.
-debug:
-	@ $(MAKE) -f util/c.make NAME=cloxd MODE=debug SOURCE_DIR=c
-
-# Compile the C interpreter.
-clox:
-	@ $(MAKE) -f util/c.make NAME=clox MODE=release SOURCE_DIR=c
-	@ cp build/clox clox # For convenience, copy the interpreter to the top level.
-
-# Compile the C interpreter as ANSI standard C++.
-cpplox:
-	@ $(MAKE) -f util/c.make NAME=cpplox MODE=debug CPP=true SOURCE_DIR=c
+	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/test.dart jlox # >/dev/null
 
 # Compile and run the AST generator.
 generate_ast:
@@ -123,44 +101,6 @@ java_chapters: split_chapters
 	$(call run_generate_ast,chap13_inheritance)
 	@ $(MAKE) -f util/java.make DIR=gen/chap13_inheritance PACKAGE=lox
 
-c_chapters: split_chapters
-	@ $(MAKE) -f util/c.make NAME=chap14_chunks MODE=release SOURCE_DIR=gen/chap14_chunks
-	@ $(MAKE) -f util/c.make NAME=chap15_virtual MODE=release SOURCE_DIR=gen/chap15_virtual
-	@ $(MAKE) -f util/c.make NAME=chap16_scanning MODE=release SOURCE_DIR=gen/chap16_scanning
-	@ $(MAKE) -f util/c.make NAME=chap17_compiling MODE=release SOURCE_DIR=gen/chap17_compiling
-	@ $(MAKE) -f util/c.make NAME=chap18_types MODE=release SOURCE_DIR=gen/chap18_types
-	@ $(MAKE) -f util/c.make NAME=chap19_strings MODE=release SOURCE_DIR=gen/chap19_strings
-	@ $(MAKE) -f util/c.make NAME=chap20_hash MODE=release SOURCE_DIR=gen/chap20_hash
-	@ $(MAKE) -f util/c.make NAME=chap21_global MODE=release SOURCE_DIR=gen/chap21_global
-	@ $(MAKE) -f util/c.make NAME=chap22_local MODE=release SOURCE_DIR=gen/chap22_local
-	@ $(MAKE) -f util/c.make NAME=chap23_jumping MODE=release SOURCE_DIR=gen/chap23_jumping
-	@ $(MAKE) -f util/c.make NAME=chap24_calls MODE=release SOURCE_DIR=gen/chap24_calls
-	@ $(MAKE) -f util/c.make NAME=chap25_closures MODE=release SOURCE_DIR=gen/chap25_closures
-	@ $(MAKE) -f util/c.make NAME=chap26_garbage MODE=release SOURCE_DIR=gen/chap26_garbage
-	@ $(MAKE) -f util/c.make NAME=chap27_classes MODE=release SOURCE_DIR=gen/chap27_classes
-	@ $(MAKE) -f util/c.make NAME=chap28_methods MODE=release SOURCE_DIR=gen/chap28_methods
-	@ $(MAKE) -f util/c.make NAME=chap29_superclasses MODE=release SOURCE_DIR=gen/chap29_superclasses
-	@ $(MAKE) -f util/c.make NAME=chap30_optimization MODE=release SOURCE_DIR=gen/chap30_optimization
-
-cpp_chapters: split_chapters
-	@ $(MAKE) -f util/c.make NAME=cpp_chap14_chunks MODE=release CPP=true SOURCE_DIR=gen/chap14_chunks
-	@ $(MAKE) -f util/c.make NAME=cpp_chap15_virtual MODE=release CPP=true SOURCE_DIR=gen/chap15_virtual
-	@ $(MAKE) -f util/c.make NAME=cpp_chap16_scanning MODE=release CPP=true SOURCE_DIR=gen/chap16_scanning
-	@ $(MAKE) -f util/c.make NAME=cpp_chap17_compiling MODE=release CPP=true SOURCE_DIR=gen/chap17_compiling
-	@ $(MAKE) -f util/c.make NAME=cpp_chap18_types MODE=release CPP=true SOURCE_DIR=gen/chap18_types
-	@ $(MAKE) -f util/c.make NAME=cpp_chap19_strings MODE=release CPP=true SOURCE_DIR=gen/chap19_strings
-	@ $(MAKE) -f util/c.make NAME=cpp_chap20_hash MODE=release CPP=true SOURCE_DIR=gen/chap20_hash
-	@ $(MAKE) -f util/c.make NAME=cpp_chap21_global MODE=release CPP=true SOURCE_DIR=gen/chap21_global
-	@ $(MAKE) -f util/c.make NAME=cpp_chap22_local MODE=release CPP=true SOURCE_DIR=gen/chap22_local
-	@ $(MAKE) -f util/c.make NAME=cpp_chap23_jumping MODE=release CPP=true SOURCE_DIR=gen/chap23_jumping
-	@ $(MAKE) -f util/c.make NAME=cpp_chap24_calls MODE=release CPP=true SOURCE_DIR=gen/chap24_calls
-	@ $(MAKE) -f util/c.make NAME=cpp_chap25_closures MODE=release CPP=true SOURCE_DIR=gen/chap25_closures
-	@ $(MAKE) -f util/c.make NAME=cpp_chap26_garbage MODE=release CPP=true SOURCE_DIR=gen/chap26_garbage
-	@ $(MAKE) -f util/c.make NAME=cpp_chap27_classes MODE=release CPP=true SOURCE_DIR=gen/chap27_classes
-	@ $(MAKE) -f util/c.make NAME=cpp_chap28_methods MODE=release CPP=true SOURCE_DIR=gen/chap28_methods
-	@ $(MAKE) -f util/c.make NAME=cpp_chap29_superclasses MODE=release CPP=true SOURCE_DIR=gen/chap29_superclasses
-	@ $(MAKE) -f util/c.make NAME=cpp_chap30_optimization MODE=release CPP=true SOURCE_DIR=gen/chap30_optimization
-
 diffs: split_chapters java_chapters
 	@ mkdir -p build/diffs
 	@ -diff --recursive --new-file nonexistent/ gen/chap04_scanning/com/craftinginterpreters/ > build/diffs/chap04_scanning.diff
@@ -174,24 +114,6 @@ diffs: split_chapters java_chapters
 	@ -diff --recursive --new-file gen/chap11_resolving/com/craftinginterpreters/ gen/chap12_classes/com/craftinginterpreters/ > build/diffs/chap12_classes.diff
 	@ -diff --recursive --new-file gen/chap12_classes/com/craftinginterpreters/ gen/chap13_inheritance/com/craftinginterpreters/ > build/diffs/chap13_inheritance.diff
 
-	@ -diff --new-file nonexistent/ gen/chap14_chunks/ > build/diffs/chap14_chunks.diff
-	@ -diff --new-file gen/chap14_chunks/ gen/chap15_virtual/ > build/diffs/chap15_virtual.diff
-	@ -diff --new-file gen/chap15_virtual/ gen/chap16_scanning/ > build/diffs/chap16_scanning.diff
-	@ -diff --new-file gen/chap16_scanning/ gen/chap17_compiling/ > build/diffs/chap17_compiling.diff
-	@ -diff --new-file gen/chap17_compiling/ gen/chap18_types/ > build/diffs/chap18_types.diff
-	@ -diff --new-file gen/chap18_types/ gen/chap19_strings/ > build/diffs/chap19_strings.diff
-	@ -diff --new-file gen/chap19_strings/ gen/chap20_hash/ > build/diffs/chap20_hash.diff
-	@ -diff --new-file gen/chap20_hash/ gen/chap21_global/ > build/diffs/chap21_global.diff
-	@ -diff --new-file gen/chap21_global/ gen/chap22_local/ > build/diffs/chap22_local.diff
-	@ -diff --new-file gen/chap22_local/ gen/chap23_jumping/ > build/diffs/chap23_jumping.diff
-	@ -diff --new-file gen/chap23_jumping/ gen/chap24_calls/ > build/diffs/chap24_calls.diff
-	@ -diff --new-file gen/chap24_calls/ gen/chap25_closures/ > build/diffs/chap25_closures.diff
-	@ -diff --new-file gen/chap25_closures/ gen/chap26_garbage/ > build/diffs/chap26_garbage.diff
-	@ -diff --new-file gen/chap26_garbage/ gen/chap27_classes/ > build/diffs/chap27_classes.diff
-	@ -diff --new-file gen/chap27_classes/ gen/chap28_methods/ > build/diffs/chap28_methods.diff
-	@ -diff --new-file gen/chap28_methods/ gen/chap29_superclasses/ > build/diffs/chap29_superclasses.diff
-	@ -diff --new-file gen/chap29_superclasses/ gen/chap30_optimization/ > build/diffs/chap30_optimization.diff
-
 split_chapters:
 	@ dart tool/bin/split_chapters.dart
 
@@ -202,5 +124,5 @@ compile_snippets:
 xml: $(TOOL_SOURCES)
 	@ dart --enable-asserts tool/bin/build_xml.dart
 
-.PHONY: book c_chapters clean clox compile_snippets debug default diffs \
-	get java_chapters jlox serve split_chapters test test_all test_c test_java
+.PHONY: book clean compile_snippets default diffs \
+	get java_chapters jlox serve split_chapters test test_all test_java

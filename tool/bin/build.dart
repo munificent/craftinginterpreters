@@ -48,7 +48,7 @@ void _buildPages({bool skipUpToDate = false}) {
   DateTime dependenciesModified;
   if (skipUpToDate) {
     dependenciesModified = _mostRecentlyModified(
-        ["asset/mustache/*.html", "c/*.{c,h}", "java/**.java"]);
+        ["asset/mustache/*.html", "java/**.java"]);
   }
 
   var proseWords = 0;

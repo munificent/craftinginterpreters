@@ -32,25 +32,6 @@ const _tableOfContents = {
     'Classes',
     'Inheritance',
   ],
-  'A Bytecode Virtual Machine': [
-    'Chunks of Bytecode',
-    'A Virtual Machine',
-    'Scanning on Demand',
-    'Compiling Expressions',
-    'Types of Values',
-    'Strings',
-    'Hash Tables',
-    'Global Variables',
-    'Local Variables',
-    'Jumping Back and Forth',
-    'Calls and Functions',
-    'Closures',
-    'Garbage Collection',
-    'Classes and Instances',
-    'Methods and Initializers',
-    'Superclasses',
-    'Optimization',
-  ],
   'Backmatter': [
     'Appendix I',
     'Appendix II',
@@ -114,8 +95,8 @@ class Book {
     }
 
     // Load the source files.
-    for (var language in ["java", "c"]) {
-      for (var file in Glob("$language/**.{c,h,java}").listSync()) {
+    for (var language in ["java"]) {
+      for (var file in Glob("$language/**.java").listSync()) {
         var shortPath = p.relative(file.path, from: language);
         var sourceFile = SourceFileParser(this, file.path, shortPath).parse();
 
