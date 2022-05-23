@@ -26,7 +26,12 @@ static void repl() {
       printf("\n");
       break;
     }
-
+    
+    if(!strcmp(line, ".exit\n")) {
+      freeVM();
+      exit(EXIT_SUCCESS);
+    }
+    
     interpret(line);
   }
 }
@@ -37,6 +42,7 @@ static char* readFile(const char* path) {
 //> no-file
   if (file == NULL) {
     fprintf(stderr, "Could not open file \"%s\".\n", path);
+    freeVM();
     exit(74);
   }
 //< no-file
@@ -49,6 +55,7 @@ static char* readFile(const char* path) {
 //> no-buffer
   if (buffer == NULL) {
     fprintf(stderr, "Not enough memory to read \"%s\".\n", path);
+    freeVM();
     exit(74);
   }
   
@@ -57,6 +64,7 @@ static char* readFile(const char* path) {
 //> no-read
   if (bytesRead < fileSize) {
     fprintf(stderr, "Could not read file \"%s\".\n", path);
+    freeVM();
     exit(74);
   }
   
@@ -73,8 +81,8 @@ static void runFile(const char* path) {
   InterpretResult result = interpret(source);
   free(source); // [owner]
 
-  if (result == INTERPRET_COMPILE_ERROR) exit(65);
-  if (result == INTERPRET_RUNTIME_ERROR) exit(70);
+  if (result == INTERPRET_COMPILE_ERROR) { freeVM(); exit(65); }
+  if (result == INTERPRET_RUNTIME_ERROR) { freeVM(); exit(70); }
 }
 //< Scanning on Demand run-file
 
@@ -138,6 +146,7 @@ int main(int argc, const char* argv[]) {
     runFile(argv[1]);
   } else {
     fprintf(stderr, "Usage: clox [path]\n");
+    freeVM();
     exit(64);
   }
   
