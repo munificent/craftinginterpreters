@@ -127,7 +127,7 @@ in the next chapter.</p>
 <p>Since this is our first real chapter, before we get to actually scanning some
 code we need to sketch out the basic shape of our interpreter, jlox. Everything
 starts with a class in Java.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -152,7 +152,7 @@ create new file</div>
   }
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, create new file</div>
 
 <aside name="64">
 <p>For exit codes, I&rsquo;m using the conventions defined in the UNIX
@@ -164,14 +164,14 @@ I&rsquo;ll be right here when you&rsquo;re ready. Good? OK!</p>
 <p>Lox is a scripting language, which means it executes directly from source. Our
 interpreter supports two ways of running code. If you start jlox from the
 command line and give it a path to a file, it reads the file and executes it.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 add after <em>main</em>()</div>
 <pre>  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">runFile</span>(<span class="t">String</span> <span class="i">path</span>) <span class="k">throws</span> <span class="t">IOException</span> {
     <span class="t">byte</span>[] <span class="i">bytes</span> = <span class="t">Files</span>.<span class="i">readAllBytes</span>(<span class="t">Paths</span>.<span class="i">get</span>(<span class="i">path</span>));
     <span class="i">run</span>(<span class="k">new</span> <span class="t">String</span>(<span class="i">bytes</span>, <span class="t">Charset</span>.<span class="i">defaultCharset</span>()));
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, add after <em>main</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, add after <em>main</em>()</div>
 
 <p>If you want a more intimate conversation with your interpreter, you can also run
 it interactively. Fire up jlox without any arguments, and it drops you into a
@@ -185,7 +185,7 @@ wrapping a loop around a few built-in functions:</p>
 <p>Working outwards from the most nested call, you <strong>R</strong>ead a line of input,
 <strong>E</strong>valuate it, <strong>P</strong>rint the result, then <strong>L</strong>oop and do it all over again.</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 add after <em>runFile</em>()</div>
 <pre>  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">runPrompt</span>() <span class="k">throws</span> <span class="t">IOException</span> {
     <span class="t">InputStreamReader</span> <span class="i">input</span> = <span class="k">new</span> <span class="t">InputStreamReader</span>(<span class="t">System</span>.<span class="i">in</span>);
@@ -199,7 +199,7 @@ add after <em>runFile</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, add after <em>runFile</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, add after <em>runFile</em>()</div>
 
 <p>The <code>readLine()</code> function, as the name so helpfully implies, reads a line of
 input from the user on the command line and returns the result. To kill an
@@ -207,7 +207,7 @@ interactive command-line app, you usually type Control-D. Doing so signals an
 &ldquo;end-of-file&rdquo; condition to the program. When that happens <code>readLine()</code> returns
 <code>null</code>, so we check for that to exit the loop.</p>
 <p>Both the prompt and the file runner are thin wrappers around this core function:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 add after <em>runPrompt</em>()</div>
 <pre>  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">run</span>(<span class="t">String</span> <span class="i">source</span>) {
     <span class="t">Scanner</span> <span class="i">scanner</span> = <span class="k">new</span> <span class="t">Scanner</span>(<span class="i">source</span>);
@@ -219,7 +219,7 @@ add after <em>runPrompt</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, add after <em>runPrompt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, add after <em>runPrompt</em>()</div>
 
 <p>It&rsquo;s not super useful yet since we haven&rsquo;t written the interpreter, but baby
 steps, you know? Right now, it prints out the tokens our forthcoming scanner
@@ -242,7 +242,7 @@ handling all through the implementation of our interpreter, starting now.</p>
 bones. I&rsquo;d love to talk about interactive debuggers, static analyzers, and other
 fun stuff, but there&rsquo;s only so much ink in the pen.</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 add after <em>run</em>()</div>
 <pre>  <span class="k">static</span> <span class="t">void</span> <span class="i">error</span>(<span class="t">int</span> <span class="i">line</span>, <span class="t">String</span> <span class="i">message</span>) {
     <span class="i">report</span>(<span class="i">line</span>, <span class="s">&quot;&quot;</span>, <span class="i">message</span>);
@@ -255,7 +255,7 @@ add after <em>run</em>()</div>
     <span class="i">hadError</span> = <span class="k">true</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, add after <em>run</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, add after <em>run</em>()</div>
 
 <p>This <code>error()</code> function and its <code>report()</code> helper tells the user some syntax
 error occurred on a given line. That is really the bare minimum to be able to
@@ -279,17 +279,17 @@ not as I do.</p>
 <p>The primary reason we&rsquo;re sticking this error reporting function in the main Lox
 class is because of that <code>hadError</code> field. It&rsquo;s defined here:</p>
 <div class="codehilite"><pre class="insert-before">public class Lox {
-</pre><div class="source-file"><em>lox/Lox.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 in class <em>Lox</em></div>
 <pre class="insert">  <span class="k">static</span> <span class="t">boolean</span> <span class="i">hadError</span> = <span class="k">false</span>;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, in class <em>Lox</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, in class <em>Lox</em></div>
 
 <p>We&rsquo;ll use this to ensure we don&rsquo;t try to execute code that has a known error.
 Also, it lets us exit with a non-zero exit code like a good command line citizen
 should.</p>
 <div class="codehilite"><pre class="insert-before">    run(new String(bytes, Charset.defaultCharset()));
-</pre><div class="source-file"><em>lox/Lox.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 in <em>runFile</em>()</div>
 <pre class="insert">
 
@@ -297,17 +297,17 @@ in <em>runFile</em>()</div>
     <span class="k">if</span> (<span class="i">hadError</span>) <span class="t">System</span>.<span class="i">exit</span>(<span class="n">65</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>runFile</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, in <em>runFile</em>()</div>
 
 <p>We need to reset this flag in the interactive loop. If the user makes a mistake,
 it shouldn&rsquo;t kill their entire session.</p>
 <div class="codehilite"><pre class="insert-before">      run(line);
-</pre><div class="source-file"><em>lox/Lox.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 in <em>runPrompt</em>()</div>
 <pre class="insert">      <span class="i">hadError</span> = <span class="k">false</span>;
 </pre><pre class="insert-after">    }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>runPrompt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, in <em>runPrompt</em>()</div>
 
 <p>The other reason I pulled the error reporting out here instead of stuffing it
 into the scanner and other phases where the error might occur is to remind you
@@ -359,7 +359,7 @@ punctuation, and literal type.</p>
 <p>After all, string comparison ends up looking at individual characters, and isn&rsquo;t
 that the scanner&rsquo;s job?</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>lox/TokenType.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\TokenType.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -384,7 +384,7 @@ create new file</div>
   <span class="i">EOF</span>
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/TokenType.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\TokenType.java</em>, create new file</div>
 
 <h3><a href="#literal-value" id="literal-value"><small>4&#8202;.&#8202;2&#8202;.&#8202;2</small>Literal value</a></h3>
 <p>There are lexemes for literal values<span class="em">&mdash;</span>numbers and strings and the like. Since
@@ -409,7 +409,7 @@ those, the less time you spend calculating position information ahead of time,
 the better.</p>
 </aside>
 <p>We take all of this data and wrap it in a class.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Token.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Token.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -431,7 +431,7 @@ create new file</div>
   }
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Token.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Token.java</em>, create new file</div>
 
 <p>Now we have an object with enough structure to be useful for all of the later
 phases of the interpreter.</p>
@@ -483,7 +483,7 @@ mega billionaire among us.</p>
 delegating that task. We&rsquo;re about handcrafted goods.</p>
 <h2><a href="#the-scanner-class" id="the-scanner-class"><small>4&#8202;.&#8202;4</small>The Scanner Class</a></h2>
 <p>Without further ado, let&rsquo;s make ourselves a scanner.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -503,7 +503,7 @@ create new file</div>
   }
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, create new file</div>
 
 <aside name="static-import">
 <p>I know static imports are considered bad style by some, but they save me from
@@ -513,7 +513,7 @@ every character counts in a book.</p>
 <p>We store the raw source code as a simple string, and we have a list ready to
 fill with tokens we&rsquo;re going to generate. The aforementioned loop that does that
 looks like this:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>Scanner</em>()</div>
 <pre>  <span class="t">List</span>&lt;<span class="t">Token</span>&gt; <span class="i">scanTokens</span>() {
     <span class="k">while</span> (!<span class="i">isAtEnd</span>()) {
@@ -526,7 +526,7 @@ add after <em>Scanner</em>()</div>
     <span class="k">return</span> <span class="i">tokens</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>Scanner</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>Scanner</em>()</div>
 
 <p>The scanner works its way through the source code, adding tokens until it runs
 out of characters. Then it appends one final &ldquo;end of file&rdquo; token. That isn&rsquo;t
@@ -534,7 +534,7 @@ strictly needed, but it makes our parser a little cleaner.</p>
 <p>This loop depends on a couple of fields to keep track of where the scanner is in
 the source code.</p>
 <div class="codehilite"><pre class="insert-before">  private final List&lt;Token&gt; tokens = new ArrayList&lt;&gt;();
-</pre><div class="source-file"><em>lox/Scanner.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in class <em>Scanner</em></div>
 <pre class="insert">  <span class="k">private</span> <span class="t">int</span> <span class="i">start</span> = <span class="n">0</span>;
   <span class="k">private</span> <span class="t">int</span> <span class="i">current</span> = <span class="n">0</span>;
@@ -543,7 +543,7 @@ in class <em>Scanner</em></div>
 
   Scanner(String source) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in class <em>Scanner</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in class <em>Scanner</em></div>
 
 <p>The <code>start</code> and <code>current</code> fields are offsets that index into the string. The
 <code>start</code> field points to the first character in the lexeme being scanned, and
@@ -552,13 +552,13 @@ tracks what source line <code>current</code> is on so we can produce tokens that
 location.</p>
 <p>Then we have one little helper function that tells us if we&rsquo;ve consumed all the
 characters.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>scanTokens</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">isAtEnd</span>() {
     <span class="k">return</span> <span class="i">current</span> &gt;= <span class="i">source</span>.<span class="i">length</span>();
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>scanTokens</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>scanTokens</em>()</div>
 
 <h2><a href="#recognizing-lexemes" id="recognizing-lexemes"><small>4&#8202;.&#8202;5</small>Recognizing Lexemes</a></h2>
 <p>In each turn of the loop, we scan a single token. This is the real heart of the
@@ -566,7 +566,7 @@ scanner. We&rsquo;ll start simple. Imagine if every lexeme were only a single ch
 long. All you would need to do is consume the next character and pick a token type for
 it. Several lexemes <em>are</em> only a single character in Lox, so let&rsquo;s start with
 those.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>scanTokens</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">scanToken</span>() {
     <span class="t">char</span> <span class="i">c</span> = <span class="i">advance</span>();
@@ -584,13 +584,13 @@ add after <em>scanTokens</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>scanTokens</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>scanTokens</em>()</div>
 
 <aside name="slash">
 <p>Wondering why <code>/</code> isn&rsquo;t in here? Don&rsquo;t worry, we&rsquo;ll get to it.</p>
 </aside>
 <p>Again, we need a couple of helper methods.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>isAtEnd</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">char</span> <span class="i">advance</span>() {
     <span class="k">return</span> <span class="i">source</span>.<span class="i">charAt</span>(<span class="i">current</span>++);
@@ -605,7 +605,7 @@ add after <em>isAtEnd</em>()</div>
     <span class="i">tokens</span>.<span class="i">add</span>(<span class="k">new</span> <span class="t">Token</span>(<span class="i">type</span>, <span class="i">text</span>, <span class="i">literal</span>, <span class="i">line</span>));
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>isAtEnd</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>isAtEnd</em>()</div>
 
 <p>The <code>advance()</code> method consumes the next character in the source file and
 returns it. Where <code>advance()</code> is for input, <code>addToken()</code> is for output. It grabs
@@ -619,7 +619,7 @@ characters get silently discarded. They aren&rsquo;t used by the Lox language, b
 that doesn&rsquo;t mean the interpreter can pretend they aren&rsquo;t there. Instead, we
 report an error.</p>
 <div class="codehilite"><pre class="insert-before">      case '*': addToken(STAR); break;<span name="slash"> </span>
-</pre><div class="source-file"><em>lox/Scanner.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
 
@@ -628,7 +628,7 @@ in <em>scanToken</em>()</div>
         <span class="k">break</span>;
 </pre><pre class="insert-after">    }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in <em>scanToken</em>()</div>
 
 <p>Note that the erroneous character is still <em>consumed</em> by the earlier call to
 <code>advance()</code>. That&rsquo;s important so that we don&rsquo;t get stuck in an infinite loop.</p>
@@ -656,7 +656,7 @@ can all be followed by <code>=</code> to create the other equality and compariso
 operators.</p>
 <p>For all of these, we need to look at the second character.</p>
 <div class="codehilite"><pre class="insert-before">      case '*': addToken(STAR); break;<span name="slash"> </span>
-</pre><div class="source-file"><em>lox/Scanner.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">      <span class="k">case</span> <span class="s">&#39;!&#39;</span>:
         <span class="i">addToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="i">BANG_EQUAL</span> : <span class="i">BANG</span>);
@@ -674,10 +674,10 @@ in <em>scanToken</em>()</div>
 
       default:
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in <em>scanToken</em>()</div>
 
 <p>Those cases use this new method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>scanToken</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">match</span>(<span class="t">char</span> <span class="i">expected</span>) {
     <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="k">false</span>;
@@ -687,7 +687,7 @@ add after <em>scanToken</em>()</div>
     <span class="k">return</span> <span class="k">true</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>scanToken</em>()</div>
 
 <p>It&rsquo;s like a conditional <code>advance()</code>. We only consume the current character if
 it&rsquo;s what we&rsquo;re looking for.</p>
@@ -699,7 +699,7 @@ merely a <code>!</code>.</p>
 <p>We&rsquo;re still missing one operator: <code>/</code> for division. That character needs a
 little special handling because comments begin with a slash too.</p>
 <div class="codehilite"><pre class="insert-before">        break;
-</pre><div class="source-file"><em>lox/Scanner.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">      <span class="k">case</span> <span class="s">&#39;/&#39;</span>:
         <span class="k">if</span> (<span class="i">match</span>(<span class="s">&#39;/&#39;</span>)) {
@@ -713,7 +713,7 @@ in <em>scanToken</em>()</div>
 
       default:
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in <em>scanToken</em>()</div>
 
 <p>This is similar to the other two-character operators, except that when we find a
 second <code>/</code>, we don&rsquo;t end the token yet. Instead, we keep consuming characters
@@ -722,14 +722,14 @@ until we reach the end of the line.</p>
 beginning of one, we shunt over to some lexeme-specific code that keeps eating
 characters until it sees the end.</p>
 <p>We&rsquo;ve got another helper:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>match</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">char</span> <span class="i">peek</span>() {
     <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="s">&#39;\0&#39;</span>;
     <span class="k">return</span> <span class="i">source</span>.<span class="i">charAt</span>(<span class="i">current</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>match</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>match</em>()</div>
 
 <p>It&rsquo;s sort of like <code>advance()</code>, but doesn&rsquo;t consume the character. This is called
 <span name="match"><strong>lookahead</strong></span>. Since it only looks at the current
@@ -748,7 +748,7 @@ reset and the comment&rsquo;s lexeme disappears in a puff of smoke.</p>
 <p>While we&rsquo;re at it, now&rsquo;s a good time to skip over those other meaningless
 characters: newlines and whitespace.</p>
 <div class="codehilite"><pre class="insert-before">        break;
-</pre><div class="source-file"><em>lox/Scanner.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
 
@@ -766,7 +766,7 @@ in <em>scanToken</em>()</div>
       default:
         Lox.error(line, &quot;Unexpected character.&quot;);
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in <em>scanToken</em>()</div>
 
 <p>When encountering whitespace, we simply go back to the beginning of the scan
 loop. That starts a new lexeme <em>after</em> the whitespace character. For newlines,
@@ -782,7 +782,7 @@ that newline to get us here so we can update <code>line</code>.)</p>
 <p>Now that we&rsquo;re comfortable with longer lexemes, we&rsquo;re ready to tackle literals.
 We&rsquo;ll do strings first, since they always begin with a specific character, <code>"</code>.</p>
 <div class="codehilite"><pre class="insert-before">        break;
-</pre><div class="source-file"><em>lox/Scanner.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
 
@@ -791,10 +791,10 @@ in <em>scanToken</em>()</div>
 
       default:
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in <em>scanToken</em>()</div>
 
 <p>That calls:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>scanToken</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">string</span>() {
     <span class="k">while</span> (<span class="i">peek</span>() != <span class="s">&#39;&quot;&#39;</span> &amp;&amp; !<span class="i">isAtEnd</span>()) {
@@ -815,7 +815,7 @@ add after <em>scanToken</em>()</div>
     <span class="i">addToken</span>(<span class="i">STRING</span>, <span class="i">value</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>scanToken</em>()</div>
 
 <p>Like with comments, we consume characters until we hit the <code>"</code> that ends the
 string. We also gracefully handle running out of input before the string is
@@ -861,7 +861,7 @@ latter gets weird if we ever want to allow methods on numbers like <code>123.sqr
 of tedious to add cases for every decimal digit, so we&rsquo;ll stuff it in the
 default case instead.</p>
 <div class="codehilite"><pre class="insert-before">      default:
-</pre><div class="source-file"><em>lox/Scanner.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in <em>scanToken</em>()<br>
 replace 1 line</div>
 <pre class="insert">        <span class="k">if</span> (<span class="i">isDigit</span>(<span class="i">c</span>)) {
@@ -871,16 +871,16 @@ replace 1 line</div>
         }
 </pre><pre class="insert-after">        break;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in <em>scanToken</em>(), replace 1 line</div>
 
 <p>This relies on this little utility:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>peek</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">isDigit</span>(<span class="t">char</span> <span class="i">c</span>) {
     <span class="k">return</span> <span class="i">c</span> &gt;= <span class="s">&#39;0&#39;</span> &amp;&amp; <span class="i">c</span> &lt;= <span class="s">&#39;9&#39;</span>;
   }<span name="is-digit"> </span>
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>peek</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>peek</em>()</div>
 
 <aside name="is-digit">
 <p>The Java standard library provides <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Character.html#isDigit(char)"><code>Character.isDigit()</code></a>, which seems
@@ -889,7 +889,7 @@ full-width numbers, and other funny stuff we don&rsquo;t want.</p>
 </aside>
 <p>Once we know we are in a number, we branch to a separate method to consume the
 rest of the literal, like we do with strings.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>scanToken</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">number</span>() {
     <span class="k">while</span> (<span class="i">isDigit</span>(<span class="i">peek</span>())) <span class="i">advance</span>();
@@ -906,7 +906,7 @@ add after <em>scanToken</em>()</div>
         <span class="t">Double</span>.<span class="i">parseDouble</span>(<span class="i">source</span>.<span class="i">substring</span>(<span class="i">start</span>, <span class="i">current</span>)));
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>scanToken</em>()</div>
 
 <p>We consume as many digits as we find for the integer part of the literal. Then
 we look for a fractional part, which is a decimal point (<code>.</code>) followed by at
@@ -915,14 +915,14 @@ digits as we can find.</p>
 <p>Looking past the decimal point requires a second character of lookahead since we
 don&rsquo;t want to consume the <code>.</code> until we&rsquo;re sure there is a digit <em>after</em> it. So
 we add:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>peek</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">char</span> <span class="i">peekNext</span>() {
     <span class="k">if</span> (<span class="i">current</span> + <span class="n">1</span> &gt;= <span class="i">source</span>.<span class="i">length</span>()) <span class="k">return</span> <span class="s">&#39;\0&#39;</span>;
     <span class="k">return</span> <span class="i">source</span>.<span class="i">charAt</span>(<span class="i">current</span> + <span class="n">1</span>);
   }<span name="peek-next"> </span>
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>peek</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>peek</em>()</div>
 
 <aside name="peek-next">
 <p>I could have made <code>peek()</code> take a parameter for the number of characters ahead
@@ -982,7 +982,7 @@ identifier.</p>
 <div class="codehilite"><pre class="insert-before">      default:
         if (isDigit(c)) {
           number();
-</pre><div class="source-file"><em>lox/Scanner.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">        } <span class="k">else</span> <span class="k">if</span> (<span class="i">isAlpha</span>(<span class="i">c</span>)) {
           <span class="i">identifier</span>();
@@ -990,10 +990,10 @@ in <em>scanToken</em>()</div>
           Lox.error(line, &quot;Unexpected character.&quot;);
         }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in <em>scanToken</em>()</div>
 
 <p>The rest of the code lives over here:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>scanToken</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">identifier</span>() {
     <span class="k">while</span> (<span class="i">isAlphaNumeric</span>(<span class="i">peek</span>())) <span class="i">advance</span>();
@@ -1001,10 +1001,10 @@ add after <em>scanToken</em>()</div>
     <span class="i">addToken</span>(<span class="i">IDENTIFIER</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>scanToken</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>scanToken</em>()</div>
 
 <p>We define that in terms of these helpers:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 add after <em>peekNext</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">isAlpha</span>(<span class="t">char</span> <span class="i">c</span>) {
     <span class="k">return</span> (<span class="i">c</span> &gt;= <span class="s">&#39;a&#39;</span> &amp;&amp; <span class="i">c</span> &lt;= <span class="s">&#39;z&#39;</span>) ||
@@ -1016,12 +1016,12 @@ add after <em>peekNext</em>()</div>
     <span class="k">return</span> <span class="i">isAlpha</span>(<span class="i">c</span>) || <span class="i">isDigit</span>(<span class="i">c</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>peekNext</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, add after <em>peekNext</em>()</div>
 
 <p>That gets identifiers working. To handle keywords, we see if the identifier&rsquo;s
 lexeme is one of the reserved words. If so, we use a token type specific to that
 keyword. We define the set of reserved words in a map.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in class <em>Scanner</em></div>
 <pre>  <span class="k">private</span> <span class="k">static</span> <span class="k">final</span> <span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">TokenType</span>&gt; <span class="i">keywords</span>;
 
@@ -1045,13 +1045,13 @@ in class <em>Scanner</em></div>
     <span class="i">keywords</span>.<span class="i">put</span>(<span class="s">&quot;while&quot;</span>,  <span class="i">WHILE</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in class <em>Scanner</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in class <em>Scanner</em></div>
 
 <p>Then, after we scan an identifier, we check to see if it matches anything in the
 map.</p>
 <div class="codehilite"><pre class="insert-before">    while (isAlphaNumeric(peek())) advance();
 
-</pre><div class="source-file"><em>lox/Scanner.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Scanner.java</em><br>
 in <em>identifier</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="t">String</span> <span class="i">text</span> = <span class="i">source</span>.<span class="i">substring</span>(<span class="i">start</span>, <span class="i">current</span>);
@@ -1060,7 +1060,7 @@ replace 1 line</div>
     <span class="i">addToken</span>(<span class="i">type</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>identifier</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Scanner.java</em>, in <em>identifier</em>(), replace 1 line</div>
 
 <p>If so, we use that keyword&rsquo;s token type. Otherwise, it&rsquo;s a regular user-defined
 identifier.</p>
