@@ -164,12 +164,12 @@ language specs I&rsquo;ve seen, it is this cumbersome.</p>
 <p>Over in our syntax tree generator, we add a <span name="call-ast">new
 node</span>.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Binary   : Expr left, Token operator, Expr right&quot;,
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">      <span class="s">&quot;Call     : Expr callee, Token paren, List&lt;Expr&gt; arguments&quot;</span>,
 </pre><pre class="insert-after">      &quot;Grouping : Expr expression&quot;,
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>()</div>
 
 <aside name="call-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#call-expression">Appendix II</a>.</p>
@@ -182,16 +182,16 @@ change it to call, well, <code>call()</code>.</p>
 <div class="codehilite"><pre class="insert-before">      return new Expr.Unary(operator, right);
     }
 
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>unary</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="k">return</span> <span class="i">call</span>();
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>unary</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>unary</em>(), replace 1 line</div>
 
 <p>Its definition is:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>unary</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">call</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">primary</span>();
@@ -207,7 +207,7 @@ add after <em>unary</em>()</div>
     <span class="k">return</span> <span class="i">expr</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>unary</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>unary</em>()</div>
 
 <p>The code here doesn&rsquo;t quite line up with the grammar rules. I moved a few things
 around to make the code cleaner<span class="em">&mdash;</span>one of the luxuries we have with a
@@ -222,7 +222,7 @@ new <code>expr</code> and we loop to see if the result is itself called.</p>
 parser later to handle properties on objects.</p>
 </aside>
 <p>The code to parse the argument list is in this helper:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>unary</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">finishCall</span>(<span class="t">Expr</span> <span class="i">callee</span>) {
     <span class="t">List</span>&lt;<span class="t">Expr</span>&gt; <span class="i">arguments</span> = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
@@ -238,7 +238,7 @@ add after <em>unary</em>()</div>
     <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Call</span>(<span class="i">callee</span>, <span class="i">paren</span>, <span class="i">arguments</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>unary</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>unary</em>()</div>
 
 <p>This is more or less the <code>arguments</code> grammar rule translated to code, except
 that we also handle the zero-argument case. We check for that case first by
@@ -266,14 +266,14 @@ number of arguments will simplify our bytecode interpreter in <a href="a-bytecod
 want our two interpreters to be compatible with each other, even in weird corner
 cases like this, so we&rsquo;ll add the same limit to jlox.</p>
 <div class="codehilite"><pre class="insert-before">      do {
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>finishCall</em>()</div>
 <pre class="insert">        <span class="k">if</span> (<span class="i">arguments</span>.<span class="i">size</span>() &gt;= <span class="n">255</span>) {
           <span class="i">error</span>(<span class="i">peek</span>(), <span class="s">&quot;Can&#39;t have more than 255 arguments.&quot;</span>);
         }
 </pre><pre class="insert-after">        arguments.add(expression());
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>finishCall</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>finishCall</em>()</div>
 
 <p>Note that the code here <em>reports</em> an error if it encounters too many arguments,
 but it doesn&rsquo;t <em>throw</em> the error. Throwing is how we kick into panic mode which
@@ -285,15 +285,15 @@ keepin&rsquo; on.</p>
 <p>We don&rsquo;t have any functions we can call, so it seems weird to start implementing
 calls first, but we&rsquo;ll worry about that when we get there. First, our
 interpreter needs a new import.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em></div>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em></div>
 <pre class="insert"><span class="k">import</span> <span class="i">java.util.ArrayList</span>;
 </pre><pre class="insert-after">import java.util.List;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em></div>
 
 <p>As always, interpretation starts with a new visit method for our new call
 expression node.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitBinaryExpr</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitCallExpr</span>(<span class="t">Expr</span>.<span class="t">Call</span> <span class="i">expr</span>) {
@@ -308,7 +308,7 @@ add after <em>visitBinaryExpr</em>()</div>
     <span class="k">return</span> <span class="i">function</span>.<span class="i">call</span>(<span class="k">this</span>, <span class="i">arguments</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitBinaryExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitBinaryExpr</em>()</div>
 
 <p>First, we evaluate the expression for the callee. Typically, this expression is
 just an identifier that looks up the function by its name, but it could be
@@ -333,7 +333,7 @@ We&rsquo;ll also use it for one more purpose shortly.</p>
 own Callable interface. Alas, all the good simple names are already taken.</p>
 </aside>
 <p>There isn&rsquo;t too much to this new interface.</p>
-<div class="codehilite"><div class="source-file"><em>lox/LoxCallable.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\LoxCallable.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -343,7 +343,7 @@ create new file</div>
   <span class="t">Object</span> <span class="i">call</span>(<span class="t">Interpreter</span> <span class="i">interpreter</span>, <span class="t">List</span>&lt;<span class="t">Object</span>&gt; <span class="i">arguments</span>);
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxCallable.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxCallable.java</em>, create new file</div>
 
 <p>We pass in the interpreter in case the class implementing <code>call()</code> needs it. We
 also give it the list of evaluated argument values. The implementer&rsquo;s job is
@@ -361,7 +361,7 @@ ClassCastException. We don&rsquo;t want our interpreter to vomit out some nasty 
 stack trace and die. Instead, we need to check the type ourselves first.</p>
 <div class="codehilite"><pre class="insert-before">    }
 
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 in <em>visitCallExpr</em>()</div>
 <pre class="insert">    <span class="k">if</span> (!(<span class="i">callee</span> <span class="k">instanceof</span> <span class="t">LoxCallable</span>)) {
       <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span>(<span class="i">expr</span>.<span class="i">paren</span>,
@@ -370,7 +370,7 @@ in <em>visitCallExpr</em>()</div>
 
 </pre><pre class="insert-after">    LoxCallable function = (LoxCallable)callee;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitCallExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, in <em>visitCallExpr</em>()</div>
 
 <p>We still throw an exception, but now we&rsquo;re throwing our own exception type, one
 that the interpreter knows to catch and report gracefully.</p>
@@ -401,7 +401,7 @@ the sooner the implementation draws my attention to it, the better. So for Lox,
 we&rsquo;ll take Python&rsquo;s approach. Before invoking the callable, we check to see if
 the argument list&rsquo;s length matches the callable&rsquo;s arity.</p>
 <div class="codehilite"><pre class="insert-before">    LoxCallable function = (LoxCallable)callee;
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 in <em>visitCallExpr</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">arguments</span>.<span class="i">size</span>() != <span class="i">function</span>.<span class="i">arity</span>()) {
       <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span>(<span class="i">expr</span>.<span class="i">paren</span>, <span class="s">&quot;Expected &quot;</span> +
@@ -411,16 +411,16 @@ in <em>visitCallExpr</em>()</div>
 
 </pre><pre class="insert-after">    return function.call(this, arguments);
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitCallExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, in <em>visitCallExpr</em>()</div>
 
 <p>That requires a new method on the LoxCallable interface to ask it its arity.</p>
 <div class="codehilite"><pre class="insert-before">interface LoxCallable {
-</pre><div class="source-file"><em>lox/LoxCallable.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\LoxCallable.java</em><br>
 in interface <em>LoxCallable</em></div>
 <pre class="insert">  <span class="t">int</span> <span class="i">arity</span>();
 </pre><pre class="insert-after">  Object call(Interpreter interpreter, List&lt;Object&gt; arguments);
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxCallable.java</em>, in interface <em>LoxCallable</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxCallable.java</em>, in interface <em>LoxCallable</em></div>
 
 <p>We <em>could</em> push the arity checking into the concrete implementation of <code>call()</code>.
 But, since we&rsquo;ll have multiple classes implementing LoxCallable, that would end
@@ -495,7 +495,7 @@ This function is defined in the global scope, so let&rsquo;s ensure the interpre
 has access to that.</p>
 <div class="codehilite"><pre class="insert-before">class Interpreter implements Expr.Visitor&lt;Object&gt;,
                              Stmt.Visitor&lt;Void&gt; {
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 in class <em>Interpreter</em><br>
 replace 1 line</div>
 <pre class="insert">  <span class="k">final</span> <span class="t">Environment</span> <span class="i">globals</span> = <span class="k">new</span> <span class="t">Environment</span>();
@@ -504,7 +504,7 @@ replace 1 line</div>
 
   void interpret(List&lt;Stmt&gt; statements) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em>, replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, in class <em>Interpreter</em>, replace 1 line</div>
 
 <p>The <code>environment</code> field in the interpreter changes as we enter and exit local
 scopes. It tracks the <em>current</em> environment. This new <code>globals</code> field holds a
@@ -513,7 +513,7 @@ fixed reference to the outermost global environment.</p>
 scope.</p>
 <div class="codehilite"><pre class="insert-before">  private Environment environment = globals;
 
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
 <pre class="insert">  <span class="t">Interpreter</span>() {
     <span class="i">globals</span>.<span class="i">define</span>(<span class="s">&quot;clock&quot;</span>, <span class="k">new</span> <span class="t">LoxCallable</span>() {
@@ -533,7 +533,7 @@ in class <em>Interpreter</em></div>
 
 </pre><pre class="insert-after">  void interpret(List&lt;Stmt&gt; statements) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, in class <em>Interpreter</em></div>
 
 <p>This defines a <span name="lisp-1">variable</span> named &ldquo;clock&rdquo;. Its value is a
 Java anonymous class that implements LoxCallable. The <code>clock()</code> function takes
@@ -598,13 +598,13 @@ block statements use. The parameter list uses this rule:</p>
 identifier, not an expression. That&rsquo;s a lot of new syntax for the parser to chew
 through, but the resulting AST <span name="fun-ast">node</span> isn&rsquo;t too bad.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Expression : Expr expression&quot;,
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">      <span class="s">&quot;Function   : Token name, List&lt;Token&gt; params,&quot;</span> +
                   <span class="s">&quot; List&lt;Stmt&gt; body&quot;</span>,
 </pre><pre class="insert-after">      &quot;If         : Expr condition, Stmt thenBranch,&quot; +
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>()</div>
 
 <aside name="fun-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#function-statement">Appendix II</a>.</p>
@@ -614,24 +614,24 @@ body. We store the body as the list of statements contained inside the curly
 braces.</p>
 <p>Over in the parser, we weave in the new declaration.</p>
 <div class="codehilite"><pre class="insert-before">    try {
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>declaration</em>()</div>
 <pre class="insert">      <span class="k">if</span> (<span class="i">match</span>(<span class="i">FUN</span>)) <span class="k">return</span> <span class="i">function</span>(<span class="s">&quot;function&quot;</span>);
 </pre><pre class="insert-after">      if (match(VAR)) return varDeclaration();
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>declaration</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>declaration</em>()</div>
 
 <p>Like other statements, a function is recognized by the leading keyword. When we
 encounter <code>fun</code>, we call <code>function</code>. That corresponds to the <code>function</code> grammar
 rule since we already matched and consumed the <code>fun</code> keyword. We&rsquo;ll build the
 method up a piece at a time, starting with this:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>expressionStatement</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span>.<span class="t">Function</span> <span class="i">function</span>(<span class="t">String</span> <span class="i">kind</span>) {
     <span class="t">Token</span> <span class="i">name</span> = <span class="i">consume</span>(<span class="i">IDENTIFIER</span>, <span class="s">&quot;Expect &quot;</span> + <span class="i">kind</span> + <span class="s">&quot; name.&quot;</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expressionStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>expressionStatement</em>()</div>
 
 <p>Right now, it only consumes the identifier token for the function&rsquo;s name. You
 might be wondering about that funny little <code>kind</code> parameter. Just like we reuse
@@ -640,7 +640,7 @@ inside classes. When we do that, we&rsquo;ll pass in &ldquo;method&rdquo; for <c
 error messages are specific to the kind of declaration being parsed.</p>
 <p>Next, we parse the parameter list and the pair of parentheses wrapped around it.</p>
 <div class="codehilite"><pre class="insert-before">    Token name = consume(IDENTIFIER, &quot;Expect &quot; + kind + &quot; name.&quot;);
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>function</em>()</div>
 <pre class="insert">    <span class="i">consume</span>(<span class="i">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &quot;</span> + <span class="i">kind</span> + <span class="s">&quot; name.&quot;</span>);
     <span class="t">List</span>&lt;<span class="t">Token</span>&gt; <span class="i">parameters</span> = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
@@ -657,7 +657,7 @@ in <em>function</em>()</div>
     <span class="i">consume</span>(<span class="i">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>function</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>function</em>()</div>
 
 <p>This is like the code for handling arguments in a call, except not split out
 into a helper method. The outer <code>if</code> statement handles the zero parameter case,
@@ -668,7 +668,7 @@ that you don&rsquo;t exceed the maximum number of parameters a function is allow
 have.</p>
 <p>Finally, we parse the body and wrap it all up in a function node.</p>
 <div class="codehilite"><pre class="insert-before">    consume(RIGHT_PAREN, &quot;Expect ')' after parameters.&quot;);
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>function</em>()</div>
 <pre class="insert">
 
@@ -677,7 +677,7 @@ in <em>function</em>()</div>
     <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Function</span>(<span class="i">name</span>, <span class="i">parameters</span>, <span class="i">body</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>function</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>function</em>()</div>
 
 <p>Note that we consume the <code>{</code> at the beginning of the body here before calling
 <code>block()</code>. That&rsquo;s because <code>block()</code> assumes the brace token has already been
@@ -694,7 +694,7 @@ Almost, but not quite. We also need a class that implements LoxCallable so that
 we can call it. We don&rsquo;t want the runtime phase of the interpreter to bleed into
 the front end&rsquo;s syntax classes so we don&rsquo;t want Stmt.Function itself to
 implement that. Instead, we wrap it in a new class.</p>
-<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\LoxFunction.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -707,10 +707,10 @@ create new file</div>
   }
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxFunction.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxFunction.java</em>, create new file</div>
 
 <p>We implement the <code>call()</code> of LoxCallable like so:</p>
-<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\LoxFunction.java</em><br>
 add after <em>LoxFunction</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Object</span> <span class="i">call</span>(<span class="t">Interpreter</span> <span class="i">interpreter</span>,
@@ -725,7 +725,7 @@ add after <em>LoxFunction</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxFunction.java</em>, add after <em>LoxFunction</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxFunction.java</em>, add after <em>LoxFunction</em>()</div>
 
 <p>This handful of lines of code is one of the most fundamental, powerful pieces of
 our interpreter. As we saw in <a href="statements-and-state.html">the chapter on statements and <span
@@ -789,25 +789,25 @@ it if you&rsquo;re so inclined.</p>
 lists have the same length. This is safe because <code>visitCallExpr()</code> checks the
 arity before calling <code>call()</code>. It relies on the function reporting its arity to
 do that.</p>
-<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\LoxFunction.java</em><br>
 add after <em>LoxFunction</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">int</span> <span class="i">arity</span>() {
     <span class="k">return</span> <span class="i">declaration</span>.<span class="i">params</span>.<span class="i">size</span>();
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxFunction.java</em>, add after <em>LoxFunction</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxFunction.java</em>, add after <em>LoxFunction</em>()</div>
 
 <p>That&rsquo;s most of our object representation. While we&rsquo;re in here, we may as well
 implement <code>toString()</code>.</p>
-<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\LoxFunction.java</em><br>
 add after <em>LoxFunction</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">String</span> <span class="i">toString</span>() {
     <span class="k">return</span> <span class="s">&quot;&lt;fn &quot;</span> + <span class="i">declaration</span>.<span class="i">name</span>.<span class="i">lexeme</span> + <span class="s">&quot;&gt;&quot;</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxFunction.java</em>, add after <em>LoxFunction</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxFunction.java</em>, add after <em>LoxFunction</em>()</div>
 
 <p>This gives nicer output if a user decides to print a function value.</p>
 <div class="codehilite"><pre><span class="k">fun</span> <span class="i">add</span>(<span class="i">a</span>, <span class="i">b</span>) {
@@ -819,7 +819,7 @@ add after <em>LoxFunction</em>()</div>
 <h3><a href="#interpreting-function-declarations" id="interpreting-function-declarations"><small>10&#8202;.&#8202;4&#8202;.&#8202;1</small>Interpreting function declarations</a></h3>
 <p>We&rsquo;ll come back and refine LoxFunction soon, but that&rsquo;s enough to get started.
 Now we can visit a function declaration.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitExpressionStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitFunctionStmt</span>(<span class="t">Stmt</span>.<span class="t">Function</span> <span class="i">stmt</span>) {
@@ -828,7 +828,7 @@ add after <em>visitExpressionStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitExpressionStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitExpressionStmt</em>()</div>
 
 <p>This is similar to how we interpret other literal expressions. We take a
 function <em>syntax node</em><span class="em">&mdash;</span>a compile-time representation of the function<span class="em">&mdash;</span>and
@@ -893,12 +893,12 @@ omit the value in a <code>return</code> statement, we simply treat it as equival
 </pre></div>
 <p>Over in our AST generator, we add a <span name="return-ast">new node</span>.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Print      : Expr expression&quot;,
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">      <span class="s">&quot;Return     : Token keyword, Expr value&quot;</span>,
 </pre><pre class="insert-after">      &quot;Var        : Token name, Expr initializer&quot;,
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>()</div>
 
 <aside name="return-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#return-statement">Appendix II</a>.</p>
@@ -907,15 +907,15 @@ in <em>main</em>()</div>
 reporting, and the value being returned, if any. We parse it like other
 statements, first by recognizing the initial keyword.</p>
 <div class="codehilite"><pre class="insert-before">    if (match(PRINT)) return printStatement();
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">match</span>(<span class="i">RETURN</span>)) <span class="k">return</span> <span class="i">returnStatement</span>();
 </pre><pre class="insert-after">    if (match(WHILE)) return whileStatement();
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>statement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>statement</em>()</div>
 
 <p>That branches out to:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>printStatement</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">returnStatement</span>() {
     <span class="t">Token</span> <span class="i">keyword</span> = <span class="i">previous</span>();
@@ -928,7 +928,7 @@ add after <em>printStatement</em>()</div>
     <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Return</span>(<span class="i">keyword</span>, <span class="i">value</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>printStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>printStatement</em>()</div>
 
 <p>After snagging the previously consumed <code>return</code> keyword, we look for a value
 expression. Since many different tokens can potentially start an expression,
@@ -969,7 +969,7 @@ know about you, but to me that sounds like exceptions. When we execute a
 visit methods of all of the containing statements back to the code that began
 executing the body.</p>
 <p>The visit method for our new AST node looks like this:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitPrintStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitReturnStmt</span>(<span class="t">Stmt</span>.<span class="t">Return</span> <span class="i">stmt</span>) {
@@ -979,11 +979,11 @@ add after <em>visitPrintStmt</em>()</div>
     <span class="k">throw</span> <span class="k">new</span> <span class="t">Return</span>(<span class="i">value</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitPrintStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitPrintStmt</em>()</div>
 
 <p>If we have a return value, we evaluate it, otherwise, we use <code>nil</code>. Then we take
 that value and wrap it in a custom exception class and throw it.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Return.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Return.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -996,7 +996,7 @@ create new file</div>
   }
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Return.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Return.java</em>, create new file</div>
 
 <p>This class wraps the return value with the accoutrements Java requires for a
 runtime exception class. The weird super constructor call with those <code>null</code> and
@@ -1015,7 +1015,7 @@ exceptions are a handy tool for that.</p>
 <div class="codehilite"><pre class="insert-before">          arguments.get(i));
     }
 
-</pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\LoxFunction.java</em><br>
 in <em>call</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="k">try</span> {
@@ -1025,7 +1025,7 @@ replace 1 line</div>
     }
 </pre><pre class="insert-after">    return null;
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxFunction.java</em>, in <em>call</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxFunction.java</em>, in <em>call</em>(), replace 1 line</div>
 
 <p>We wrap the call to <code>executeBlock()</code> in a try-catch block. When it catches a
 return exception, it pulls out the value and makes that the return value from
@@ -1118,46 +1118,46 @@ along that computer scientists communicated with each other using only primitive
 grunts and pawing hand gestures.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">  private final Stmt.Function declaration;
-</pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\LoxFunction.java</em><br>
 in class <em>LoxFunction</em></div>
 <pre class="insert">  <span class="k">private</span> <span class="k">final</span> <span class="t">Environment</span> <span class="i">closure</span>;
 
 </pre><pre class="insert-after">  LoxFunction(Stmt.Function declaration) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxFunction.java</em>, in class <em>LoxFunction</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxFunction.java</em>, in class <em>LoxFunction</em></div>
 
 <p>We initialize that in the constructor.</p>
-<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\LoxFunction.java</em><br>
 constructor <em>LoxFunction</em>()<br>
 replace 1 line</div>
 <pre class="insert">  <span class="t">LoxFunction</span>(<span class="t">Stmt</span>.<span class="t">Function</span> <span class="i">declaration</span>, <span class="t">Environment</span> <span class="i">closure</span>) {
     <span class="k">this</span>.<span class="i">closure</span> = <span class="i">closure</span>;
 </pre><pre class="insert-after">    this.declaration = declaration;
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxFunction.java</em>, constructor <em>LoxFunction</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxFunction.java</em>, constructor <em>LoxFunction</em>(), replace 1 line</div>
 
 <p>When we create a LoxFunction, we capture the current environment.</p>
 <div class="codehilite"><pre class="insert-before">  public Void visitFunctionStmt(Stmt.Function stmt) {
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 in <em>visitFunctionStmt</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="t">LoxFunction</span> <span class="i">function</span> = <span class="k">new</span> <span class="t">LoxFunction</span>(<span class="i">stmt</span>, <span class="i">environment</span>);
 </pre><pre class="insert-after">    environment.define(stmt.name.lexeme, function);
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitFunctionStmt</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, in <em>visitFunctionStmt</em>(), replace 1 line</div>
 
 <p>This is the environment that is active when the function is <em>declared</em> not when
 it&rsquo;s <em>called</em>, which is what we want. It represents the lexical scope
 surrounding the function declaration. Finally, when we call the function, we use
 that environment as the call&rsquo;s parent instead of going straight to <code>globals</code>.</p>
 <div class="codehilite"><pre class="insert-before">                     List&lt;Object&gt; arguments) {
-</pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\LoxFunction.java</em><br>
 in <em>call</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="t">Environment</span> <span class="i">environment</span> = <span class="k">new</span> <span class="t">Environment</span>(<span class="i">closure</span>);
 </pre><pre class="insert-after">    for (int i = 0; i &lt; declaration.params.size(); i++) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/LoxFunction.java</em>, in <em>call</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\LoxFunction.java</em>, in <em>call</em>(), replace 1 line</div>
 
 <p>This creates an environment chain that goes from the function&rsquo;s body out through
 the environments where the function is declared, all the way out to the global

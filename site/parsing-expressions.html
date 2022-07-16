@@ -419,7 +419,7 @@ itself<span class="em">&mdash;</span>directly or indirectly<span class="em">&mda
 call.</p>
 <h3><a href="#the-parser-class" id="the-parser-class"><small>6&#8202;.&#8202;2&#8202;.&#8202;1</small>The parser class</a></h3>
 <p>Each grammar rule becomes a method inside this new class:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -436,7 +436,7 @@ create new file</div>
   }
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, create new file</div>
 
 <p>Like the scanner, the parser consumes a flat input sequence, only now we&rsquo;re
 reading tokens instead of characters. We store the list of tokens and use
@@ -444,13 +444,13 @@ reading tokens instead of characters. We store the list of tokens and use
 <p>We&rsquo;re going to run straight through the expression grammar now and translate
 each rule to Java code. The first rule, <code>expression</code>, simply expands to the
 <code>equality</code> rule, so that&rsquo;s straightforward.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>Parser</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">expression</span>() {
     <span class="k">return</span> <span class="i">equality</span>();
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>Parser</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>Parser</em>()</div>
 
 <p>Each method for parsing a grammar rule produces a syntax tree for that rule and
 returns it to the caller. When the body of the rule contains a nonterminal<span class="em">&mdash;</span>a
@@ -465,7 +465,7 @@ and so on, until the parser hits a stack overflow and dies.</p>
 <div class="codehilite"><pre><span class="i">equality</span>       → <span class="i">comparison</span> ( ( <span class="s">&quot;!=&quot;</span> | <span class="s">&quot;==&quot;</span> ) <span class="i">comparison</span> )* ;
 </pre></div>
 <p>In Java, that becomes:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>expression</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">equality</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">comparison</span>();
@@ -479,7 +479,7 @@ add after <em>expression</em>()</div>
     <span class="k">return</span> <span class="i">expr</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expression</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>expression</em>()</div>
 
 <p>Let&rsquo;s step through it. The first <code>comparison</code> nonterminal in the body translates
 to the first call to <code>comparison()</code> in the method. We take that result and store
@@ -489,7 +489,7 @@ when to exit that loop. We can see that inside the rule, we must first find
 either a <code>!=</code> or <code>==</code> token. So, if we <em>don&rsquo;t</em> see one of those, we must be done
 with the sequence of equality operators. We express that check using a handy
 <code>match()</code> method.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>equality</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">match</span>(<span class="t">TokenType</span>... <span class="i">types</span>) {
     <span class="k">for</span> (<span class="t">TokenType</span> <span class="i">type</span> : <span class="i">types</span>) {
@@ -502,7 +502,7 @@ add after <em>equality</em>()</div>
     <span class="k">return</span> <span class="k">false</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>equality</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>equality</em>()</div>
 
 <p>This checks to see if the current token has any of the given types. If so, it
 consumes the token and returns <code>true</code>. Otherwise, it returns <code>false</code> and leaves
@@ -510,28 +510,28 @@ the current token alone. The <code>match()</code> method is defined in terms of 
 fundamental operations.</p>
 <p>The <code>check()</code> method returns <code>true</code> if the current token is of the given type.
 Unlike <code>match()</code>, it never consumes the token, it only looks at it.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>match</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">check</span>(<span class="t">TokenType</span> <span class="i">type</span>) {
     <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="k">false</span>;
     <span class="k">return</span> <span class="i">peek</span>().<span class="i">type</span> == <span class="i">type</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>match</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>match</em>()</div>
 
 <p>The <code>advance()</code> method consumes the current token and returns it, similar to how
 our scanner&rsquo;s corresponding method crawled through characters.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>check</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Token</span> <span class="i">advance</span>() {
     <span class="k">if</span> (!<span class="i">isAtEnd</span>()) <span class="i">current</span>++;
     <span class="k">return</span> <span class="i">previous</span>();
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>check</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>check</em>()</div>
 
 <p>These methods bottom out on the last handful of primitive operations.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>advance</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">boolean</span> <span class="i">isAtEnd</span>() {
     <span class="k">return</span> <span class="i">peek</span>().<span class="i">type</span> == <span class="i">EOF</span>;
@@ -545,7 +545,7 @@ add after <em>advance</em>()</div>
     <span class="k">return</span> <span class="i">tokens</span>.<span class="i">get</span>(<span class="i">current</span> - <span class="n">1</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>advance</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>advance</em>()</div>
 
 <p><code>isAtEnd()</code> checks if we&rsquo;ve run out of tokens to parse. <code>peek()</code> returns the
 current token we have yet to consume, and <code>previous()</code> returns the most recently
@@ -576,7 +576,7 @@ precedence</em>.</p>
 <div class="codehilite"><pre><span class="i">comparison</span>     → <span class="i">term</span> ( ( <span class="s">&quot;&gt;&quot;</span> | <span class="s">&quot;&gt;=&quot;</span> | <span class="s">&quot;&lt;&quot;</span> | <span class="s">&quot;&lt;=&quot;</span> ) <span class="i">term</span> )* ;
 </pre></div>
 <p>Translated to Java:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>equality</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">comparison</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">term</span>();
@@ -590,7 +590,7 @@ add after <em>equality</em>()</div>
     <span class="k">return</span> <span class="i">expr</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>equality</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>equality</em>()</div>
 
 <p>The grammar rule is virtually <span name="handle">identical</span> to <code>equality</code>
 and so is the corresponding code. The only differences are the token types for
@@ -603,7 +603,7 @@ follow the same pattern.</p>
 parsing a left-associative series of binary operators given a list of token
 types, and an operand method handle to simplify this redundant code.</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>comparison</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">term</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">factor</span>();
@@ -617,10 +617,10 @@ add after <em>comparison</em>()</div>
     <span class="k">return</span> <span class="i">expr</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>comparison</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>comparison</em>()</div>
 
 <p>And finally, multiplication and division:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>term</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">factor</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">unary</span>();
@@ -634,7 +634,7 @@ add after <em>term</em>()</div>
     <span class="k">return</span> <span class="i">expr</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>term</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>term</em>()</div>
 
 <p>That&rsquo;s all of the binary operators, parsed with the correct precedence and
 associativity. We&rsquo;re crawling up the precedence hierarchy and now we&rsquo;ve reached
@@ -643,7 +643,7 @@ the unary operators.</p>
                | <span class="i">primary</span> ;
 </pre></div>
 <p>The code for this is a little different.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>factor</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">unary</span>() {
     <span class="k">if</span> (<span class="i">match</span>(<span class="i">BANG</span>, <span class="i">MINUS</span>)) {
@@ -655,7 +655,7 @@ add after <em>factor</em>()</div>
     <span class="k">return</span> <span class="i">primary</span>();
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>factor</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>factor</em>()</div>
 
 <p>Again, we look at the <span name="current">current</span> token to see how to
 parse. If it&rsquo;s a <code>!</code> or <code>-</code>, we must have a unary expression. In that case, we
@@ -672,7 +672,7 @@ expressions.</p>
 </pre></div>
 <p>Most of the cases for the rule are single terminals, so parsing is
 straightforward.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>unary</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">primary</span>() {
     <span class="k">if</span> (<span class="i">match</span>(<span class="i">FALSE</span>)) <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Literal</span>(<span class="k">false</span>);
@@ -690,7 +690,7 @@ add after <em>unary</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>unary</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>unary</em>()</div>
 
 <p>The interesting branch is the one for handling parentheses. After we match an
 opening <code>(</code> and parse the expression inside it, we <em>must</em> find a <code>)</code> token. If
@@ -805,7 +805,7 @@ we&rsquo;ll get the machinery in place for later.</p>
 code to parse a parenthesized expression. After parsing the expression, the
 parser looks for the closing <code>)</code> by calling <code>consume()</code>. Here, finally, is that
 method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>match</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Token</span> <span class="i">consume</span>(<span class="t">TokenType</span> <span class="i">type</span>, <span class="t">String</span> <span class="i">message</span>) {
     <span class="k">if</span> (<span class="i">check</span>(<span class="i">type</span>)) <span class="k">return</span> <span class="i">advance</span>();
@@ -813,22 +813,22 @@ add after <em>match</em>()</div>
     <span class="k">throw</span> <span class="i">error</span>(<span class="i">peek</span>(), <span class="i">message</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>match</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>match</em>()</div>
 
 <p>It&rsquo;s similar to <code>match()</code> in that it checks to see if the next token is of the
 expected type. If so, it consumes the token and everything is groovy. If some
 other token is there, then we&rsquo;ve hit an error. We report it by calling this:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>previous</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">ParseError</span> <span class="i">error</span>(<span class="t">Token</span> <span class="i">token</span>, <span class="t">String</span> <span class="i">message</span>) {
     <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">token</span>, <span class="i">message</span>);
     <span class="k">return</span> <span class="k">new</span> <span class="t">ParseError</span>();
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>previous</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>previous</em>()</div>
 
 <p>First, that shows the error to the user by calling:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 add after <em>report</em>()</div>
 <pre>  <span class="k">static</span> <span class="t">void</span> <span class="i">error</span>(<span class="t">Token</span> <span class="i">token</span>, <span class="t">String</span> <span class="i">message</span>) {
     <span class="k">if</span> (<span class="i">token</span>.<span class="i">type</span> == <span class="t">TokenType</span>.<span class="i">EOF</span>) {
@@ -838,7 +838,7 @@ add after <em>report</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, add after <em>report</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, add after <em>report</em>()</div>
 
 <p>This reports an error at a given token. It shows the token&rsquo;s location and the
 token itself. This will come in handy later since we use tokens throughout the
@@ -847,13 +847,13 @@ interpreter to track locations in code.</p>
 <em>parser</em> do next? Back in <code>error()</code>, we create and return a ParseError, an
 instance of this new class:</p>
 <div class="codehilite"><pre class="insert-before">class Parser {
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 nest inside class <em>Parser</em></div>
 <pre class="insert">  <span class="k">private</span> <span class="k">static</span> <span class="k">class</span> <span class="t">ParseError</span> <span class="k">extends</span> <span class="t">RuntimeException</span> {}
 
 </pre><pre class="insert-after">  private final List&lt;Token&gt; tokens;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, nest inside class <em>Parser</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, nest inside class <em>Parser</em></div>
 
 <p>This is a simple sentinel class we use to unwind the parser. The <code>error()</code>
 method <em>returns</em> the error instead of <em>throwing</em> it because we want to let the
@@ -910,7 +910,7 @@ loop. Our synchronization isn&rsquo;t perfect, but that&rsquo;s OK. We&rsquo;ve 
 the first error precisely, so everything after that is kind of &ldquo;best effort&rdquo;.</p>
 </aside>
 <p>This method encapsulates that logic:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>error</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">synchronize</span>() {
     <span class="i">advance</span>();
@@ -934,7 +934,7 @@ add after <em>error</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>error</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>error</em>()</div>
 
 <p>It discards tokens until it thinks it has found a statement boundary. After
 catching a ParseError, we&rsquo;ll call this and then we are hopefully back in sync.
@@ -956,18 +956,18 @@ expression. We need to handle that error too.</p>
       consume(RIGHT_PAREN, &quot;Expect ')' after expression.&quot;);
       return new Expr.Grouping(expr);
     }
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>primary</em>()</div>
 <pre class="insert">
 
     <span class="k">throw</span> <span class="i">error</span>(<span class="i">peek</span>(), <span class="s">&quot;Expect expression.&quot;</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>primary</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>primary</em>()</div>
 
 <p>With that, all that remains in the parser is to define an initial method to kick
 it off. That method is called, naturally enough, <code>parse()</code>.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>Parser</em>()</div>
 <pre>  <span class="t">Expr</span> <span class="i">parse</span>() {
     <span class="k">try</span> {
@@ -977,7 +977,7 @@ add after <em>Parser</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>Parser</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>Parser</em>()</div>
 
 <p>We&rsquo;ll revisit this method later when we add statements to the language. For now,
 it parses a single expression and returns it. We also have some temporary code
@@ -993,7 +993,7 @@ tree and then use the AstPrinter class from the <a href="representing-code.html#
 display it.</p>
 <p>Delete the old code to print the scanned tokens and replace it with this:</p>
 <div class="codehilite"><pre class="insert-before">    List&lt;Token&gt; tokens = scanner.scanTokens();
-</pre><div class="source-file"><em>lox/Lox.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 in <em>run</em>()<br>
 replace 5 lines</div>
 <pre class="insert">    <span class="t">Parser</span> <span class="i">parser</span> = <span class="k">new</span> <span class="t">Parser</span>(<span class="i">tokens</span>);
@@ -1005,7 +1005,7 @@ replace 5 lines</div>
     <span class="t">System</span>.<span class="i">out</span>.<span class="i">println</span>(<span class="k">new</span> <span class="t">AstPrinter</span>().<span class="i">print</span>(<span class="i">expression</span>));
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>(), replace 5 lines</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, in <em>run</em>(), replace 5 lines</div>
 
 <p>Congratulations, you have crossed the <span name="harder">threshold</span>! That
 really is all there is to handwriting a parser. We&rsquo;ll extend the grammar in

@@ -394,7 +394,7 @@ the user&rsquo;s program grows.</p>
 </aside>
 <h2><a href="#a-resolver-class" id="a-resolver-class"><small>11&#8202;.&#8202;3</small>A Resolver Class</a></h2>
 <p>Like everything in Java, our variable resolution pass is embodied in a class.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -411,7 +411,7 @@ create new file</div>
   }
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, create new file</div>
 
 <p>Since the resolver needs to visit every node in the syntax tree, it implements
 the visitor abstraction we already have in place. Only a few kinds of nodes are
@@ -438,7 +438,7 @@ operands might.</p>
 <h3><a href="#resolving-blocks" id="resolving-blocks"><small>11&#8202;.&#8202;3&#8202;.&#8202;1</small>Resolving blocks</a></h3>
 <p>We start with blocks since they create the local scopes where all the magic
 happens.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>Resolver</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitBlockStmt</span>(<span class="t">Stmt</span>.<span class="t">Block</span> <span class="i">stmt</span>) {
@@ -448,12 +448,12 @@ add after <em>Resolver</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>Resolver</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>Resolver</em>()</div>
 
 <p>This begins a new scope, traverses into the statements inside the block, and
 then discards the scope. The fun stuff lives in those helper methods. We start
 with the simple one.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>Resolver</em>()</div>
 <pre>  <span class="t">void</span> <span class="i">resolve</span>(<span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">statements</span>) {
     <span class="k">for</span> (<span class="t">Stmt</span> <span class="i">statement</span> : <span class="i">statements</span>) {
@@ -461,52 +461,52 @@ add after <em>Resolver</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>Resolver</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>Resolver</em>()</div>
 
 <p>This walks a list of statements and resolves each one. It in turn calls:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitBlockStmt</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">resolve</span>(<span class="t">Stmt</span> <span class="i">stmt</span>) {
     <span class="i">stmt</span>.<span class="i">accept</span>(<span class="k">this</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
 
 <p>While we&rsquo;re at it, let&rsquo;s add another overload that we&rsquo;ll need later for
 resolving an expression.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>resolve</em>(Stmt stmt)</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">resolve</span>(<span class="t">Expr</span> <span class="i">expr</span>) {
     <span class="i">expr</span>.<span class="i">accept</span>(<span class="k">this</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>resolve</em>(Stmt stmt)</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>resolve</em>(Stmt stmt)</div>
 
 <p>These methods are similar to the <code>evaluate()</code> and <code>execute()</code> methods in
 Interpreter<span class="em">&mdash;</span>they turn around and apply the Visitor pattern to the given
 syntax tree node.</p>
 <p>The real interesting behavior is around scopes. A new block scope is created
 like so:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>resolve</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">beginScope</span>() {
     <span class="i">scopes</span>.<span class="i">push</span>(<span class="k">new</span> <span class="t">HashMap</span>&lt;<span class="t">String</span>, <span class="t">Boolean</span>&gt;());
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>resolve</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>resolve</em>()</div>
 
 <p>Lexical scopes nest in both the interpreter and the resolver. They behave like a
 stack. The interpreter implements that stack using a linked list<span class="em">&mdash;</span>the chain of
 Environment objects. In the resolver, we use an actual Java Stack.</p>
 <div class="codehilite"><pre class="insert-before">  private final Interpreter interpreter;
-</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 in class <em>Resolver</em></div>
 <pre class="insert">  <span class="k">private</span> <span class="k">final</span> <span class="t">Stack</span>&lt;<span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">Boolean</span>&gt;&gt; <span class="i">scopes</span> = <span class="k">new</span> <span class="t">Stack</span>&lt;&gt;();
 </pre><pre class="insert-after">
 
   Resolver(Interpreter interpreter) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, in class <em>Resolver</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, in class <em>Resolver</em></div>
 
 <p>This field keeps track of the stack of scopes currently, uh, in scope. Each
 element in the stack is a Map representing a single block scope. Keys, as in
@@ -517,19 +517,19 @@ top level in the global scope are not tracked by the resolver since they are
 more dynamic in Lox. When resolving a variable, if we can&rsquo;t find it in the stack
 of local scopes, we assume it must be global.</p>
 <p>Since scopes are stored in an explicit stack, exiting one is straightforward.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>beginScope</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">endScope</span>() {
     <span class="i">scopes</span>.<span class="i">pop</span>();
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>beginScope</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>beginScope</em>()</div>
 
 <p>Now we can push and pop a stack of empty scopes. Let&rsquo;s put some things in them.</p>
 <h3><a href="#resolving-variable-declarations" id="resolving-variable-declarations"><small>11&#8202;.&#8202;3&#8202;.&#8202;2</small>Resolving variable declarations</a></h3>
 <p>Resolving a variable declaration adds a new entry to the current innermost
 scope&rsquo;s map. That seems simple, but there&rsquo;s a little dance we need to do.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitBlockStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitVarStmt</span>(<span class="t">Stmt</span>.<span class="t">Var</span> <span class="i">stmt</span>) {
@@ -541,7 +541,7 @@ add after <em>visitBlockStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
 
 <p>We split binding into two steps, declaring then defining, in order to handle
 funny edge cases like this:</p>
@@ -590,7 +590,7 @@ way, the user is alerted to the problem before any code is run.</p>
 <p>In order to do that, as we visit expressions, we need to know if we&rsquo;re inside
 the initializer for some variable. We do that by splitting binding into two
 steps. The first is <strong>declaring</strong> it.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>endScope</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">declare</span>(<span class="t">Token</span> <span class="i">name</span>) {
     <span class="k">if</span> (<span class="i">scopes</span>.<span class="i">isEmpty</span>()) <span class="k">return</span>;
@@ -599,7 +599,7 @@ add after <em>endScope</em>()</div>
     <span class="i">scope</span>.<span class="i">put</span>(<span class="i">name</span>.<span class="i">lexeme</span>, <span class="k">false</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>endScope</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>endScope</em>()</div>
 
 <p>Declaration adds the variable to the innermost scope so that it shadows any
 outer one and so that we know the variable exists. We mark it as &ldquo;not ready yet&rdquo;
@@ -610,21 +610,21 @@ variable&rsquo;s initializer.</p>
 scope where the new variable now exists but is unavailable. Once the initializer
 expression is done, the variable is ready for prime time. We do that by
 <strong>defining</strong> it.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>declare</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">define</span>(<span class="t">Token</span> <span class="i">name</span>) {
     <span class="k">if</span> (<span class="i">scopes</span>.<span class="i">isEmpty</span>()) <span class="k">return</span>;
     <span class="i">scopes</span>.<span class="i">peek</span>().<span class="i">put</span>(<span class="i">name</span>.<span class="i">lexeme</span>, <span class="k">true</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>declare</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>declare</em>()</div>
 
 <p>We set the variable&rsquo;s value in the scope map to <code>true</code> to mark it as fully
 initialized and available for use. It&rsquo;s alive! </p>
 <h3><a href="#resolving-variable-expressions" id="resolving-variable-expressions"><small>11&#8202;.&#8202;3&#8202;.&#8202;3</small>Resolving variable expressions</a></h3>
 <p>Variable declarations<span class="em">&mdash;</span>and function declarations, which we&rsquo;ll get to<span class="em">&mdash;</span>write
 to the scope maps. Those maps are read when we resolve variable expressions.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitVarStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitVariableExpr</span>(<span class="t">Expr</span>.<span class="t">Variable</span> <span class="i">expr</span>) {
@@ -638,14 +638,14 @@ add after <em>visitVarStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitVarStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitVarStmt</em>()</div>
 
 <p>First, we check to see if the variable is being accessed inside its own
 initializer. This is where the values in the scope map come into play. If the
 variable exists in the current scope but its value is <code>false</code>, that means we
 have declared it but not yet defined it. We report that error.</p>
 <p>After that check, we actually resolve the variable itself using this helper:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>define</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">resolveLocal</span>(<span class="t">Expr</span> <span class="i">expr</span>, <span class="t">Token</span> <span class="i">name</span>) {
     <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="i">scopes</span>.<span class="i">size</span>() - <span class="n">1</span>; <span class="i">i</span> &gt;= <span class="n">0</span>; <span class="i">i</span>--) {
@@ -656,7 +656,7 @@ add after <em>define</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>define</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>define</em>()</div>
 
 <p>This looks, for good reason, a lot like the code in Environment for evaluating a
 variable. We start at the innermost scope and work outwards, looking in each map
@@ -671,7 +671,7 @@ other syntax nodes.</p>
 <h3><a href="#resolving-assignment-expressions" id="resolving-assignment-expressions"><small>11&#8202;.&#8202;3&#8202;.&#8202;4</small>Resolving assignment expressions</a></h3>
 <p>The other expression that references a variable is assignment. Resolving one
 looks like this:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitVarStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitAssignExpr</span>(<span class="t">Expr</span>.<span class="t">Assign</span> <span class="i">expr</span>) {
@@ -680,7 +680,7 @@ add after <em>visitVarStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitVarStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitVarStmt</em>()</div>
 
 <p>First, we resolve the expression for the assigned value in case it also contains
 references to other variables. Then we use our existing <code>resolveLocal()</code> method
@@ -690,7 +690,7 @@ to resolve the variable that&rsquo;s being assigned to.</p>
 the function itself is bound in the surrounding scope where the function is
 declared. When we step into the function&rsquo;s body, we also bind its parameters
 into that inner function scope.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitBlockStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitFunctionStmt</span>(<span class="t">Stmt</span>.<span class="t">Function</span> <span class="i">stmt</span>) {
@@ -701,14 +701,14 @@ add after <em>visitBlockStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
 
 <p>Similar to <code>visitVariableStmt()</code>, we declare and define the name of the function
 in the current scope. Unlike variables, though, we define the name eagerly,
 before resolving the function&rsquo;s body. This lets a function recursively refer to
 itself inside its own body.</p>
 <p>Then we resolve the function&rsquo;s body using this:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>resolve</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">resolveFunction</span>(<span class="t">Stmt</span>.<span class="t">Function</span> <span class="i">function</span>) {
     <span class="i">beginScope</span>();
@@ -720,7 +720,7 @@ add after <em>resolve</em>()</div>
     <span class="i">endScope</span>();
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>resolve</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>resolve</em>()</div>
 
 <p>It&rsquo;s a separate method since we will also use it for resolving Lox methods when
 we add classes later. It creates a new scope for the body and then binds
@@ -742,7 +742,7 @@ boring, but bear with me. We&rsquo;ll go kind of &ldquo;top down&rdquo; and star
 I didn&rsquo;t say they&rsquo;d all be exciting.</p>
 </aside>
 <p>An expression statement contains a single expression to traverse.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitBlockStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitExpressionStmt</span>(<span class="t">Stmt</span>.<span class="t">Expression</span> <span class="i">stmt</span>) {
@@ -750,11 +750,11 @@ add after <em>visitBlockStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
 
 <p>An if statement has an expression for its condition and one or two statements
 for the branches.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitFunctionStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitIfStmt</span>(<span class="t">Stmt</span>.<span class="t">If</span> <span class="i">stmt</span>) {
@@ -764,7 +764,7 @@ add after <em>visitFunctionStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitFunctionStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitFunctionStmt</em>()</div>
 
 <p>Here, we see how resolution is different from interpretation. When we resolve an
 <code>if</code> statement, there is no control flow. We resolve the condition and <em>both</em>
@@ -772,7 +772,7 @@ branches. Where a dynamic execution steps only into the branch that <em>is</em> 
 static analysis is conservative<span class="em">&mdash;</span>it analyzes any branch that <em>could</em> be run.
 Since either one could be reached at runtime, we resolve both.</p>
 <p>Like expression statements, a <code>print</code> statement contains a single subexpression.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitIfStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitPrintStmt</span>(<span class="t">Stmt</span>.<span class="t">Print</span> <span class="i">stmt</span>) {
@@ -780,10 +780,10 @@ add after <em>visitIfStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitIfStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitIfStmt</em>()</div>
 
 <p>Same deal for return.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitPrintStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitReturnStmt</span>(<span class="t">Stmt</span>.<span class="t">Return</span> <span class="i">stmt</span>) {
@@ -794,11 +794,11 @@ add after <em>visitPrintStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitPrintStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitPrintStmt</em>()</div>
 
 <p>As in <code>if</code> statements, with a <code>while</code> statement, we resolve its condition and
 resolve the body exactly once.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitVarStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitWhileStmt</span>(<span class="t">Stmt</span>.<span class="t">While</span> <span class="i">stmt</span>) {
@@ -807,12 +807,12 @@ add after <em>visitVarStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitVarStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitVarStmt</em>()</div>
 
 <p>That covers all the statements. On to expressions<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span></p>
 <p>Our old friend the binary expression. We traverse into and resolve both
 operands.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitAssignExpr</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitBinaryExpr</span>(<span class="t">Expr</span>.<span class="t">Binary</span> <span class="i">expr</span>) {
@@ -821,12 +821,12 @@ add after <em>visitAssignExpr</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitAssignExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitAssignExpr</em>()</div>
 
 <p>Calls are similar<span class="em">&mdash;</span>we walk the argument list and resolve them all. The thing
 being called is also an expression (usually a variable expression), so that gets
 resolved too.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitBinaryExpr</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitCallExpr</span>(<span class="t">Expr</span>.<span class="t">Call</span> <span class="i">expr</span>) {
@@ -839,10 +839,10 @@ add after <em>visitBinaryExpr</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitBinaryExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitBinaryExpr</em>()</div>
 
 <p>Parentheses are easy.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitCallExpr</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitGroupingExpr</span>(<span class="t">Expr</span>.<span class="t">Grouping</span> <span class="i">expr</span>) {
@@ -850,23 +850,23 @@ add after <em>visitCallExpr</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitCallExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitCallExpr</em>()</div>
 
 <p>Literals are easiest of all.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitGroupingExpr</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitLiteralExpr</span>(<span class="t">Expr</span>.<span class="t">Literal</span> <span class="i">expr</span>) {
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitGroupingExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitGroupingExpr</em>()</div>
 
 <p>A literal expression doesn&rsquo;t mention any variables and doesn&rsquo;t contain any
 subexpressions so there is no work to do.</p>
 <p>Since a static analysis does no control flow or short-circuiting, logical
 expressions are exactly the same as other binary operators.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitLiteralExpr</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitLogicalExpr</span>(<span class="t">Expr</span>.<span class="t">Logical</span> <span class="i">expr</span>) {
@@ -875,10 +875,10 @@ add after <em>visitLiteralExpr</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitLiteralExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitLiteralExpr</em>()</div>
 
 <p>And, finally, the last node. We resolve its one operand.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>visitLogicalExpr</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitUnaryExpr</span>(<span class="t">Expr</span>.<span class="t">Unary</span> <span class="i">expr</span>) {
@@ -886,7 +886,7 @@ add after <em>visitLogicalExpr</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitLogicalExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>visitLogicalExpr</em>()</div>
 
 <p>With all of these visit methods, the Java compiler should be satisfied that
 Resolver fully implements Stmt.Visitor and Expr.Visitor. Now is a good time to
@@ -898,13 +898,13 @@ the scope where the variable is defined. At runtime, this corresponds exactly to
 the number of <em>environments</em> between the current one and the enclosing one where
 the interpreter can find the variable&rsquo;s value. The resolver hands that number to
 the interpreter by calling this:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>execute</em>()</div>
 <pre>  <span class="t">void</span> <span class="i">resolve</span>(<span class="t">Expr</span> <span class="i">expr</span>, <span class="t">int</span> <span class="i">depth</span>) {
     <span class="i">locals</span>.<span class="i">put</span>(<span class="i">expr</span>, <span class="i">depth</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>execute</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>execute</em>()</div>
 
 <p>We want to store the resolution information somewhere so we can use it when the
 variable or assignment expression is later executed, but where? One obvious
@@ -925,14 +925,14 @@ recalculating when they&rsquo;re hiding in the foliage of the syntax tree. A ben
 of storing this data outside of the nodes is that it makes it easy to <em>discard</em>
 it<span class="em">&mdash;</span>simply clear the map.</p>
 <div class="codehilite"><pre class="insert-before">  private Environment environment = globals;
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
 <pre class="insert">  <span class="k">private</span> <span class="k">final</span> <span class="t">Map</span>&lt;<span class="t">Expr</span>, <span class="t">Integer</span>&gt; <span class="i">locals</span> = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
 </pre><pre class="insert-after">
 
   Interpreter() {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, in class <em>Interpreter</em></div>
 
 <p>You might think we&rsquo;d need some sort of nested tree structure to avoid getting
 confused when there are multiple expressions that reference the same variable,
@@ -940,37 +940,37 @@ but each expression node is its own Java object with its own unique identity. A
 single monolithic map doesn&rsquo;t have any trouble keeping them separated.</p>
 <p>As usual, using a collection requires us to import a couple of names.</p>
 <div class="codehilite"><pre class="insert-before">import java.util.ArrayList;
-</pre><div class="source-file"><em>lox/Interpreter.java</em></div>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em></div>
 <pre class="insert"><span class="k">import</span> <span class="i">java.util.HashMap</span>;
 </pre><pre class="insert-after">import java.util.List;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em></div>
 
 <p>And:</p>
 <div class="codehilite"><pre class="insert-before">import java.util.List;
-</pre><div class="source-file"><em>lox/Interpreter.java</em></div>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em></div>
 <pre class="insert"><span class="k">import</span> <span class="i">java.util.Map</span>;
 </pre><pre class="insert-after">
 
 class Interpreter implements Expr.Visitor&lt;Object&gt;,
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em></div>
 
 <h3><a href="#accessing-a-resolved-variable" id="accessing-a-resolved-variable"><small>11&#8202;.&#8202;4&#8202;.&#8202;1</small>Accessing a resolved variable</a></h3>
 <p>Our interpreter now has access to each variable&rsquo;s resolved location. Finally, we
 get to make use of that. We replace the visit method for variable expressions
 with this:</p>
 <div class="codehilite"><pre class="insert-before">  public Object visitVariableExpr(Expr.Variable expr) {
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 in <em>visitVariableExpr</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="k">return</span> <span class="i">lookUpVariable</span>(<span class="i">expr</span>.<span class="i">name</span>, <span class="i">expr</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitVariableExpr</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, in <em>visitVariableExpr</em>(), replace 1 line</div>
 
 <p>That delegates to:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitVariableExpr</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Object</span> <span class="i">lookUpVariable</span>(<span class="t">Token</span> <span class="i">name</span>, <span class="t">Expr</span> <span class="i">expr</span>) {
     <span class="t">Integer</span> <span class="i">distance</span> = <span class="i">locals</span>.<span class="i">get</span>(<span class="i">expr</span>);
@@ -981,7 +981,7 @@ add after <em>visitVariableExpr</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitVariableExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitVariableExpr</em>()</div>
 
 <p>There are a couple of things going on here. First, we look up the resolved
 distance in the map. Remember that we resolved only <em>local</em> variables. Globals
@@ -992,19 +992,19 @@ runtime error if the variable isn&rsquo;t defined.</p>
 <p>If we <em>do</em> get a distance, we have a local variable, and we get to take
 advantage of the results of our static analysis. Instead of calling <code>get()</code>, we
 call this new method on Environment:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 add after <em>define</em>()</div>
 <pre>  <span class="t">Object</span> <span class="i">getAt</span>(<span class="t">int</span> <span class="i">distance</span>, <span class="t">String</span> <span class="i">name</span>) {
     <span class="k">return</span> <span class="i">ancestor</span>(<span class="i">distance</span>).<span class="i">values</span>.<span class="i">get</span>(<span class="i">name</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, add after <em>define</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, add after <em>define</em>()</div>
 
 <p>The old <code>get()</code> method dynamically walks the chain of enclosing environments,
 scouring each one to see if the variable might be hiding in there somewhere. But
 now we know exactly which environment in the chain will have the variable. We
 reach it using this helper method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 add after <em>define</em>()</div>
 <pre>  <span class="t">Environment</span> <span class="i">ancestor</span>(<span class="t">int</span> <span class="i">distance</span>) {
     <span class="t">Environment</span> <span class="i">environment</span> = <span class="k">this</span>;
@@ -1015,7 +1015,7 @@ add after <em>define</em>()</div>
     <span class="k">return</span> <span class="i">environment</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, add after <em>define</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, add after <em>define</em>()</div>
 
 <p>This walks a fixed number of hops up the parent chain and returns the
 environment there. Once we have that, <code>getAt()</code> simply returns the value of the
@@ -1040,7 +1040,7 @@ to have already upheld.</p>
 assignment expression are similar.</p>
 <div class="codehilite"><pre class="insert-before">  public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 in <em>visitAssignExpr</em>()<br>
 replace 1 line</div>
 <pre class="insert">
@@ -1054,17 +1054,17 @@ replace 1 line</div>
 
 </pre><pre class="insert-after">    return value;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitAssignExpr</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, in <em>visitAssignExpr</em>(), replace 1 line</div>
 
 <p>Again, we look up the variable&rsquo;s scope distance. If not found, we assume it&rsquo;s
 global and handle it the same way as before. Otherwise, we call this new method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 add after <em>getAt</em>()</div>
 <pre>  <span class="t">void</span> <span class="i">assignAt</span>(<span class="t">int</span> <span class="i">distance</span>, <span class="t">Token</span> <span class="i">name</span>, <span class="t">Object</span> <span class="i">value</span>) {
     <span class="i">ancestor</span>(<span class="i">distance</span>).<span class="i">values</span>.<span class="i">put</span>(<span class="i">name</span>.<span class="i">lexeme</span>, <span class="i">value</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, add after <em>getAt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, add after <em>getAt</em>()</div>
 
 <p>As <code>getAt()</code> is to <code>get()</code>, <code>assignAt()</code> is to <code>assign()</code>. It walks a fixed
 number of environments, and then stuffs the new value in that map.</p>
@@ -1078,14 +1078,14 @@ the parser does its magic.</p>
 <div class="codehilite"><pre class="insert-before">    // Stop if there was a syntax error.
     if (hadError) return;
 
-</pre><div class="source-file"><em>lox/Lox.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 in <em>run</em>()</div>
 <pre class="insert">    <span class="t">Resolver</span> <span class="i">resolver</span> = <span class="k">new</span> <span class="t">Resolver</span>(<span class="i">interpreter</span>);
     <span class="i">resolver</span>.<span class="i">resolve</span>(<span class="i">statements</span>);
 
 </pre><pre class="insert-after">    interpreter.interpret(statements);
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, in <em>run</em>()</div>
 
 <p>We don&rsquo;t run the resolver if there are any parse errors. If the code has a
 syntax error, it&rsquo;s never going to run, so there&rsquo;s little value in resolving it.
@@ -1111,7 +1111,7 @@ And if they <em>didn&rsquo;t</em> know it existed, they probably didn&rsquo;t in
 the previous one.</p>
 <p>We can detect this mistake statically while resolving.</p>
 <div class="codehilite"><pre class="insert-before">    Map&lt;String, Boolean&gt; scope = scopes.peek();
-</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 in <em>declare</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">scope</span>.<span class="i">containsKey</span>(<span class="i">name</span>.<span class="i">lexeme</span>)) {
       <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">name</span>,
@@ -1120,7 +1120,7 @@ in <em>declare</em>()</div>
 
 </pre><pre class="insert-after">    scope.put(name.lexeme, false);
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>declare</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, in <em>declare</em>()</div>
 
 <p>When we declare a variable in a local scope, we already know the names of every
 variable previously declared in that same scope. If we see a collision, we
@@ -1136,41 +1136,41 @@ I don&rsquo;t think we want Lox to allow this.</p>
 as we walk the tree, we can track whether or not the code we are currently
 visiting is inside a function declaration.</p>
 <div class="codehilite"><pre class="insert-before">  private final Stack&lt;Map&lt;String, Boolean&gt;&gt; scopes = new Stack&lt;&gt;();
-</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 in class <em>Resolver</em></div>
 <pre class="insert">  <span class="k">private</span> <span class="t">FunctionType</span> <span class="i">currentFunction</span> = <span class="t">FunctionType</span>.<span class="i">NONE</span>;
 </pre><pre class="insert-after">
 
   Resolver(Interpreter interpreter) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, in class <em>Resolver</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, in class <em>Resolver</em></div>
 
 <p>Instead of a bare Boolean, we use this funny enum:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 add after <em>Resolver</em>()</div>
 <pre>  <span class="k">private</span> <span class="k">enum</span> <span class="t">FunctionType</span> {
     <span class="i">NONE</span>,
     <span class="i">FUNCTION</span>
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>Resolver</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, add after <em>Resolver</em>()</div>
 
 <p>It seems kind of dumb now, but we&rsquo;ll add a couple more cases to it later and
 then it will make more sense. When we resolve a function declaration, we pass
 that in.</p>
 <div class="codehilite"><pre class="insert-before">    define(stmt.name);
 
-</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 in <em>visitFunctionStmt</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="i">resolveFunction</span>(<span class="i">stmt</span>, <span class="t">FunctionType</span>.<span class="i">FUNCTION</span>);
 </pre><pre class="insert-after">    return null;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitFunctionStmt</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, in <em>visitFunctionStmt</em>(), replace 1 line</div>
 
 <p>Over in <code>resolveFunction()</code>, we take that parameter and store it in the field
 before resolving the body.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 method <em>resolveFunction</em>()<br>
 replace 1 line</div>
 <pre class="insert">  <span class="k">private</span> <span class="t">void</span> <span class="i">resolveFunction</span>(
@@ -1180,7 +1180,7 @@ replace 1 line</div>
 
 </pre><pre class="insert-after">    beginScope();
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, method <em>resolveFunction</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, method <em>resolveFunction</em>(), replace 1 line</div>
 
 <p>We stash the previous value of the field in a local variable first. Remember,
 Lox has local functions, so you can nest function declarations arbitrarily
@@ -1191,17 +1191,17 @@ we&rsquo;ll piggyback on the JVM. We store the previous value in a local on the 
 stack. When we&rsquo;re done resolving the function body, we restore the field to that
 value.</p>
 <div class="codehilite"><pre class="insert-before">    endScope();
-</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 in <em>resolveFunction</em>()</div>
 <pre class="insert">    <span class="i">currentFunction</span> = <span class="i">enclosingFunction</span>;
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>resolveFunction</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, in <em>resolveFunction</em>()</div>
 
 <p>Now that we can always tell whether or not we&rsquo;re inside a function declaration,
 we check that when resolving a <code>return</code> statement.</p>
 <div class="codehilite"><pre class="insert-before">  public Void visitReturnStmt(Stmt.Return stmt) {
-</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Resolver.java</em><br>
 in <em>visitReturnStmt</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">currentFunction</span> == <span class="t">FunctionType</span>.<span class="i">NONE</span>) {
       <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">stmt</span>.<span class="i">keyword</span>, <span class="s">&quot;Can&#39;t return from top-level code.&quot;</span>);
@@ -1209,7 +1209,7 @@ in <em>visitReturnStmt</em>()</div>
 
 </pre><pre class="insert-after">    if (stmt.value != null) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitReturnStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Resolver.java</em>, in <em>visitReturnStmt</em>()</div>
 
 <p>Neat, right?</p>
 <p>There&rsquo;s one more piece. Back in the main Lox class that stitches everything
@@ -1219,7 +1219,7 @@ resolve syntactically invalid code.</p>
 <p>But we also need to skip the interpreter if there are resolution errors, so we
 add <em>another</em> check.</p>
 <div class="codehilite"><pre class="insert-before">    resolver.resolve(statements);
-</pre><div class="source-file"><em>lox/Lox.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
 
@@ -1229,7 +1229,7 @@ in <em>run</em>()</div>
 
     interpreter.interpret(statements);
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, in <em>run</em>()</div>
 
 <p>You could imagine doing lots of other analysis in here. For example, if we added
 <code>break</code> statements to Lox, we would probably want to ensure they are only used
