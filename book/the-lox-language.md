@@ -328,7 +328,7 @@ versa.
 
 The other two logical operators really are control flow constructs in the guise
 of expressions. An <span name="and">`and`</span> expression determines if two
-values are *both* true. It returns the left operand if it's false, or the
+values are *both* true. It returns the left operand if the operand's false, or the
 right operand otherwise.
 
 ```lox
@@ -337,7 +337,7 @@ true and true;  // true.
 ```
 
 And an `or` expression determines if *either* of two values (or both) are true.
-It returns the left operand if it is true and the right operand otherwise.
+It returns the left operand if the operand is true and the right operand otherwise.
 
 ```lox
 false or false; // false.

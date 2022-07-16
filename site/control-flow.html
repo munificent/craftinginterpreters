@@ -220,13 +220,13 @@ if the condition is truthy. Optionally, it may also have an <code>else</code> ke
 statement to execute if the condition is falsey. The <span name="if-ast">syntax
 tree node</span> has fields for each of those three pieces.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Expression : Expr expression&quot;,
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">      <span class="s">&quot;If         : Expr condition, Stmt thenBranch,&quot;</span> +
                   <span class="s">&quot; Stmt elseBranch&quot;</span>,
 </pre><pre class="insert-after">      &quot;Print      : Expr expression&quot;,
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>()</div>
 
 <aside name="if-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#if-statement">Appendix II</a>.</p>
@@ -234,15 +234,15 @@ in <em>main</em>()</div>
 <p>Like other statements, the parser recognizes an <code>if</code> statement by the leading
 <code>if</code> keyword.</p>
 <div class="codehilite"><pre class="insert-before">  private Stmt statement() {
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">match</span>(<span class="i">IF</span>)) <span class="k">return</span> <span class="i">ifStatement</span>();
 </pre><pre class="insert-after">    if (match(PRINT)) return printStatement();
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>statement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>statement</em>()</div>
 
 <p>When it finds one, it calls this new method to parse the rest:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>statement</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">ifStatement</span>() {
     <span class="i">consume</span>(<span class="i">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;if&#39;.&quot;</span>);
@@ -258,7 +258,7 @@ add after <em>statement</em>()</div>
     <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">If</span>(<span class="i">condition</span>, <span class="i">thenBranch</span>, <span class="i">elseBranch</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>statement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>statement</em>()</div>
 
 <aside name="parens">
 <p>The parentheses around the condition are only half useful. You need some kind of
@@ -312,7 +312,7 @@ precedes it.</p>
 for an <code>else</code> before returning, the innermost call to a nested series will claim
 the else clause for itself before returning to the outer <code>if</code> statements.</p>
 <p>Syntax in hand, we are ready to interpret.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitExpressionStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitIfStmt</span>(<span class="t">Stmt</span>.<span class="t">If</span> <span class="i">stmt</span>) {
@@ -324,7 +324,7 @@ add after <em>visitExpressionStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitExpressionStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitExpressionStmt</em>()</div>
 
 <p>The interpreter implementation is a thin wrapper around the self-same Java code.
 It evaluates the condition. If truthy, it executes the then branch. Otherwise,
@@ -378,12 +378,12 @@ code path to handle the short circuiting. I think it&rsquo;s cleaner to define a
 name="logical-ast">new class</span> for these operators so that they get their
 own visit method.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Literal  : Object value&quot;,
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">      <span class="s">&quot;Logical  : Expr left, Token operator, Expr right&quot;</span>,
 </pre><pre class="insert-after">      &quot;Unary    : Token operator, Expr right&quot;,
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>()</div>
 
 <aside name="logical-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#logical-expression">Appendix II</a>.</p>
@@ -391,7 +391,7 @@ in <em>main</em>()</div>
 <p>To weave the new expressions into the parser, we first change the parsing code
 for assignment to call <code>or()</code>.</p>
 <div class="codehilite"><pre class="insert-before">  private Expr assignment() {
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>assignment</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">or</span>();
@@ -399,10 +399,10 @@ replace 1 line</div>
 
     if (match(EQUAL)) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>assignment</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>assignment</em>(), replace 1 line</div>
 
 <p>The code to parse a series of <code>or</code> expressions mirrors other binary operators.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>assignment</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">or</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">and</span>();
@@ -416,10 +416,10 @@ add after <em>assignment</em>()</div>
     <span class="k">return</span> <span class="i">expr</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>assignment</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>assignment</em>()</div>
 
 <p>Its operands are the next higher level of precedence, the new <code>and</code> expression.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>or</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">and</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">equality</span>();
@@ -433,11 +433,11 @@ add after <em>or</em>()</div>
     <span class="k">return</span> <span class="i">expr</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>or</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>or</em>()</div>
 
 <p>That calls <code>equality()</code> for its operands, and with that, the expression parser
 is all tied back together again. We&rsquo;re ready to interpret.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitLiteralExpr</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitLogicalExpr</span>(<span class="t">Expr</span>.<span class="t">Logical</span> <span class="i">expr</span>) {
@@ -452,7 +452,7 @@ add after <em>visitLiteralExpr</em>()</div>
     <span class="k">return</span> <span class="i">evaluate</span>(<span class="i">expr</span>.<span class="i">right</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitLiteralExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitLiteralExpr</em>()</div>
 
 <p>If you compare this to the <a href="evaluating-expressions.html">earlier chapter&rsquo;s</a> <code>visitBinaryExpr()</code>
 method, you can see the difference. Here, we evaluate the left operand first. We
@@ -491,13 +491,13 @@ expression, then a statement for the body. That new grammar rule gets a <span
 name="while-ast">syntax tree node</span>.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Print      : Expr expression&quot;,
 </pre><pre class="insert-before">      <span class="s">&quot;Var        : Token name, Expr initializer&quot;</span><span class="insert-comma">,</span>
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()<br>
 add <em>&ldquo;,&rdquo;</em> to previous line</div>
 <pre class="insert">      <span class="s">&quot;While      : Expr condition, Stmt body&quot;</span>
 </pre><pre class="insert-after">    ));
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>(), add <em>&ldquo;,&rdquo;</em> to previous line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>(), add <em>&ldquo;,&rdquo;</em> to previous line</div>
 
 <aside name="while-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#while-statement">Appendix II</a>.</p>
@@ -509,15 +509,15 @@ make it clear that the condition is an expression and the body is a statement.</
 First, we add another case in <code>statement()</code> to detect and match the leading
 keyword.</p>
 <div class="codehilite"><pre class="insert-before">    if (match(PRINT)) return printStatement();
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">match</span>(<span class="i">WHILE</span>)) <span class="k">return</span> <span class="i">whileStatement</span>();
 </pre><pre class="insert-after">    if (match(LEFT_BRACE)) return new Stmt.Block(block());
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>statement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>statement</em>()</div>
 
 <p>That delegates the real work to this method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>varDeclaration</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">whileStatement</span>() {
     <span class="i">consume</span>(<span class="i">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span>);
@@ -528,11 +528,11 @@ add after <em>varDeclaration</em>()</div>
     <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">While</span>(<span class="i">condition</span>, <span class="i">body</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>varDeclaration</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>varDeclaration</em>()</div>
 
 <p>The grammar is dead simple and this is a straight translation of it to Java.
 Speaking of translating straight to Java, here&rsquo;s how we execute the new syntax:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitVarStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitWhileStmt</span>(<span class="t">Stmt</span>.<span class="t">While</span> <span class="i">stmt</span>) {
@@ -542,7 +542,7 @@ add after <em>visitVarStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitVarStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitVarStmt</em>()</div>
 
 <p>Like the visit method for <code>if</code>, this visitor uses the corresponding Java
 feature. This method isn&rsquo;t complex, but it makes Lox much more powerful. We can
@@ -642,25 +642,25 @@ doesn&rsquo;t save us much work, but it does give me an excuse to introduce you 
 technique. So, unlike the previous statements, we <em>won&rsquo;t</em> add a new syntax tree
 node. Instead, we go straight to parsing. First, add an import we&rsquo;ll need soon.</p>
 <div class="codehilite"><pre class="insert-before">import java.util.ArrayList;
-</pre><div class="source-file"><em>lox/Parser.java</em></div>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em></div>
 <pre class="insert"><span class="k">import</span> <span class="i">java.util.Arrays</span>;
 </pre><pre class="insert-after">import java.util.List;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em></div>
 
 <p>Like every statement, we start parsing a <code>for</code> loop by matching its keyword.</p>
 <div class="codehilite"><pre class="insert-before">  private Stmt statement() {
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">match</span>(<span class="i">FOR</span>)) <span class="k">return</span> <span class="i">forStatement</span>();
 </pre><pre class="insert-after">    if (match(IF)) return ifStatement();
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>statement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>statement</em>()</div>
 
 <p>Here is where it gets interesting. The desugaring is going to happen here, so
 we&rsquo;ll build this method a piece at a time, starting with the opening parenthesis
 before the clauses.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>statement</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">forStatement</span>() {
     <span class="i">consume</span>(<span class="i">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span>);
@@ -668,12 +668,12 @@ add after <em>statement</em>()</div>
     <span class="c">// More here...</span>
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>statement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>statement</em>()</div>
 
 <p>The first clause following that is the initializer.</p>
 <div class="codehilite"><pre class="insert-before">    consume(LEFT_PAREN, &quot;Expect '(' after 'for'.&quot;);
 
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="t">Stmt</span> <span class="i">initializer</span>;
@@ -686,7 +686,7 @@ replace 1 line</div>
     }
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>forStatement</em>(), replace 1 line</div>
 
 <p>If the token following the <code>(</code> is a semicolon then the initializer has been
 omitted. Otherwise, we check for a <code>var</code> keyword to see if it&rsquo;s a <span
@@ -702,7 +702,7 @@ true, I guess.</p>
 <p>Next up is the condition.</p>
 <div class="codehilite"><pre class="insert-before">      initializer = expressionStatement();
     }
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
 
@@ -713,12 +713,12 @@ in <em>forStatement</em>()</div>
     <span class="i">consume</span>(<span class="i">SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39; after loop condition.&quot;</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>forStatement</em>()</div>
 
 <p>Again, we look for a semicolon to see if the clause has been omitted. The last
 clause is the increment.</p>
 <div class="codehilite"><pre class="insert-before">    consume(SEMICOLON, &quot;Expect ';' after loop condition.&quot;);
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
 
@@ -729,7 +729,7 @@ in <em>forStatement</em>()</div>
     <span class="i">consume</span>(<span class="i">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>forStatement</em>()</div>
 
 <p>It&rsquo;s similar to the condition clause except this one is terminated by the
 closing parenthesis. All that remains is the <span name="body">body</span>.</p>
@@ -737,14 +737,14 @@ closing parenthesis. All that remains is the <span name="body">body</span>.</p>
 <p>Is it just me or does that sound morbid? &ldquo;All that remained<span class="ellipse">&thinsp;.&thinsp;.&thinsp;.&nbsp;</span>was the <em>body</em>&rdquo;.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">    consume(RIGHT_PAREN, &quot;Expect ')' after for clauses.&quot;);
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">    <span class="t">Stmt</span> <span class="i">body</span> = <span class="i">statement</span>();
 
     <span class="k">return</span> <span class="i">body</span>;
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>forStatement</em>()</div>
 
 <p>We&rsquo;ve parsed all of the various pieces of the <code>for</code> loop and the resulting AST
 nodes are sitting in a handful of Java local variables. This is where the
@@ -755,7 +755,7 @@ showed you earlier.</p>
 clause.</p>
 <div class="codehilite"><pre class="insert-before">    Stmt body = statement();
 
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">increment</span> != <span class="k">null</span>) {
       <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Block</span>(
@@ -766,28 +766,28 @@ in <em>forStatement</em>()</div>
 
 </pre><pre class="insert-after">    return body;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>forStatement</em>()</div>
 
 <p>The increment, if there is one, executes after the body in each iteration of the
 loop. We do that by replacing the body with a little block that contains the
 original body followed by an expression statement that evaluates the increment.</p>
 <div class="codehilite"><pre class="insert-before">    }
 
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">condition</span> == <span class="k">null</span>) <span class="i">condition</span> = <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Literal</span>(<span class="k">true</span>);
     <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">While</span>(<span class="i">condition</span>, <span class="i">body</span>);
 
 </pre><pre class="insert-after">    return body;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>forStatement</em>()</div>
 
 <p>Next, we take the condition and the body and build the loop using a primitive
 <code>while</code> loop. If the condition is omitted, we jam in <code>true</code> to make an infinite
 loop.</p>
 <div class="codehilite"><pre class="insert-before">    body = new Stmt.While(condition, body);
 
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">initializer</span> != <span class="k">null</span>) {
       <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Block</span>(<span class="t">Arrays</span>.<span class="i">asList</span>(<span class="i">initializer</span>, <span class="i">body</span>));
@@ -795,7 +795,7 @@ in <em>forStatement</em>()</div>
 
 </pre><pre class="insert-after">    return body;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>forStatement</em>()</div>
 
 <p>Finally, if there is an initializer, it runs once before the entire loop. We do
 that by, again, replacing the whole statement with a block that runs the

@@ -196,7 +196,7 @@ chapters.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">      &quot;Unary    : Token operator, Expr right&quot;
     ));
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
 
@@ -206,7 +206,7 @@ in <em>main</em>()</div>
     ));
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>()</div>
 
 <aside name="stmt-ast">
 <p>The generated code for the new nodes is in <a href="appendix-ii.html">Appendix II</a>: <a href="appendix-ii.html#expression-statement">Expression statement</a>, <a href="appendix-ii.html#print-statement">Print statement</a>.</p>
@@ -218,7 +218,7 @@ to add the file to your IDE project or makefile or whatever.</p>
 <p>The parser&rsquo;s <code>parse()</code> method that parses and returns a single expression was a
 temporary hack to get the last chapter up and running. Now that our grammar has
 the correct starting rule, <code>program</code>, we can turn <code>parse()</code> into the real deal.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 method <em>parse</em>()<br>
 replace 7 lines</div>
 <pre>  <span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">parse</span>() {
@@ -230,7 +230,7 @@ replace 7 lines</div>
     <span class="k">return</span> <span class="i">statements</span>;<span name="parse-error-handling"> </span>
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, method <em>parse</em>(), replace 7 lines</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, method <em>parse</em>(), replace 7 lines</div>
 
 <aside name="parse-error-handling">
 <p>What about the code we had in here for catching <code>ParseError</code> exceptions? We&rsquo;ll
@@ -243,15 +243,15 @@ recursive descent style. We must also chant a minor prayer to the Java verbosity
 gods since we are using ArrayList now.</p>
 <div class="codehilite"><pre class="insert-before">package com.craftinginterpreters.lox;
 
-</pre><div class="source-file"><em>lox/Parser.java</em></div>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em></div>
 <pre class="insert"><span class="k">import</span> <span class="i">java.util.ArrayList</span>;
 </pre><pre class="insert-after">import java.util.List;
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em></div>
 
 <p>A program is a list of statements, and we parse one of those statements using
 this method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>expression</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">statement</span>() {
     <span class="k">if</span> (<span class="i">match</span>(<span class="i">PRINT</span>)) <span class="k">return</span> <span class="i">printStatement</span>();
@@ -259,7 +259,7 @@ add after <em>expression</em>()</div>
     <span class="k">return</span> <span class="i">expressionStatement</span>();
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expression</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>expression</em>()</div>
 
 <p>A little bare bones, but we&rsquo;ll fill it in with more statement types later. We
 determine which specific statement rule is matched by looking at the current
@@ -269,7 +269,7 @@ must be an expression statement. That&rsquo;s the typical final fallthrough case
 parsing a statement, since it&rsquo;s hard to proactively recognize an expression from
 its first token.</p>
 <p>Each statement kind gets its own method. First <code>print</code>:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>statement</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">printStatement</span>() {
     <span class="t">Expr</span> <span class="i">value</span> = <span class="i">expression</span>();
@@ -277,13 +277,13 @@ add after <em>statement</em>()</div>
     <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Print</span>(<span class="i">value</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>statement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>statement</em>()</div>
 
 <p>Since we already matched and consumed the <code>print</code> token itself, we don&rsquo;t need to
 do that here. We parse the subsequent expression, consume the terminating
 semicolon, and emit the syntax tree.</p>
 <p>If we didn&rsquo;t match a <code>print</code> statement, we must have one of these:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>printStatement</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">expressionStatement</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">expression</span>();
@@ -291,7 +291,7 @@ add after <em>printStatement</em>()</div>
     <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Expression</span>(<span class="i">expr</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>printStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>printStatement</em>()</div>
 
 <p>Similar to the previous method, we parse an expression followed by a semicolon.
 We wrap that Expr in a Stmt of the right type and return it.</p>
@@ -302,13 +302,13 @@ the next and final step is to interpret them. As in expressions, we use the
 Visitor pattern, but we have a new visitor interface, Stmt.Visitor, to
 implement since statements have their own base class.</p>
 <p>We add that to the list of interfaces Interpreter implements.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 replace 1 line</div>
 <pre class="insert"><span class="k">class</span> <span class="t">Interpreter</span> <span class="k">implements</span> <span class="t">Expr</span>.<span class="t">Visitor</span>&lt;<span class="t">Object</span>&gt;,
                              <span class="t">Stmt</span>.<span class="t">Visitor</span>&lt;<span class="t">Void</span>&gt; {
 </pre><pre class="insert-after">  void interpret(Expr expression) {<span name="void"> </span>
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, replace 1 line</div>
 
 <aside name="void">
 <p>Java doesn&rsquo;t let you use lowercase &ldquo;void&rdquo; as a generic type argument for obscure
@@ -319,7 +319,7 @@ separate &ldquo;Void&rdquo; type specifically for this use. Sort of a &ldquo;box
 <p>Unlike expressions, statements produce no values, so the return type of the
 visit methods is Void, not Object. We have two statement types, and we need a
 visit method for each. The easiest is expression statements.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>evaluate</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitExpressionStmt</span>(<span class="t">Stmt</span>.<span class="t">Expression</span> <span class="i">stmt</span>) {
@@ -327,7 +327,7 @@ add after <em>evaluate</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>evaluate</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>evaluate</em>()</div>
 
 <p>We evaluate the inner expression using our existing <code>evaluate()</code> method and
 <span name="discard">discard</span> the value. Then we return <code>null</code>. Java
@@ -338,7 +338,7 @@ what can you do?</p>
 that call inside a <em>Java</em> expression statement.</p>
 </aside>
 <p>The <code>print</code> statement&rsquo;s visit method isn&rsquo;t much different.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitExpressionStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitPrintStmt</span>(<span class="t">Stmt</span>.<span class="t">Print</span> <span class="i">stmt</span>) {
@@ -347,7 +347,7 @@ add after <em>visitExpressionStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitExpressionStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitExpressionStmt</em>()</div>
 
 <p>Before discarding the expression&rsquo;s value, we convert it to a string using the
 <code>stringify()</code> method we introduced in the last chapter and then dump it to
@@ -355,7 +355,7 @@ stdout.</p>
 <p>Our interpreter is able to visit statements now, but we have some work to do to
 feed them to it. First, modify the old <code>interpret()</code> method in the Interpreter
 class to accept a list of statements<span class="em">&mdash;</span>in other words, a program.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 method <em>interpret</em>()<br>
 replace 8 lines</div>
 <pre>  <span class="t">void</span> <span class="i">interpret</span>(<span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">statements</span>) {
@@ -368,22 +368,22 @@ replace 8 lines</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, method <em>interpret</em>(), replace 8 lines</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, method <em>interpret</em>(), replace 8 lines</div>
 
 <p>This replaces the old code which took a single expression. The new code relies
 on this tiny helper method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>evaluate</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">void</span> <span class="i">execute</span>(<span class="t">Stmt</span> <span class="i">stmt</span>) {
     <span class="i">stmt</span>.<span class="i">accept</span>(<span class="k">this</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>evaluate</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>evaluate</em>()</div>
 
 <p>That&rsquo;s the statement analogue to the <code>evaluate()</code> method we have for
 expressions. Since we&rsquo;re working with lists now, we need to let Java know.</p>
 <div class="codehilite"><pre class="insert-before">package com.craftinginterpreters.lox;
-</pre><div class="source-file"><em>lox/Interpreter.java</em></div>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em></div>
 <pre class="insert">
 
 <span class="k">import</span> <span class="i">java.util.List</span>;
@@ -391,12 +391,12 @@ expressions. Since we&rsquo;re working with lists now, we need to let Java know.
 
 class Interpreter implements Expr.Visitor&lt;Object&gt;,
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em></div>
 
 <p>The main Lox class is still trying to parse a single expression and pass it to
 the interpreter. We fix the parsing line like so:</p>
 <div class="codehilite"><pre class="insert-before">    Parser parser = new Parser(tokens);
-</pre><div class="source-file"><em>lox/Lox.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">statements</span> = <span class="i">parser</span>.<span class="i">parse</span>();
@@ -404,18 +404,18 @@ replace 1 line</div>
 
     // Stop if there was a syntax error.
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, in <em>run</em>(), replace 1 line</div>
 
 <p>And then replace the call to the interpreter with this:</p>
 <div class="codehilite"><pre class="insert-before">    if (hadError) return;
 
-</pre><div class="source-file"><em>lox/Lox.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Lox.java</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="i">interpreter</span>.<span class="i">interpret</span>(<span class="i">statements</span>);
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Lox.java</em>, in <em>run</em>(), replace 1 line</div>
 
 <p>Basically just plumbing the new syntax through. OK, fire up the interpreter and
 give it a try. At this point, it&rsquo;s worth sketching out a little Lox program in a
@@ -524,13 +524,13 @@ generator, we add a <span name="var-stmt-ast">new statement</span> node for a
 variable declaration.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Expression : Expr expression&quot;,
 </pre><pre class="insert-before">      <span class="s">&quot;Print      : Expr expression&quot;</span><span class="insert-comma">,</span>
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()<br>
 add <em>&ldquo;,&rdquo;</em> to previous line</div>
 <pre class="insert">      <span class="s">&quot;Var        : Token name, Expr initializer&quot;</span>
 </pre><pre class="insert-after">    ));
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>(), add <em>&ldquo;,&rdquo;</em> to previous line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>(), add <em>&ldquo;,&rdquo;</em> to previous line</div>
 
 <aside name="var-stmt-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#variable-statement">Appendix II</a>.</p>
@@ -540,13 +540,13 @@ initializer expression. (If there isn&rsquo;t an initializer, that field is <cod
 <p>Then we add an expression node for accessing a variable.</p>
 <div class="codehilite"><pre class="insert-before">      &quot;Literal  : Object value&quot;,
 </pre><pre class="insert-before">      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="insert-comma">,</span>
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()<br>
 add <em>&ldquo;,&rdquo;</em> to previous line</div>
 <pre class="insert">      <span class="s">&quot;Variable : Token name&quot;</span>
 </pre><pre class="insert-after">    ));
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>(), add <em>&ldquo;,&rdquo;</em> to previous line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>(), add <em>&ldquo;,&rdquo;</em> to previous line</div>
 
 <p><span name="var-expr-ast">It&rsquo;s</span> simply a wrapper around the token for the
 variable name. That&rsquo;s it. As always, don&rsquo;t forget to run the AST generator
@@ -561,7 +561,7 @@ is now a list of declarations, so the entrypoint method to the parser changes.</
 <div class="codehilite"><pre class="insert-before">  List&lt;Stmt&gt; parse() {
     List&lt;Stmt&gt; statements = new ArrayList&lt;&gt;();
     while (!isAtEnd()) {
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>parse</em>()<br>
 replace 1 line</div>
 <pre class="insert">      <span class="i">statements</span>.<span class="i">add</span>(<span class="i">declaration</span>());
@@ -570,10 +570,10 @@ replace 1 line</div>
     return statements;<span name="parse-error-handling"> </span>
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>parse</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>parse</em>(), replace 1 line</div>
 
 <p>That calls this new method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>expression</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">declaration</span>() {
     <span class="k">try</span> {
@@ -586,7 +586,7 @@ add after <em>expression</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expression</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>expression</em>()</div>
 
 <p>Hey, do you remember way back in that <a href="parsing-expressions.html">earlier chapter</a> when we put the
 infrastructure in place to do error recovery? We are finally ready to hook that
@@ -606,7 +606,7 @@ statement matches? And <code>expression()</code> reports a syntax error if it ca
 an expression at the current token? That chain of calls ensures we report an
 error if a valid declaration or statement isn&rsquo;t parsed.</p>
 <p>When the parser matches a <code>var</code> token, it branches to:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>printStatement</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">varDeclaration</span>() {
     <span class="t">Token</span> <span class="i">name</span> = <span class="i">consume</span>(<span class="i">IDENTIFIER</span>, <span class="s">&quot;Expect variable name.&quot;</span>);
@@ -620,7 +620,7 @@ add after <em>printStatement</em>()</div>
     <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Var</span>(<span class="i">name</span>, <span class="i">initializer</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>printStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>printStatement</em>()</div>
 
 <p>As always, the recursive descent code follows the grammar rule. The parser has
 already matched the <code>var</code> token, so next it requires and consumes an identifier
@@ -633,7 +633,7 @@ Stmt.Var syntax tree node and we&rsquo;re groovy.</p>
 identifier token.</p>
 <div class="codehilite"><pre class="insert-before">      return new Expr.Literal(previous().literal);
     }
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>primary</em>()</div>
 <pre class="insert">
 
@@ -644,7 +644,7 @@ in <em>primary</em>()</div>
 
     if (match(LEFT_PAREN)) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>primary</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>primary</em>()</div>
 
 <p>That gives us a working front end for declaring and using variables. All that&rsquo;s
 left is to feed it into the interpreter. Before we get to that, we need to talk
@@ -669,7 +669,7 @@ tables</strong>, <strong>dictionaries</strong> (Python and C#), <strong>hashes</
 <strong>tables</strong> (Lua), or <strong>associative arrays</strong> (PHP). Way back when, they were
 known as <strong>scatter tables</strong>.</p>
 </aside>
-<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 create new file</div>
 <pre><span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
@@ -680,7 +680,7 @@ create new file</div>
   <span class="k">private</span> <span class="k">final</span> <span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">Object</span>&gt; <span class="i">values</span> = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
 }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, create new file</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, create new file</div>
 
 <p>There&rsquo;s a Java Map in there to store the bindings. It uses bare strings for the
 keys, not tokens. A token represents a unit of code at a specific place in the
@@ -689,13 +689,13 @@ with the same name should refer to the same variable (ignoring scope for now).
 Using the raw string ensures all of those tokens refer to the same map key.</p>
 <p>There are two operations we need to support. First, a variable definition binds
 a new name to a value.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 in class <em>Environment</em></div>
 <pre>  <span class="t">void</span> <span class="i">define</span>(<span class="t">String</span> <span class="i">name</span>, <span class="t">Object</span> <span class="i">value</span>) {
     <span class="i">values</span>.<span class="i">put</span>(<span class="i">name</span>, <span class="i">value</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, in class <em>Environment</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, in class <em>Environment</em></div>
 
 <p>Not exactly brain surgery, but we have made one interesting semantic choice.
 When we add the key to the map, we don&rsquo;t check to see if it&rsquo;s already present.
@@ -727,7 +727,7 @@ footsteps.</p>
 variables. Once a variable exists, we need a way to look it up.</p>
 <div class="codehilite"><pre class="insert-before">class Environment {
   private final Map&lt;String, Object&gt; values = new HashMap&lt;&gt;();
-</pre><div class="source-file"><em>lox/Environment.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 in class <em>Environment</em></div>
 <pre class="insert">
 
@@ -742,7 +742,7 @@ in class <em>Environment</em></div>
 
 </pre><pre class="insert-after">  void define(String name, Object value) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, in class <em>Environment</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, in class <em>Environment</em></div>
 
 <p>This is a little more semantically interesting. If the variable is found, it
 simply returns the value bound to it. But what if it&rsquo;s not? Again, we have a
@@ -817,19 +817,19 @@ tell the user where in their code they messed up.</p>
 <p>The Interpreter class gets an instance of the new Environment class.</p>
 <div class="codehilite"><pre class="insert-before">class Interpreter implements Expr.Visitor&lt;Object&gt;,
                              Stmt.Visitor&lt;Void&gt; {
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
 <pre class="insert">  <span class="k">private</span> <span class="t">Environment</span> <span class="i">environment</span> = <span class="k">new</span> <span class="t">Environment</span>();
 
 </pre><pre class="insert-after">  void interpret(List&lt;Stmt&gt; statements) {
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, in class <em>Interpreter</em></div>
 
 <p>We store it as a field directly in Interpreter so that the variables stay in
 memory as long as the interpreter is still running.</p>
 <p>We have two new syntax trees, so that&rsquo;s two new visit methods. The first is for
 declaration statements.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitPrintStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitVarStmt</span>(<span class="t">Stmt</span>.<span class="t">Var</span> <span class="i">stmt</span>) {
@@ -842,7 +842,7 @@ add after <em>visitPrintStmt</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitPrintStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitPrintStmt</em>()</div>
 
 <p>If the variable has an initializer, we evaluate it. If not, we have another
 choice to make. We could have made this a syntax error in the parser by
@@ -860,14 +860,14 @@ explicitly initialized.</p>
 Java representation of Lox&rsquo;s <code>nil</code> value. Then we tell the environment to bind
 the variable to that value.</p>
 <p>Next, we evaluate a variable expression.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitUnaryExpr</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitVariableExpr</span>(<span class="t">Expr</span>.<span class="t">Variable</span> <span class="i">expr</span>) {
     <span class="k">return</span> <span class="i">environment</span>.<span class="i">get</span>(<span class="i">expr</span>.<span class="i">name</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitUnaryExpr</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitUnaryExpr</em>()</div>
 
 <p>This simply forwards to the environment which does the heavy lifting to make
 sure the variable is defined. With that, we&rsquo;ve got rudimentary variables
@@ -919,12 +919,12 @@ objects, like:</p>
 </pre></div>
 <p>The easy part is adding the <span name="assign-ast">new syntax tree node</span>.</p>
 <div class="codehilite"><pre class="insert-before">    defineAst(outputDir, &quot;Expr&quot;, Arrays.asList(
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">      <span class="s">&quot;Assign   : Token name, Expr value&quot;</span>,
 </pre><pre class="insert-after">      &quot;Binary   : Expr left, Token operator, Expr right&quot;,
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>()</div>
 
 <aside name="assign-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#assign-expression">Appendix II</a>.</p>
@@ -934,13 +934,13 @@ value. After you run the AstGenerator to get the new Expr.Assign class, swap out
 the body of the parser&rsquo;s existing <code>expression()</code> method to match the updated
 rule.</p>
 <div class="codehilite"><pre class="insert-before">  private Expr expression() {
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>expression</em>()<br>
 replace 1 line</div>
 <pre class="insert">    <span class="k">return</span> <span class="i">assignment</span>();
 </pre><pre class="insert-after">  }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>expression</em>(), replace 1 line</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>expression</em>(), replace 1 line</div>
 
 <p>Here is where it gets tricky. A single token lookahead recursive descent parser
 can&rsquo;t see far enough to tell that it&rsquo;s parsing an assignment until <em>after</em> it
@@ -977,7 +977,7 @@ tokens of lookahead to find the <code>=</code>.</p>
 </aside>
 <p>We have only a single token of lookahead, so what do we do? We use a little
 trick, and it looks like this:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>expressionStatement</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">Expr</span> <span class="i">assignment</span>() {
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">equality</span>();
@@ -997,7 +997,7 @@ add after <em>expressionStatement</em>()</div>
     <span class="k">return</span> <span class="i">expr</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expressionStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>expressionStatement</em>()</div>
 
 <p>Most of the code for parsing an assignment expression looks similar to that of
 the other binary operators like <code>+</code>. We parse the left-hand side, which can be
@@ -1052,7 +1052,7 @@ that knows what it is assigning to and has an expression subtree for the value
 being assigned. All with only a single token of lookahead and no backtracking.</p>
 <h3><a href="#assignment-semantics" id="assignment-semantics"><small>8&#8202;.&#8202;4&#8202;.&#8202;2</small>Assignment semantics</a></h3>
 <p>We have a new syntax tree node, so our interpreter gets a new visit method.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>visitVarStmt</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitAssignExpr</span>(<span class="t">Expr</span>.<span class="t">Assign</span> <span class="i">expr</span>) {
@@ -1061,12 +1061,12 @@ add after <em>visitVarStmt</em>()</div>
     <span class="k">return</span> <span class="i">value</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitVarStmt</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>visitVarStmt</em>()</div>
 
 <p>For obvious reasons, it&rsquo;s similar to variable declaration. It evaluates the
 right-hand side to get the value, then stores it in the named variable. Instead
 of using <code>define()</code> on Environment, it calls this new method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 add after <em>get</em>()</div>
 <pre>  <span class="t">void</span> <span class="i">assign</span>(<span class="t">Token</span> <span class="i">name</span>, <span class="t">Object</span> <span class="i">value</span>) {
     <span class="k">if</span> (<span class="i">values</span>.<span class="i">containsKey</span>(<span class="i">name</span>.<span class="i">lexeme</span>)) {
@@ -1078,7 +1078,7 @@ add after <em>get</em>()</div>
         <span class="s">&quot;Undefined variable &#39;&quot;</span> + <span class="i">name</span>.<span class="i">lexeme</span> + <span class="s">&quot;&#39;.&quot;</span>);
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, add after <em>get</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, add after <em>get</em>()</div>
 
 <p>The key difference between assignment and definition is that assignment is not
 <span name="new">allowed</span> to create a <em>new</em> variable. In terms of our
@@ -1246,15 +1246,15 @@ much prefer the evocative <strong>cactus stack</strong>.</p><img class="above" s
 with support for this nesting. First, we give each environment a reference to
 its enclosing one.</p>
 <div class="codehilite"><pre class="insert-before">class Environment {
-</pre><div class="source-file"><em>lox/Environment.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 in class <em>Environment</em></div>
 <pre class="insert">  <span class="k">final</span> <span class="t">Environment</span> <span class="i">enclosing</span>;
 </pre><pre class="insert-after">  private final Map&lt;String, Object&gt; values = new HashMap&lt;&gt;();
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, in class <em>Environment</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, in class <em>Environment</em></div>
 
 <p>This field needs to be initialized, so we add a couple of constructors.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 in class <em>Environment</em></div>
 <pre>  <span class="t">Environment</span>() {
     <span class="i">enclosing</span> = <span class="k">null</span>;
@@ -1264,7 +1264,7 @@ in class <em>Environment</em></div>
     <span class="k">this</span>.<span class="i">enclosing</span> = <span class="i">enclosing</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, in class <em>Environment</em></div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, in class <em>Environment</em></div>
 
 <p>The no-argument constructor is for the global scope&rsquo;s environment, which ends
 the chain. The other constructor creates a new local scope nested inside the
@@ -1275,7 +1275,7 @@ with existing variables and they need to walk the chain to find them. First,
 lookup:</p>
 <div class="codehilite"><pre class="insert-before">      return values.get(name.lexeme);
     }
-</pre><div class="source-file"><em>lox/Environment.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 in <em>get</em>()</div>
 <pre class="insert">
 
@@ -1285,7 +1285,7 @@ in <em>get</em>()</div>
     throw new RuntimeError(name,
         &quot;Undefined variable '&quot; + name.lexeme + &quot;'.&quot;);
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, in <em>get</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, in <em>get</em>()</div>
 
 <p>If the variable isn&rsquo;t found in this environment, we simply try the enclosing
 one. That in turn does the same thing <span name="recurse">recursively</span>,
@@ -1301,7 +1301,7 @@ solution is prettier. We&rsquo;ll do something <em>much</em> faster in clox.</p>
       return;
     }
 
-</pre><div class="source-file"><em>lox/Environment.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Environment.java</em><br>
 in <em>assign</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">enclosing</span> != <span class="k">null</span>) {
       <span class="i">enclosing</span>.<span class="i">assign</span>(<span class="i">name</span>, <span class="i">value</span>);
@@ -1310,7 +1310,7 @@ in <em>assign</em>()</div>
 
 </pre><pre class="insert-after">    throw new RuntimeError(name,
 </pre></div>
-<div class="source-file-narrow"><em>lox/Environment.java</em>, in <em>assign</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Environment.java</em>, in <em>assign</em>()</div>
 
 <p>Again, if the variable isn&rsquo;t in this environment, it checks the outer one,
 recursively.</p>
@@ -1327,12 +1327,12 @@ the grammar:</p>
 curly braces. A block is itself a statement and can appear anywhere a statement
 is allowed. The <span name="block-ast">syntax tree</span> node looks like this:</p>
 <div class="codehilite"><pre class="insert-before">    defineAst(outputDir, &quot;Stmt&quot;, Arrays.asList(
-</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\tool\GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">      <span class="s">&quot;Block      : List&lt;Stmt&gt; statements&quot;</span>,
 </pre><pre class="insert-after">      &quot;Expression : Expr expression&quot;,
 </pre></div>
-<div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\tool\GenerateAst.java</em>, in <em>main</em>()</div>
 
 <aside name="block-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#block-statement">Appendix II</a>.</p>
@@ -1345,17 +1345,17 @@ beginning of a block by its leading token<span class="em">&mdash;</span>in this 
 <p>As always, don&rsquo;t forget to run &ldquo;GenerateAst.java&rdquo;.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">    if (match(PRINT)) return printStatement();
-</pre><div class="source-file"><em>lox/Parser.java</em><br>
+</pre><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">    <span class="k">if</span> (<span class="i">match</span>(<span class="i">LEFT_BRACE</span>)) <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Block</span>(<span class="i">block</span>());
 </pre><pre class="insert-after">
 
     return expressionStatement();
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>statement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, in <em>statement</em>()</div>
 
 <p>All the real work happens here:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Parser.java</em><br>
 add after <em>expressionStatement</em>()</div>
 <pre>  <span class="k">private</span> <span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">block</span>() {
     <span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">statements</span> = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
@@ -1368,7 +1368,7 @@ add after <em>expressionStatement</em>()</div>
     <span class="k">return</span> <span class="i">statements</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expressionStatement</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Parser.java</em>, add after <em>expressionStatement</em>()</div>
 
 <p>We <span name="list">create</span> an empty list and then parse statements and
 add them to the list until we reach the end of the block, marked by the closing
@@ -1382,7 +1382,7 @@ way because we&rsquo;ll reuse <code>block()</code> later for parsing function bo
 want that body wrapped in a Stmt.Block.</p>
 </aside>
 <p>That&rsquo;s it for syntax. For semantics, we add another visit method to Interpreter.</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>execute</em>()</div>
 <pre>  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitBlockStmt</span>(<span class="t">Stmt</span>.<span class="t">Block</span> <span class="i">stmt</span>) {
@@ -1390,11 +1390,11 @@ add after <em>execute</em>()</div>
     <span class="k">return</span> <span class="k">null</span>;
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>execute</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>execute</em>()</div>
 
 <p>To execute a block, we create a new environment for the block&rsquo;s scope and pass
 it off to this other method:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><div class="source-file"><em>com\craftinginterpreters\lox\Interpreter.java</em><br>
 add after <em>execute</em>()</div>
 <pre>  <span class="t">void</span> <span class="i">executeBlock</span>(<span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">statements</span>,
                     <span class="t">Environment</span> <span class="i">environment</span>) {
@@ -1410,7 +1410,7 @@ add after <em>execute</em>()</div>
     }
   }
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>execute</em>()</div>
+<div class="source-file-narrow"><em>com\craftinginterpreters\lox\Interpreter.java</em>, add after <em>execute</em>()</div>
 
 <p>This new method executes a list of statements in the context of a given <span
 name="param">environment</span>. Up until now, the <code>environment</code> field in
