@@ -205,13 +205,14 @@ class Test {
 
   bool parse() {
     // Get the path components.
-    var parts = _path.split("/");
+    var parts = _path.split(Platform.pathSeparator);
     var subpath = "";
     String state;
 
     // Figure out the state of the test. We don't break out of this loop because
     // we want lines for more specific paths to override more general ones.
     for (var part in parts) {
+      if (part == ".") continue;
       if (subpath.isNotEmpty) subpath += "/";
       subpath += part;
 
