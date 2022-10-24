@@ -88,8 +88,22 @@ class Scanner {
         if (match('/')) {
           // A comment goes until the end of the line.
           while (peek() != '\n' && !isAtEnd()) advance();
-        } else {
-          addToken(SLASH);
+        } 
+        // add /* COMMENT STYLE */
+	    else if(match('*'))
+        {
+            while ((peek() != '*' && peekNext() != '/') && !isAtEnd())
+            {
+                  if (source.charAt(current) == '\n')
+                        line++;
+                  advance();
+            }
+            if (isAtEnd())
+                  Lox.error(line, "Unterminated Comment.");
+        }
+        else
+        {
+             addToken(SLASH);
         }
         break;
 //< slash
