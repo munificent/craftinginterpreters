@@ -1067,7 +1067,7 @@ then *everything* is slow.
     function, load factor, and growth rate.
 
     All of this variety wasn't created just to give CS doctoral candidates
-    something to <span name="publish">publish</span> theses on: each has its
+    something to <span name="publish">publish</span> thesis on: each has its
     uses in the many varied domains and hardware scenarios where hashing comes
     into play. Look up a few hash table implementations in different open source
     systems, research the choices they made, and try to figure out why they did

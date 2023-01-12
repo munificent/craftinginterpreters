@@ -523,7 +523,7 @@ with cream.
 ### Invalid uses of super
 
 As with previous language features, our implementation does the right thing when
-the user writes correct code, but we haven't bulletproofed the intepreter
+the user writes correct code, but we haven't bulletproofed the interpreter
 against bad code. In particular, consider:
 
 ```lox

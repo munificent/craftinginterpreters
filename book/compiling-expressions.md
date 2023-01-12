@@ -595,7 +595,7 @@ The function we will use as the infix parser for `TOKEN_PLUS`, `TOKEN_MINUS`,
 ^code binary
 
 When a prefix parser function is called, the leading token has already been
-consumed. An infix parser function is even more *in medias res* -- the entire
+consumed. An infix parser function is even more *in media res* -- the entire
 left-hand operand expression has already been compiled and the subsequent infix
 operator consumed.
 

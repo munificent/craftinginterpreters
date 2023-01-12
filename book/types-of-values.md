@@ -595,7 +595,7 @@ each token type. We add cases for the six new operators.
 ^code comparison-operators (1 before, 1 after)
 
 The `==`, `<`, and `>` operators output a single instruction. The others output
-a pair of instructions, one to evalute the inverse operation, and then an
+a pair of instructions, one to evaluate the inverse operation, and then an
 `OP_NOT` to flip the result. Six operators for the price of three instructions!
 
 That means over in the VM, our job is simpler. Equality is the most general
@@ -645,7 +645,7 @@ because of padding and different-sized union fields, a Value contains unused
 bits. C gives no guarantee about what is in those, so it's possible that two
 equal Values actually differ in memory that isn't used.
 
-<img src="image/types-of-values/memcmp.png" alt="The memory respresentations of two equal values that differ in unused bytes." />
+<img src="image/types-of-values/memcmp.png" alt="The memory representations of two equal values that differ in unused bytes." />
 
 (You wouldn't believe how much pain I went through before learning this fact.)
 

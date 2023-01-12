@@ -1233,23 +1233,23 @@ is one of the fundamental balancing acts of language design: similarity to other
 languages lowers learning cost, while divergence raises the compelling
 advantages.
 
-I think of this balancing act in terms of a <span name="idiosyncracy">**novelty
+I think of this balancing act in terms of a <span name="idiosyncrasy">**novelty
 budget**</span>, or as Steve Klabnik calls it, a "[strangeness budget][]". Users
 have a low threshold for the total amount of new stuff they are willing to
 accept to learn a new language. Exceed that, and they won't show up.
 
 [strangeness budget]: https://words.steveklabnik.com/the-language-strangeness-budget
 
-<aside name="idiosyncracy">
+<aside name="idiosyncrasy">
 
-A related concept in psychology is [**idiosyncrasy credit**][idiosyncracy], the
+A related concept in psychology is [**idiosyncrasy credit**][idiosyncrasy], the
 idea that other people in society grant you a finite amount of deviations from
 social norms. You earn credit by fitting in and doing in-group things, which you
 can then spend on oddball activities that might otherwise raise eyebrows. In
 other words, demonstrating that you are "one of the good ones" gives you license
 to raise your freak flag, but only so far.
 
-[idiosyncracy]: https://en.wikipedia.org/wiki/Idiosyncrasy_credit
+[idiosyncrasy]: https://en.wikipedia.org/wiki/Idiosyncrasy_credit
 
 </aside>
 
