@@ -242,7 +242,7 @@
     is up to the class to decide which state is exposed using getters and
     setters. Most statically typed languages offer access control modifiers
     like `private` and `public` to explicitly control on a per-member basis
-    which parts of a class are externally accesible.
+    which parts of a class are externally accessible.
 
     What are the trade-offs between these approaches and why might a language
     might prefer one or the other?
