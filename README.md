@@ -21,7 +21,7 @@ worry about it. I'll do that when I pull it in.
 
 ## Translations
 
-- [中文](https://github.com/GuoYaxiang/craftinginterpreters_zh).
+- [中文](https://github.com/GuoYaxiang/craftinginterpreters_zh)
 
 ## Ports and implementations
 
