@@ -19,6 +19,10 @@ send a pull request if you're so inclined. If you want to send a pull request,
 but don't want to get the build system set up to regenerate the HTML too, don't
 worry about it. I'll do that when I pull it in.
 
+## Translations
+
+- [中文](https://github.com/GuoYaxiang/craftinginterpreters_zh).
+
 ## Ports and implementations
 
 Another way to get involved is by sharing your own implementation of Lox. Ports
