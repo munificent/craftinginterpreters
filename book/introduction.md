@@ -144,7 +144,7 @@ texts on programming languages feature a [dragon][] and a [wizard][] on their
 covers.
 
 [dragon]: https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools
-[wizard]: https://mitpress.mit.edu/sites/default/files/sicp/index.html
+[wizard]: https://mitpress.mit.edu/9780262510875/structure-and-interpretation-of-computer-programs/
 
 </aside>
 
