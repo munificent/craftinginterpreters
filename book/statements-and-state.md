@@ -469,9 +469,9 @@ falls through to the existing `statement()` method that parses `print` and
 expression statements.
 
 Remember how `statement()` tries to parse an expression statement if no other
-statement matches? And `expression()` reports a syntax error if it can't parse
-an expression at the current token? That chain of calls ensures we report an
-error if a valid declaration or statement isn't parsed.
+statement matches? And `expressionStatement()` reports a syntax error if it
+can't parse an expression at the current token? That chain of calls ensures we
+report an error if a valid declaration or statement isn't parsed.
 
 When the parser matches a `var` token, it branches to:
 
