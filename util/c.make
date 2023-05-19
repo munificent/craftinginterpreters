@@ -20,6 +20,7 @@ CFLAGS += -Wall -Wextra -Werror -Wno-unused-parameter
 # are functions that aren't used yet.
 ifeq ($(SNIPPET),true)
 	CFLAGS += -Wno-unused-function
+	CFLAGS += -Wno-unused-but-set-variable
 endif
 
 # Mode configuration.
