@@ -128,7 +128,6 @@ var _chapterTags = <String, List<String>>{
     "closure-op",
     "disassemble-closure",
     "interpret-closure",
-    "runtime-error-function",
     "interpret",
     "upvalue-struct",
     "resolve-upvalue-recurse",
