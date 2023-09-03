@@ -621,7 +621,7 @@ analysis, we immediately traverse into the body right then and there.
 
 ### Resolving the other syntax tree nodes
 
-That covers the interesting corners of the grammars. We handle every place where
+That covers the interesting corners of the grammar. We handle every place where
 a variable is declared, read, or written, and every place where a scope is
 created or destroyed. Even though they aren't affected by variable resolution,
 we also need visit methods for all of the other syntax tree nodes in order to
