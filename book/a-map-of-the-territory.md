@@ -373,7 +373,7 @@ collector going in order to reclaim unused bits. If our language supports
 "instance of" tests so you can see what kind of object you have, then we need
 some representation to keep track of the type of each object during execution.
 
-All of this stuff is going at runtime, so it's called, appropriately, the
+All of this stuff is going on at runtime, so it's called, appropriately, the
 **runtime**. In a fully compiled language, the code implementing the runtime
 gets inserted directly into the resulting executable. In, say, [Go][], each
 compiled application has its own copy of Go's runtime directly embedded in it.

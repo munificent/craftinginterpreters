@@ -209,7 +209,7 @@ That's bad if the expression has side effects. If we put the body of
 `isObjType()` into the macro definition and then you did, say,
 
 ```c
-IS_STRING(POP())
+IS_STRING(pop())
 ```
 
 then it would pop two values off the stack! Using a function fixes that.

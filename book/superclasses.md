@@ -504,7 +504,7 @@ the given class's method table and creates an ObjBoundMethod to bundle the
 resulting closure to the current instance.
 
 The key <span name="field">difference</span> is *which* class we pass to
-`bindMethod()`. With a normal property access, we use the ObjInstances's own
+`bindMethod()`. With a normal property access, we use the ObjInstance's own
 class, which gives us the dynamic dispatch we want. For a super call, we don't
 use the instance's class. Instead, we use the statically resolved superclass of
 the containing class, which the compiler has conveniently ensured is sitting on
