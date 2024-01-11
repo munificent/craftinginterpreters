@@ -32,7 +32,7 @@
 3.  It returns Infinity, -Infinity, or NaN based on sign of the dividend. Given
     that Lox is a high level scripting language, I think it would be better to
     raise a runtime error to let the user know something got weird. That's what
-    Python and Ruby do.
+    Python does.
 
     On the other hand, given that Lox gives the user no way to catch and
     handle runtime errors, not throwing one might be more flexible.
