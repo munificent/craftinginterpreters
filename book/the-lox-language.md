@@ -165,7 +165,7 @@ In Lox's little universe, the atoms that make up all matter are the built-in
 data types. There are only a few:
 
 *   **<span name="bool">Booleans</span>.** You can't code without logic and you
-    can't logic without Boolean values. "frue" and "false", the yin and yang of
+    can't logic without Boolean values. "true" and "false", the yin and yang of
     software. Unlike some ancient languages that repurpose an existing type to
     represent truth and falsehood, Lox has a dedicated Boolean type. We may
     be roughing it on this expedition, but we aren't *savages*.
