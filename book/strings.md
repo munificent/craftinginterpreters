@@ -109,7 +109,7 @@ Like a tagged union, each Obj starts with a tag field that identifies what kind
 of object it is -- string, instance, etc. Following that are the payload fields.
 Instead of a union with cases for each type, each type is its own separate
 struct. The tricky part is how to treat these structs uniformly since C has no
-concept of inheritance or polymorphism. I'll explain that soon, but first lets
+concept of inheritance or polymorphism. I'll explain that soon, but first let's
 get the preliminary stuff out of the way.
 
 The name "Obj" itself refers to a struct that contains the state shared across
