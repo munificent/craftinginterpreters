@@ -492,7 +492,7 @@ Inside the parentheses, you have three clauses separated by semicolons:
 2.  Next is the *condition*. As in a `while` loop, this expression controls when
     to exit the loop. It's evaluated once at the beginning of each iteration,
     including the first. If the result is truthy, it executes the loop body.
-    Otherwise, it bails.
+    Otherwise, it fails.
 
 3.  The last clause is the *increment*. It's an arbitrary expression that does
     some work at the end of each loop iteration. The result of the expression is
