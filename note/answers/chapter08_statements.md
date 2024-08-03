@@ -91,7 +91,10 @@
         Object syntax = parser.parseRepl();
 
         // Ignore it if there was a syntax error.
-        if (hadError) continue;
+        if (hadError) {
+          hadError = false;
+          continue;
+        }
 
         if (syntax instanceof List) {
           interpreter.interpret((List<Stmt>)syntax);
