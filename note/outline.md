@@ -20,7 +20,7 @@ visible to user.
               state machines, memory management, optimization
             - hard, training with weights on
             - fun
-            - dispell magic
+            - dispel magic
         - structure of book
         - languages used in impl
         - what's in book

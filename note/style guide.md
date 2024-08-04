@@ -50,7 +50,7 @@ TODO: How do we style keywords used in headers and subheaders?
 ### Code font
 
 *   References to statements like "`if` statement" and "`switch`". Use "`else`
-    clause" to refer to that part of an `if` statement's *sytax*, but "then
+    clause" to refer to that part of an `if` statement's *syntax*, but "then
     branch" and "else branch" to refer to those *concepts*.
 
 *   Use "`return` statement", but "early return". In almost all other cases,

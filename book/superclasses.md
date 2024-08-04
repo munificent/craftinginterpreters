@@ -464,7 +464,7 @@ information it needs to perform the super access:
 2.  The second instruction loads **the superclass where the method is
     resolved**.
 
-3.  Then the new `OP_GET_SUPER` instuction encodes **the name of the method to
+3.  Then the new `OP_GET_SUPER` instruction encodes **the name of the method to
     access** as an operand.
 
 The remaining instructions are the normal bytecode for evaluating an argument
