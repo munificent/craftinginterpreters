@@ -148,7 +148,7 @@ retain calls if you squint.
 
 For lots more on this, see "[A Unified Theory of Garbage Collection][gc]" (PDF).
 
-[gc]: https://researcher.watson.ibm.com/researcher/files/us-bacon/Bacon04Unified.pdf
+[gc]: https://courses.cs.washington.edu/courses/cse590p/05au/p50-bacon.pdf
 
 </aside>
 
