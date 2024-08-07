@@ -57,7 +57,7 @@ static void runtimeError(const char* format, ...) {
 /* Calls and Functions runtime-error-temp < Calls and Functions runtime-error-stack
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
   size_t instruction = frame->ip - frame->function->chunk.code - 1;
-  int line = frame->function->chunk.lines[instruction];
+  int line = frame->function->chunk.lines[instruction].line;
 */
 /* Types of Values runtime-error < Calls and Functions runtime-error-stack
   fprintf(stderr, "[line %d] in script\n", line);
