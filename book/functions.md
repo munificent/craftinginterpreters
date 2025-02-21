@@ -993,8 +993,8 @@ When we create a LoxFunction, we capture the current environment.
 
 ^code visit-closure (1 before, 1 after)
 
-This is the environment that is active when the function is *declared* not when
-it's *called*, which is what we want. It represents the lexical scope
+This is the environment that is active when the function is *declared* (rather than when
+it's *called*), which is what we want. It represents the lexical scope
 surrounding the function declaration. Finally, when we call the function, we use
 that environment as the call's parent instead of going straight to `globals`.
 
