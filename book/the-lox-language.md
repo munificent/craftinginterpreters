@@ -283,6 +283,16 @@ All of these operators work on numbers, and it's an error to pass any other
 types to them. The exception is the `+` operator -- you can also pass it two
 strings to concatenate them.
 
+### Chained Negation Example
+
+Lox allows chaining of the logical NOT operator. This means you can write expressions like:
+
+```lox
+!!!!true; // evaluates to true
+!!!false; // evaluates to true
+!!false;  // evaluates to false
+```
+
 ### Comparison and equality
 
 Moving along, we have a few more operators that always return a Boolean result.
