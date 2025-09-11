@@ -1,4 +1,4 @@
-##1
+## 1
 
 It's:
 
@@ -51,19 +51,19 @@ The `?:` operator has lower precedence than almost anything, so we add a new `PR
 static void conditional()
 {
   // Compile the then branch.
-  parsePrecedence(compiler, PREC_CONDITIONAL);
+  parsePrecedence(compiler, PREC_ASSIGNMENT);
 
   consume(compiler, TOKEN_COLON,
           "Expect ':' after then branch of conditional operator.");
 
   // Compile the else branch.
-  parsePrecedence(compiler, PREC_ASSIGNMENT);
+  parsePrecedence(compiler, PREC_CONDITIONAL);
 }
 ```
 
 Of course a full implementation needs more code to actually do the conditional
 evaluation, but that should compile the operands with the right precedence. Note
 that the precedence of the operands is a little unusual. The precedence of the
-last operand is *lower* than the conditional expression itself.
+middle operand is *lower* than the conditional expression itself.
 
 That might be surprising, but it's how C rolls.
