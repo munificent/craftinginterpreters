@@ -326,7 +326,7 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
   local->name.length = 0;
 */
 //> Methods and Initializers slot-zero
-  if (type != TYPE_FUNCTION) {
+  if (currentClass != NULL && type != TYPE_FUNCTION) {
     local->name.start = "this";
     local->name.length = 4;
   } else {
