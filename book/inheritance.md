@@ -225,8 +225,8 @@ class Doughnut {
 }
 
 class BostonCream < Doughnut {}
-
-BostonCream().cook();
+var bostonCream = BostonCream();
+bostonCream().cook();
 ```
 
 There we go, half of our inheritance features are complete with only three lines
