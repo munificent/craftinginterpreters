@@ -369,7 +369,7 @@ separate instruction, but just to show how our compiler is free to map the
 language's semantics to whatever instruction sequence it wants, I implemented it
 in terms of the jump instructions we already have.
 
-When the left-hand side is falsey, it does a tiny jump over the next statement.
+When the left-hand side is truthy, it does a tiny jump over the next statement.
 That statement is an unconditional jump over the code for the right operand.
 This little dance effectively does a jump when the value is truthy. The flow
 looks like this:
