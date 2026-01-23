@@ -373,7 +373,7 @@ var average = (min + max) / 2;
 ```
 
 Since they aren't very technically interesting, I've cut the remainder of the
-typical operator menagerie out of our little language. No bitwise, shift,
+typical operator menagerie out of our little language. No bitwise shift,
 modulo, or conditional operators. I'm not grading you, but you will get bonus
 points in my heart if you augment your own implementation of Lox with them.
 
