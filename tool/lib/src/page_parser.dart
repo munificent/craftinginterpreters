@@ -14,7 +14,7 @@ final _afterPattern = RegExp(r"(\d+) after");
 PageFile parsePage(Page page) {
   var headers = <String, Header>{};
   var codeTagsByName = <String, CodeTag>{};
-  String designNote;
+  String? designNote;
   var hasChallenges = false;
 
   var headerIndex = 0;
@@ -27,7 +27,7 @@ PageFile parsePage(Page page) {
     var match = _codePattern.firstMatch(line);
     if (match != null) {
       var codeTag =
-          _createCodeTag(page, codeTagsByName.length, match[1], match[3]);
+          _createCodeTag(page, codeTagsByName.length, match[1]!, match[3]);
       codeTagsByName[codeTag.name] = codeTag;
       continue;
     }
@@ -35,7 +35,7 @@ PageFile parsePage(Page page) {
     match = _headerPattern.firstMatch(line);
     if (match != null) {
       // Keep track of the headers so we can add section navigation for them.
-      var headerType = match[1];
+      var headerType = match[1]!;
       var level = headerType.length;
       var name = line.substring(level).trim().pretty;
 
@@ -73,7 +73,7 @@ PageFile parsePage(Page page) {
   return PageFile(lines, headers, hasChallenges, designNote, codeTagsByName);
 }
 
-CodeTag _createCodeTag(Page page, int index, String name, String options) {
+CodeTag _createCodeTag(Page page, int index, String name, String? options) {
   // Parse the location annotations after the name, if present.
   var showLocation = true;
   var beforeCount = 0;
@@ -88,13 +88,13 @@ CodeTag _createCodeTag(Page page, int index, String name, String options) {
 
       var match = _beforePattern.firstMatch(option);
       if (match != null) {
-        beforeCount = int.parse(match[1]);
+        beforeCount = int.parse(match[1]!);
         continue;
       }
 
       match = _afterPattern.firstMatch(option);
       if (match != null) {
-        afterCount = int.parse(match[1]);
+        afterCount = int.parse(match[1]!);
         continue;
       }
 

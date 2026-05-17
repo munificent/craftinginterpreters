@@ -8,18 +8,19 @@ class Snippet {
   final SourceFile file;
   final CodeTag tag;
 
-  Location _location;
+  late Location _location;
 
-  int _firstLine;
-  int _lastLine;
+  late int _firstLine;
+  late int _lastLine;
 
-  Location get precedingLocation => _precedingLocation;
-  Location _precedingLocation;
+  Location get precedingLocation =>
+      _precedingLocation ?? Location(null, "file", file.path);
+  Location? _precedingLocation;
 
   /// If the snippet replaces a line with the same line but with a trailing
   /// comma, this is that line (with the comma).
-  String get addedComma => _addedComma;
-  String _addedComma;
+  String? get addedComma => _addedComma;
+  String? _addedComma;
 
   final List<String> added = [];
   final List<String> removed = [];
@@ -122,9 +123,10 @@ class Snippet {
       if (!line.isPresent(tag)) continue;
       checkedLines++;
 
-      // Store the most precise preceding location we find.
-      if (_precedingLocation == null ||
-          line.location.depth > _precedingLocation.depth) {
+      // Store the most recently modified time of all files that match [globs].
+      var precedingLocation = _precedingLocation;
+      if (precedingLocation == null ||
+          line.location.depth > precedingLocation.depth) {
         _precedingLocation = line.location;
       }
     }

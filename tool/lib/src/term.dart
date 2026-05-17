@@ -27,7 +27,7 @@ void clearLine() {
   }
 }
 
-void writeLine([String line]) {
+void writeLine([String? line]) {
   clearLine();
   if (line != null) stdout.write(line);
 }

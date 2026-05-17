@@ -19,10 +19,10 @@ class HtmlRenderer implements NodeVisitor {
     "ul",
   };
 
-  StringBuffer buffer;
+  late StringBuffer buffer;
 
   final _elementStack = <Element>[];
-  String _lastVisitedTag;
+  String? _lastVisitedTag;
 
   String render(List<Node> nodes) {
     buffer = StringBuffer();
@@ -85,7 +85,7 @@ class HtmlRenderer implements NodeVisitor {
     assert(identical(_elementStack.last, element));
 
     if (element.children != null &&
-        element.children.isNotEmpty &&
+        element.children!.isNotEmpty &&
         _blockTags.contains(_lastVisitedTag) &&
         _blockTags.contains(element.tag)) {
       buffer.writeln();

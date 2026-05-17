@@ -1,4 +1,5 @@
 import 'package:markdown/markdown.dart';
+import 'package:markdown/src/line.dart';
 
 import '../book.dart';
 import '../code_tag.dart';
@@ -19,14 +20,14 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
   HighlightedCodeBlockSyntax(this._format);
 
   bool canParse(BlockParser parser) =>
-      pattern.firstMatch(parser.current) != null;
+      pattern.firstMatch(parser.current.content) != null;
 
-  List<String> parseChildLines(BlockParser parser) {
-    var childLines = <String>[];
+  List<Line?> parseChildLines(BlockParser parser) {
+    var childLines = <Line?>[];
     parser.advance();
 
     while (!parser.isDone) {
-      var match = pattern.firstMatch(parser.current);
+      var match = pattern.firstMatch(parser.current.content);
       if (match == null) {
         childLines.add(parser.current);
         parser.advance();
@@ -41,11 +42,17 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
 
   Node parse(BlockParser parser) {
     // Get the syntax identifier, if there is one.
-    var match = pattern.firstMatch(parser.current);
-    var indent = match[1].length;
-    var language = match[2];
+    var match = pattern.firstMatch(parser.current.content);
+    if (match == null) throw StateError('Match missing for pattern at current line');
+
+    var indent = (match[1] ?? (throw ArgumentError('Indent missing in match'))).length;
+    var language = match[2] ?? (throw ArgumentError('Language missing in match'));
 
     var childLines = parseChildLines(parser);
+    var childStrings = childLines.map((line) {
+      if (line == null) throw StateError('Line is null');
+      return line.content;
+    }).toList();
 
     String code;
     if (language == "text") {
@@ -59,10 +66,10 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
         // https://html.spec.whatwg.org/#element-restrictions
         // Some snippets deliberately start with a newline which needs to be
         // preserved, so output an extra (discarded) newline in that case.
-        if (_format.isWeb && childLines.first.isEmpty) buffer.writeln();
+        if (_format.isWeb && childStrings.first.isEmpty) buffer.writeln();
       }
 
-      for (var line in childLines) {
+      for (var line in childStrings) {
         // Strip off any leading indentation.
         if (line.length > indent) line = line.substring(indent);
         checkLineLength(line);
@@ -80,7 +87,7 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
 
       code = buffer.toString();
     } else {
-      code = formatCode(language, childLines, _format, indent: indent);
+      code = formatCode(language, childStrings, _format, indent: indent);
     }
 
     if (_format.isPrint) {
@@ -115,15 +122,17 @@ class CodeTagBlockSyntax extends BlockSyntax {
   RegExp get pattern => _startPattern;
 
   bool canParse(BlockParser parser) =>
-      pattern.firstMatch(parser.current) != null;
+      pattern.firstMatch(parser.current.content) != null;
 
   Node parse(BlockParser parser) {
-    var match = pattern.firstMatch(parser.current);
-    var name = match[1];
+    var match = pattern.firstMatch(parser.current.content);
+    if (match == null) throw StateError('Match missing for pattern at current line');
+
+    var name = match[1] ?? (throw ArgumentError('Name missing in match'));
     parser.advance();
 
     var codeTag = _page.findCodeTag(name);
-    String snippet;
+    String? snippet;
     if (_format.isPrint) {
       snippet = _buildSnippetXml(codeTag, _book.findSnippet(codeTag));
     } else {
@@ -133,7 +142,7 @@ class CodeTagBlockSyntax extends BlockSyntax {
   }
 }
 
-String _buildSnippet(Format format, CodeTag tag, Snippet snippet) {
+String _buildSnippet(Format format, CodeTag tag, Snippet? snippet) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
 
@@ -155,7 +164,7 @@ String _buildSnippet(Format format, CodeTag tag, Snippet snippet) {
 
   if (snippet.addedComma != null) {
     var commaLine = formatCode(
-        snippet.file.language, [snippet.addedComma], format,
+        snippet.file.language, [snippet.addedComma!], format,
         preClass: "insert-before");
     var comma = commaLine.lastIndexOf(",");
     buffer.write(commaLine.substring(0, comma));
@@ -168,7 +177,7 @@ String _buildSnippet(Format format, CodeTag tag, Snippet snippet) {
     buffer.writeln('<div class="source-file">$lines</div>');
   }
 
-  if (snippet.added != null) {
+  if (snippet.added.isNotEmpty) {
     var added = formatCode(snippet.file.language, snippet.added, format,
         preClass: tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
     buffer.write(added);
@@ -189,7 +198,12 @@ String _buildSnippet(Format format, CodeTag tag, Snippet snippet) {
   return buffer.toString();
 }
 
-String _buildSnippetXml(CodeTag tag, Snippet snippet) {
+String _buildSnippetXml(CodeTag tag, Snippet? snippet) {
+  if (snippet == null) {
+    print("Undefined snippet ${tag.name}");
+    return "<strong>ERROR: Missing snippet ${tag.name}</strong>\n";
+  }
+
   var buffer = StringBuffer();
 
   if (tag.showLocation) buffer.writeln(snippet.locationXml);
@@ -209,7 +223,7 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
 //    buffer.write(commaLine.substring(comma + 1));
   }
 
-  if (snippet.added != null) {
+  if (snippet.added.isNotEmpty) {
     // Use different tags based on whether there is context before, after,
     // neither, or both.
     String insertTag;
@@ -252,7 +266,7 @@ String _buildSnippetXml(CodeTag tag, Snippet snippet) {
 }
 
 void _writeContextHtml(Format format, StringBuffer buffer, List<String> lines,
-    {String cssClass}) {
+    {String? cssClass}) {
   buffer.write("<pre");
   if (cssClass != null) buffer.write(' class="$cssClass"');
   buffer.write(">");
@@ -261,7 +275,7 @@ void _writeContextHtml(Format format, StringBuffer buffer, List<String> lines,
   // https://html.spec.whatwg.org/#element-restrictions
   // Some snippets deliberately start with a newline which needs to be
   // preserved, so output an extra (discarded) newline in that case.
-  if (format.isWeb && lines.first.isEmpty) buffer.writeln();
+  if (format.isWeb && lines.isNotEmpty && lines.first.isEmpty) buffer.writeln();
 
   for (var line in lines) {
     buffer.writeln(line.escapeHtml);
