@@ -56,19 +56,20 @@ void runComparison(List<String> interpreters, String benchmark) {
   for (;;) {
     for (var interpreter in interpreters) {
       var elapsed = runTrial(interpreter, benchmark);
-      if (elapsed < best[interpreter]) best[interpreter] = elapsed;
+      if (elapsed < best[interpreter]!) best[interpreter] = elapsed;
     }
 
     var bestTime = 999.0;
     var worstTime = 0.0;
-    String bestInterpreter;
+    String bestInterpreter = interpreters.first;
     for (var interpreter in interpreters) {
-      if (best[interpreter] < bestTime) {
-        bestTime = best[interpreter];
+      var time = best[interpreter]!;
+      if (time < bestTime) {
+        bestTime = time;
         bestInterpreter = interpreter;
       }
-      if (best[interpreter] > worstTime) {
-        worstTime = best[interpreter];
+      if (time > worstTime) {
+        worstTime = time;
       }
     }
 
@@ -79,16 +80,17 @@ void runComparison(List<String> interpreters, String benchmark) {
     print("trial #$trial");
     for (var interpreter in interpreters) {
       String suffix;
+      var time = best[interpreter]!;
       if (interpreter == bestInterpreter) {
-        var bestWork = 1.0 / best[interpreter];
+        var bestWork = 1.0 / time;
         var workRatio = bestWork / worstWork;
         var faster = 100 * (workRatio - 1.0);
         suffix = "${faster.toStringAsFixed(4)}% faster";
       } else {
-        var ratio = best[interpreter] / bestTime;
+        var ratio = time / bestTime;
         suffix = "${ratio.toStringAsFixed(4)}x time of best";
       }
-      var bestString = best[interpreter].toStringAsFixed(4);
+      var bestString = time.toStringAsFixed(4);
       print("  ${interpreter.padRight(30)}   best ${bestString}s  $suffix");
     }
 

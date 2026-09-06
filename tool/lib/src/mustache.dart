@@ -15,10 +15,10 @@ class Mustache {
 
   final Map<String, Template> _templates = {};
 
-  Mustache([String templateDirectory])
+  Mustache([String? templateDirectory])
       : _templateDirectory = templateDirectory ?? p.join("asset", "mustache");
 
-  String render(Book book, Page page, String body, {String template}) {
+  String render(Book book, Page page, String body, {String? template}) {
     var part = page.part?.title;
 
     var up = "Table of Contents";
@@ -30,14 +30,14 @@ class Mustache {
 
     var previousPage = book.adjacentPage(page, -1);
     var nextPage = book.adjacentPage(page, 1);
-    String nextType;
-    if (nextPage != null && nextPage.isChapter) {
+    String? nextType;
+    if (nextPage?.isChapter ?? false) {
       nextType = "Chapter";
-    } else if (nextPage != null && nextPage.isPart) {
+    } else if (nextPage?.isPart ?? false) {
       nextType = "Part";
     }
 
-    List<Map<String, dynamic>> chapters;
+    List<Map<String, dynamic>>? chapters;
     if (page.isPart) {
       chapters = _makeChapterList(page);
     }
@@ -49,7 +49,7 @@ class Mustache {
 
     var data = <String, dynamic>{
       "is_chapter": part != null,
-      "is_part": part == null && page.title != null && !isFrontmatter,
+      "is_part": part == null && !isFrontmatter,
       "is_frontmatter": isFrontmatter,
       "title": page.title,
       "part": part,
@@ -72,9 +72,9 @@ class Mustache {
       "next": nextPage?.title,
       "next_file": nextPage?.fileName,
       "next_type": nextType,
-      "has_up": up != null,
+      "has_up": true,
       "up": up,
-      "up_file": up != null ? toFileName(up) : null,
+      "up_file": toFileName(up),
       // TODO: Only need this for contents page.
       "part_1": _makePartData(book, 0),
       "part_2": _makePartData(book, 1),

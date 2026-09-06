@@ -1,10 +1,10 @@
 /// The context in which a line of code appears. The chain of types and
 /// functions it's in.
 class Location {
-  final Location parent;
+  final Location? parent;
   final String kind;
-  String _name;
-  final String signature;
+  String? _name;
+  final String? signature;
 
   /// If [kind] is "method" or "function" then this tracks where we are
   /// declaring or defining the function.
@@ -13,9 +13,9 @@ class Location {
   Location(this.parent, this.kind, this._name,
       {this.signature, this.isFunctionDeclaration = false});
 
-  String get name => _name;
+  String? get name => _name;
 
-  set name(String value) {
+  set name(String? value) {
     // Can only set the name if it's an unnamed typedef.
     assert(_name == null);
     _name = value;
@@ -27,7 +27,7 @@ class Location {
       const {"constructor", "function", "method"}.contains(kind);
 
   int get depth {
-    var current = this;
+    var current = this as Location?;
     var result = 0;
     while (current != null) {
       result++;
@@ -45,13 +45,13 @@ class Location {
 
   /// Generates a string of HTML that describes a snippet at this location,
   /// when following the [preceding] location.
-  String toHtml(Location preceding, List<String> removed) {
+  String? toHtml(Location preceding, List<String> removed) {
     if (kind == "new") return "create new file";
     if (kind == "top") return "add to top of file";
 
     // Note: The order of these is highly significant.
     if (kind == "class" && parent?.kind == "class") {
-      return "nest inside class <em>${parent.name}</em>";
+      return "nest inside class <em>${(parent ?? (throw StateError('Parent is null'))).name}</em>";
     }
 
     if (isFunction && preceding == this) {
@@ -104,13 +104,13 @@ class Location {
   ///
   /// This is similar to [toHtml] but uses different tags and places the
   /// signatures inside the tags instead of outside.
-  String toXml(Location preceding, List<String> removed) {
+  String? toXml(Location preceding, List<String> removed) {
     if (kind == "new") return "create new file";
     if (kind == "top") return "add to top of file";
 
     // Note: The order of these is highly significant.
     if (kind == "class" && parent?.kind == "class") {
-      return "nest inside class <location-type>${parent.name}</location-type>";
+      return "nest inside class <location-type>${(parent ?? (throw StateError('Parent is null'))).name}</location-type>";
     }
 
     if (isFunction && preceding == this) {
@@ -174,11 +174,11 @@ class Location {
     return other is Location && kind == other.kind && name == other.name;
   }
 
-  int get hashCode => kind.hashCode ^ name.hashCode;
+  int get hashCode => kind.hashCode ^ (name?.hashCode ?? 0);
 
   /// Discard as many children as needed to get to [depth] parents.
   Location popToDepth(int depth) {
-    var current = this;
+    var current = this as Location?;
     var locations = <Location>[];
     while (current != null) {
       locations.add(current);
