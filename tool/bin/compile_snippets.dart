@@ -305,7 +305,7 @@ Future<void> main(List<String> arguments) async {
 
     var tags = chapter.codeTags;
     var tagNames = _chapterTags[chapterName];
-    if (tagNames.isNotEmpty) {
+    if (tagNames != null && tagNames.isNotEmpty) {
       tags = tagNames.map((name) => book.findTag(chapter, name));
     } else {
       print("Warning, no in-chapter snippets for '$chapterName'");

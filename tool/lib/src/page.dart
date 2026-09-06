@@ -23,9 +23,9 @@ class Page {
   final List<Page> chapters = [];
 
   /// If this page is a chapter page, the part that contains this page.
-  final Page part;
+  final Page? part;
 
-  PageFile _file;
+  PageFile? _file;
 
   Page(this.title, this.part, this.numberString, this.ordinal);
 
@@ -46,10 +46,10 @@ class Page {
 
   /// The code language used for this chapter page or `null` if this isn't one
   /// of the main chapter pages.
-  String get language {
+  String? get language {
     if (isPart) return null;
-    if (part.title == "A Tree-Walk Interpreter") return "java";
-    if (part.title == "A Bytecode Virtual Machine") return "c";
+    if (part?.title == "A Tree-Walk Interpreter") return "java";
+    if (part?.title == "A Bytecode Virtual Machine") return "c";
     return null;
   }
 
@@ -75,7 +75,7 @@ class Page {
 
   bool get hasChallenges => _ensureFile().hasChallenges;
 
-  String get designNote => _ensureFile().designNote;
+  String? get designNote => _ensureFile().designNote;
 
   Iterable<CodeTag> get codeTags => _ensureFile().codeTags.values;
 
@@ -103,7 +103,7 @@ class PageFile {
   final bool hasChallenges;
 
   /// The name of the design note in this page, or `null` if there is none.
-  final String designNote;
+  final String? designNote;
 
   final Map<String, CodeTag> codeTags;
 
@@ -116,7 +116,7 @@ class Header {
   /// The header depth: 1 is the page title, 2 header, 3 subheader.
   final int level;
   final int headerIndex;
-  final int subheaderIndex;
+  final int? subheaderIndex;
   final String name;
 
   Header(this.level, this.headerIndex, this.subheaderIndex, this.name);

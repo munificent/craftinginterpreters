@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:glob/glob.dart';
+import 'package:glob/list_local_fs.dart';
 import 'package:mime_type/mime_type.dart';
 import 'package:path/path.dart' as p;
 import 'package:sass/sass.dart' as sass;
@@ -45,7 +46,7 @@ void _buildPages({bool skipUpToDate = false}) {
   var book = Book();
   var mustache = Mustache();
 
-  DateTime dependenciesModified;
+  DateTime? dependenciesModified;
   if (skipUpToDate) {
     dependenciesModified = _mostRecentlyModified(
         ["asset/mustache/*.html", "c/*.{c,h}", "java/**.java"]);
@@ -71,7 +72,7 @@ void _buildPages({bool skipUpToDate = false}) {
 }
 
 List<int> _buildPage(Book book, Mustache mustache, Page page,
-    {DateTime dependenciesModified}) {
+    {DateTime? dependenciesModified}) {
   // See if the HTML is up to date.
   if (dependenciesModified != null &&
       _isUpToDate(page.htmlPath, page.markdownPath, dependenciesModified)) {
@@ -143,12 +144,16 @@ void _buildSass({bool skipUpToDate = false}) {
     var cssPath =
         p.join("site", p.basenameWithoutExtension(source.path) + ".css");
 
-    if (skipUpToDate && _isUpToDate(cssPath, scssPath, moduleModified)) {
+    if (skipUpToDate &&
+        moduleModified != null &&
+        _isUpToDate(cssPath, scssPath, moduleModified)) {
       continue;
     }
 
-    var output =
-        sass.compile(scssPath, color: true, style: sass.OutputStyle.expanded);
+    var output = sass
+        .compileToResult(scssPath,
+            color: true, style: sass.OutputStyle.expanded)
+        .css;
     File(cssPath).writeAsStringSync(output);
     print("${term.green('-')} $cssPath");
   }
@@ -169,8 +174,9 @@ Future<void> _runServer() async {
 
     try {
       var contents = await File(p.join("site", filePath)).readAsBytes();
+      var contentType = mimeFromExtension(extension);
       return shelf.Response.ok(contents, headers: {
-        HttpHeaders.contentTypeHeader: mimeFromExtension(extension)
+        if (contentType != null) HttpHeaders.contentTypeHeader: contentType,
       });
     } on FileSystemException {
       print(
@@ -196,12 +202,12 @@ bool _isUpToDate(
 }
 
 /// The most recently modified time of all files that match [globs].
-DateTime _mostRecentlyModified(List<String> globs) {
-  DateTime latest;
+DateTime? _mostRecentlyModified(List<String> globs) {
+  DateTime? latest;
   for (var glob in globs) {
     for (var entry in Glob(glob).listSync()) {
-      if (entry is File) {
-        var modified = entry.lastModifiedSync();
+      if (entry case File file) {
+        var modified = file.lastModifiedSync();
         if (latest == null || modified.isAfter(latest)) latest = modified;
       }
     }

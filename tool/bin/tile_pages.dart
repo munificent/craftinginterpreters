@@ -30,7 +30,8 @@ Future<void> main(List<String> arguments) async {
   for (var imageFile in imageFiles) {
     print('Reading ${imageFile.path}...');
     var bytes = await imageFile.readAsBytes();
-    pages.add(decodePng(bytes));
+    var page = decodePng(bytes);
+    if (page != null) pages.add(page);
   }
 
   const columns = 36;
@@ -40,15 +41,16 @@ Future<void> main(List<String> arguments) async {
   var pageWidth = pages.first.width;
   var pageHeight = pages.first.height;
 
-  var tiled = Image.rgb((pageWidth + border) * columns + border,
-      (pageHeight + border) * rows + border);
-  tiled.fill(Color.fromRgb(0, 0, 0));
+  var tiled = Image(
+      width: (pageWidth + border) * columns + border,
+      height: (pageHeight + border) * rows + border);
+  tiled.clear(ColorRgb8(0, 0, 0));
 
   for (var i = 0; i < pages.length; i++) {
     var x = i % columns;
     var y = i ~/ columns;
     print('Tiling page ${i + 1} ($x, $y)...');
-    copyInto(tiled, pages[i],
+    compositeImage(tiled, pages[i],
         dstX: x * (pageWidth + border) + border,
         dstY: y * (pageHeight + border) + border);
   }

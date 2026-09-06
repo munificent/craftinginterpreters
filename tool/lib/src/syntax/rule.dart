@@ -43,13 +43,13 @@ class CaptureRule extends Rule {
   CaptureRule(String pattern, this.tokenTypes) : super._(pattern);
 
   void applyRule(Highlighter highlighter) {
-    var match = highlighter.scanner.lastMatch;
+    var match = highlighter.scanner.lastMatch!;
     for (var i = 0; i < tokenTypes.length; i++) {
       var type = tokenTypes[i];
       if (type.isNotEmpty) {
         highlighter.writeToken(type, match[i + 1]);
       } else {
-        highlighter.writeText(match[i + 1]);
+        highlighter.writeText(match[i + 1]!);
       }
     }
   }
@@ -91,7 +91,7 @@ class IdentifierRule extends Rule {
   IdentifierRule() : super._(r"[a-zA-Z_][a-zA-Z0-9_]*");
 
   void applyRule(Highlighter highlighter) {
-    var identifier = highlighter.scanner.lastMatch[0];
+    var identifier = highlighter.scanner.lastMatch![0]!;
     var type = highlighter.language.words[identifier] ?? "i";
     highlighter.writeToken(type);
   }

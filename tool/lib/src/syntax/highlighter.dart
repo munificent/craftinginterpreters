@@ -13,7 +13,7 @@ const _maxLineLength = 67;
 ///
 /// Wraps the result in a <pre> tag with the given [preClass].
 String formatCode(String language, List<String> lines, Format format,
-    {String preClass, int indent = 0}) {
+    {String? preClass, int indent = 0}) {
   return Highlighter(language, format)._highlight(lines, preClass, indent);
 }
 
@@ -33,7 +33,7 @@ void checkLineLength(String line) {
 class Highlighter {
   final Format _format;
   final StringBuffer _buffer = StringBuffer();
-  StringScanner scanner;
+  late StringScanner scanner;
   final Language language;
 
   /// Whether we are in a multi-line macro started on a previous line.
@@ -43,7 +43,7 @@ class Highlighter {
       : language = grammar.languages[language] ??
             (throw "Unknown language '$language'.");
 
-  String _highlight(List<String> lines, String preClass, int indent) {
+  String _highlight(List<String> lines, String? preClass, int indent) {
     if (!_format.isPrint) {
       _buffer.write("<pre");
       if (preClass != null) _buffer.write(' class="$preClass"');
@@ -53,7 +53,9 @@ class Highlighter {
       // https://html.spec.whatwg.org/#element-restrictions
       // Some snippets deliberately start with a newline which needs to be
       // preserved, so output an extra (discarded) newline in that case.
-      if (_format.isWeb && lines.first.isEmpty) _buffer.writeln();
+      if (_format.isWeb && lines.isNotEmpty && lines.first.isEmpty) {
+        _buffer.writeln();
+      }
     }
 
     for (var line in lines) {
@@ -104,8 +106,8 @@ class Highlighter {
     _buffer.writeln();
   }
 
-  void writeToken(String type, [String text]) {
-    text ??= scanner.lastMatch[0];
+  void writeToken(String type, [String? text]) {
+    text ??= scanner.lastMatch![0]!;
 
     if (_format.isPrint) {
       // Only highlight keywords and comments in XML.
